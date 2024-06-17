@@ -41,19 +41,19 @@ const features = [
       <div className="px-6 max-w-[600px] flex flex-col gap-4 overflow-hidden">
         {[
           {
-            text: "Add LemonSqueezy integration to the boilerplate",
-            secondaryText: "Yes, ship this! ✅",
+            text: "Add styling features",
+            secondaryText: "Yes ✅",
             votes: 48,
             transition: "group-hover:-mt-36 group-hover:md:-mt-28 duration-500",
           },
           {
-            text: "A new pricing table for metered billing",
-            secondaryText: "Maybe ship this 🤔",
+            text: "A new pricing table for only specific features",
+            secondaryText: "Maybe 🤔",
             votes: 12,
           },
           {
-            text: "A new UI library for the dashboard",
-            secondaryText: "But don't ship that ❌",
+            text: "A new UI library",
+            secondaryText: "Nah ❌",
             votes: 1,
           },
         ].map((feature, i) => (

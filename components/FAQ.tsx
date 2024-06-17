@@ -14,7 +14,7 @@ interface FAQItemProps {
 const faqList: FAQItemProps[] = [
   {
     question: "What do I get exactly?",
-    answer: <div className="space-y-2 leading-relaxed">Loreum Ipseum</div>,
+    answer: <div className="space-y-2 leading-relaxed">With influanto, you can create custom links pages, an EPK, a Website, submit to Spotify Curators, and Bulk Comment and DM supporters on Social Media Platforms. </div>,
   },
   {
     question: "Can I get a refund?",
@@ -28,7 +28,7 @@ const faqList: FAQItemProps[] = [
   {
     question: "I have another question",
     answer: (
-      <div className="space-y-2 leading-relaxed">Cool, contact us by email</div>
+      <div className="space-y-2 leading-relaxed">Cool, contact us by email: info@influanto.com</div>
     ),
   },
 ];
