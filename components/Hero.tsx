@@ -11,8 +11,8 @@ const Hero = () => {
           Your all in one music marketing tool.
         </h1>
         <p className="text-lg opacity-80 leading-relaxed">
-          The platform with all you need to build your Links Pages, EPK,
-          Website, and Marketing Content. Send bulk comments and DMs to your supporters on social media.
+          The platform with all you need to market and promote your music: Links Pages, EPK,
+          Website, QR Codes, Marketing Content, Playlist Pitching. Send bulk comments and DMs to your supporters on social media.
         </p>
         <button className="btn btn-primary btn-wide">
           Get {config.appName}
