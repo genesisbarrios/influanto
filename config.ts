@@ -56,7 +56,6 @@ const config = {
             name: "Links Pages(10)",
           },
           { name: "EPK" },
-          { name: "Website" },
           { name: "Extra Styling Features" },
           { name: "Playlist Pitching" },
           { name: "Bulk Comments and DMs" },
