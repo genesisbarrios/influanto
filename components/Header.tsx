@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import ButtonSignin from "./ButtonSignin";
-import logo from "@/app/icon.png";
+import logo from "@/app/TRANSPARENT_LOGO.png";
 import config from "@/config";
 
 const links: {
@@ -56,13 +56,12 @@ const Header = () => {
             <Image
               src={logo}
               alt={`${config.appName} logo`}
-              className="w-8"
+              className="w-12"
               placeholder="blur"
               priority={true}
-              width={32}
-              height={32}
+              width={400}
+              height={100}
             />
-            <img src="./TRANSPARENT_LOGO.png"></img>
           </Link>
         </div>
         {/* Burger button to open menu on mobile */}
@@ -123,13 +122,12 @@ const Header = () => {
               <Image
                 src={logo}
                 alt={`${config.appName} logo`}
-                className="w-8"
+                className="w-12"
                 placeholder="blur"
                 priority={true}
-                width={32}
-                height={32}
+                width={400}
+                height={100}
               />
-              <span className="font-extrabold text-lg">{config.appName}</span>
             </Link>
             <button
               type="button"
