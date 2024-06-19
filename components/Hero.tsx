@@ -12,7 +12,7 @@ const Hero = () => {
         </h1>
         <p className="text-lg opacity-80 leading-relaxed">
           The platform with all you need to market and promote your music: Links Pages, EPK,
-          QR Codes, Marketing Content, Playlist Pitching. Send bulk comments and DMs to your supporters on social media.
+          QR Codes, Marketing Content, and Playlist Pitching. Send bulk comments and DMs to your supporters on social media.
         </p>
         <button className="btn btn-primary btn-wide">
           Get {config.appName}

@@ -62,7 +62,7 @@ const Header = () => {
               width={32}
               height={32}
             />
-            <span className="font-extrabold text-lg">{config.appName}</span>
+            <img src="./TRANSPARENT_LOGO.png"></img>
           </Link>
         </div>
         {/* Burger button to open menu on mobile */}
