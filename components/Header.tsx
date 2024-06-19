@@ -56,11 +56,10 @@ const Header = () => {
             <Image
               src={logo}
               alt={`${config.appName} logo`}
-              className="w-12"
               placeholder="blur"
               priority={true}
-              width={400}
-              height={100}
+              width={100}
+              height={25}
             />
           </Link>
         </div>
@@ -122,11 +121,10 @@ const Header = () => {
               <Image
                 src={logo}
                 alt={`${config.appName} logo`}
-                className="w-12"
                 placeholder="blur"
                 priority={true}
-                width={400}
-                height={100}
+                width={50}
+                height={12}
               />
             </Link>
             <button
