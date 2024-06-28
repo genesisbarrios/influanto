@@ -10,6 +10,7 @@ const Profile = () => {
   return (
     <div className="p-4 bg-white shadow rounded-lg">
       <h2 className="text-2xl font-bold mb-2">Profile</h2>
+      <p>Thanks for signing up!</p>
     </div>
   );
 };
