@@ -7,6 +7,10 @@ import Profile from './Profile';
 import LinkInBio from './LinkInBio';
 import QRCodeGenerator from './QRCodeGenerator';
 import PitchToSpotify from './PitchToSpotify';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/libs/next-auth";
+import connectMongo from "@/libs/mongoose";
+import User from "@/models/User";
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
