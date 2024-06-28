@@ -1,16 +1,51 @@
-import ButtonAccount from "@/components/ButtonAccount";
+"use client";
 
-export const dynamic = "force-dynamic";
+import React, { useState } from 'react';
 
-// This is a private page: It's protected by the layout.js component which ensures the user is authenticated.
-// It's a server compoment which means you can fetch data (like the user profile) before the page is rendered.
-export default async function Dashboard() {
+// Import or define your components here
+import Profile from './Profile';
+import LinkInBio from './LinkInBio';
+import QRCodeGenerator from './QRCodeGenerator';
+import PitchToSpotify from './PitchToSpotify';
+
+export default function Dashboard() {
+  const [activeComponent, setActiveComponent] = useState('profile');
+
+  // Components mapping
+  const components = {
+    'profile': <Profile />,
+    'link-in-bio': <LinkInBio />,
+    'qr-code-generator': <QRCodeGenerator />,
+    'pitch-to-spotify': <PitchToSpotify />,
+  };
+
   return (
-    <main className="min-h-screen p-8 pb-24">
-      <section className="max-w-xl mx-auto space-y-8">
-        <ButtonAccount />
-        <h1 className="text-3xl md:text-4xl font-extrabold">Private Page</h1>
-      </section>
-    </main>
+    <div className="flex min-h-screen bg-base-200">
+      {/* Sidebar menu */}
+      <aside className="w-64 p-8 bg-base-100">
+        <ul className="menu bg-base-100 w-56 p-2 rounded-box">
+        <li>
+            <button className="block p-4 hover:bg-blue-100" onClick={() => setActiveComponent('profile')}>Profile</button>
+          </li>
+          <li>
+            <button className="block p-4 hover:bg-blue-100" onClick={() => setActiveComponent('link-in-bio')}>Link in Bio</button>
+          </li>
+          <li>
+            <button className="block p-4 hover:bg-blue-100" onClick={() => setActiveComponent('qr-code-generator')}>QR Code Generator</button>
+          </li>
+          <li>
+            <button className="block p-4 hover:bg-blue-100" onClick={() => setActiveComponent('pitch-to-spotify')}>Pitch to Spotify</button>
+          </li>
+        </ul>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 p-8 pb-24">
+        <section className="max-w-xl mx-auto space-y-8">
+          {/* Render the active component */}
+          {components[activeComponent]}
+        </section>
+      </main>
+    </div>
   );
 }
