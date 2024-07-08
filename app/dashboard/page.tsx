@@ -16,7 +16,7 @@ export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
 
   // Components mapping
-  const components: { [key: string]: JSX.Element } = {
+  const components : any = {
     'profile': <Profile />,
     'link-in-bio': <LinkInBio />,
     'qr-code-generator': <QRCodeGenerator />,
