@@ -1,6 +1,10 @@
-
-
 import React from 'react';
+// Define a TypeScript interface for the user prop to ensure type safety
+interface User {
+  email: string;
+  name: string;
+  avatarUrl: string; // Assuming there's an avatar URL you want to display
+}
 
 const LinkInBio = () => {
   return (
