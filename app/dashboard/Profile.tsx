@@ -9,12 +9,6 @@ import { useSession, signOut } from "next-auth/react";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 
-// Define a TypeScript interface for the user prop to ensure type safety
-interface User {
-  email: string;
-  name: string;
-  avatarUrl: string; // Assuming there's an avatar URL you want to display
-}
 
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
