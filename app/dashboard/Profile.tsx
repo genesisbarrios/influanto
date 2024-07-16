@@ -1,9 +1,10 @@
+"use client"
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/next-auth";
 import User from "@/models/User";
 import React, { useEffect, useState } from 'react';
-
+import apiClient from "@/libs/api";
 import { useSession, signOut } from "next-auth/react";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
@@ -15,6 +16,7 @@ interface User {
   avatarUrl: string; // Assuming there's an avatar URL you want to display
 }
 
+const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
 const Profile =  () => {
   const { data: session, status } = useSession();
@@ -22,20 +24,48 @@ const Profile =  () => {
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [avatarImage, setAvatarImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // useEffect(() => {
-  //   console.log('gfetch user');
-  //   fetchUser();
-  // }, []);
+  // Assuming avatarImage is a File object
+  const convertToBase64 = (avatarImage:any) => {
+    if (avatarImage && avatarImage instanceof File) {
+      const reader = new FileReader();
 
+      reader.onload = function(event) {
+        // Set the Base64 string to the state
+        setAvatarImage(event.target.result);
+      };
 
-  const handleEditProfile = (e:any) => {
+      reader.onerror = function(error) {
+        console.log('Error: ', error);
+      };
+
+      reader.readAsDataURL(avatarImage);
+    } else {
+      console.log('avatarImage is not a file');
+    }
+  };
+
+  const handleEditProfile = async (e:any) => {
     e.preventDefault();
     console.log('Edit Profile');
     console.log(avatarImage);
     console.log(formName);
     console.log(formEmail);
 
+    try {
+      const { data } = await apiClient.post("/user", {
+        email: formEmail,
+        name: formName,
+        image: avatarImage
+      });
+
+      console.log(data);
+    } catch (e) {
+      console.error(e?.message);
+    } finally {
+      setIsLoading(false);
+    }
 
   }
     
@@ -43,7 +73,8 @@ const Profile =  () => {
   const handleFileSelection = (e:any) => {
     if (e.target.files && e.target.files.length > 0) {
       // Update the state with the first selected file
-      setAvatarImage(e.target.files[0]);
+      const avatar = convertToBase64(e.target.files[0]);
+      setAvatarImage(avatar);
     }
   };
 
@@ -72,7 +103,7 @@ const Profile =  () => {
           onClick={() => setEditing(true)} >
           Edit
         </button>
-        <img src={session.user.image} style={{ borderRadius: '50%' }} alt="Avatar" />
+        <img src={session.user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%' }} alt="Avatar" />
         <p>{session.user.name}</p>
         <p>{session.user.email}</p>
        
@@ -83,7 +114,7 @@ const Profile =  () => {
       <div className="p-4 bg-white shadow rounded-lg">
         <h2 className="text-2xl font-bold mb-2 inline">Profile</h2>
       
-        <img src={session.user.image} style={{ borderRadius: '50%' }} alt="Avatar" />
+       <img src={session.user.image} style={{ borderRadius: '50%', width:"50%" }} alt="Avatar" />
         <form>
           <label className="label">Replace Avatar</label>
           <input

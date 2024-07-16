@@ -8,16 +8,9 @@ import { useSession, signOut } from "next-auth/react";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 
-// Define a TypeScript interface for the user prop to ensure type safety
-interface User {
-  email: string;
-  name: string;
-  avatarUrl: string; // Assuming there's an avatar URL you want to display
-}
 
 
-
-const Profile =  () => {
+const LinkInBio =  () => {
   const { data: session, status } = useSession();
   const [isEditing, setEditing] = useState(false);
   const [formName, setFormName] = useState("");
@@ -97,4 +90,4 @@ const Profile =  () => {
  
 };
 
-export default Profile;
+export default LinkInBio;
