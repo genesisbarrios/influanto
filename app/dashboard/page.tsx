@@ -10,6 +10,7 @@ import PitchToSpotify from './PitchToSpotify';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/next-auth";
 import User from "@/models/User";
+import ButtonAccount from '@/components/ButtonAccount';
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
@@ -19,7 +20,7 @@ export default function Dashboard() {
     'profile': <Profile />,
     'link-in-bio': <LinkInBio />,
     'qr-code-generator': <QRCodeGenerator />,
-    'pitch-to-spotify': <PitchToSpotify />,
+    'pitch-to-spotify': <PitchToSpotify />
   };
 
   return (

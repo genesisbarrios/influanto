@@ -17,7 +17,7 @@ export async function POST(req) {
     const body = await req.json();
 
     try {
-      const user = await User.findById(id);
+      const user = await User.findOne({_id:id});
       console.log(session.user)
       console.log(body);
 

@@ -43,6 +43,7 @@ const Profile =  () => {
   const handleEditProfile = async (e:any) => {
     e.preventDefault();
     console.log('Edit Profile');
+    console.log(session.user.image);
     console.log(avatarImage);
     console.log(formName);
     console.log(formEmail);
@@ -100,7 +101,12 @@ const Profile =  () => {
         <img src={session.user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%' }} alt="Avatar" />
         <p>{session.user.name}</p>
         <p>{session.user.email}</p>
-       
+        <button 
+            className="btn btn-danger btn-block btn-sm btn-narrow" 
+            style={{width:"35%", display:"inline", margin:"10% 0 2% 0%", backgroundColor:"darkgrey"}}
+            onClick={(e) => signOut()} >
+            Sign Out
+        </button>
       </div>
     );
   }else{
