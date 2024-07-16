@@ -93,7 +93,7 @@ const Profile =  () => {
         <h2 className="text-2xl font-bold mb-2 inline">Profile</h2>   
         <button 
           className="btn btn-primary btn-block btn-sm btn-narrow"
-          style={{width:"10%", display:"inline", margin:"0 5%"}}
+          style={{width:"22%", display:"inline", margin:"0 5%"}}
           onClick={() => setEditing(true)} >
           Edit
         </button>
@@ -126,14 +126,14 @@ const Profile =  () => {
           <br />
           <button 
             className="btn btn-primary btn-block btn-sm btn-narrow"
-            style={{width:"15%", display:"inline", margin:"2% 0"}}
+            style={{width:"35%", display:"inline", margin:"2% 0"}}
             onClick={(e) => handleEditProfile(e)} 
             type="submit">
             Submit
         </button>
         <button
           className="btn btn-alert btn-block btn-sm btn-narrow"
-          style={{ width: "15%", display: "inline", margin: "2% 5%" }}
+          style={{ width: "35%", display: "inline", margin: "2% 5%" }}
           onClick={() => setEditing(false)}> {/* Changed to setEditing(false) to handle cancel */}
           Cancel
         </button>

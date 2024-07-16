@@ -25,19 +25,19 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-screen bg-base-200">
       {/* Sidebar menu */}
-      <aside className="w-64 p-8 bg-base-100">
-        <ul className="menu bg-base-100 w-56 p-2 rounded-box">
+      <aside className="w-1/4 p-4 bg-base-100 sm:w-1/4 sm:p-8">
+        <ul className="menu bg-base-100 w-full p-2 rounded-box">
         <li>
-            <button className="block p-4 hover:bg-blue-100" onClick={() => setActiveComponent('profile')}>Profile</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('profile')}>Profile</button>
           </li>
           <li>
-            <button className="block p-4 hover:bg-blue-100" onClick={() => setActiveComponent('link-in-bio')}>Link in Bio</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('link-in-bio')}>Link in Bio</button>
           </li>
           <li>
-            <button className="block p-4 hover:bg-blue-100" onClick={() => setActiveComponent('qr-code-generator')}>QR Code Generator</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('qr-code-generator')}>QR Code Generator</button>
           </li>
           <li>
-            <button className="block p-4 hover:bg-blue-100" onClick={() => setActiveComponent('pitch-to-spotify')}>Pitch to Spotify</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('pitch-to-spotify')}>Pitch to Spotify</button>
           </li>
         </ul>
       </aside>

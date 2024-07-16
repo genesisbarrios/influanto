@@ -16,10 +16,6 @@ export async function POST(req) {
 
     const body = await req.json();
 
-    if (!body.email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
-    }
-
     try {
       const user = await User.findById(id);
       console.log(session.user)
@@ -28,10 +24,17 @@ export async function POST(req) {
       if (!user) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
-
-      user.email = body.email;
-      user.name = body.name;
-      user.image = body.image;
+        if(body.email){
+            user.email = body.email;
+        }
+        
+        if(body.name){
+            user.name = body.name;
+        }
+        if(body.image){
+            user.image = body.image;
+        }
+        
       await user.save();
 
       return NextResponse.json({ data: user }, { status: 200 });
