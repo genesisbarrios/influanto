@@ -9,7 +9,6 @@ import { useSession, signOut } from "next-auth/react";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 
-
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
 const Profile =  () => {
@@ -19,7 +18,7 @@ const Profile =  () => {
   const [formEmail, setFormEmail] = useState("");
   const [avatarImage, setAvatarImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [alert, setAlertt] = useState("");
   // Assuming avatarImage is a File object
   const convertToBase64 = (avatarImage:any) => {
     if (avatarImage && avatarImage instanceof File) {
@@ -56,10 +55,13 @@ const Profile =  () => {
       });
 
       console.log(data);
+      setAlertt("Profile updated successfully");
     } catch (e) {
-      console.error(e?.message);
+      //console.error(e?.message);
+      setAlertt(e?.message);
     } finally {
       setIsLoading(false);
+      setEditing(false);
     }
 
   }
@@ -101,9 +103,10 @@ const Profile =  () => {
         <img src={session.user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%' }} alt="Avatar" />
         <p>{session.user.name}</p>
         <p>{session.user.email}</p>
+        {alert && <div className="alert mt-5">{alert}</div>}
         <button 
             className="btn btn-danger btn-block btn-sm btn-narrow" 
-            style={{width:"35%", display:"inline", margin:"10% 0 2% 0%", backgroundColor:"darkgrey"}}
+            style={{width:"35%", display:"inline", margin:"5% 0 2% 0%", backgroundColor:"darkgrey"}}
             onClick={(e) => signOut()} >
             Sign Out
         </button>
