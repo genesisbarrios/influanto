@@ -100,7 +100,7 @@ const Profile =  () => {
           onClick={() => setEditing(true)} >
           Edit
         </button>
-        <img src={session.user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%' }} alt="Avatar" />
+        <img src={session.user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"15%"  }} alt="Avatar" />
         <p>{session.user.name}</p>
         <p>{session.user.email}</p>
         {alert && <div className="alert mt-5 w-1/2">{alert}</div>}
@@ -117,7 +117,7 @@ const Profile =  () => {
       <div className="p-4 bg-white shadow rounded-lg">
         <h2 className="text-2xl font-bold mb-2 inline">Profile</h2>
       
-       <img src={session.user.image} style={{ borderRadius: '50%', width:"50%" }} alt="Avatar" />
+       <img src={session.user.image} style={{ borderRadius: '50%', width:"15%" }} alt="Avatar" />
         <form>
           <label className="label">Replace Avatar</label>
           <input

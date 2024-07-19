@@ -4,7 +4,7 @@ import { authOptions } from "@/libs/next-auth";
 import connectMongo from "@/libs/mongoose";
 import User from "@/models/User";
 
-export async function POST(req) {
+export async function POST(req: { json: () => any; }) {
   const session = await getServerSession(authOptions);
  
 

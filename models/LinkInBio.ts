@@ -4,7 +4,31 @@ import toJSON from "./plugins/toJSON";
 // LinkInBio SCHEMA
 const linkInBioSchema = new mongoose.Schema(
   {
-   
+    userId:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    name: {
+      type: String,
+    },
+    location: {
+      type: String,
+    },
+    logoImage: {
+      type: String,
+    },
+    headerImage: {
+      type: String,
+    },
+    socials: {
+      type: Array,
+    },
+    streamingLinks: {
+      type: Array,
+    },
+    links: {
+      type: Array,
+    },
   },
   {
     timestamps: true,
