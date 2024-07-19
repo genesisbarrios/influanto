@@ -78,6 +78,9 @@ const Footer = () => {
                 <Link href="https://X.com/_influanto" target="_blank" className="link link-hover">
                   Twitter(X)
                 </Link>
+                <Link href="https://Tiktok.com/@_influanto" target="_blank" className="link link-hover">
+                  TikTok
+                </Link>
               </div>
             </div>
 

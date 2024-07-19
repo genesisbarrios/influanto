@@ -103,7 +103,7 @@ const Profile =  () => {
         <img src={session.user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%' }} alt="Avatar" />
         <p>{session.user.name}</p>
         <p>{session.user.email}</p>
-        {alert && <div className="alert mt-5">{alert}</div>}
+        {alert && <div className="alert mt-5 w-1/2">{alert}</div>}
         <button 
             className="btn btn-danger btn-block btn-sm btn-narrow" 
             style={{width:"35%", display:"inline", margin:"5% 0 2% 0%", backgroundColor:"darkgrey"}}

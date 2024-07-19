@@ -24,14 +24,14 @@ export async function POST(req) {
       if (!user) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
-        if(body.email){
+        if(body.email != '' || body.email != null){
             user.email = body.email;
         }
         
-        if(body.name){
+        if(body.name != '' || body.name != null){
             user.name = body.name;
         }
-        if(body.image){
+        if(body.image != '' || body.image != null){
             user.image = body.image;
         }
         

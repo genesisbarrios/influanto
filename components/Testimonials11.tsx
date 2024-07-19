@@ -80,9 +80,9 @@ const list: {
 }[] = [
   {
     // Show @username for social media like Twitter. Does not link anywhere but cool to display
-    username: "marclou",
-    name: "Marc Lou",
-    text: "Really easy to use.",
+    username: "_influanto",
+    name: "influanto",
+    text: "Your all in one music marketing tool.",
     // use refTypes.other if you don't want to display an icon
     type: refTypes.twitter,
     // Link to the person's testimonial. It's more trustable
