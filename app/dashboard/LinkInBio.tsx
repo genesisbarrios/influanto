@@ -140,7 +140,7 @@ const LinkInBio =  () => {
             onClick={(e) => handleEditLinkInBio(e)} 
             type="submit">
             Submit
-        </button>
+        </button> 
         <button
           className="btn btn-alert btn-block btn-sm btn-narrow"
           style={{ width: "35%", display: "inline", margin: "2% 5%" }}

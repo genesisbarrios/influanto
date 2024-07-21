@@ -17,6 +17,83 @@ const userSchema = new mongoose.Schema(
     image: {
       type: String,
     },
+    location: {
+      type: String,
+    },
+    instagram: {
+      type: String,
+      lowercase: true,
+    },
+    twitter: {
+      type: String,
+      lowercase: true,
+    },
+    facebook: {
+      type: String,
+      lowercase: true,
+    },
+    linkedin: {
+      type: String,
+      lowercase: true,
+    },
+    youtube: {
+      type: String,
+      lowercase: true,
+    },
+    tiktok: {
+      type: String,
+      lowercase: true,
+    },
+    github: {
+      type: String,
+      lowercase: true,
+    },
+    spotify:{
+      type: String,
+      lowercase: true,
+    },
+    appleMusic:{
+      type: String,
+      lowercase: true,
+    },
+    tidal:{
+      type: String,
+      lowercase: true,
+    },
+    amazonMusic:{
+      type: String,
+      lowercase: true,
+    },
+    soundcloud:{
+      type: String,
+      lowercase: true,
+    },
+    deezer:{  
+      type: String,
+      lowercase: true,
+    },
+    pandora:{
+      type: String,
+      lowercase: true,
+    },
+    googlePlay:{
+      type: String,
+      lowercase: true,
+    },
+    patreon:{
+      type: String,
+      lowercase: true,
+    },
+    substack:{
+      type: String,
+      lowercase: true,
+    },
+    website: {
+      type: String,
+    },
+    bio: {
+      type: String,
+    },
     // Used in the Stripe webhook to identify the user in Stripe and later create Customer Portal or prefill user credit card details
     customerId: {
       type: String,

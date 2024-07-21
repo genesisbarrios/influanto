@@ -17,8 +17,28 @@ const Profile =  () => {
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [avatarImage, setAvatarImage] = useState(null);
+  const [location, setLocation] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [twitter, setTwitter] = useState("");
+  const [facebook, setFacebook] = useState("");
+  const [linkedin, setLinkedIn] = useState("");
+  const [youtube, setYouTube] = useState("");
+  const [tiktok, setTikTok] = useState("");
+  const [github, setGithub] = useState("");
+  const [spotify, setSpotify] = useState("");
+  const [tidal, setTidal] = useState("");
+  const [amazonMusic, setAmazonMusic] = useState("");
+  const [soundcloud, setSoundCloud] = useState("");
+  const [deezer, setDeezer] = useState("");
+  const [pandora, setPandora] = useState("");
+  const [googlePlay, setGooglePlay] = useState("");
+  const [patreon, setPatreon] = useState("");
+  const [substack, setSubstack] = useState("");
+  const [website, setWebsite] = useState("");
+  const [bio, setBio] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
-  const [alert, setAlertt] = useState("");
+  const [alert, setAlertt] = useState(""); 
   // Assuming avatarImage is a File object
   const convertToBase64 = (avatarImage:any) => {
     if (avatarImage && avatarImage instanceof File) {
@@ -46,7 +66,7 @@ const Profile =  () => {
     console.log(avatarImage);
     console.log(formName);
     console.log(formEmail);
-
+    setIsLoading(true);
     try {
       const { data } = await apiClient.post("/user", {
         email: formEmail,
@@ -55,18 +75,19 @@ const Profile =  () => {
       });
 
       console.log(data);
-      setAlertt("Profile updated successfully");
+      setAlertt("Loading.. Updating Your Profile..");
+    
     } catch (e) {
       //console.error(e?.message);
       setAlertt(e?.message);
     } finally {
       setIsLoading(false);
       setEditing(false);
+      setAlertt("Profile updated successfully");
     }
 
   }
     
-
   const handleFileSelection = (e:any) => {
     if (e.target.files && e.target.files.length > 0) {
       // Update the state with the first selected file
@@ -83,6 +104,46 @@ const Profile =  () => {
   const handleEmailChange = (e:any) => {
     console.log('handle Email Change')
     setFormEmail(e.target.value);
+  };
+
+  const handleLocationChange = (e:any) => {
+    console.log('handle Location Change')
+    setLocation(e.target.value);
+  };
+
+  const handleInstagramChange = (e:any) => {
+    console.log('handle Instagram Change')
+    setInstagram(e.target.value);
+  };
+
+  const handleTwitterChange = (e:any) => {
+    console.log('handle Twitter Change')
+    setTwitter(e.target.value);
+  };
+
+  const handleFacebookChange = (e:any) => {
+    console.log('handle Facebook Change')
+    setFacebook(e.target.value);
+  };
+
+  const handleLinkedInChange = (e:any) => {
+    console.log('handle Facebook Change')
+    setFacebook(e.target.value);
+  };
+
+  const handleYouTubeChange = (e:any) => {
+    console.log('handle Facebook Change')
+    setFacebook(e.target.value);
+  };
+
+  const handleTikTokChange = (e:any) => {
+    console.log('handle Facebook Change')
+    setFacebook(e.target.value);
+  };
+
+  const handleGithubChange = (e:any) => {
+    console.log('handle Facebook Change')
+    setFacebook(e.target.value);
   };
 
    // Check if user data is not yet loaded
@@ -127,11 +188,36 @@ const Profile =  () => {
               onChange={(e) => handleFileSelection(e)}
             />
 
-          <label>name</label>
+          <label>Name</label>
           <input type="text" className="input mb-2 w-full" placeholder={session.user.name} onChange={(e) => handleNameChange(e)}/>
           <br />
-          <label>email</label> 
+          <label>E-Mail</label> 
           <input type="email" className="input mb-2 w-full" placeholder={session.user.email} onChange={(e) => handleEmailChange(e)} />
+          <br />
+          <label>Location</label> 
+          <input type="text" className="input mb-2 w-full" placeholder={location} onChange={(e) => handleLocationChange(e)} />
+          <br />
+          <h1>Socials</h1>
+          <label>Instagram</label> 
+          <input type="text" className="input mb-2 w-full" placeholder={instagram} onChange={(e) => handleInstagramChange(e)} />
+          <br />
+          <label>Twitter(X)</label> 
+          <input type="text" className="input mb-2 w-full" placeholder={twitter} onChange={(e) => handleTwitterChange(e)} />
+          <br />
+          <label>FaceBook</label> 
+          <input type="text" className="input mb-2 w-full" placeholder={facebook} onChange={(e) => handleFacebookChange(e)} />
+          <br />
+          <label>LinkedIn</label> 
+          <input type="text" className="input mb-2 w-full" placeholder={linkedin} onChange={(e) => handleLinkedInChange(e)} />
+          <br />
+          <label>YouTube</label> 
+          <input type="text" className="input mb-2 w-full" placeholder={youtube} onChange={(e) => handleYouTubeChange(e)} />
+          <br />
+          <label>TikTok</label> 
+          <input type="text" className="input mb-2 w-full" placeholder={tiktok} onChange={(e) => handleTikTokChange(e)} />
+          <br />
+          <label>GitHub</label> 
+          <input type="text" className="input mb-2 w-full" placeholder={github} onChange={(e) => handleGithubChange(e)} />
           <br />
           <button 
             className="btn btn-primary btn-block btn-sm btn-narrow"
