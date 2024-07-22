@@ -7,7 +7,6 @@ import User from "@/models/User";
 export async function POST(req: { json: () => any; }) {
   const session = await getServerSession(authOptions);
  
-
   if (session) {
     await connectMongo();
     console.log('session user id')

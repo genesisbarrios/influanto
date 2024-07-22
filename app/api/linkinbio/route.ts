@@ -17,7 +17,7 @@ export async function POST(req : { json: () => any; }) {
     const body = await req.json();
 
     try {
-      const user = await User.findOne({_id:id});
+      const user = await LinkInBio.findOne({_id:id});
       console.log(session.user)
       console.log(body);
 

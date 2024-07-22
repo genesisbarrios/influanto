@@ -76,7 +76,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
     },
-    googlePlay:{
+    youtubeMusic:{
       type: String,
       lowercase: true,
     },
