@@ -6,6 +6,7 @@ import connectMongo from "@/libs/mongoose";
 import { authOptions } from "@/libs/next-auth";
 import { NextResponse } from "next/server";
 import { NextRequest } from 'next/server';
+import { useSession, signOut } from "next-auth/react";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -21,6 +22,7 @@ export async function GET(req: NextRequest) {
       console.log(user);
 
       if (!user) {
+        signOut();
         return NextResponse.json(
           { error: "User Not Found" },
           { status: 404 }
