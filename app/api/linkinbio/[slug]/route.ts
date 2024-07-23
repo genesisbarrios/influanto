@@ -4,8 +4,9 @@ import { getServerSession } from "next-auth/next";
 import connectMongo from "@/libs/mongoose";
 import { authOptions } from "@/libs/next-auth";
 import { NextResponse } from "next/server";
+import { NextRequest } from 'next/server';
 
-export async function GET(req: { json: () => any; }, {params}: {params: {slug: string}}) {
+export async function GET(req: NextRequest, {params}: {params: {slug: string}}) {
     await connectMongo();
 
     try {
