@@ -3,8 +3,9 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import connectMongo from "@/libs/mongoose";
 import User from "@/models/User";
+import { NextRequest } from 'next/server';
 
-export async function POST(req: { json: () => any; }) {
+export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
  
   if (session) {
