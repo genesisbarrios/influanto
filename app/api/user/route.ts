@@ -33,7 +33,70 @@ export async function POST(req: { json: () => any; }) {
         if(body.image != '' || body.image != null){
             user.image = body.image;
         }
-        
+        if(body.location != '' || body.location != null){
+          user.location = body.location;
+        }
+        if(body.bio != '' || body.bio != null){
+          user.bio = body.bio;
+        }
+        if(body.website != '' || body.website != null){
+          user.website = body.website;
+        }
+        if(body.instagram != '' || body.instagram != null){
+          user.instagram = body.instagram;
+        }
+        if(body.twitter != '' || body.twitter != null){
+          user.twitter = body.twitter;
+        }
+        if(body.facebook != '' || body.facebook != null){
+          user.facebook = body.facebook;
+        }
+        if(body.linkedin != '' || body.linkedin != null){
+          user.linkedin = body.linkedin;
+        }
+        if(body.youtube != '' || body.youtube != null){
+          user.youtube = body.youtube;
+        }
+        if(body.tiktok != '' || body.tiktok != null){
+          user.tiktok = body.tiktok;
+        }
+        if(body.telegram != '' || body.telegram != null){
+          user.telegram = body.telegram
+        }
+        if(body.github != '' || body.github != null){
+          user.github = body.github;
+        }
+        if(body.patreon != '' || body.patreon != null){
+          user.patreon = body.patreon;
+        }
+        if(body.substack != '' || body.substack != null){
+          user.substack = body.substack;
+        }
+        if(body.spotify != '' || body.spotify != null){
+          user.spotify = body.spotify;
+        }
+        if(body.appleMusic != '' || body.appleMusic != null){
+          user.appleMusic = body.appleMusic;
+        }
+        if(body.tidal != '' || body.tidal != null){
+          user.tidal = body.tidal;
+        }
+        if(body.amazonMusic != '' || body.amazonMusic != null){
+          user.amazonMusic = body.amazonMusic;
+        }
+        if(body.deezer != '' || body.deezer != null){
+          user.deezer = body.deezer;
+        }
+        if(body.pandora != '' || body.pandora != null){
+          user.pandora = body.pandora;
+        }
+        if(body.youtubeMusic != '' || body.youtubeMusic != null){
+          user.youtubeMusic = body.youtubeMusic;
+        }
+        if(body.soundcloud != '' || body.soundcloud != null){
+          user.soundcloud = body.soundcloud;
+        }
+
       await user.save();
 
       return NextResponse.json({ data: user }, { status: 200 });

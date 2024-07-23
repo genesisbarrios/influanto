@@ -12,7 +12,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
       lowercase: true,
-      private: true,
     },
     image: {
       type: String,
@@ -25,6 +24,10 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
     },
     twitter: {
+      type: String,
+      lowercase: true,
+    },
+    telegram: {
       type: String,
       lowercase: true,
     },

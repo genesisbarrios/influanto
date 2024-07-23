@@ -8,7 +8,10 @@ import apiClient from "@/libs/api";
 import { useSession, signOut } from "next-auth/react";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
-
+import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGlobe, faLocation } from "@fortawesome/free-solid-svg-icons";
+import { set } from "mongoose";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
 const Profile =  () => {
@@ -52,7 +55,35 @@ const Profile =  () => {
     try {
       const { data } = await apiClient.get("/get-user");
       console.log(data);
-      setUser(data.data);
+      console.log(data.email);
+      setAvatarImage(data.image);
+      setFormName(data.name);
+      setFormEmail(data.email);
+      setLocation(data.location);
+      setWebsite(data.website);
+      setBio(data.bio);
+      setInstagram(data.instagram);
+      setTwitter(data.twitter);
+      setFacebook(data.facebook);
+      setLinkedIn(data.linkedin);
+      setYouTube(data.youtube);
+      setTikTok(data.tiktok);
+      setGithub(data.github);
+      setPatreon(data.patreon);
+      setSubstack(data.substack);
+      setTelegram(data.telegram);
+      setEtsy(data.etsy);
+      setSpotify(data.spotify);
+      setAppleMusic(data.appleMusic);
+      setTidal(data.tidal);
+      setAmazonMusic(data.amazonMusic);
+      setSoundCloud(data.soundcloud);
+      setDeezer(data.deezer);
+      setPandora(data.pandora);
+      setYouTubeMusic(data.youtubeMusic);
+      setBandcamp(data.bandcamp);
+      setSoundxyz(data.soundxyz);
+      setUser(data);
   
     } catch (e) {
       //console.error(e?.message);
@@ -67,6 +98,9 @@ const Profile =  () => {
   useEffect(() => {
    if(!user){
     getUser();
+   }else{
+    //console.log("user:");
+    //console.log(user);
    }
   }, [user]);
   
@@ -93,16 +127,35 @@ const Profile =  () => {
   const handleEditProfile = async (e:any) => {
     e.preventDefault();
     console.log('Edit Profile');
-    console.log(session.user.image);
-    console.log(avatarImage);
-    console.log(formName);
-    console.log(formEmail);
     setIsLoading(true);
     try {
       const { data } = await apiClient.post("/user", {
-        email: formEmail,
         name: formName,
-        image: avatarImage
+        image: avatarImage,
+        location: location,
+        website: website,
+        bio: bio,
+        instagram: instagram,
+        twitter: twitter,
+        facebook: facebook,
+        linkedin: linkedin,
+        youtube: youtube,
+        tiktok: tiktok,
+        github: github,
+        patreon: patreon,
+        substack: substack,
+        telegram: telegram,
+        etsy: etsy,
+        spotify: spotify,
+        appleMusic: appleMusic,
+        tidal: tidal,
+        amazonMusic: amazonMusic,
+        soundcloud: soundcloud,
+        deezer: deezer,
+        pandora: pandora,
+        youtubeMusic: youtubeMusic,
+        bandcamp: bandcamp,
+        soundxyz: soundxyz,
       });
 
       console.log(data);
@@ -116,13 +169,13 @@ const Profile =  () => {
       setEditing(false);
       setAlertt("Profile updated successfully");
     }
-
   }
     
   const handleFileSelection = (e:any) => {
     if (e.target.files && e.target.files.length > 0) {
       // Update the state with the first selected file
       const avatar = convertToBase64(e.target.files[0]);
+      console.log(avatar);
       setAvatarImage(avatar);
     }
   };
@@ -131,11 +184,6 @@ const Profile =  () => {
     console.log('handle Name Change')
    setFormName(e.target.value);
   }
-
-  const handleEmailChange = (e:any) => {
-    console.log('handle Email Change')
-    setFormEmail(e.target.value);
-  };
 
   const handleWebsiteChange = (e:any) => {
     console.log('handle Email Change')
@@ -258,60 +306,93 @@ const Profile =  () => {
   };
 
    // Check if user data is not yet loaded
-  if (!session || !user) {
-    return <div>Thanks for signing up...</div>;
-  }else if (session && user && !isEditing){
+  if (!user) {
+    return <div>Loading...</div>;
+  }else if (user && !isEditing){
     return (
      
       <div className="p-4 bg-white shadow rounded-lg">
-        <h2 className="text-2xl font-bold mb-2 inline">Profile</h2>   
-        <button 
-          className="btn btn-primary btn-block btn-sm btn-narrow"
-          style={{width:"22%", display:"inline", margin:"0 5%"}}
-          onClick={() => setEditing(true)} >
-          Edit
-        </button>
-        <img src={user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"15%"  }} alt="Avatar" />
-        <p>{user.name}</p>
-        <p>{user.email}</p>
-        <p>{user.location}</p>
-        <p>{user.website}</p>
-        <p>{user.bio}</p>
-        {alert && <div className="alert mt-5 w-1/2">{alert}</div>}
-        <button 
-            className="btn btn-danger btn-block btn-sm btn-narrow" 
-            style={{width:"35%", display:"inline", margin:"5% 0 2% 0%", backgroundColor:"darkgrey"}}
-            onClick={(e) => signOut()} >
-            Sign Out
-        </button>
-      </div>
+         <div className="w-full flex justify-between items-center">
+            <h2 className="text-2xl font-bold mb-2">Profile</h2>
+            <button 
+              className="btn btn-primary btn-sm btn-narrow"
+              style={{margin:"0 2%"}}
+              onClick={() => setEditing(true)}>
+              Edit
+            </button>
+          </div>
+          <br></br>
+
+          <div style={{margin:"0 auto",  textAlign:"center" }}>
+            <img src={user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline"}} alt="Avatar" />
+            <p>{user.name}</p>
+            <p>{user.email}</p>
+            <p>
+              {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} />{user.location}</span>}
+              {user.website && <a href={ user.website } target="_blank"><FontAwesomeIcon icon={faGlobe} /> Website</a>}
+            </p>
+          
+            <p>{user.bio}</p>
+            <h3 className="mt-5">Socials</h3>
+            {user.instagram && <a href={"https://instagram.com/" + user.instagram } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faInstagram} /></a>}
+            {user.tiktok && <a href={"https://tiktok.com/@" + user.tiktok } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faTiktok} /></a>}
+            {user.twitter && <a href={"https://twitter.com/" + user.twitter } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTwitter} /></a>}
+            {user.facebook && <a href={user.facebook } target="_blank" style={{marginRight:"10px", color:"blue"}}><FontAwesomeIcon icon={faFacebook} /></a>}
+            {user.youtube && <a href={"https://youtube.com/@" + user.youtube } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faYoutube} /></a>}
+            {user.telegram && <a href={"https://tele.me/" + user.telegram } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faTelegram} /></a>}
+            {user.linkedin && <a href={"https://linkedin.com/" + user.linkedin } target="_blank" style={{marginRight:"10px", color:"darkblue"}}><FontAwesomeIcon icon={faLinkedin} /></a>}
+            {user.github && <a href={"https://github.com/" + user.github } target="_blank" style={{marginRight:"10px"}}><FontAwesomeIcon icon={faGithub} /></a>}
+            {user.patreon && <a href={"https://patreon.com/" + user.patreon } target="_blank" style={{marginRight:"10px", color:"black"}}><FontAwesomeIcon icon={faPatreon} /></a>}
+            {user.substack && <a href={"https://substack.com/" + user.substack } target="_blank" style={{display:"inline-block"}}><img src="/substack.png" width={16}/></a>}
+            
+            <h3 className="mt-5">Listen</h3>
+            {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{marginRight:"10px", color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
+            {user.appleMusic && <a href={"https://music.apple.com/" + user.appleMusic } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
+            {user.tidal && <a href={"https://tidal.com/" + user.tidal } target="_blank" style={{marginRight:"10px", color:"black"}}><img src="/tidal.png" width={16}/></a>}
+            {user.youtubeMusic && <a href={"https://music.youtube.com/channel/" + user.youtubeMusic } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faSquareYoutube} /></a>}
+            {user.amazonMusic && <a href={"https://music.amazon.com/" + user.amazonMusic } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faAmazon} /></a>}
+            {user.soundcloud && <a href={"https://soundcloud.com/" + user.soundcloud } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faSoundcloud} /></a>}
+            {user.deezer && <a href={"https://deezer.com/" + user.deezer } target="_blank" style={{marginRight:"10px", color:"purple"}}><FontAwesomeIcon icon={faDeezer} /></a>}
+            {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{marginRight:"10px", color:"darkblue"}}><img src="/pandora.png" width={16}/></a>}
+            {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
+            {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px"}}><img src="/soundxyz.png" width={16}/></a>}
+            <br></br>
+            {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
+            <br></br>
+            <button 
+                className="btn btn-danger btn-block btn-sm btn-narrow" 
+                style={{width:"35%", display:"inline", margin:"2% 0 2% 0%", backgroundColor:"darkgrey", borderColor:"darkgrey"}}
+                onClick={(e) => signOut()} >
+                Sign Out
+            </button>
+          </div>
+        </div>
     );
-  }else if (session && user && isEditing){
+  }else if (isEditing){
     return (
       <div className="p-4 bg-white shadow rounded-lg">
         <h2 className="text-2xl font-bold mb-2 inline">Profile</h2>
-      
-       <img src={user.image} style={{ borderRadius: '50%', width:"15%" }} alt="Avatar" />
+        <br></br>
+       
         <form>
-          <label className="label">Replace Avatar</label>
-          <input
-              type="file"
-              className="input mb-2 p-2 w-full"
-              accept="image/*"
-              onChange={(e) => handleFileSelection(e)}
-            />
-
+         <img src={user.image} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline"}} alt="Avatar" />
+          <div style={{display:"inline"}}>
+            <input style={{display:"inline", marginLeft:"10px"}} 
+                type="file"
+                className="input mb-2 p-2 w-1/2"
+                accept="image/*"
+                onChange={(e) => handleFileSelection(e)}
+              />
+          </div>
+          <br></br>
           <label>Name</label>
           <input type="text" className="input mb-2 w-full" placeholder={user.name || "enter your name"} onChange={(e) => handleNameChange(e)}/>
-          <br />
-          <label>E-Mail</label> 
-          <input type="email" className="input mb-2 w-full" placeholder={user.email} onChange={(e) => handleEmailChange(e)} />
           <br />
           <label>Location</label> 
           <input type="text" className="input mb-2 w-full" placeholder={user.location || "Enter Your Location"} onChange={(e) => handleLocationChange(e)} />
           <br />
           <label>Website</label> 
-          <input type="text" className="input mb-2 w-full" placeholder={user.website || "Enter Your Website"} onChange={(e) => handleWebsiteChange(e)} />
+          <input type="text" className="input mb-2 w-full" placeholder={user.website || "Website Link"} onChange={(e) => handleWebsiteChange(e)} />
           <br />
           <label>Bio</label> 
           <input type="text" className="input mb-2 w-full" placeholder={user.bio || "Describe Yourself"} onChange={(e) => handleBioChange(e)} />
@@ -372,16 +453,16 @@ const Profile =  () => {
               <input type="text" className="input mb-2" placeholder={user.spotify || "Spotify URI"} onChange={(e) => handleSpotifyChange(e)} />
               <br />
               <label>Apple Music</label> 
-              <input type="text" className="input mb-2" placeholder={user.appleMusic || "Apple Music ID"} onChange={(e) => handleAppleMusicChange(e)} />
+              <input type="text" className="input mb-2" placeholder={user.appleMusic || "Artist ID"} onChange={(e) => handleAppleMusicChange(e)} />
               <br />
               <label>YouTube Music</label>   <br />
-              <input type="text" className="input mb-2" placeholder={user.youtubeMusic || "handle"} onChange={(e) => handleYouTubeMusicChange(e)} />
+              <input type="text" className="input mb-2" placeholder={user.youtubeMusic || "Channel ID"} onChange={(e) => handleYouTubeMusicChange(e)} />
               <br />
               <label>Amazon Music</label> 
-              <input type="text" className="input mb-2" placeholder={user.amazonMusic || "handle"} onChange={(e) => handleAmazonMusicChange(e)} />
+              <input type="text" className="input mb-2" placeholder={user.amazonMusic || "Artist ID"} onChange={(e) => handleAmazonMusicChange(e)} />
               <br />
               <label>Bandcamp</label> 
-              <input type="text" className="input mb-2" placeholder={user.bandcamp || "handle"} onChange={(e) => handleBandcampChange(e)} />
+              <input type="text" className="input mb-2" placeholder={user.bandcamp || "link"} onChange={(e) => handleBandcampChange(e)} />
               <br />
             </div>
             <div className="w-1/2 p-2">
@@ -389,19 +470,20 @@ const Profile =  () => {
               <input type="text" className="input mb-2" placeholder={user.soundcloud || "handle"} onChange={(e) => handleSoundcloudChange(e)} />
               <br />
               <label>Tidal</label> 
-              <input type="text" className="input mb-2" placeholder={user.tidal || "handle"} onChange={(e) => handleTidalChange(e)} />
+              <input type="text" className="input mb-2" placeholder={user.tidal || "Artist ID"} onChange={(e) => handleTidalChange(e)} />
               <br />
               <label>Pandora</label>   <br />
-              <input type="text" className="input mb-2" placeholder={user.pandora || "handle"} onChange={(e) => handlePandoraChange(e)} />
+              <input type="text" className="input mb-2" placeholder={user.pandora || "Artist ID"} onChange={(e) => handlePandoraChange(e)} />
               <br />
               <label>Deezer</label> 
-              <input type="text" className="input mb-2" placeholder={user.deezer || "handle"} onChange={(e) => handleDeezerChange(e)} />
+              <input type="text" className="input mb-2" placeholder={user.deezer || "Artist ID"} onChange={(e) => handleDeezerChange(e)} />
               <br />
               <label>Sound.xyz</label> 
               <input type="text" className="input mb-2" placeholder={user.soundxyz || "handle"} onChange={(e) => handleSoundChange(e)} />
               <br />
             </div>
           </div>}
+          {alert && <div className="alert mt-5 w-1/2">{alert}</div>}
           <button 
             className="btn btn-primary btn-block btn-sm btn-narrow"
             style={{width:"35%", display:"inline", margin:"8% 0 0"}}

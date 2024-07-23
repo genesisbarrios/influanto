@@ -17,7 +17,7 @@ export async function GET(req: { json: () => any; }) {
     const id = session.user.id;
 
     try {
-      const bio = await LinkInBio.findOne({_id:id});
+      const bio = await LinkInBio.findOne({userid:id});
       console.log(bio)
 
       if (!bio) {
