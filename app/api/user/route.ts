@@ -63,6 +63,9 @@ export async function POST(req: { json: () => any; }) {
         if(body.telegram != '' || body.telegram != null){
           user.telegram = body.telegram
         }
+        if(body.bandcamp != '' || body.bandcamp != null){
+          user.bandcamp = body.bandcamp;
+        }
         if(body.github != '' || body.github != null){
           user.github = body.github;
         }
@@ -96,7 +99,9 @@ export async function POST(req: { json: () => any; }) {
         if(body.soundcloud != '' || body.soundcloud != null){
           user.soundcloud = body.soundcloud;
         }
-
+        if(user.soundxyz != '' || body.soundxyz != null){
+          user.soundxyz = body.soundxyz;
+        }
       await user.save();
 
       return NextResponse.json({ data: user }, { status: 200 });

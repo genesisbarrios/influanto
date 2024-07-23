@@ -79,6 +79,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
     },
+    bandcamp:{
+      type: String,
+      lowercase: true,
+    },
+    soundxyz:{
+      type: String,
+      lowercase: true,
+    },
     youtubeMusic:{
       type: String,
       lowercase: true,

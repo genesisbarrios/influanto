@@ -12,7 +12,8 @@ import ButtonEdit from "@/components/ButtonEdit";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
 const LinkInBio =  () => {
-  const { data: session, status } = useSession();
+  const [user, setUser] = useState<any>();
+  const [links, setLinks] = useState<any>();
   const [isEditing, setEditing] = useState(false);
   const [formName, setFormName] = useState("");
   const [location, setLocation] = useState("");
@@ -20,6 +21,46 @@ const LinkInBio =  () => {
   const [headerImage, setHeaderImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  useEffect(() => {
+   if(!user){
+    getUser();
+   }else{
+    //console.log("user:");
+    //console.log(user);
+   }
+  }, [user]);
+
+  const getUser = async () => {
+    try {
+      const { data } = await apiClient.get("/get-user");
+      console.log(data);
+      console.log(data.email);
+      setFormName(data.name);
+      setLocation(data.location);
+      setUser(data);
+  
+    } catch (e) {
+      //console.error(e?.message);
+      setAlertt(e?.message);
+    } 
+  }
+
+  const getLinks = async () => {
+    try {
+      const { data } = await apiClient.get("/get-linkinbio");
+      console.log(data);
+      setLinks(data);
+  
+    } catch (e) {
+      //console.error(e?.message);
+      setAlertt(e?.message);
+    } 
+  }
 
   // Assuming avatarImage is a File object
   const convertToBase64 = (avatarImage:any) => {
@@ -50,12 +91,7 @@ const LinkInBio =  () => {
     try {
       const { data } = await apiClient.post("/linkinbio", {
         name: formName,
-        logoImage: logoImage,
         headerImage: headerImage,
-        location: location,
-        socials: [],
-        streamingLinks: [],
-        links:[]
       });
 
       console.log(data);
@@ -82,13 +118,9 @@ const LinkInBio =  () => {
    setFormName(e.target.value);
   }
 
-  const handleLocationChange = (e:any) => {
-    console.log('handle Email Change')
-    setLocation(e.target.value);
-  };
 
    // Check if user data is not yet loaded
-  if (!session) {
+  if (!user) {
     return <div>Thanks for signing up...</div>;
   }else{
     if (!isEditing){
@@ -96,21 +128,23 @@ const LinkInBio =  () => {
      
       <div className="p-4 bg-white shadow rounded-lg">
         <h2 className="text-2xl font-bold mb-2 inline">Link In Bio</h2>   
-        <button 
+        {/* <button 
           className="btn btn-primary btn-block btn-sm btn-narrow"
           style={{width:"22%", display:"inline", margin:"0 5%"}}
           onClick={() => setEditing(true)} >
           Edit
-        </button>
-        <img src={session.user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"15%"  }} alt="Avatar" />
-        <p>{session.user.name}</p>
+        </button> */}
+        <img src={user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px" }} alt="Avatar" />
+        <p>{user.name}</p>
+
+        <p className="mt-5 mb-5">custom links coming very soon..</p>
+         <a 
+          className="btn btn-primary btn-block btn-lg btn-narrow"
+          style={{width:"auto", display:"inline"}}
+          href={"https://influanto.com/" + user.name} >
+          Visit Your Link In Bio
+        </a>
         {alert && <div className="alert mt-5 w-1/2">{alert}</div>}
-        <button 
-            className="btn btn-danger btn-block btn-sm btn-narrow" 
-            style={{width:"35%", display:"inline", margin:"5% 0 2% 0%", backgroundColor:"darkgrey"}}
-            onClick={(e) => signOut()} >
-            Sign Out
-        </button>
       </div>
     );
   }else{
@@ -118,9 +152,9 @@ const LinkInBio =  () => {
       <div className="p-4 bg-white shadow rounded-lg">
         <h2 className="text-2xl font-bold mb-2 inline">Link In Bio</h2>
       
-       <img src={session.user.image} style={{ borderRadius: '50%', width:"15%" }} alt="Avatar" />
+       <img src={user.image} style={{ borderRadius: '50%', width:"100px", height:"100px" }} alt="Avatar" />
         <form>
-          <label className="label">Replace Avatar</label>
+          <label className="label">Replace Header</label>
           <input
               type="file"
               className="input mb-2 p-2 w-full"
@@ -129,10 +163,7 @@ const LinkInBio =  () => {
             />
 
           <label>name</label>
-          <input type="text" className="input mb-2 w-full" placeholder={session.user.name} onChange={(e) => handleNameChange(e)}/>
-          <br />
-          <label>email</label> 
-          <input type="location" className="input mb-2 w-full" onChange={(e) => handleLocationChange(e)} />
+          <input type="text" className="input mb-2 w-full" placeholder={user.name} onChange={(e) => handleNameChange(e)}/>
           <br />
           <button 
             className="btn btn-primary btn-block btn-sm btn-narrow"
