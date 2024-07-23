@@ -87,7 +87,6 @@ const Profile =  () => {
     } catch (e) {
       //console.error(e?.message);
       setAlertt(e?.message);
-      signOut();
     } 
   }
 

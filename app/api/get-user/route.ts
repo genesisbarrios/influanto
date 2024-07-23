@@ -22,7 +22,6 @@ export async function GET(req: NextRequest) {
       console.log(user);
 
       if (!user) {
-        signOut();
         return NextResponse.json(
           { error: "User Not Found" },
           { status: 404 }
