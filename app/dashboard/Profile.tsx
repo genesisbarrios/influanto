@@ -310,7 +310,7 @@ const Profile =  () => {
   }else if (user && !isEditing){
     return (
      
-      <div className="p-4 bg-white shadow rounded-lg">
+      <div className="p-4 bg-white shadow rounded-md">
          <div className="w-full flex justify-between items-center">
             <h2 className="text-2xl font-bold mb-2">Profile</h2>
             <button 
@@ -331,7 +331,7 @@ const Profile =  () => {
               {user.website && <a href={ user.website } target="_blank"><FontAwesomeIcon icon={faGlobe} /> Website</a>}
             </p>
           
-            <p>{user.bio}</p>
+            <p className="text-xs">{user.bio}</p>
             <h3 className="mt-5">Socials</h3>
             {user.instagram && <a href={"https://instagram.com/" + user.instagram } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faInstagram} /></a>}
             {user.tiktok && <a href={"https://tiktok.com/@" + user.tiktok } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faTiktok} /></a>}
@@ -369,7 +369,7 @@ const Profile =  () => {
     );
   }else if (isEditing){
     return (
-      <div className="p-4 bg-white shadow rounded-lg">
+      <div className="p-4 bg-white shadow rounded-md w-full ">
         <h2 className="text-2xl font-bold mb-2 inline">Profile</h2>
         <br></br>
        
@@ -384,42 +384,41 @@ const Profile =  () => {
               />
           </div>
           <br></br>
-          <label>Name</label>
-          <input type="text" className="input mb-2 w-full" placeholder={user.name || "enter your name"} onChange={(e) => handleNameChange(e)}/>
+          <label style={{display:"block"}}>Name</label>
+          <input type="text" className="input mb-2 sm:w-full" placeholder={user.name || "enter your name"} onChange={(e) => handleNameChange(e)}/>
           <br />
-          <label>Location</label> 
-          <input type="text" className="input mb-2 w-full" placeholder={user.location || "Enter Your Location"} onChange={(e) => handleLocationChange(e)} />
+          <label style={{display:"block"}}>Location</label> 
+          <input type="text" className="input mb-2 sm:w-full" placeholder={user.location || "Enter Your Location"} onChange={(e) => handleLocationChange(e)} />
           <br />
-          <label>Website</label> 
-          <input type="text" className="input mb-2 w-full" placeholder={user.website || "Website Link"} onChange={(e) => handleWebsiteChange(e)} />
+          <label style={{display:"block"}}>Website</label> 
+          <input type="text" className="input mb-2 sm:w-full" placeholder={user.website || "Website Link"} onChange={(e) => handleWebsiteChange(e)} />
           <br />
-          <label>Bio</label> 
-          <input type="text" className="input mb-2 w-full" placeholder={user.bio || "Describe Yourself"} onChange={(e) => handleBioChange(e)} />
+          <label style={{display:"block"}}>Bio</label> 
+          <input type="text" className="input mb-2 m:w-full" placeholder={user.bio || "Describe Yourself"} onChange={(e) => handleBioChange(e)} />
           <br />
 
           <h1>Socials</h1>
-          <div className="w-full flex">
-            <div className="w-1/2 p-2">
-              <label>Instagram</label> 
+          <div className="flex flex-wrap w-full">
+            <div className="w-full lg:w-1/2 p-2">
+              <label style={{display:"block"}}>Instagram</label> 
               <input type="text" className="input mb-2" placeholder={user.instagram || "handle"} onChange={(e) => handleInstagramChange(e)} />
-              <br />
-              <label>Twitter(X)</label> 
+            
+              <label style={{display:"block"}}>Twitter(X)</label> 
               <input type="text" className="input mb-2" placeholder={user.twitter || "handle"} onChange={(e) => handleTwitterChange(e)} />
-              <br />
-              <label>FaceBook</label> 
+            
+              <label style={{display:"block"}}>FaceBook</label> 
               <input type="text" className="input mb-2" placeholder={user.facebook || "link"} onChange={(e) => handleFacebookChange(e)} />
-              <br />
-              <label>LinkedIn</label> 
+              
+              <label style={{display:"block"}}>LinkedIn</label> 
               <input type="text" className="input mb-2" placeholder={user.linkedin || "handle"} onChange={(e) => handleLinkedInChange(e)} />
-              <br />
-              <label>Etsy</label>   <br />
+              
+              <label style={{display:"block"}}>Etsy</label>   <br />
               <input type="text" className="input mb-2" placeholder={user.etsy || "handle"} onChange={(e) => handleEtsyChange(e)} />
-              <br />
-              <label>Patreon</label> 
+              
+              <label style={{display:"block"}}>Patreon</label> 
               <input type="text" className="input mb-2" placeholder={user.patreon || "handle"} onChange={(e) => handlePatreonChange(e)} />
-              <br />
             </div>
-            <div className="w-1/2 p-2">
+            <div className="w-full lg:w-1/2 p-2">
               <label>TikTok</label> 
               <input type="text" className="input mb-2" placeholder={user.tiktok || "handle"} onChange={(e) => handleTikTokChange(e)} />
               <br />
@@ -446,8 +445,8 @@ const Profile =  () => {
             Edit Streaming Links  
           </button> }
           <br></br>
-          {isEditingStreaming && <div className="w-full flex">
-            <div className="w-1/2 p-2">
+          {isEditingStreaming && <div className="flex flex-wrap w-full">
+            <div className="w-full sm:w-1/2 p-2">
               <label>Spotify</label> 
               <input type="text" className="input mb-2" placeholder={user.spotify || "Spotify URI"} onChange={(e) => handleSpotifyChange(e)} />
               <br />
@@ -464,7 +463,7 @@ const Profile =  () => {
               <input type="text" className="input mb-2" placeholder={user.bandcamp || "link"} onChange={(e) => handleBandcampChange(e)} />
               <br />
             </div>
-            <div className="w-1/2 p-2">
+            <div className="w-full sm:w-1/2 p-2">
               <label>Soundcloud</label>   <br />
               <input type="text" className="input mb-2" placeholder={user.soundcloud || "handle"} onChange={(e) => handleSoundcloudChange(e)} />
               <br />

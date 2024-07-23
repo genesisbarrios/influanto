@@ -126,7 +126,7 @@ const LinkInBio =  () => {
     if (!isEditing){
     return (
      
-      <div className="p-4 bg-white shadow rounded-lg">
+      <div className="p-4 bg-white shadow rounded-md">
         <h2 className="text-2xl font-bold mb-2 inline">Link In Bio</h2>   
         {/* <button 
           className="btn btn-primary btn-block btn-sm btn-narrow"
@@ -149,7 +149,7 @@ const LinkInBio =  () => {
     );
   }else{
     return (
-      <div className="p-4 bg-white shadow rounded-lg">
+      <div className="p-4 bg-white shadow rounded-md">
         <h2 className="text-2xl font-bold mb-2 inline">Link In Bio</h2>
       
        <img src={user.image} style={{ borderRadius: '50%', width:"100px", height:"100px" }} alt="Avatar" />
