@@ -110,7 +110,7 @@ const LinkInBioPage =  () => {
         setYouTubeMusic(data.user.youtubeMusic);
         setBandcamp(data.user.bandcamp);
         setSoundxyz(data.user.soundxyz);
-        setUser(data);
+        setUser(data.user);
         setLink1(data.linkInBio.link1?.url);
         setLink2(data.linkInBio.link2?.url);
         setLink3(data.linkInBio.link3?.url);
