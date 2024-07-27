@@ -5,9 +5,24 @@ import connectMongo from "@/libs/mongoose";
 import LinkInBio from "@/models/LinkInBio";
 import { NextRequest } from 'next/server';
 
+interface Link {
+  url: string;
+  name: string;
+}
+
+interface LinkInBio {
+  userId: string;
+  link1?: Link;
+  link2?: Link;
+  link3?: Link;
+  link4?: Link;
+  link5?: Link;
+  link6?: Link;
+}
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
- 
+  let linkInBio = null;
 
   if (session) {
     await connectMongo();
@@ -16,29 +31,36 @@ export async function POST(req: NextRequest) {
     const id = session.user.id;
 
     const body = await req.json();
+    console.log(body);
 
     try {
-      const user = await LinkInBio.findOne({_id:id});
-      console.log(session.user)
-      console.log(body);
-
-      if (!user) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      linkInBio = await LinkInBio.findOne({_id:id});
+      if(linkInBio == null){
+        linkInBio = new LinkInBio();
       }
-        if(body.email != '' || body.email != null){
-            user.email = body.email;
-        }
-        
-        if(body.name != '' || body.name != null){
-            user.name = body.name;
-        }
-        if(body.image != '' || body.image != null){
-            user.image = body.image;
-        }
-        
-      await user.save();
+      linkInBio.userId = id;
+      if (body.link1 && body.link1.url && body.link1.name) {
+        linkInBio.link1 = {url: body.link1.url.toString(), name: body.link1.name.toString()}
+      }
+      if (body.link2 && body.link2.url && body.link2.name) {
+        linkInBio.link2 = {url: body.link2.url.toString(), name: body.link2.name.toString()}
+      }
+      if (body.link3 && body.link3.url && body.link3.name) {
+        linkInBio.link3 = {url: body.link3.url.toString(), name: body.link3.name.toString()}
+      }
+      if (body.link4 && body.link4.url && body.link4.name) {
+        linkInBio.link4 = {url: body.link4.url.toString(), name: body.link4.name.toString()}
+      }
+      if (body.link5 && body.link5.url && body.link5.name) {
+        linkInBio.link5 = {url: body.link5.url.toString(), name: body.link5.name.toString()}
+      }
+      if (body.link6 && body.link6.url && body.link6.name) {
+        linkInBio.link6 = {url: body.link6.url.toString(), name: body.link6.name.toString()}
+      }
+      
+      await linkInBio.save();
 
-      return NextResponse.json({ data: user }, { status: 200 });
+      return NextResponse.json({ data: linkInBio }, { status: 200 });
     } catch (e) {
       console.error(e);
       return NextResponse.json(

@@ -8,27 +8,31 @@ const linkInBioSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
-    name: {
-      type: String,
+    link1: {
+      url: String,
+      name: String,
     },
-    location: {
-      type: String,
+    link2: {
+      url: String,
+      name: String,
     },
-    logoImage: {
-      type: String,
+    link3: {
+      url: String,
+      name: String,
     },
-    headerImage: {
-      type: String,
+    link4: {
+      url: String,
+      name: String,
     },
-    socials: {
-      type: Array,
+    link5: {
+      url: String,
+      name: String,
     },
-    streamingLinks: {
-      type: Array,
+    link6: {
+      url: String,
+      name: String,
     },
-    links: {
-      type: Array,
-    },
+    
   },
   {
     timestamps: true,

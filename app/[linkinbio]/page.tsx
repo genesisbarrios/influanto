@@ -20,8 +20,6 @@ import { usePathname, useSearchParams } from 'next/navigation'
 
 const LinkInBioPage =  () => {
   const router = useRouter();
- 
-
   const [user, setUser] = useState<any>();
   const [userName, setUserName] = useState("");
   const [formName, setFormName] = useState("");
@@ -52,6 +50,20 @@ const LinkInBioPage =  () => {
   const [bandcamp, setBandcamp] = useState("");
   const [soundxyz, setSoundxyz] = useState("");
 
+  const [link1, setLink1] = useState<any>();
+  const [link2, setLink2] = useState<any>();
+  const [link3, setLink3] = useState<any>();
+  const [link4, setLink4] = useState<any>();
+  const [link5, setLink5] = useState<any>();
+  const [link6, setLink6] = useState<any>();
+  const [name1, setName1] = useState<any>();
+  const [name2, setName2] = useState<any>();
+  const [name3, setName3] = useState<any>();
+  const [name4, setName4] = useState<any>();
+  const [name5, setName5] = useState<any>();
+  const [name6, setName6] = useState<any>();
+
+
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
   
@@ -71,36 +83,47 @@ const LinkInBioPage =  () => {
         const data = response.data;
 
         console.log(data);
-        console.log(data.email);
-        setAvatarImage(data.image);
-        setFormName(data.name);
-        setFormEmail(data.email);
-        setLocation(data.location);
-        setWebsite(data.website);
-        setBio(data.bio);
-        setInstagram(data.instagram);
-        setTwitter(data.twitter);
-        setFacebook(data.facebook);
-        setLinkedIn(data.linkedin);
-        setYouTube(data.youtube);
-        setTikTok(data.tiktok);
-        setGithub(data.github);
-        setPatreon(data.patreon);
-        setSubstack(data.substack);
-        setTelegram(data.telegram);
-        setEtsy(data.etsy);
-        setSpotify(data.spotify);
-        setAppleMusic(data.appleMusic);
-        setTidal(data.tidal);
-        setAmazonMusic(data.amazonMusic);
-        setSoundCloud(data.soundcloud);
-        setDeezer(data.deezer);
-        setPandora(data.pandora);
-        setYouTubeMusic(data.youtubeMusic);
-        setBandcamp(data.bandcamp);
-        setSoundxyz(data.soundxyz);
+        setAvatarImage(data.user.image);
+        setFormName(data.user.name);
+        setFormEmail(data.user.email);
+        setLocation(data.user.location);
+        setWebsite(data.user.website);
+        setBio(data.user.bio);
+        setInstagram(data.user.instagram);
+        setTwitter(data.user.twitter);
+        setFacebook(data.user.facebook);
+        setLinkedIn(data.user.linkedin);
+        setYouTube(data.user.youtube);
+        setTikTok(data.user.tiktok);
+        setGithub(data.user.github);
+        setPatreon(data.user.patreon);
+        setSubstack(data.user.substack);
+        setTelegram(data.user.telegram);
+        setEtsy(data.user.etsy);
+        setSpotify(data.user.spotify);
+        setAppleMusic(data.user.appleMusic);
+        setTidal(data.user.tidal);
+        setAmazonMusic(data.user.amazonMusic);
+        setSoundCloud(data.user.soundcloud);
+        setDeezer(data.user.deezer);
+        setPandora(data.user.pandora);
+        setYouTubeMusic(data.user.youtubeMusic);
+        setBandcamp(data.user.bandcamp);
+        setSoundxyz(data.user.soundxyz);
         setUser(data);
-    
+        setLink1(data.linkInBio.link1?.url);
+        setLink2(data.linkInBio.link2?.url);
+        setLink3(data.linkInBio.link3?.url);
+        setLink4(data.linkInBio.link4?.url);
+        setLink5(data.linkInBio.link5?.url);
+        setLink6(data.linkInBio.link6?.url);
+        setName1(data.linkInBio.link1?.name);
+        setName2(data.linkInBio.link2?.name);
+        setName3(data.linkInBio.link3?.name);
+        setName4(data.linkInBio.link4?.name);
+        setName5(data.linkInBio.link5?.name);
+        setName6(data.linkInBio.link6?.name);
+        
         } catch (e) {
         //console.error(e?.message);
         setAlertt(e?.message);
@@ -119,7 +142,7 @@ const LinkInBioPage =  () => {
     //console.log("user:");
     //console.log(user);
    }
-  }, [user, userName]);
+  }, [user, userName, link1, name1, link2, name2, link3, name3, link5, name5, link6, name6, link4, name4]);
   
   
    // Check if user data is not yet loaded
@@ -163,6 +186,14 @@ const LinkInBioPage =  () => {
             {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
             {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
             <br></br>
+
+            <h3 className="mt-5">Links</h3>
+            {link1 && <a href={link1}>{name1}</a>}
+            {link2 && <a href={link2}>{name2}</a>}
+            {link3 && <a href={link3}>{name3}</a>}
+            {link4 && <a href={link4}>{name4}</a>}
+            {link5 && <a href={link5}>{name5}</a>}
+            {link6 && <a href={link6}>{name6}</a>}
             {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
             <br></br>
           </div>

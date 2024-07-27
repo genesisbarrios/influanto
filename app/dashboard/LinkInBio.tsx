@@ -12,8 +12,23 @@ import ButtonEdit from "@/components/ButtonEdit";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
 const LinkInBio =  () => {
+  const {data, status} = useSession();
   const [user, setUser] = useState<any>();
+  const [linkInBio, setLinkInBio] = useState<any>();
   const [links, setLinks] = useState<any>();
+  const [link1, setLink1] = useState<any>();
+  const [link2, setLink2] = useState<any>();
+  const [link3, setLink3] = useState<any>();
+  const [link4, setLink4] = useState<any>();
+  const [link5, setLink5] = useState<any>();
+  const [link6, setLink6] = useState<any>();
+  const [name1, setName1] = useState<any>();
+  const [name2, setName2] = useState<any>();
+  const [name3, setName3] = useState<any>();
+  const [name4, setName4] = useState<any>();
+  const [name5, setName5] = useState<any>();
+  const [name6, setName6] = useState<any>();
+
   const [isEditing, setEditing] = useState(false);
   const [formName, setFormName] = useState("");
   const [location, setLocation] = useState("");
@@ -23,39 +38,33 @@ const LinkInBio =  () => {
   const [alert, setAlertt] = useState("");
 
   useEffect(() => {
-    getUser();
+    getLinks();
   }, []);
 
   useEffect(() => {
-   if(!user){
-    getUser();
+   if(!linkInBio && !isEditing){
+    getLinks();
    }else{
-    //console.log("user:");
-    //console.log(user);
+   
    }
-  }, [user]);
-
-  const getUser = async () => {
-    try {
-      const { data } = await apiClient.get("/get-user");
-      console.log(data);
-      console.log(data.email);
-      setFormName(data.name);
-      setLocation(data.location);
-      setUser(data);
-  
-    } catch (e) {
-      //console.error(e?.message);
-      setAlertt(e?.message);
-    } 
-  }
+  }, [linkInBio, link1, name1, link2, name2, link3, name3, link5, name5, link6, name6, link4, name4]);
 
   const getLinks = async () => {
     try {
-      const { data } = await apiClient.get("/get-linkinbio");
-      console.log(data);
-      setLinks(data);
-  
+      const { data } = await apiClient.get("/get-links");
+      setLinkInBio(data);
+      setLink1(data.link1?.url);
+      setName1(data.link1?.name);
+      setLink2(data.link2?.url);
+      setName2(data.link2?.name);
+      setLink3(data.link3?.url);
+      setName3(data.link3?.name);
+      setLink4(data.link4?.url);
+      setName4(data.link4?.name);
+      setLink5(data.link5?.url);
+      setName5(data.link5?.name);
+      setLink6(data.link6?.url);
+      setName6(data.link6?.name);
     } catch (e) {
       //console.error(e?.message);
       setAlertt(e?.message);
@@ -90,8 +99,12 @@ const LinkInBio =  () => {
 
     try {
       const { data } = await apiClient.post("/linkinbio", {
-        name: formName,
-        headerImage: headerImage,
+        link1: {url: link1, name: name1},
+        link2: {url: link2, name: name2},
+        link3: {url: link3, name: name3},
+        link4: {url: link4, name: name4},
+        link5: {url: link5, name: name5},
+        link6: {url: link6, name: name6}
       });
 
       console.log(data);
@@ -113,57 +126,146 @@ const LinkInBio =  () => {
     }
   };
 
-  const handleNameChange = (e:any) => {
-    console.log('handle Name Change')
-   setFormName(e.target.value);
+  const handleLink1Change = (e:any) => {
+    setLink1(e.target.value.toString());
+  }
+  const handleLink2Change = (e:any) => {
+    setLink2(e.target.value.toString());
+  }
+  const handleLink3Change = (e:any) => {
+    setLink3(e.target.value.toString());
+  }
+  const handleLink4Change = (e:any) => {
+    setLink4(e.target.value.toString());
+  }
+  const handleLink5Change = (e:any) => {
+    setLink5(e.target.value.toString());
+  }
+  const handleLink6Change = (e:any) => {
+    setLink6(e.target.value.toString());
   }
 
+  const handleName1Change = (e:any) => {
+    setName1(e.target.value.toString());
+  }
+  const handleName2Change = (e:any) => {
+    setName2(e.target.value.toString());
+  }
+  const handleName3Change = (e:any) => {
+    setName3(e.target.value.toString());
+  }
+  const handleName4Change = (e:any) => {
+    setName4(e.target.value.toString());
+  }
+  const handleName5Change = (e:any) => {
+    setName5(e.target.value.toString());
+  }
+  const handleName6Change = (e:any) => {
+    setName6(e.target.value.toString());
+  }
 
    // Check if user data is not yet loaded
-  if (!user) {
+  if (!data) {
     return <div>Thanks for signing up...</div>;
   }else{
     if (!isEditing){
     return (
      
       <div className="p-4 bg-white shadow rounded-md">
-        <h2 className="text-2xl font-bold mb-2 inline">Link In Bio</h2>   
-        {/* <button 
-          className="btn btn-primary btn-block btn-sm btn-narrow"
-          style={{width:"22%", display:"inline", margin:"0 5%"}}
-          onClick={() => setEditing(true)} >
-          Edit
-        </button> */}
-        <img src={user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px" }} alt="Avatar" />
-        <p>{user.name}</p>
+         <div className="w-full flex justify-between items-center">
+            <h2 className="text-2xl font-bold mb-2">Link In Bio</h2>
+            <button 
+              className="btn btn-primary btn-sm btn-narrow"
+              style={{margin:"0 2%"}}
+              onClick={() => setEditing(true)}>
+              Edit
+            </button>
+          </div>
+          <br></br>
+        <div style={{margin:"0 auto", textAlign:"center" }}>
+          <img src={data.user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline" }} alt="Avatar" />
+          <p>{data.user.name}</p>
+          <br></br>
+          {linkInBio && 
+            <div>
+             {link1 && 
+             <div className="p-2 border rounded-lg">
+               <a href={link1} target="_blank">{name1}</a>
+             </div>}
 
-        <p className="mt-5 mb-5">custom links coming very soon..</p>
-         <a 
-          className="btn btn-primary btn-block btn-lg btn-narrow"
-          style={{width:"auto", display:"inline"}}
-          href={"https://influanto.com/" + user.name} >
-          Visit Your Link In Bio
-        </a>
-        {alert && <div className="alert mt-5 w-1/2">{alert}</div>}
+              {link2 &&
+              <div className="p-2 border">
+                <a href={link2} target="_blank">{name2}</a>
+              </div>}
+
+              {link3 && 
+              <div className="p-2 border">
+                <a href={link3} target="_blank">{name3}</a>
+              </div>}
+
+              {link4 &&
+              <div className="p-2 border">
+                <a href={link4} target="_blank">{name4}</a>
+              </div>}
+
+              {link5 &&
+              <div className="p-2 border">
+                <a href={link5} target="_blank">{name5}</a>
+              </div>}
+
+              {link6 &&
+              <div className="p-2 border">
+                <a href={link6} target="_blank">{name6}</a>
+              </div>}
+            
+            <br></br>
+              <a 
+              className="btn btn-primary btn-block btn-lg btn-narrow"
+              style={{width:"auto", display:"inline"}}
+              href={"https://influanto.com/" + data.user.name} >
+              Visit 
+            </a>
+              
+            </div>
+            }
+        </div>
+        {alert && <div className="alert mt-5 w-full">{alert}</div>}
       </div>
     );
   }else{
     return (
       <div className="p-4 bg-white shadow rounded-md">
         <h2 className="text-2xl font-bold mb-2 inline">Link In Bio</h2>
-      
-       <img src={user.image} style={{ borderRadius: '50%', width:"100px", height:"100px" }} alt="Avatar" />
         <form>
-          <label className="label">Replace Header</label>
-          <input
-              type="file"
-              className="input mb-2 p-2 w-full"
-              accept="image/*"
-              onChange={(e) => handleFileSelection(e)}
-            />
+        <h1>Edit Links</h1>
+          <div className="flex flex-wrap w-full">
+            <div className="w-full lg:w-full p-2">
+              <label style={{display:"block"}}>Link 1</label> 
+              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link1 || "URL"} onChange={(e) => handleLink1Change(e)} />
+              <input type="text" className="input mb-2" placeholder={linkInBio?.name1 || "NAME"} onChange={(e) => handleName1Change(e)} />
+            
+              <label style={{display:"block"}}>Link 2</label> 
+              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link2 || "URL"} onChange={(e) => handleLink2Change(e)} />
+              <input type="text" className="input mb-2" placeholder={linkInBio?.name2 || "NAME"} onChange={(e) => handleName2Change(e)} />
+            
+              <label style={{display:"block"}}>Link 3</label> 
+              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link3 || "URL"} onChange={(e) => handleLink3Change(e)} />
+              <input type="text" className="input mb-2" placeholder={linkInBio?.name3 || "NAME"} onChange={(e) => handleName3Change(e)} />
+              
+              <label style={{display:"block"}}>Link 4</label> 
+              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link4 || "URL"} onChange={(e) => handleLink4Change(e)} />
+              <input type="text" className="input mb-2" placeholder={linkInBio?.name4 || "NAME"} onChange={(e) => handleName4Change(e)} />
 
-          <label>name</label>
-          <input type="text" className="input mb-2 w-full" placeholder={user.name} onChange={(e) => handleNameChange(e)}/>
+              <label style={{display:"block"}}>Link 5</label>  
+              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link5 || "URL"} onChange={(e) => handleLink5Change(e)} />
+              <input type="text" className="input mb-2" placeholder={linkInBio?.name5 || "NAME"} onChange={(e) => handleName5Change(e)} />
+              
+              <label style={{display:"block"}}>Link 6</label> 
+              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link6 || "URL"} onChange={(e) => handleLink6Change(e)} />
+              <input type="text" className="input mb-2" placeholder={linkInBio?.name6 || "NAME"} onChange={(e) => handleName6Change(e)} />
+            </div>
+          </div>
+
           <br />
           <button 
             className="btn btn-primary btn-block btn-sm btn-narrow"

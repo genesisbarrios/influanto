@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import User from "@/models/User";
+import LinkInBio from "@/models/LinkInBio";
 import { getServerSession } from "next-auth/next";
 import connectMongo from "@/libs/mongoose";
 import { authOptions } from "@/libs/next-auth";
@@ -27,11 +28,22 @@ export async function GET(req: NextRequest, {params}: {params: {slug: string}}) 
                 { error: "Not Found." },
                 { status: 404 }
               );
+        }else{
+            try{
+                const links = await LinkInBio.findOne({ userId: user._id });
+                return NextResponse.json(
+                    { data: {user: user, linkInBio:links} },
+                    { status: 200 }
+                  );
+
+            }catch(e){
+                console.error(e);
+                return NextResponse.json(
+                    { error: "Something went wrong." },
+                    { status: 500 }
+                );
+            }
         }
-        return NextResponse.json(
-            { data: user },
-            { status: 200 }
-          );
     } catch (e) {
         console.error(e);
         return NextResponse.json(
