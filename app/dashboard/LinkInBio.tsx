@@ -44,8 +44,6 @@ const LinkInBio =  () => {
   useEffect(() => {
    if(!linkInBio && !isEditing){
     getLinks();
-   }else{
-   
    }
   }, [linkInBio, link1, name1, link2, name2, link3, name3, link5, name5, link6, name6, link4, name4]);
 
