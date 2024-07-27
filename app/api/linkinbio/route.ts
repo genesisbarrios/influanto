@@ -5,20 +5,6 @@ import connectMongo from "@/libs/mongoose";
 import LinkInBio from "@/models/LinkInBio";
 import { NextRequest } from 'next/server';
 
-interface Link {
-  url: string;
-  name: string;
-}
-
-interface LinkInBio {
-  userId: string;
-  link1?: Link;
-  link2?: Link;
-  link3?: Link;
-  link4?: Link;
-  link5?: Link;
-  link6?: Link;
-}
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
