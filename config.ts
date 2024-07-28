@@ -36,8 +36,9 @@ const config = {
           {
             name: "Links Pages(2)",
           },
-          { name: "EPK" },
+          { name: "Release Pages(3)" },
           { name: "Playlist Pitching" },
+          { name: "QR Code Generator" },
         ],
       },
       {
@@ -55,9 +56,10 @@ const config = {
           {
             name: "Links Pages(10)",
           },
-          { name: "EPK" },
+          { name: "Release Pages(10)" },
           { name: "Extra Styling Features" },
           { name: "Playlist Pitching" },
+          { name: "Advanced QR Code Generator" },
           { name: "Bulk Comments and DMs" },
         ],
       },
