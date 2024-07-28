@@ -6,7 +6,7 @@ const config = {
   appName: "influanto",
   // REQUIRED: a short description of your app for SEO tags (can be overwritten)
   appDescription:
-    " Your all in one music marketing tool.",
+    "Your all in one marketing tool by content creators for content creators.",
   // REQUIRED (no https://, not trialing slash at the end, just the naked domain)
   domainName: "influanto.com",
   crisp: {
@@ -49,8 +49,8 @@ const config = {
         isFeatured: true,
         name: "Influanto Pro",
         description: "You need more power",
-        price: 3.99,
-        priceAnchor: 9.99,
+        price: "Coming Soon",
+        priceAnchor: 8.99,
         features: [
           {
             name: "Links Pages(10)",

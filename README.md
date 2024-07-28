@@ -1,3 +1,3 @@
 # influanto — Typescript
 
-your all in one music marketing tool
+Your all in one marketing tool by content creators for content creators.

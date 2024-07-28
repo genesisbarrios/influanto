@@ -82,7 +82,7 @@ const list: {
     // Show @username for social media like Twitter. Does not link anywhere but cool to display
     username: "_influanto",
     name: "influanto",
-    text: "Your all in one music marketing tool.",
+    text: "Your all in one marketing tool by content creators for content creators.",
     // use refTypes.other if you don't want to display an icon
     type: refTypes.twitter,
     // Link to the person's testimonial. It's more trustable
@@ -93,11 +93,11 @@ const list: {
     // videoSrc: "/jack.mp4"
   },
   {
-    username: "the_mcnaveen",
-    name: "Naveen",
-    text: "Setting up everything from the ground up is a really hard, and time consuming process. What you pay for will save your time for sure.",
+    username: "khrissosick",
+    name: "KHR!S Joao",
+    text: "This is a great idea.",
     type: refTypes.twitter,
-    link: "https://twitter.com/_influanto",
+    link: "https://instagram.com/khrissosick",
   },
 ];
 
