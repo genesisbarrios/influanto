@@ -187,7 +187,6 @@ const LinkInBioPage =  () => {
             {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
             <br></br>
 
-            {link1 && <h3 className="mt-5">Links</h3>}
             {link1 &&  <div className="p-2 border rounded-lg mb-2"><a href={link1} >{name1}</a></div>}
             {link2 &&  <div className="p-2 border rounded-lg mb-2"><a href={link2}>{name2}</a></div>}
             {link3 && <div className="p-2 border rounded-lg mb-2"> <a href={link3}>{name3}</a></div>}
