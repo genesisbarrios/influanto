@@ -24,9 +24,20 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" data-theme={config.colors.theme} className={font.className}>
       {config.domainName && (
+        <>
         <head>
           <PlausibleProvider domain={config.domainName} />
         </head>
+       
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y8YZX4PWTB"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(...args: any[]){dataLayer.push(args)}
+          gtag('js', new Date());
+        
+          gtag('config', 'G-Y8YZX4PWTB');
+        </script>
+        </>
       )}
       <body>
         {/* ClientLayout contains all the client wrappers (Crisp chat support, toast messages, tooltips, etc.) */}
