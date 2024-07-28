@@ -17,9 +17,11 @@ const Hero = () => {
         <p className="text-lg opacity-80 leading-relaxed">
           Coming Soon: QR Codes, Marketing Content, Playlist Pitching, and Send bulk comments and DMs to your supporters on social media.
         </p>
-        <button className="btn btn-primary btn-wide">
-          Get {config.appName}
-        </button>
+        <a href="/login">
+          <button className="btn btn-primary btn-wide">
+            Get {config.appName}
+          </button>
+        </a>
 
         <TestimonialsAvatars priority={true} />
       </div>
