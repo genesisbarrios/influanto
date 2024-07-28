@@ -65,7 +65,7 @@ These Terms of Service ("Terms") govern your use of the influanto website at htt
 
 1. Description of influanto
 
-influanto is your all in one marketing platform by content creators for content creators..
+influanto is the all in one marketing platform for content creators by content creators..
 
 2. Ownership and Usage Rights
 
