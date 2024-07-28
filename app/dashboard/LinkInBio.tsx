@@ -187,27 +187,27 @@ const LinkInBio =  () => {
           {linkInBio && 
             <div>
              {link1 && 
-             <div className="p-2 border rounded-lg">
+             <div className="p-2 border rounded-lg mb-2">
                <a href={link1} target="_blank">{name1}</a>
              </div>}
 
               {link2 &&
-              <div className="p-2 border">
+              <div className="p-2 border rounded-lg mb-2">
                 <a href={link2} target="_blank">{name2}</a>
               </div>}
 
               {link3 && 
-              <div className="p-2 border">
+              <div className="p-2 border rounded-lg mb-2">
                 <a href={link3} target="_blank">{name3}</a>
               </div>}
 
               {link4 &&
-              <div className="p-2 border">
+              <div className="p-2 borde rounded-lg  mb-2">
                 <a href={link4} target="_blank">{name4}</a>
               </div>}
 
               {link5 &&
-              <div className="p-2 border">
+              <div className="p-2 border rounded-lg mb-2">
                 <a href={link5} target="_blank">{name5}</a>
               </div>}
 

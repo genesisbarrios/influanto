@@ -111,18 +111,18 @@ const LinkInBioPage =  () => {
         setBandcamp(data.user.bandcamp);
         setSoundxyz(data.user.soundxyz);
         setUser(data.user);
-        setLink1(data.linkInBio.link1?.url);
-        setLink2(data.linkInBio.link2?.url);
-        setLink3(data.linkInBio.link3?.url);
-        setLink4(data.linkInBio.link4?.url);
-        setLink5(data.linkInBio.link5?.url);
-        setLink6(data.linkInBio.link6?.url);
-        setName1(data.linkInBio.link1?.name);
-        setName2(data.linkInBio.link2?.name);
-        setName3(data.linkInBio.link3?.name);
-        setName4(data.linkInBio.link4?.name);
-        setName5(data.linkInBio.link5?.name);
-        setName6(data.linkInBio.link6?.name);
+        setLink1(data.linkInBio?.link1?.url);
+        setLink2(data.linkInBio?.link2?.url);
+        setLink3(data.linkInBio?.link3?.url);
+        setLink4(data.linkInBio?.link4?.url);
+        setLink5(data.linkInBio?.link5?.url);
+        setLink6(data.linkInBio?.link6?.url);
+        setName1(data.linkInBio?.link1?.name);
+        setName2(data.linkInBio?.link2?.name);
+        setName3(data.linkInBio?.link3?.name);
+        setName4(data.linkInBio?.link4?.name);
+        setName5(data.linkInBio?.link5?.name);
+        setName6(data.linkInBio?.link6?.name);
         
         } catch (e) {
         //console.error(e?.message);
@@ -151,7 +151,7 @@ const LinkInBioPage =  () => {
   }else if (user){
     return (
      
-      <div className="p-4 bg-white shadow w-3/4 rounded-lg" style={{margin:"0 auto", textAlign:"center", marginTop:"15%"}}> 
+      <div className="p-4 bg-white shadow w-3/4 rounded-lg" style={{margin:"0 auto", textAlign:"center", marginTop:"5%"}}> 
           <div style={{margin:"0 auto", textAlign:"center" }}>
             <img src={user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline", marginBottom:"2%"}} alt="Avatar" />
             <p>{user.name}</p>
@@ -187,13 +187,13 @@ const LinkInBioPage =  () => {
             {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
             <br></br>
 
-            <h3 className="mt-5">Links</h3>
-            {link1 && <a href={link1}>{name1}</a>}
-            {link2 && <a href={link2}>{name2}</a>}
-            {link3 && <a href={link3}>{name3}</a>}
-            {link4 && <a href={link4}>{name4}</a>}
-            {link5 && <a href={link5}>{name5}</a>}
-            {link6 && <a href={link6}>{name6}</a>}
+            {link1 && <h3 className="mt-5">Links</h3>}
+            {link1 &&  <div className="p-2 border rounded-lg mb-2"><a href={link1} >{name1}</a></div>}
+            {link2 &&  <div className="p-2 border rounded-lg mb-2"><a href={link2}>{name2}</a></div>}
+            {link3 && <div className="p-2 border rounded-lg mb-2"> <a href={link3}>{name3}</a></div>}
+            {link4 &&  <div className="p-2 border rounded-lg mb-2"><a href={link4}>{name4}</a></div>}
+            {link5 &&  <div className="p-2 border rounded-lg mb-2"><a href={link5}>{name5}</a></div>}
+            {link6 &&  <div className="p-2 border rounded-lg mb-2"><a href={link6}>{name6}</a></div>}
             {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
             <br></br>
           </div>
