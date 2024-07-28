@@ -20,9 +20,12 @@ const CTA = () => {
             Don&apos;t waste time using a bunch of different platforms...
           </p>
 
+          <a href="/api/auth/signin">
           <button className="btn btn-primary btn-wide">
            Sign Up Now
           </button>
+        </a>
+
         </div>
       </div>
     </section>
