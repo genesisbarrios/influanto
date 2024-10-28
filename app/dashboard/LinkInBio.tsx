@@ -169,7 +169,7 @@ const LinkInBio =  () => {
     if (!isEditing){
     return (
      
-      <div className="p-4 bg-white shadow rounded-md">
+      <div className="p-4 bg-white shadow rounded-md text-black">
          <div className="w-full flex justify-between items-center">
             <h2 className="text-2xl font-bold mb-2">Link In Bio</h2>
             <button 
