@@ -8,6 +8,9 @@ const linkInBioSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    backgroundColor:{
+      type: String,
+    },
     link1: {
       url: String,
       name: String,
@@ -29,6 +32,22 @@ const linkInBioSchema = new mongoose.Schema(
       name: String,
     },
     link6: {
+      url: String,
+      name: String,
+    },
+    link7: {
+      url: String,
+      name: String,
+    },
+    link8: {
+      url: String,
+      name: String,
+    },
+    link9: {
+      url: String,
+      name: String,
+    },
+    link10: {
       url: String,
       name: String,
     },

@@ -14,6 +14,7 @@ const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-3
 const LinkInBio =  () => {
   const {data, status} = useSession();
   const [user, setUser] = useState<any>();
+  const [bgColor, setBgColor] = useState<any>();
   const [linkInBio, setLinkInBio] = useState<any>();
   const [links, setLinks] = useState<any>();
   const [link1, setLink1] = useState<any>();
@@ -22,12 +23,20 @@ const LinkInBio =  () => {
   const [link4, setLink4] = useState<any>();
   const [link5, setLink5] = useState<any>();
   const [link6, setLink6] = useState<any>();
+  const [link7, setLink7] = useState<any>();
+  const [link8, setLink8] = useState<any>();
+  const [link9, setLink9] = useState<any>();
+  const [link10, setLink10] = useState<any>();
   const [name1, setName1] = useState<any>();
   const [name2, setName2] = useState<any>();
   const [name3, setName3] = useState<any>();
   const [name4, setName4] = useState<any>();
   const [name5, setName5] = useState<any>();
   const [name6, setName6] = useState<any>();
+  const [name7, setName7] = useState<any>();
+  const [name8, setName8] = useState<any>();
+  const [name9, setName9] = useState<any>();
+  const [name10, setName10] = useState<any>();
 
   const [isEditing, setEditing] = useState(false);
   const [formName, setFormName] = useState("");
@@ -68,6 +77,7 @@ const LinkInBio =  () => {
     try {
       const { data } = await apiClient.get("/get-links");
       setLinkInBio(data);
+      setBgColor(data.backgroundColor);
       setLink1(data.link1?.url);
       setName1(data.link1?.name);
       setLink2(data.link2?.url);
@@ -80,6 +90,14 @@ const LinkInBio =  () => {
       setName5(data.link5?.name);
       setLink6(data.link6?.url);
       setName6(data.link6?.name);
+      setLink7(data.link7?.url);
+      setName7(data.link7?.name);
+      setLink8(data.link8?.url);
+      setName8(data.link8?.name);
+      setLink9(data.link9?.url);
+      setName9(data.link9?.name);
+      setLink10(data.link10?.url);
+      setName10(data.link10?.name);
     } catch (e) {
       //console.error(e?.message);
       setAlertt(e?.message);
@@ -119,7 +137,11 @@ const LinkInBio =  () => {
         link3: {url: link3, name: name3},
         link4: {url: link4, name: name4},
         link5: {url: link5, name: name5},
-        link6: {url: link6, name: name6}
+        link6: {url: link6, name: name6},
+        link7: {url: link7, name: name7},
+        link8: {url: link8, name: name8},
+        link9: {url: link9, name: name9},
+        link10: {url: link10, name: name10}
       });
 
       console.log(data);
@@ -159,6 +181,18 @@ const LinkInBio =  () => {
   const handleLink6Change = (e:any) => {
     setLink6(e.target.value.toString());
   }
+  const handleLink7Change = (e:any) => {
+    setLink7(e.target.value.toString());
+  }
+  const handleLink8Change = (e:any) => {
+    setLink8(e.target.value.toString());
+  }
+  const handleLink9Change = (e:any) => {
+    setLink9(e.target.value.toString());
+  }
+  const handleLink10Change = (e:any) => {
+    setLink10(e.target.value.toString());
+  }
 
   const handleName1Change = (e:any) => {
     setName1(e.target.value.toString());
@@ -177,6 +211,18 @@ const LinkInBio =  () => {
   }
   const handleName6Change = (e:any) => {
     setName6(e.target.value.toString());
+  }
+  const handleName7Change = (e:any) => {
+    setName7(e.target.value.toString());
+  }
+  const handleName8Change = (e:any) => {
+    setName8(e.target.value.toString());
+  }
+  const handleName9Change = (e:any) => {
+    setName9(e.target.value.toString());
+  }
+  const handleName10Change = (e:any) => {
+    setName10(e.target.value.toString());
   }
 
    // Check if user data is not yet loaded
@@ -215,22 +261,42 @@ const LinkInBio =  () => {
 
               {link3 && 
               <div className="p-2 border rounded-lg mb-2">
-                <a href={link3} target="_blank">{name3}</a>
+                <a href={link3.url} target="_blank">{name3}</a>
               </div>}
 
               {link4 &&
               <div className="p-2 borde rounded-lg  mb-2">
-                <a href={link4} target="_blank">{name4}</a>
+                <a href={link4.url} target="_blank">{name4}</a>
               </div>}
 
               {link5 &&
               <div className="p-2 border rounded-lg mb-2">
-                <a href={link5} target="_blank">{name5}</a>
+                <a href={link5.url} target="_blank">{name5}</a>
               </div>}
 
               {link6 &&
               <div className="p-2 border">
-                <a href={link6} target="_blank">{name6}</a>
+                <a href={link6.url} target="_blank">{name6}</a>
+              </div>}
+
+              {link7 &&
+              <div className="p-2 border">
+                <a href={link7.url} target="_blank">{name7}</a>
+              </div>}
+
+              {link8 &&
+              <div className="p-2 border">
+                <a href={link8.url} target="_blank">{name8}</a>
+              </div>}
+
+              {link9 &&
+              <div className="p-2 border">
+                <a href={link9.url} target="_blank">{name9}</a>
+              </div>}
+
+              {link10 &&
+              <div className="p-2 border">
+                <a href={link10.url} target="_blank">{name10}</a>
               </div>}
             
             <br></br>
@@ -256,28 +322,44 @@ const LinkInBio =  () => {
           <div className="flex flex-wrap w-full">
             <div className="w-full lg:w-full p-2">
               <label style={{display:"block"}}>Link 1</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link1.toString() || "URL"} onChange={(e) => handleLink1Change(e)} />
-              <input type="text" className="input mb-2" placeholder={linkInBio?.name1 || "NAME"} onChange={(e) => handleName1Change(e)} />
+              <input type="text" className="input mb-2 mr-4" placeholder={link1 || "URL"} onChange={(e) => handleLink1Change(e)} />
+              <input type="text" className="input mb-2" placeholder={name1 || "NAME"} onChange={(e) => handleName1Change(e)} />
             
               <label style={{display:"block"}}>Link 2</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link2.toString() || "URL"} onChange={(e) => handleLink2Change(e)} />
-              <input type="text" className="input mb-2" placeholder={linkInBio?.name2 || "NAME"} onChange={(e) => handleName2Change(e)} />
+              <input type="text" className="input mb-2 mr-4" placeholder={link2 || "URL"} onChange={(e) => handleLink2Change(e)} />
+              <input type="text" className="input mb-2" placeholder={name2 || "NAME"} onChange={(e) => handleName2Change(e)} />
             
               <label style={{display:"block"}}>Link 3</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link3.toString() || "URL"} onChange={(e) => handleLink3Change(e)} />
-              <input type="text" className="input mb-2" placeholder={linkInBio?.name3 || "NAME"} onChange={(e) => handleName3Change(e)} />
+              <input type="text" className="input mb-2 mr-4" placeholder={link3 || "URL"} onChange={(e) => handleLink3Change(e)} />
+              <input type="text" className="input mb-2" placeholder={name3 || "NAME"} onChange={(e) => handleName3Change(e)} />
               
               <label style={{display:"block"}}>Link 4</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link4.toString()|| "URL"} onChange={(e) => handleLink4Change(e)} />
-              <input type="text" className="input mb-2" placeholder={linkInBio?.name4 || "NAME"} onChange={(e) => handleName4Change(e)} />
+              <input type="text" className="input mb-2 mr-4" placeholder={link4|| "URL"} onChange={(e) => handleLink4Change(e)} />
+              <input type="text" className="input mb-2" placeholder={name4 || "NAME"} onChange={(e) => handleName4Change(e)} />
 
               <label style={{display:"block"}}>Link 5</label>  
-              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link5.toString() || "URL"} onChange={(e) => handleLink5Change(e)} />
-              <input type="text" className="input mb-2" placeholder={linkInBio?.name5 || "NAME"} onChange={(e) => handleName5Change(e)} />
+              <input type="text" className="input mb-2 mr-4" placeholder={link5 || "URL"} onChange={(e) => handleLink5Change(e)} />
+              <input type="text" className="input mb-2" placeholder={name5 || "NAME"} onChange={(e) => handleName5Change(e)} />
               
               <label style={{display:"block"}}>Link 6</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link6.toString() || "URL"} onChange={(e) => handleLink6Change(e)} />
-              <input type="text" className="input mb-2" placeholder={linkInBio?.name6 || "NAME"} onChange={(e) => handleName6Change(e)} />
+              <input type="text" className="input mb-2 mr-4" placeholder={link6 || "URL"} onChange={(e) => handleLink6Change(e)} />
+              <input type="text" className="input mb-2" placeholder={name6 || "NAME"} onChange={(e) => handleName6Change(e)} />
+
+              <label style={{display:"block"}}>Link 7</label> 
+              <input type="text" className="input mb-2 mr-4" placeholder={link7 || "URL"} onChange={(e) => handleLink7Change(e)} />
+              <input type="text" className="input mb-2" placeholder={name7 || "NAME"} onChange={(e) => handleName7Change(e)} />
+
+              <label style={{display:"block"}}>Link 8</label> 
+              <input type="text" className="input mb-2 mr-4" placeholder={link8 || "URL"} onChange={(e) => handleLink8Change(e)} />
+              <input type="text" className="input mb-2" placeholder={name8 || "NAME"} onChange={(e) => handleName8Change(e)} />
+
+              <label style={{display:"block"}}>Link 9</label> 
+              <input type="text" className="input mb-2 mr-4" placeholder={link9|| "URL"} onChange={(e) => handleLink9Change(e)} />
+              <input type="text" className="input mb-2" placeholder={name9 || "NAME"} onChange={(e) => handleName9Change(e)} />
+
+              <label style={{display:"block"}}>Link 10</label> 
+              <input type="text" className="input mb-2 mr-4" placeholder={link10 || "URL"} onChange={(e) => handleLink10Change(e)} />
+              <input type="text" className="input mb-2" placeholder={name10 || "NAME"} onChange={(e) => handleName10Change(e)} />
             </div>
           </div>
 
