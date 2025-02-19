@@ -256,27 +256,27 @@ const LinkInBio =  () => {
           <div className="flex flex-wrap w-full">
             <div className="w-full lg:w-full p-2">
               <label style={{display:"block"}}>Link 1</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link1 || "URL"} onChange={(e) => handleLink1Change(e)} />
+              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link1.toString() || "URL"} onChange={(e) => handleLink1Change(e)} />
               <input type="text" className="input mb-2" placeholder={linkInBio?.name1 || "NAME"} onChange={(e) => handleName1Change(e)} />
             
               <label style={{display:"block"}}>Link 2</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link2 || "URL"} onChange={(e) => handleLink2Change(e)} />
+              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link2.toString() || "URL"} onChange={(e) => handleLink2Change(e)} />
               <input type="text" className="input mb-2" placeholder={linkInBio?.name2 || "NAME"} onChange={(e) => handleName2Change(e)} />
             
               <label style={{display:"block"}}>Link 3</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link3 || "URL"} onChange={(e) => handleLink3Change(e)} />
+              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link3.toString() || "URL"} onChange={(e) => handleLink3Change(e)} />
               <input type="text" className="input mb-2" placeholder={linkInBio?.name3 || "NAME"} onChange={(e) => handleName3Change(e)} />
               
               <label style={{display:"block"}}>Link 4</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link4 || "URL"} onChange={(e) => handleLink4Change(e)} />
+              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link4.toString()|| "URL"} onChange={(e) => handleLink4Change(e)} />
               <input type="text" className="input mb-2" placeholder={linkInBio?.name4 || "NAME"} onChange={(e) => handleName4Change(e)} />
 
               <label style={{display:"block"}}>Link 5</label>  
-              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link5 || "URL"} onChange={(e) => handleLink5Change(e)} />
+              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link5.toString() || "URL"} onChange={(e) => handleLink5Change(e)} />
               <input type="text" className="input mb-2" placeholder={linkInBio?.name5 || "NAME"} onChange={(e) => handleName5Change(e)} />
               
               <label style={{display:"block"}}>Link 6</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link6 || "URL"} onChange={(e) => handleLink6Change(e)} />
+              <input type="text" className="input mb-2 mr-4" placeholder={linkInBio?.link6.toString() || "URL"} onChange={(e) => handleLink6Change(e)} />
               <input type="text" className="input mb-2" placeholder={linkInBio?.name6 || "NAME"} onChange={(e) => handleName6Change(e)} />
             </div>
           </div>
