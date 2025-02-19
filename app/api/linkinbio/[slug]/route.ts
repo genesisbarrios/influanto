@@ -21,7 +21,7 @@ export async function GET(req: NextRequest, {params}: {params: {slug: string}}) 
               );
         }
 
-        const user = await User.findOne({ name: slug });
+        const user = await User.findOne({ username: slug });
 
         if (!user) {
             return NextResponse.json(

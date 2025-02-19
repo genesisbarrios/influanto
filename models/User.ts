@@ -8,6 +8,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    username: {
+      type: String,
+      lowercase:true
+    },
     email: {
       type: String,
       trim: true,

@@ -20,6 +20,7 @@ const Profile =  () => {
   const [isEditing, setEditing] = useState(false);
   const [isEditingStreaming, setEditingStreaming] = useState(false);
   const [formName, setFormName] = useState("");
+  const [formUserName, setFormUserName] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [avatarImage, setAvatarImage] = useState(null);
   const [location, setLocation] = useState("");
@@ -130,6 +131,7 @@ const Profile =  () => {
     try {
       const { data } = await apiClient.post("/user", {
         name: formName,
+        username: formUserName,
         image: avatarImage,
         location: location,
         website: website,
@@ -182,6 +184,11 @@ const Profile =  () => {
   const handleNameChange = (e:any) => {
     console.log('handle Name Change')
    setFormName(e.target.value);
+  }
+
+  const handleUserNameChange = (e:any) => {
+    console.log('handle UserName Change')
+    setFormUserName(e.target.value);
   }
 
   const handleWebsiteChange = (e:any) => {
@@ -325,6 +332,7 @@ const Profile =  () => {
           <div style={{margin:"0 auto",  textAlign:"center" }}>
             <img src={user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline", marginBottom:"2%"}} alt="Avatar" />
             <p>{user.name}</p>
+            <p>{user.username}</p>
             <p>{user.email}</p>
             <p>
               {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} />{user.location}</span>}
@@ -386,6 +394,9 @@ const Profile =  () => {
           <br></br>
           <label style={{display:"block"}}>Name</label>
           <input type="text" className="input mb-2 sm:w-full" placeholder={user?.name || "enter your name"} onChange={(e) => handleNameChange(e)}/>
+          <br />
+          <label style={{display:"block"}}>Username</label>
+          <input type="text" className="input mb-2 sm:w-full" placeholder={user?.username || "enter your username"} onChange={(e) => handleUserNameChange(e)}/>
           <br />
           <label style={{display:"block"}}>Location</label> 
           <input type="text" className="input mb-2 sm:w-full" placeholder={user?.location || "Enter Your Location"} onChange={(e) => handleLocationChange(e)} />

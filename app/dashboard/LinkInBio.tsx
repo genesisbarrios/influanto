@@ -37,6 +37,23 @@ const LinkInBio =  () => {
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
 
+  const getUser = async () => {
+    try {
+      const { data } = await apiClient.get("/get-user");
+      console.log(data);
+      console.log(data.email);
+      setUser(data);
+  
+    } catch (e) {
+      //console.error(e?.message);
+      setAlertt(e?.message);
+    } 
+  }
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
   useEffect(() => {
     getLinks();
   }, []);
@@ -220,7 +237,7 @@ const LinkInBio =  () => {
               <a 
               className="btn btn-primary btn-block btn-lg btn-narrow"
               style={{width:"auto", display:"inline"}}
-              href={"https://influanto.com/" + data.user.name} >
+              href={"https://influanto.com/" + user.username} >
               Visit 
             </a>
               

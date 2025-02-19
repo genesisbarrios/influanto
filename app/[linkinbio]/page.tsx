@@ -74,6 +74,7 @@ const LinkInBioPage =  () => {
     const url = `${pathname}`
     console.log(url);
     setUserName(url.split("/")[1]);
+    console.log(userName);
   }, [pathname, searchParams, userName])
 
   const getUser = async () => {
