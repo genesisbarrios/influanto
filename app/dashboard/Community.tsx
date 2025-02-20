@@ -52,7 +52,7 @@ const Community =  () => {
      
       <div className="p-4 bg-white shadow rounded-md text-black">
          <div className="w-full flex justify-between items-center">
-            <h2 className="text-2xl font-bold mb-2">Artists</h2>
+            <h2 className="text-2xl font-bold mb-2">Community</h2>
           </div>
           <br></br>
 
