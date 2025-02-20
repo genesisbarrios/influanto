@@ -8,7 +8,6 @@ import apiClient from "@/libs/api";
 import { useSession, signOut } from "next-auth/react";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
-
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
 const LinkInBio =  () => {
@@ -132,6 +131,7 @@ const LinkInBio =  () => {
 
     try {
       const { data } = await apiClient.post("/linkinbio", {
+        bgColor: bgColor,
         link1: {url: link1, name: name1},
         link2: {url: link2, name: name2},
         link3: {url: link3, name: name3},
@@ -321,6 +321,15 @@ const LinkInBio =  () => {
         <h1>Edit Links</h1>
           <div className="flex flex-wrap w-full">
             <div className="w-full lg:w-full p-2">
+            <div>
+              <h2>Background Color</h2>
+               <input
+                  type="color"
+                  value={bgColor}
+                  onChange={(e) => setBgColor(e.target.value)}
+                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                />
+             </div>
               <label style={{display:"block"}}>Link 1</label> 
               <input type="text" className="input mb-2 mr-4" placeholder={link1 || "URL"} onChange={(e) => handleLink1Change(e)} />
               <input type="text" className="input mb-2" placeholder={name1 || "NAME"} onChange={(e) => handleName1Change(e)} />

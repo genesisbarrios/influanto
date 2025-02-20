@@ -3,59 +3,43 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import connectMongo from "@/libs/mongoose";
 import LinkInBio from "@/models/LinkInBio";
-import { NextRequest } from 'next/server';
-
+import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  let linkInBio = null;
+  if (!session) {
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  }
 
-  if (session) {
-    await connectMongo();
-    console.log('session user id')
-    console.log(session.user.id);
-    const id = session.user.id;
+  await connectMongo();
+  const userId = session.user.id;
+  const body = await req.json();
+  console.log("Updating LinkInBio for user:", userId, body);
 
-    const body = await req.json();
-    console.log(body);
+  try {
+    // Update or create a new entry
+    const updatedLinkInBio = await LinkInBio.findOneAndUpdate(
+      { _id: userId }, // Find by user ID
+      {
+        userId,
+        ...(body.bgColor && { backgroundColor: body.bgColor }),
+        ...(body.link1?.url && body.link1?.name && { link1: { url: body.link1.url, name: body.link1.name } }),
+        ...(body.link2?.url && body.link2?.name && { link2: { url: body.link2.url, name: body.link2.name } }),
+        ...(body.link3?.url && body.link3?.name && { link3: { url: body.link3.url, name: body.link3.name } }),
+        ...(body.link4?.url && body.link4?.name && { link4: { url: body.link4.url, name: body.link4.name } }),
+        ...(body.link5?.url && body.link5?.name && { link5: { url: body.link5.url, name: body.link5.name } }),
+        ...(body.link6?.url && body.link6?.name && { link6: { url: body.link6.url, name: body.link6.name } }),
+        ...(body.link7?.url && body.link7?.name && { link7: { url: body.link7.url, name: body.link7.name } }),
+        ...(body.link8?.url && body.link8?.name && { link8: { url: body.link8.url, name: body.link8.name } }),
+        ...(body.link9?.url && body.link9?.name && { link9: { url: body.link9.url, name: body.link9.name } }),
+        ...(body.link10?.url && body.link10?.name && { link10: { url: body.link10.url, name: body.link10.name } }),
+      },
+      { new: true, upsert: true } // Return the updated doc, create if not exists
+    );
 
-    try {
-      linkInBio = await LinkInBio.findOne({_id:id});
-      if(linkInBio == null){
-        linkInBio = new LinkInBio();
-      }
-      linkInBio.userId = id;
-      if (body.link1 && body.link1.url && body.link1.name) {
-        linkInBio.link1 = {url: body.link1.url.toString(), name: body.link1.name.toString()}
-      }
-      if (body.link2 && body.link2.url && body.link2.name) {
-        linkInBio.link2 = {url: body.link2.url.toString(), name: body.link2.name.toString()}
-      }
-      if (body.link3 && body.link3.url && body.link3.name) {
-        linkInBio.link3 = {url: body.link3.url.toString(), name: body.link3.name.toString()}
-      }
-      if (body.link4 && body.link4.url && body.link4.name) {
-        linkInBio.link4 = {url: body.link4.url.toString(), name: body.link4.name.toString()}
-      }
-      if (body.link5 && body.link5.url && body.link5.name) {
-        linkInBio.link5 = {url: body.link5.url.toString(), name: body.link5.name.toString()}
-      }
-      if (body.link6 && body.link6.url && body.link6.name) {
-        linkInBio.link6 = {url: body.link6.url.toString(), name: body.link6.name.toString()}
-      }
-      
-      await linkInBio.save();
-
-      return NextResponse.json({ data: linkInBio }, { status: 200 });
-    } catch (e) {
-      console.error(e);
-      return NextResponse.json(
-        { error: "Something went wrong" },
-        { status: 500 }
-      );
-    }
-  } else {
-    // Not Signed in
-    NextResponse.json({ error: "Not signed in" }, { status: 401 });
+    return NextResponse.json({ data: updatedLinkInBio }, { status: 200 });
+  } catch (error) {
+    console.error("Error updating LinkInBio:", error);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
