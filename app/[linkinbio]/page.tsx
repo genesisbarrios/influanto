@@ -184,6 +184,7 @@ const LinkInBioPage =  () => {
       <div className="p-6 bg-white shadow w-1/2 rounded-lg" style={{margin:"0 auto", textAlign:"center", marginTop:"5%", color:"#333333"}}> 
           <div style={{margin:"0 auto", textAlign:"center" }}>
             <img src={user.image || fallbackImageUrl} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline", marginBottom:"2%"}} alt="Avatar" />
+                    
             <p>{user.name}</p>
             <p>{user.email}</p>
             <p>

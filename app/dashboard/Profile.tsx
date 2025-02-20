@@ -393,10 +393,10 @@ const Profile =  () => {
           </div>
           <br></br>
           <label style={{display:"block"}}>Name</label>
-          <input type="text" className="input mb-2 sm:w-full" placeholder={user?.name || "enter your name"} onChange={(e) => handleNameChange(e)}/>
+          <input type="text" className="input mb-2 sm:w-full" required placeholder={user?.name || "enter your name"} onChange={(e) => handleNameChange(e)}/>
           <br />
           <label style={{display:"block"}}>Username</label>
-          <input type="text" className="input mb-2 sm:w-full" placeholder={user?.username || "enter your username"} onChange={(e) => handleUserNameChange(e)}/>
+          <input type="text" className="input mb-2 sm:w-full" required placeholder={user?.username || "enter your username"} onChange={(e) => handleUserNameChange(e)}/>
           <br />
           <label style={{display:"block"}}>Location</label> 
           <input type="text" className="input mb-2 sm:w-full" placeholder={user?.location || "Enter Your Location"} onChange={(e) => handleLocationChange(e)} />
