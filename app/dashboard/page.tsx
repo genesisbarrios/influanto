@@ -7,7 +7,7 @@ import Profile from './Profile';
 import LinkInBio from './LinkInBio';
 import QRCodeGenerator from './QRCodeGenerator';
 import PitchToSpotify from './PitchToSpotify';
-import Artists from './Artists';
+import Community from './Community';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/next-auth";
 import User from "@/models/User";
@@ -22,7 +22,7 @@ export default function Dashboard() {
     'link-in-bio': <LinkInBio />,
     'qr-code-generator': <QRCodeGenerator />,
     'pitch-to-spotify': <PitchToSpotify />,
-    'artists': <Artists />
+    'community': <Community />
   };
 
   return (
@@ -43,7 +43,7 @@ export default function Dashboard() {
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('pitch-to-spotify')}>Pitch to Spotify</button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('artists')}>Artists</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('community')}>Community</button>
           </li>
         </ul>
       </aside>
