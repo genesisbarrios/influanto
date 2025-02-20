@@ -14,7 +14,7 @@ import { faGlobe, faLocation } from "@fortawesome/free-solid-svg-icons";
 import { set } from "mongoose";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
-const Artists =  () => {
+const Community =  () => {
   const [users, setUsers] = useState<any>();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -105,4 +105,4 @@ const Artists =  () => {
   }
 };
 
-export default Artists;
+export default Community;
