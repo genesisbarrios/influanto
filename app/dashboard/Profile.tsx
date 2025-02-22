@@ -319,7 +319,7 @@ const Profile =  () => {
      
       <div className="p-4 bg-white shadow rounded-md text-black">
          <div className="w-full flex justify-between items-center">
-            <h2 className="text-2xl font-bold mb-2">Profile</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-2">Profile</h2>
             <button 
               className="btn btn-primary btn-sm btn-narrow"
               style={{margin:"0 2%"}}
@@ -377,12 +377,13 @@ const Profile =  () => {
     );
   }else if (isEditing){
     return (
-      <div className="p-4 bg-white shadow rounded-md w-full ">
-        <h2 className="text-2xl font-bold mb-2 inline">Profile</h2>
+      <div className="p-4 bg-white shadow rounded-md ">
+        <div className="w-full flex flex-wrap">
+        <h2 className="text-xl sm:text-2xl font-bold mb-2 inline">Profile</h2>
         <br></br>
        
         <form>
-         <img src={user.image} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline"}} alt="Avatar" />
+         <img src={user.image} style={{ borderRadius: '50%', width:"75px", height:"75px", display:"inline"}} alt="Avatar" />
           <div style={{display:"inline"}}>
             <input style={{display:"inline", marginLeft:"10px"}} 
                 type="file"
@@ -507,6 +508,7 @@ const Profile =  () => {
           Cancel
         </button>
         </form>
+        </div>
       </div>
       );
     }   
