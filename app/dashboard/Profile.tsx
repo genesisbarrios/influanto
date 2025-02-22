@@ -385,7 +385,7 @@ const Profile =  () => {
     );
   }else if (isEditing){
     return (
-      <div className="p-4 bg-white shadow rounded-md ">
+      <div className="p-4 bg-white shadow rounded-md " style={containerStyle}>
         <div className="w-full flex flex-wrap">
         <h2 className="text-xl sm:text-2xl font-bold mb-2 inline">Profile</h2>
         <br></br>
