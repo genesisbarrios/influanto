@@ -311,13 +311,21 @@ const Profile =  () => {
     setYouTubeMusic(e.target.value);
   };
 
+  const containerStyle = {
+    width: "100%",
+    maxWidth: "600px", // Limit width on larger screens
+    margin: "0 auto", // Center the container
+    padding: "10px", // Add padding to prevent content from touching edges
+  };
+  
+
    // Check if user data is not yet loaded
   if (!user) {
     return <div>Loading...</div>;
   }else if (user && !isEditing){
     return (
      
-      <div className="p-4 bg-white shadow rounded-md text-black">
+      <div className="p-4 bg-white shadow rounded-md text-black" style={containerStyle}>
          <div className="w-full flex justify-between items-center">
             <h2 className="text-xl sm:text-2xl font-bold mb-2">Profile</h2>
             <button 
