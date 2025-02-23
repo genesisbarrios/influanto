@@ -225,6 +225,15 @@ const LinkInBio =  () => {
     setName10(e.target.value.toString());
   }
 
+
+  const containerStyle = {
+    width: "100%",
+    maxWidth: "400px", // Limit width on larger screens
+    margin: "0 auto", // Center the container
+    padding: "10px", // Add padding to prevent content from touching edges
+  };
+  
+
    // Check if user data is not yet loaded
   if (!data) {
     return <div>Thanks for signing up...</div>;
@@ -315,8 +324,8 @@ const LinkInBio =  () => {
     );
   }else{
     return (
-      <div className="p-4 bg-white shadow rounded-md">
-        <h2 className="text-2xl font-bold mb-2 inline">Link In Bio</h2>
+      <div className="p-4 bg-white shadow rounded-md"  style={containerStyle}>
+        <h2 className="text-xl sm:text-2xl font-bold mb-2 inline">Link In Bio</h2>
         <form>
         <h1>Edit Links</h1>
           <div className="flex flex-wrap w-full">
@@ -331,44 +340,44 @@ const LinkInBio =  () => {
                 />
              </div>
               <label style={{display:"block"}}>Link 1</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={link1 || "URL"} onChange={(e) => handleLink1Change(e)} />
-              <input type="text" className="input mb-2" placeholder={name1 || "NAME"} onChange={(e) => handleName1Change(e)} />
+              <input type="text" className="input mb-2 mr-4 w-3/4" placeholder={link1 || "URL"} onChange={(e) => handleLink1Change(e)} />
+              <input type="text" className="input mb-2 w-3/4" placeholder={name1 || "NAME"} onChange={(e) => handleName1Change(e)} />
             
               <label style={{display:"block"}}>Link 2</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={link2 || "URL"} onChange={(e) => handleLink2Change(e)} />
-              <input type="text" className="input mb-2" placeholder={name2 || "NAME"} onChange={(e) => handleName2Change(e)} />
+              <input type="text" className="input mb-2 mr-4 w-3/4" placeholder={link2 || "URL"} onChange={(e) => handleLink2Change(e)} />
+              <input type="text" className="input mb-2 w-3/4" placeholder={name2 || "NAME"} onChange={(e) => handleName2Change(e)} />
             
               <label style={{display:"block"}}>Link 3</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={link3 || "URL"} onChange={(e) => handleLink3Change(e)} />
-              <input type="text" className="input mb-2" placeholder={name3 || "NAME"} onChange={(e) => handleName3Change(e)} />
+              <input type="text" className="input mb-2 mr-4 w-3/4" placeholder={link3 || "URL"} onChange={(e) => handleLink3Change(e)} />
+              <input type="text" className="input mb-2 w-3/4" placeholder={name3 || "NAME"} onChange={(e) => handleName3Change(e)} />
               
               <label style={{display:"block"}}>Link 4</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={link4|| "URL"} onChange={(e) => handleLink4Change(e)} />
-              <input type="text" className="input mb-2" placeholder={name4 || "NAME"} onChange={(e) => handleName4Change(e)} />
+              <input type="text" className="input mb-2 mr-4 w-3/4" placeholder={link4|| "URL"} onChange={(e) => handleLink4Change(e)} />
+              <input type="text" className="input mb-2 w-3/4" placeholder={name4 || "NAME"} onChange={(e) => handleName4Change(e)} />
 
               <label style={{display:"block"}}>Link 5</label>  
-              <input type="text" className="input mb-2 mr-4" placeholder={link5 || "URL"} onChange={(e) => handleLink5Change(e)} />
-              <input type="text" className="input mb-2" placeholder={name5 || "NAME"} onChange={(e) => handleName5Change(e)} />
+              <input type="text" className="input mb-2 mr-4 w-3/4" placeholder={link5 || "URL"} onChange={(e) => handleLink5Change(e)} />
+              <input type="text" className="input mb-2 w-3/4" placeholder={name5 || "NAME"} onChange={(e) => handleName5Change(e)} />
               
               <label style={{display:"block"}}>Link 6</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={link6 || "URL"} onChange={(e) => handleLink6Change(e)} />
-              <input type="text" className="input mb-2" placeholder={name6 || "NAME"} onChange={(e) => handleName6Change(e)} />
+              <input type="text" className="input mb-2 mr-4 w-3/4" placeholder={link6 || "URL"} onChange={(e) => handleLink6Change(e)} />
+              <input type="text" className="input mb-2 w-3/4" placeholder={name6 || "NAME"} onChange={(e) => handleName6Change(e)} />
 
               <label style={{display:"block"}}>Link 7</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={link7 || "URL"} onChange={(e) => handleLink7Change(e)} />
-              <input type="text" className="input mb-2" placeholder={name7 || "NAME"} onChange={(e) => handleName7Change(e)} />
+              <input type="text" className="input mb-2 mr-4 w-3/4" placeholder={link7 || "URL"} onChange={(e) => handleLink7Change(e)} />
+              <input type="text" className="input mb-2 w-3/4" placeholder={name7 || "NAME"} onChange={(e) => handleName7Change(e)} />
 
               <label style={{display:"block"}}>Link 8</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={link8 || "URL"} onChange={(e) => handleLink8Change(e)} />
-              <input type="text" className="input mb-2" placeholder={name8 || "NAME"} onChange={(e) => handleName8Change(e)} />
+              <input type="text" className="input mb-2 mr-4 w-3/4" placeholder={link8 || "URL"} onChange={(e) => handleLink8Change(e)} />
+              <input type="text" className="input mb-2 w-3/4" placeholder={name8 || "NAME"} onChange={(e) => handleName8Change(e)} />
 
               <label style={{display:"block"}}>Link 9</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={link9|| "URL"} onChange={(e) => handleLink9Change(e)} />
-              <input type="text" className="input mb-2" placeholder={name9 || "NAME"} onChange={(e) => handleName9Change(e)} />
+              <input type="text" className="input mb-2 mr-4 w-3/4" placeholder={link9|| "URL"} onChange={(e) => handleLink9Change(e)} />
+              <input type="text" className="input mb-2 w-3/4" placeholder={name9 || "NAME"} onChange={(e) => handleName9Change(e)} />
 
               <label style={{display:"block"}}>Link 10</label> 
-              <input type="text" className="input mb-2 mr-4" placeholder={link10 || "URL"} onChange={(e) => handleLink10Change(e)} />
-              <input type="text" className="input mb-2" placeholder={name10 || "NAME"} onChange={(e) => handleName10Change(e)} />
+              <input type="text" className="input mb-2 mr-4 w-3/4" placeholder={link10 || "URL"} onChange={(e) => handleLink10Change(e)} />
+              <input type="text" className="input mb-2 w-3/4" placeholder={name10 || "NAME"} onChange={(e) => handleName10Change(e)} />
             </div>
           </div>
 
