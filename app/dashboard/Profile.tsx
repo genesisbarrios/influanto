@@ -313,7 +313,7 @@ const Profile =  () => {
 
   const containerStyle = {
     width: "100%",
-    maxWidth: "600px", // Limit width on larger screens
+    maxWidth: "400px", // Limit width on larger screens
     margin: "0 auto", // Center the container
     padding: "10px", // Add padding to prevent content from touching edges
   };
