@@ -9,6 +9,7 @@ import { useSession, signOut } from "next-auth/react";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
+import Head from 'next/head';
 
 const LinkInBio =  () => {
   const {data, status} = useSession();
@@ -240,7 +241,16 @@ const LinkInBio =  () => {
   }else{
     if (!isEditing){
     return (
-     
+      <>
+      <Head>
+        <title>Influanto | FREE Link In Bio Tool</title>
+        <meta name="description" content="FREE Link In Bio Tool" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content="FREE Link In Bio Tool" />
+        <meta property="og:description" content="Generate and manage your Link In Bio easily." />
+        <meta name="twitter:title" content="Link In Bio Tool" />
+        <meta name="twitter:description" content="Generate and manage your Link In Bio easily." />
+      </Head>
       <div className="p-4 bg-white shadow rounded-md text-black">
          <div className="w-full flex justify-between items-center">
             <h2 className="text-2xl font-bold mb-2">Link In Bio</h2>
@@ -321,6 +331,7 @@ const LinkInBio =  () => {
         </div>
         {alert && <div className="alert mt-5 w-full">{alert}</div>}
       </div>
+  </>
     );
   }else{
     return (

@@ -1,4 +1,12 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import QRCode from 'react-qr-code';
+import QRCodeProps from 'react-qr-code';
+import apiClient from "@/libs/api";
+import Head from 'next/head';
+import ReactDOM from 'react-dom';
+
 // Define a TypeScript interface for the user prop to ensure type safety
 interface User {
   email: string;
@@ -6,12 +14,222 @@ interface User {
   avatarUrl: string; // Assuming there's an avatar URL you want to display
 }
 
+
 const QRCodeGenerator = () => {
+  const [qrCodes, setQRCodes] = useState<any>();
+  const [newLink, setNewLink] = useState('');
+  const [newName, setNewName] = useState('');
+  const [showCreateView, setShowCreateView] = useState(false);
+  const {data, status} = useSession();
+  const [user, setUser] = useState<any>();
+  const [alert, setAlert] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEditing, setEditing] = useState(false);
+
+  // Ref to capture the canvas element
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Handle QR Code download using Canvas
+  const handleDownload = () => {
+    if (!newLink) {
+      console.error("No QR Code to download.");
+      return;
+    }
+
+    // Create a hidden div to render the QRCode component
+    const qrCodeContainer = document.createElement("div");
+    qrCodeContainer.style.display = "none";
+    document.body.appendChild(qrCodeContainer);
+
+    // Render QRCode component to the hidden div
+    ReactDOM.render(<QRCode value={newLink} size={128} />, qrCodeContainer);
+
+    // Find the SVG element inside the container (QRCode renders as an SVG by default)
+    const svg = qrCodeContainer.querySelector("svg");
+
+    if (!svg) {
+      console.error("SVG not found.");
+      return;
+    }
+
+    // Create an image link and set the data URL for download
+    const link = document.createElement("a");
+    link.href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.outerHTML)}`;
+    link.download = "QRCode.svg"; // Set the file name for download
+
+    // Trigger the download
+    link.click();
+
+    // Clean up by removing the hidden container after the download
+    document.body.removeChild(qrCodeContainer);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await apiClient.delete(`/delete-code`, {
+        data: { id }  // The 'id' is sent in the request body
+      });
+      if (response.data.message) {
+        // If the deletion is successful, filter out the deleted QR code
+        setQRCodes(qrCodes.filter((code: any) => code._id !== id));
+        setAlert("QR Code deleted successfully.");
+      } else if (response.data.error) {
+        setAlert(response.data.error);  // If there's an error from the backend
+      }
+    } catch (e) {
+      setAlert(e);
+    }
+  };
+
+  const getUser = async () => {
+    try {
+      const { data } = await apiClient.get("/get-user");
+      console.log(data);
+      console.log(data.email);
+      setUser(data);
+  
+    } catch (e) {
+      //console.error(e?.message);
+      setAlert(e?.message);
+    } 
+  }
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  useEffect(() => {
+    getQrCodes();
+  }, []);
+
+  const getQrCodes = async () => {
+    try {
+      const { data } = await apiClient.get("/get-codes");
+      console.log(data[0].codes);
+      setQRCodes(data[0].codes);
+    } catch (e) {
+      //console.error(e?.message);
+      setAlert(e?.message);
+    } 
+  }
+
+  const addQRCode = async () => {
+
+    try {
+      const { data } = await apiClient.post("/codes", {
+        link : newLink,
+        name: newName
+      });
+
+      console.log(data);
+      setAlert("QR Code saved successfully");
+      setShowCreateView(false);
+      getQrCodes();
+    } catch (e) {
+      //console.error(e?.message);
+      setAlert(e?.message);
+    } finally {
+      setIsLoading(false);
+      setEditing(false);
+    }
+  };
+
   return (
-    <div className="p-4 bg-white shadow rounded-lg">
-      <h2 className="text-2xl font-bold mb-2">QR Code Generator</h2>
-      <p>Coming soon..</p>
-    </div>
+    <>
+    <Head>
+      <title>Influanto | FREE QR Code Generator</title>
+      <meta name="description" content="Generate and manage your QR codes easily. FREE QR Code Generator." />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta property="og:title" content="FREE QR Code Generator" />
+      <meta property="og:description" content="Generate and manage your QR codes easily." />
+      <meta name="twitter:title" content="FREE QR Code Generator" />
+      <meta name="twitter:description" content="Generate and manage your QR codes easily." />
+    </Head>
+    <div className="p-4 bg-white shadow rounded-md text-black">
+      <div className="flex justify-between items-center">
+      <h2 className="text-2xl font-bold mb-2">QR Codes</h2>
+        {!showCreateView &&
+          <button
+            onClick={() => setShowCreateView(true)}
+            className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Create New QR Code
+          </button>
+        }
+      </div>
+
+
+    {showCreateView &&  (
+      <div className="mb-4 border border-gray-300 p-4 rounded">
+        <h4>Your New QR Code</h4>
+        <input
+          placeholder="Enter link for QR code"
+          value={newLink}
+          onChange={(e) => setNewLink(e.target.value)}
+          className="mb-2 px-3 py-2 bg-white border border-gray-300 rounded w-full"
+        />
+        <label>Name</label>
+        <input
+          placeholder="Name for your link"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          className="mb-2 px-3 py-2 bg-white border border-gray-300 rounded w-full"
+        />
+        
+        {newLink && (
+          <div className="mb-2">
+            <QRCode value={newLink} size={128} />
+          </div>
+        )}
+
+        <button
+          onClick={addQRCode}
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+        >
+          Add QR Code
+        </button>
+
+        <button
+            onClick={() => setShowCreateView(false)}
+            className="mb-4 ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Cancel
+          </button>
+      </div>
+    )} 
+
+    {qrCodes && (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {qrCodes.map((code: any) => (
+          <div key={code._id} className="border border-gray-300 p-4 rounded">
+            <p className="mb-1 text-lg font-bold">{code.name}</p>
+            <div className="mb-2">
+              <QRCode value={code.url} size={128} />
+            </div>
+            <p className="mb-2 break-words">{code.url}</p>
+
+            {/* Download Button */}
+            <button
+              onClick={() => handleDownload(code.url)}
+              className="btn-xs bg-yellow-500 text-white rounded hover:bg-yellow-600"
+            >
+              Download
+            </button>
+
+            {/* Delete Button */}
+            <button
+              onClick={() => handleDelete(code._id)}
+              className="btn-xs ml-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Delete
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+     {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
+  </div>
+  </>
   );
 };
 
