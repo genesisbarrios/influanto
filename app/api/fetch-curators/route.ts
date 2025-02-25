@@ -54,4 +54,6 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ playlists }, { status: 200 });
     } catch (error) {
         console.error('Error fetching Spotify playlists:', error);
-        return Ne
+        return error;
+    }
+}
