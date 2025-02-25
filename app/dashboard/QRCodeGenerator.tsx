@@ -5,7 +5,7 @@ import QRCode from 'react-qr-code';
 import QRCodeProps from 'react-qr-code';
 import apiClient from "@/libs/api";
 import Head from 'next/head';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 
 // Define a TypeScript interface for the user prop to ensure type safety
 interface User {
@@ -30,38 +30,41 @@ const QRCodeGenerator = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Handle QR Code download using Canvas
-  const handleDownload = () => {
-    if (!newLink) {
+  const handleDownload = (url: string) => {
+    if (!url) {
       console.error("No QR Code to download.");
       return;
     }
-
+  
     // Create a hidden div to render the QRCode component
     const qrCodeContainer = document.createElement("div");
     qrCodeContainer.style.display = "none";
     document.body.appendChild(qrCodeContainer);
-
-    // Render QRCode component to the hidden div
-    ReactDOM.render(<QRCode value={newLink} size={128} />, qrCodeContainer);
-
-    // Find the SVG element inside the container (QRCode renders as an SVG by default)
-    const svg = qrCodeContainer.querySelector("svg");
-
-    if (!svg) {
-      console.error("SVG not found.");
-      return;
-    }
-
-    // Create an image link and set the data URL for download
-    const link = document.createElement("a");
-    link.href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.outerHTML)}`;
-    link.download = "QRCode.svg"; // Set the file name for download
-
-    // Trigger the download
-    link.click();
-
-    // Clean up by removing the hidden container after the download
-    document.body.removeChild(qrCodeContainer);
+  
+    // Render QRCode component to the hidden div using createRoot
+    const root = ReactDOM.createRoot(qrCodeContainer);
+    root.render(<QRCode value={url} size={128} />);
+  
+    // Use a small delay to ensure rendering is complete before querying the SVG
+    setTimeout(() => {
+      const svg = qrCodeContainer.querySelector("svg");
+  
+      if (!svg) {
+        console.error("SVG not found.");
+        return;
+      }
+  
+      // Create an image link and set the data URL for download
+      const link = document.createElement("a");
+      link.href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.outerHTML)}`;
+      link.download = "Influanto QRCode " + user.name + ".svg"; // Set the file name for download
+  
+      // Trigger the download
+      link.click();
+  
+      // Clean up by removing the hidden container after the download
+      document.body.removeChild(qrCodeContainer);
+    }, 50); // A smaller delay to give time for rendering
   };
 
   const handleDelete = async (id: string) => {
@@ -84,8 +87,6 @@ const QRCodeGenerator = () => {
   const getUser = async () => {
     try {
       const { data } = await apiClient.get("/get-user");
-      console.log(data);
-      console.log(data.email);
       setUser(data);
   
     } catch (e) {
