@@ -15,13 +15,13 @@ const PitchToSpotify = () => {
   const {data, status} = useSession();
   const [user, setUser] = useState<any>();
 
-  const fetchPlaylists = async () => {
-    setLoading(true);
-    const response = await fetch('/api/fetch-curators');
-    const data = await response.json();
-    setPlaylists(data.playlists || []);
-    setLoading(false);
-  };
+  // const fetchPlaylists = async () => {
+  //   setLoading(true);
+  //   const response = await fetch('/api/fetch-curators');
+  //   const data = await response.json();
+  //   setPlaylists(data.playlists || []);
+  //   setLoading(false);
+  // };
 
 
   // useEffect(() => {
