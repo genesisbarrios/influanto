@@ -71,7 +71,7 @@ const LinkInBio =  () => {
    if(!linkInBio && !isEditing){
     getLinks();
    }
-  }, [linkInBio, link1, name1, link2, name2, link3, name3, link5, name5, link6, name6, link4, name4]);
+  }, [linkInBio, link1, name1, link2, name2, link3, name3, link5, name5, link6, name6, link4, name4, link7, name7, link8, name8, link9, name9, link10, name10]);
 
   const getLinks = async () => {
     try {
