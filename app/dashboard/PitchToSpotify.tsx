@@ -30,7 +30,7 @@ const PitchToSpotify = () => {
 
   return (
     <div className="p-6 bg-white shadow-lg rounded-lg text-black">
-      <h2 className="text-2xl font-semibold mb-6">Pitch to Spotify</h2>
+      <h2 className="text-2xl font-semibold mb-6">Playlist Pitch</h2>
       <h6 className="mb-4">Coming Soon</h6>
   
       {/* {loading ? (
