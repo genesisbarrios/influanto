@@ -3,29 +3,6 @@ import path from 'path';
 import { NextRequest, NextResponse } from 'next/server';
 
 
-export async function fetchTopPlaylists(accessToken: string) {
-    const SPOTIFY_API_URL = 'https://api.spotify.com/v1/me/top/playlists';
-
-    try {
-        const response = await axios.get(SPOTIFY_API_URL, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        });
-
-        const playlists = response.data.items.map((playlist: any) => ({
-            name: playlist.name,
-            id: playlist.id,
-            tracks: playlist.tracks.total,
-            url: playlist.external_urls.spotify,
-        }));
-
-        return playlists;
-    } catch (error) {
-        console.error('Error fetching Spotify playlists:', error);
-        throw error;
-    }
-}
 
 
 export async function GET(req: NextRequest) {
