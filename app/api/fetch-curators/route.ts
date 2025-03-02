@@ -16,14 +16,14 @@ const parseSocialLinks = (description: string) => {
     }
 
     // Instagram link parsing: "ig: username", "ig: @username", "instagram: username", or "instagram: @username"
-    const igPattern = /\big(?:\s*[:\-]?\s*)@?([a-zA-Z0-9_]+)\b/i;
+    const igPattern = /\big(?:\s*[:-]?\s*)@?([a-zA-Z0-9_]+)\b/i;
     const instagramMatch = description.match(igPattern);
     
     if (instagramMatch) {
       externalUrl = `https://instagram.com/${instagramMatch[1]}`;  // Format Instagram URL
     } else {
       // TikTok link parsing: "tiktok: username" or "tiktok: @username"
-      const tiktokPattern = /\btiktok(?:\s*[:\-]?\s*)@?([a-zA-Z0-9_]+)\b/i;
+     const tiktokPattern = /\btiktok(?:\s*[:-]?\s*)@?([a-zA-Z0-9_]+)\b/i;
       const tiktokMatch = description.match(tiktokPattern);
       
       if (tiktokMatch) {
