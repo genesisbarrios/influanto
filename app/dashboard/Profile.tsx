@@ -58,6 +58,7 @@ const Profile =  () => {
       console.log(data.email);
       setAvatarImage(data.image);
       setFormName(data.name);
+      setFormUserName(data.username);
       setFormEmail(data.email);
       setLocation(data.location);
       setWebsite(data.website);
