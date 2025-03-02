@@ -27,6 +27,10 @@ export async function POST(req: NextRequest) {
         if(body.email != '' || body.email != null){
             user.email = body.email;
         }
+
+        if(body.username != '' || body.username != null){
+          user.username = body.username;
+      }
         
         if(body.name != '' || body.name != null){
             user.name = body.name;
