@@ -15,7 +15,10 @@ const Hero = () => {
           The platform with all you need to market and promote your music. Create a free link in bio today. 
         </p>
         <p className="text-lg opacity-80 leading-relaxed">
-          Coming Soon: QR Codes, Marketing Content, Playlist Pitching, and Send bulk comments and DMs to your supporters on social media.
+          Link In Bio, FREE QR Code Generator, and Playlist Pitching.
+        </p>
+        <p className="text-lg opacity-80 leading-relaxed">
+          Coming Soon: Send bulk comments and DMs to your supporters on social media.
         </p>
         <a href="/api/auth/signin">
           <button className="btn btn-primary btn-wide">
