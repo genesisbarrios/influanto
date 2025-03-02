@@ -92,7 +92,7 @@ const PitchToSpotify = () => {
                     href={playlist.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-md font-semibold text-blue-500 hover:underline"
+                    className="block text-sm sm:text-md font-semibold text-blue-500 hover:underline"
                   >
                     {playlist.name}
                   </a>
