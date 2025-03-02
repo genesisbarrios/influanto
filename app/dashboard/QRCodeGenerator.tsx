@@ -148,13 +148,13 @@ const QRCodeGenerator = () => {
     </Head>
     <div className="p-4 bg-white shadow rounded-md text-black">
       <div className="flex justify-between items-center">
-      <h2 className="text-2xl font-bold mb-2">QR Codes</h2>
+      <h2 className="text-xl font-bold mb-2">QR Codes</h2>
         {!showCreateView &&
           <button
             onClick={() => setShowCreateView(true)}
             className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            Create New QR Code
+            Create
           </button>
         }
       </div>
