@@ -103,18 +103,6 @@ const PitchToSpotify = () => {
               {/* Playlist Description */}
               <p className="text-sm text-gray-700">{playlist.description || "No description available"}</p>
 
-              {/* Playlist URL */}
-              <p className="text-xs text-gray-700">
-                {playlist.url ? (
-                  <a 
-                    href={playlist.url} target="_blank"
-                    className="inline-block mt-2 px-4 py-2 text-white bg-blue-500 rounded-lg text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  >
-                    Playlist
-                  </a>
-                ) : (<></>)}
-              </p>
-
               {/* Owner Profile URL */}
               <p className="text-xs text-gray-700">
                 {playlist.ownerProfileUrl ? (
