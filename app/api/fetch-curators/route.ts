@@ -8,8 +8,14 @@ const TIKTOK_REGEX = /https?:\/\/(www\.)?tiktok\.com\/@[a-zA-Z0-9_]+/i;
 // Helper function to parse Instagram and TikTok links from descriptions
 const parseSocialLinks = (description: string) => {
     let externalUrl = '';  // Default value if no social link is found
-  
-   // Instagram link parsing: "ig: username", "ig: @username", "instagram: username", or "instagram: @username"
+
+    // Remove any HTML anchor links and extract href values
+    const linkMatch = description.match(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/);
+    if (linkMatch) {
+        externalUrl = linkMatch[1];  // Extract the URL from the anchor tag
+    }
+
+    // Instagram link parsing: "ig: username", "ig: @username", "instagram: username", or "instagram: @username"
     const igPattern = /\big(?:\s*[:\-]?\s*)@?([a-zA-Z0-9_]+)\b/i;
     const instagramMatch = description.match(igPattern);
     
@@ -25,7 +31,10 @@ const parseSocialLinks = (description: string) => {
       }
     }
   
-    return externalUrl;
+    // Remove all anchor tags from the description (with the extracted links)
+    const cleanedDescription = description.replace(/<a[^>]*>[^<]*<\/a>/g, '');
+
+    return { externalUrl, cleanedDescription };  // Return both cleaned description and external URL
   };
 
 export async function GET(req: NextRequest) {
@@ -69,25 +78,19 @@ export async function GET(req: NextRequest) {
         ?.filter((playlist: any) => playlist?.description.toLowerCase().includes('ig') || playlist?.description.toLowerCase().includes('instagram') || playlist?.description.toLowerCase().includes('tiktok')) 
         ?.filter((playlist: any) => playlist?.owner?.external_urls?.spotify) // Check if the owner has a Spotify profile
         ?.map((playlist: any) => {
-            // Parse description to check for Instagram or TikTok links
-            let externalUrl = null;
+            // Keep the original description unchanged, but parse social links
             const description = playlist?.description || '';
+            const { externalUrl, cleanedDescription } = parseSocialLinks(description);
 
-            // Check and parse description for "ig:" or "instagram:" or "tiktok:" links
-            const socialLink = parseSocialLinks(description);
-
-            if (socialLink) {
-                externalUrl = socialLink;  // Use the parsed social URL (Instagram/TikTok)
-            }
-
+            // Get the playlist cover image if available
             const playlistCoverImage = playlist?.images?.[0]?.url || null; 
 
             return {
                 name: playlist?.name || 'Unknown Playlist',
                 id: playlist?.id || 'N/A',
-                description: description || 'No description available',
+                description: cleanedDescription || 'No description available',  // Use the cleaned description
                 url: playlist?.external_urls?.spotify || '#',
-                externalUrl: externalUrl, // Set the formatted external URL
+                externalUrl: externalUrl || null, // Set the external URL separately
                 owner: playlist?.owner?.display_name || 'Unknown Owner',
                 ownerProfileUrl: playlist?.owner?.external_urls?.spotify || 'No profile available', // Display the Spotify profile URL
                 playlistCoverImage: playlistCoverImage || null, // Return the playlist cover image if available
