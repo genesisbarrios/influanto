@@ -37,7 +37,7 @@ export default function Dashboard() {
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('link-in-bio')}>Link in Bio</button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('qr-code-generator')}>QR Code Generator</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('qr-code-generator')}>QR Codes</button>
           </li>
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('pitch-to-spotify')}>Curator Search</button>
