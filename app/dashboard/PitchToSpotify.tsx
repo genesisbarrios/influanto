@@ -96,7 +96,7 @@ const PitchToSpotify = () => {
                   >
                     {playlist.name}
                   </a>
-                  <p className="text-sm text-gray-700">by {playlist.owner}</p>
+                  <p className="text-xs sm:text-sm text-gray-700">by {playlist.owner}</p>
                 </div>
               </div>
 
