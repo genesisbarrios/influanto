@@ -72,10 +72,10 @@ const PitchToSpotify = () => {
       {loading ? (
         <p className="text-center text-gray-500">Loading...</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
           {playlists.map((playlist, index) => (
             <div key={index} className="bg-gray-100 p-4 rounded-lg shadow-md hover:shadow-lg transition duration-300">
-              {/* Flex container for image and title */}
+              {/* Flex container for image and Name */}
               <div className="flex items-center mb-4">
                 {/* Playlist Image */}
                 {playlist.playlistCoverImage && (
@@ -86,7 +86,7 @@ const PitchToSpotify = () => {
                   />
                 )}
 
-                {/* Playlist Title and Owner */}
+                {/* Playlist Name and Owner */}
                 <div>
                   <a
                     href={playlist.url}
