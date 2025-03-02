@@ -96,24 +96,19 @@ const PitchToSpotify = () => {
                   >
                     {playlist.name}
                   </a>
-                  <p className="text-xs sm:text-sm text-gray-700">by {playlist.owner}</p>
+                  <a
+                    href={playlist.ownerProfileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-sm sm:text-md text-blue-500 hover:underline"
+                    style={{color:"#0000EE"}}
+                  > by {playlist.owner}
+                  </a>
                 </div>
               </div>
 
               {/* Playlist Description */}
               <p className="text-sm text-gray-700">{playlist.description || "No description available"}</p>
-
-              {/* Owner Profile URL */}
-              <p className="text-xs text-gray-700">
-                {playlist.ownerProfileUrl ? (
-                  <a 
-                    href={playlist.ownerProfileUrl} target="_blank"
-                    className="inline-block mt-2 px-4 py-2 text-white bg-blue-500 rounded-lg text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  >
-                    Owner Profile
-                  </a>
-                ) : (<></>)}
-              </p>
 
               {/* External Social URL */}
               <p className="text-xs text-gray-700">
@@ -122,7 +117,7 @@ const PitchToSpotify = () => {
                     href={playlist.externalUrl} target="_blank"
                     className="inline-block mt-2 px-4 py-2 text-white bg-blue-500 rounded-lg text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
-                    Socials
+                    Social Media
                   </a>
                 ) : (<></>)}
               </p>
