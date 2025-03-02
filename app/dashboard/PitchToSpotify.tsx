@@ -100,8 +100,7 @@ const PitchToSpotify = () => {
                     href={playlist.ownerProfileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-sm sm:text-md text-blue-500 hover:underline"
-                    style={{color:"#0000EE"}}
+                    className="block text-sm sm:text-md text-gray-500 hover:underline"
                   > by {playlist.owner}
                   </a>
                 </div>
