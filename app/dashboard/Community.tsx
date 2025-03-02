@@ -63,12 +63,12 @@ const Community =  () => {
              <img
                src={user.image || fallbackImageUrl}
                alt={user.name}
-               width={100}
-               height={100}
+               width={50}
+               height={50}
                className="rounded-full mx-auto mb-2"
              />
-             <h3 className="text-lg font-semibold">{user.name}</h3>
-             <p className="text-gray-600">{user.bio || "No bio available"}</p>
+             <h3 className="text-sm font-semibold">{user.name}</h3>
+             <p className="text-xs text-gray-600">{user.bio || "No bio available"}</p>
              <div className="flex justify-center space-x-3 mt-2">
                {user.instagram && (
                  <a href={user.instagram} target="_blank" rel="noopener noreferrer">
