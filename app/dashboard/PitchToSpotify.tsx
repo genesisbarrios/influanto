@@ -48,7 +48,7 @@ const PitchToSpotify = () => {
 
   return (
     <div className="p-6 bg-white shadow-lg rounded-lg text-black">
-      <h2 className="text-xl md:text-2xl font-semibold mb-6">Playlist Search</h2>
+      <h2 className="text-xl md:text-2xl font-semibold mb-6">Spotify Curator Search</h2>
       
       {/* Genre Dropdown */}
       <div className="mb-4">
