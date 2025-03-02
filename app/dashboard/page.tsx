@@ -17,7 +17,7 @@ export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
 
   // Components mapping
-  const components : any = {
+  const components: any = {
     'profile': <Profile />,
     'link-in-bio': <LinkInBio />,
     'qr-code-generator': <QRCodeGenerator />,
@@ -26,11 +26,11 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-base-200 text-xs md:text-md">
+    <div className="flex min-h-screen bg-base-200 text-xs sm:text-sm md:text-base">
       {/* Sidebar menu */}
       <aside className="w-1/4 sm:w-1/3 p-4 bg-base-100 sm:w-1/3 sm:p-8">
         <ul className="menu bg-base-100 w-full p-2 rounded-box">
-        <li>
+          <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('profile')}>Profile</button>
           </li>
           <li>
