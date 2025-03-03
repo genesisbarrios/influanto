@@ -34,9 +34,9 @@ const config = {
         priceAnchor: 4.99,
         features: [
           {
-            name: "Links Pages(2)",
+            name: "Link In Bio Page",
           },
-          { name: "Release Pages(3)" },
+          { name: "Release Pages (3)" },
           { name: "Playlist Pitching" },
           { name: "QR Code Generator" },
         ],
@@ -54,9 +54,9 @@ const config = {
         priceAnchor: 8.99,
         features: [
           {
-            name: "Links Pages(10)",
+            name: "Link in Bio Page",
           },
-          { name: "Release Pages(10)" },
+          { name: "Release Pages (10)" },
           { name: "Extra Styling Features" },
           { name: "Playlist Pitching" },
           { name: "Advanced QR Code Generator" },

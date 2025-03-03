@@ -50,30 +50,9 @@ const LinkInBioPage =  () => {
   const [bandcamp, setBandcamp] = useState("");
   const [soundxyz, setSoundxyz] = useState("");
   const [bgColor, setBgColor] = useState("");
-
-  const [link1, setLink1] = useState<any>();
-  const [link2, setLink2] = useState<any>();
-  const [link3, setLink3] = useState<any>();
-  const [link4, setLink4] = useState<any>();
-  const [link5, setLink5] = useState<any>();
-  const [link6, setLink6] = useState<any>();
-  const [link7, setLink7] = useState<any>();
-  const [link8, setLink8] = useState<any>();
-  const [link9, setLink9] = useState<any>();
-  const [link10, setLink10] = useState<any>();
-  
-  const [name1, setName1] = useState<any>();
-  const [name2, setName2] = useState<any>();
-  const [name3, setName3] = useState<any>();
-  const [name4, setName4] = useState<any>();
-  const [name5, setName5] = useState<any>();
-  const [name6, setName6] = useState<any>();
-  const [name7, setName7] = useState<any>();
-  const [name8, setName8] = useState<any>();
-  const [name9, setName9] = useState<any>();
-  const [name10, setName10] = useState<any>();
-
-
+  const [textColor, setTextColor]  = useState("");
+  const [linksColor, setLinksColor] = useState("");
+  const [links, setLinks] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
   
@@ -123,27 +102,9 @@ const LinkInBioPage =  () => {
         setSoundxyz(data.user.soundxyz);
         setUser(data.user);
         setBgColor(data.linkInBio?.backgroundColor);
-        setLink1(data.linkInBio?.link1?.url);
-        setLink2(data.linkInBio?.link2?.url);
-        setLink3(data.linkInBio?.link3?.url);
-        setLink4(data.linkInBio?.link4?.url);
-        setLink5(data.linkInBio?.link5?.url);
-        setLink6(data.linkInBio?.link6?.url);
-        setLink7(data.linkInBio?.link7?.url);
-        setLink8(data.linkInBio?.link8?.url);
-        setLink9(data.linkInBio?.link9?.url);
-        setLink10(data.linkInBio?.link10?.url);
-        
-        setName1(data.linkInBio?.link1?.name);
-        setName2(data.linkInBio?.link2?.name);
-        setName3(data.linkInBio?.link3?.name);
-        setName4(data.linkInBio?.link4?.name);
-        setName5(data.linkInBio?.link5?.name);
-        setName6(data.linkInBio?.link6?.name);
-        setName7(data.linkInBio?.link7?.name);
-        setName8(data.linkInBio?.link8?.name);
-        setName9(data.linkInBio?.link9?.name);
-        setName10(data.linkInBio?.link10?.name);
+        setTextColor(data.linkInBio?.textColor);
+        setLinksColor(data.linkInBio?.linksColor);
+        setLinks(data.linkInBio?.links);
         
         } catch (e) {
         //console.error(e?.message);
@@ -161,9 +122,9 @@ const LinkInBioPage =  () => {
     getUser();
    }else{
     //console.log("user:");
-    //console.log(user);
+    //console.log(links);
    }
-  }, [user, userName, bgColor, link1, name1, link2, name2, link3, name3, link5, name5, link6, name6, link4, name4]);
+  }, [user, userName, bgColor, textColor, linksColor, links]);
   
   useEffect(() => {
     if (bgColor) {
@@ -182,7 +143,7 @@ const LinkInBioPage =  () => {
     return (
      
       <div className="p-6 bg-white shadow w-3/4 md:w-1/2 rounded-lg" style={{margin:"0 auto", textAlign:"center", marginTop:"5%", color:"#333333"}}> 
-          <div style={{margin:"0 auto", textAlign:"center" }}>
+          <div style={{margin:"0 auto", textAlign:"center", color:textColor}}>
             <img src={user.image || fallbackImageUrl} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline", marginBottom:"2%"}} alt="Avatar" />
                     
             <p>{user.name}</p>
@@ -219,12 +180,9 @@ const LinkInBioPage =  () => {
             
             <hr style={{margin: "5% 0"}}></hr>
 
-            {link1 &&  <div className="p-2 border rounded-lg mb-2"><a href={link1} >{name1}</a></div>}
-            {link2 &&  <div className="p-2 border rounded-lg mb-2"><a href={link2}>{name2}</a></div>}
-            {link3 && <div className="p-2 border rounded-lg mb-2"> <a href={link3}>{name3}</a></div>}
-            {link4 &&  <div className="p-2 border rounded-lg mb-2"><a href={link4}>{name4}</a></div>}
-            {link5 &&  <div className="p-2 border rounded-lg mb-2"><a href={link5}>{name5}</a></div>}
-            {link6 &&  <div className="p-2 border rounded-lg mb-2"><a href={link6}>{name6}</a></div>}
+            {links.map((link, index) => 
+              link.url && <div key={index} className="p-2 border rounded-lg mb-2"><a href={link.url} style={{color:linksColor}}>{link.name}</a></div>
+            )}
             {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
             <br></br>
           </div>

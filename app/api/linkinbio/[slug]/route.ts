@@ -30,9 +30,9 @@ export async function GET(req: NextRequest, {params}: {params: {slug: string}}) 
               );
         }else{
             try{
-                const links = await LinkInBio.findOne({ userId: user._id });
+                const linkInBio = await LinkInBio.findOne({ userId: user._id });
                 return NextResponse.json(
-                    { data: {user: user, linkInBio:links} },
+                    { data: {user: user, linkInBio:linkInBio} },
                     { status: 200 }
                   );
 

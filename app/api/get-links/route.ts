@@ -8,6 +8,8 @@ import { NextResponse } from "next/server";
 import { NextRequest } from 'next/server';
 import { useSession, signOut } from "next-auth/react";
 
+
+
 export async function GET(req: NextRequest, {params}: {params: {id: string}}) {
   const session = await getServerSession(authOptions);
    if(session){
@@ -18,6 +20,7 @@ export async function GET(req: NextRequest, {params}: {params: {id: string}}) {
     try {
       const linkInBio = await LinkInBio.findOne({userId: id});
       console.log(linkInBio);
+
 
       if (!linkInBio) {
         return NextResponse.json(

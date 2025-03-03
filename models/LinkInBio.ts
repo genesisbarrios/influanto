@@ -4,55 +4,44 @@ import toJSON from "./plugins/toJSON";
 // LinkInBio SCHEMA
 const linkInBioSchema = new mongoose.Schema(
   {
-    userId:{
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       unique: true
     },
-    backgroundColor:{
+    bgColor: {
       type: String,
     },
-    link1: {
-      url: String,
-      name: String,
+    textColor: {
+      type: String,
     },
-    link2: {
-      url: String,
-      name: String,
+    linksColor: {
+      type: String,
     },
-    link3: {
-      url: String,
-      name: String,
-    },
-    link4: {
-      url: String,
-      name: String,
-    },
-    link5: {
-      url: String,
-      name: String,
-    },
-    link6: {
-      url: String,
-      name: String,
-    },
-    link7: {
-      url: String,
-      name: String,
-    },
-    link8: {
-      url: String,
-      name: String,
-    },
-    link9: {
-      url: String,
-      name: String,
-    },
-    link10: {
-      url: String,
-      name: String,
-    },
-    
+    links: [
+      {
+        url: {
+          type: String,
+          required: true,
+        },
+        name: {
+          type: String,
+          required: true,
+        },
+        displayVideo: {
+          type: Boolean,
+          required: false,
+        },
+        autoPlay: {
+          type: Boolean,
+          required: false,
+        },
+        mute: {
+          type: Boolean,
+          required: false,
+        },
+      }
+    ],
   },
   {
     timestamps: true,
