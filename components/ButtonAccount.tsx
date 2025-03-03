@@ -37,6 +37,18 @@ const ButtonAccount = () => {
     setIsLoading(false);
   };
 
+  const handleDashboard = async () => {
+    setIsLoading(true);
+
+    try {
+      window.location.href = "/dashboard";
+    } catch (e) {
+      console.error(e);
+    }
+
+    setIsLoading(false);
+  };
+
   // Don't show anything if not authenticated (we don't have any info about the user)
   if (status === "unauthenticated") return null;
 
@@ -44,7 +56,7 @@ const ButtonAccount = () => {
     <Popover className="relative z-10">
       {({ open }) => (
         <>
-          <Popover.Button className="btn">
+          <Popover.Button className="btn btn-primary">
             {session?.user?.image ? (
               <img
                 src={session?.user?.image}
@@ -93,7 +105,26 @@ const ButtonAccount = () => {
             <Popover.Panel className="absolute left-0 z-10 mt-3 w-screen max-w-[16rem] transform">
               <div className="overflow-hidden rounded-xl shadow-xl ring-1 ring-base-content ring-opacity-5 bg-base-100 p-1">
                 <div className="space-y-0.5 text-sm">
-                  <button
+                <button
+                    className="flex items-center gap-2 hover:bg-base-300 duration-200 py-1.5 px-4 w-full rounded-lg font-medium"
+                    onClick={handleDashboard}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className={`w-5 h-5 duration-200 opacity-50 ${open ? "transform rotate-180" : ""}`}
+                    >
+                      {/* Dashboard icon with lines (for example, a menu icon or expanded dashboard) */}
+                      <path
+                        fillRule="evenodd"
+                        d="M4 3H16C16.5523 3 17 3.44772 17 4C17 4.55228 16.5523 5 16 5H4C3.44772 5 3 4.55228 3 4C3 3.44772 3.44772 3 4 3ZM4 9H16C16.5523 9 17 9.44772 17 10C17 10.5523 16.5523 11 16 11H4C3.44772 11 3 10.5523 3 10C3 9.44772 3.44772 9 4 9ZM4 15H16C16.5523 15 17 15.4477 17 16C17 16.5523 16.5523 17 16 17H4C3.44772 17 3 16.5523 3 16C3 15.4477 3.44772 15 4 15Z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Dashboard
+                  </button>
+                  {/* <button
                     className="flex items-center gap-2 hover:bg-base-300 duration-200 py-1.5 px-4 w-full rounded-lg font-medium"
                     onClick={handleBilling}
                   >
@@ -110,7 +141,7 @@ const ButtonAccount = () => {
                       />
                     </svg>
                     Billing
-                  </button>
+                  </button> */}
                   <button
                     className="flex items-center gap-2 hover:bg-error/20 hover:text-error duration-200 py-1.5 px-4 w-full rounded-lg font-medium"
                     onClick={handleSignOut}

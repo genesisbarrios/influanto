@@ -45,13 +45,13 @@ const config = {
         priceId:
           process.env.NODE_ENV === "development"
             ? "price_1PTHqhHYk9DUtBP3l9IFqCPx"
-            : "price_456",//todo change to prod price id
+            : "price_1PTHqhHYk9DUtBP3l9IFqCPx", 
         // This plan will look different on the pricing page, it will be highlighted. You can only have one plan with isFeatured: true
         isFeatured: true,
         name: "Influanto Pro",
         description: "You need more power",
-        price: "Coming Soon",
-        priceAnchor: 8.99,
+        price: "7.99",
+        priceAnchor: 14.99,
         features: [
           {
             name: "Link in Bio Page",

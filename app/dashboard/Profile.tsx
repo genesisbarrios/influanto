@@ -12,11 +12,13 @@ import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobe, faLocation } from "@fortawesome/free-solid-svg-icons";
 import { set } from "mongoose";
+import ButtonCheckout from "@/components/ButtonCheckout";
+import config from "@/config";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
 const Profile =  () => {
   const [user, setUser] = useState<any>();
-
+  const {data, status} = useSession();
   const [isEditing, setEditing] = useState(false);
   const [isEditingStreaming, setEditingStreaming] = useState(false);
   const [formName, setFormName] = useState("");
@@ -374,13 +376,21 @@ const Profile =  () => {
             {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
             <br></br>
             {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
+            
             <br></br>
-            <button 
-                className="btn btn-danger btn-block btn-sm btn-narrow" 
-                style={{width:"35%", display:"inline", margin:"2% 0 2% 0%", backgroundColor:"darkgrey", borderColor:"darkgrey"}}
-                onClick={(e) => signOut()} >
-                Sign Out
-            </button>
+            {/* {!user.priceId || !user.hasAccess &&
+            <section className="mt-4 w-3/4 mx-auto space-y-8 mb-4">
+              <hr></hr>
+              <h3 className="text-xl md:text-2xl font-extrabold mb-0" style={{color:"turquoise"}}>
+                Subscribe to get Premium:
+              </h3>
+
+              <ButtonCheckout
+                mode="subscription"
+                priceId={config.stripe.plans[1].priceId} 
+              />
+            </section>
+            } */}
           </div>
         </div>
     );

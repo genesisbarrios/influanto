@@ -126,7 +126,7 @@ const userSchema = new mongoose.Schema(
     // Used to determine if the user has access to the product—it's turn on/off by the Stripe webhook
     hasAccess: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   {

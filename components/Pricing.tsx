@@ -1,6 +1,7 @@
 import config from "@/config";
 import ButtonCheckout from "./ButtonCheckout";
 
+import ButtonGetInfluanto from "./ButtonGetInfluanto";
 // <Pricing/> displays the pricing plans for your app
 // It's your Stripe config in config.js.stripe.plans[] that will be used to display the plans
 // <ButtonCheckout /> renders a button that will redirect the user to Stripe checkout called the /api/stripe/create-checkout API endpoint with the correct priceId
@@ -88,10 +89,13 @@ const Pricing = () => {
                     ))}
                   </ul>
                 )}
-                <div className="space-y-2">
-                  <ButtonCheckout priceId={plan.priceId} />
+                <div className="space-y-2 mx-auto">
+                   {/* {plan.priceId && <ButtonCheckout priceId={plan.priceId} />} */}
 
-                  <p className="flex items-center justify-center gap-2 text-sm text-center text-base-content/80 font-medium relative">
+                  {/* {!plan.priceId &&  */}
+                  <ButtonGetInfluanto/> 
+                  {/* } */}
+                  <p className="flex items-center justify-center text-sm text-center text-base-content/80 font-medium relative">
                     Pay once. Access forever.
                   </p>
                 </div>

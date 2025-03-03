@@ -8,6 +8,12 @@ import Image from "next/image";
 import ButtonSignin from "./ButtonSignin";
 import logo from "@/app/TRANSPARENT_LOGO.png";
 import config from "@/config";
+import ButtonAccount from "@/components/ButtonAccount";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/libs/next-auth";
+import User from "@/models/User";
+import apiClient from "@/libs/api";
+import { useSession, signOut } from "next-auth/react";
 
 const links: {
   href: string;
@@ -28,12 +34,15 @@ const links: {
 ];
 
 const cta: JSX.Element = <ButtonSignin extraStyle="btn-primary" />;
+const ctaAuth: JSX.Element = <ButtonAccount />;
 
 // A header with a logo on the left, links in the center (like Pricing, etc...), and a CTA (like Get Started or Login) on the right.
 // The header is responsive, and on mobile, the links are hidden behind a burger button.
 const Header = () => {
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [user, setUser] = useState<any>();
+  const {data, status} = useSession();
 
   // setIsOpen(false) when the route changes (i.e: when the user clicks on a link on mobile)
   useEffect(() => {
@@ -103,7 +112,9 @@ const Header = () => {
         </div>
 
         {/* CTA on large screens */}
-        <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div>
+        {!data && <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div>}
+        {data && <div className="hidden lg:flex lg:justify-end lg:flex-1">{ctaAuth}</div>}
+        
       </nav>
 
       {/* Mobile menu, show/hide based on menu state. */}
