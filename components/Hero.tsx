@@ -2,6 +2,7 @@ import Image from "next/image";
 import TestimonialsAvatars from "./TestimonialsAvatars";
 import config from "@/config";
 import image from "@/app/homepage.jpg";
+import ButtonGetInfluanto from "./ButtonGetInfluanto";
 
 const Hero = () => {
   return (
@@ -21,9 +22,7 @@ const Hero = () => {
           Coming Soon: Send bulk comments and DMs to your supporters on social media.
         </p>
         <a href="/api/auth/signin">
-          <button className="btn btn-primary btn-wide">
-            Get {config.appName}
-          </button>
+          <ButtonGetInfluanto />
         </a>
 
         <TestimonialsAvatars priority={true} />
