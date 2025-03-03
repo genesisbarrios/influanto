@@ -173,7 +173,7 @@ const LinkInBio =  () => {
             </button>
           </div>
           <br></br>
-        <div style={{margin:"0 auto", textAlign:"center" }}>
+        <div style={{margin:"0 auto", textAlign:"center", color: textColor }}>
           <img src={data.user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline" }} alt="Avatar" />
           <p>{data.user.name}</p>
           <br></br>
@@ -182,7 +182,7 @@ const LinkInBio =  () => {
                 {links.map((link:any, index:number) => (
                     link.url && link.name && (
                         <div key={index} className="p-2 border rounded-lg mb-2">
-                            <a href={link.url} target="_blank" rel="noopener noreferrer">{link.name}</a>
+                            <a href={link.url} target="_blank" rel="noopener noreferrer" style={{color: linksColor}}>{link.name}</a>
                         </div>
                     )
                 ))}
