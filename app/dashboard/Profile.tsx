@@ -25,6 +25,7 @@ const Profile =  () => {
   const [formUserName, setFormUserName] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [avatarImage, setAvatarImage] = useState(null);
+  const [formImage, setFormImage] = useState(null);
   const [location, setLocation] = useState("");
   const [instagram, setInstagram] = useState("");
   const [twitter, setTwitter] = useState("");
@@ -57,11 +58,9 @@ const Profile =  () => {
     try {
       const { data } = await apiClient.get("/get-user");
       console.log(data);
-      console.log(data.email);
-      setAvatarImage(data.image);
+      setAvatarImage(data?.image);
       setFormName(data.name);
       setFormUserName(data.username);
-      setFormEmail(data.email);
       setLocation(data.location);
       setWebsite(data.website);
       setBio(data.bio);
@@ -96,6 +95,8 @@ const Profile =  () => {
 
   useEffect(() => {
     getUser();
+    setFormEmail(data?.user?.email);
+    setAvatarImage(data?.user?.image);
   }, []);
 
   useEffect(() => {
@@ -130,57 +131,73 @@ const Profile =  () => {
   const handleEditProfile = async (e:any) => {
     e.preventDefault();
     console.log('Edit Profile');
+    console.log(user.email);
     setIsLoading(true);
     try {
-      const { data } = await apiClient.post("/user", {
-        name: formName,
-        username: formUserName,
-        image: avatarImage,
-        location: location,
-        website: website,
-        bio: bio,
-        instagram: instagram,
-        twitter: twitter,
-        facebook: facebook,
-        linkedin: linkedin,
-        youtube: youtube,
-        tiktok: tiktok,
-        github: github,
-        patreon: patreon,
-        substack: substack,
-        telegram: telegram,
-        etsy: etsy,
-        spotify: spotify,
-        appleMusic: appleMusic,
-        tidal: tidal,
-        amazonMusic: amazonMusic,
-        soundcloud: soundcloud,
-        deezer: deezer,
-        pandora: pandora,
-        youtubeMusic: youtubeMusic,
-        bandcamp: bandcamp,
-        soundxyz: soundxyz,
-      });
+      // Create FormData object to handle file uploads
+      const formData = new FormData();
+      if (formName != null && formName != "") formData.append("name", formName);
+      if (formUserName != null && formUserName != "") formData.append("username", formUserName);
+      if (formEmail != null && formEmail != "") formData.append("email", user?.email);
+      if (location != null && location != "") formData.append("location", location);
+      if (website != null && website != "") formData.append("website", website);
+      if (bio != null && bio != "") formData.append("bio", bio);
+      if (instagram != null && instagram != "") formData.append("instagram", instagram);
+      if (twitter != null && twitter != "") formData.append("twitter", twitter);
+      if (facebook != null && facebook != "") formData.append("facebook", facebook);
+      if (linkedin != null && linkedin != "") formData.append("linkedin", linkedin);
+      if (youtube != null && youtube != "") formData.append("youtube", youtube);
+      if (tiktok != null && tiktok != "") formData.append("tiktok", tiktok);
+      if (github != null && github != "") formData.append("github", github);
+      if (patreon != null && patreon != "") formData.append("patreon", patreon);
+      if (substack != null && substack != "") formData.append("substack", substack);
+      if (telegram != null && telegram != "") formData.append("telegram", telegram);
+      if (etsy != null && etsy != "") formData.append("etsy", etsy);
+      if (spotify != null && spotify != "") formData.append("spotify", spotify);
+      if (appleMusic != null && appleMusic != "") formData.append("appleMusic", appleMusic);
+      if (tidal != null && tidal != "") formData.append("tidal", tidal);
+      if (amazonMusic != null && appleMusic != "") formData.append("amazonMusic", amazonMusic);
+      if (soundcloud != null && soundcloud != "") formData.append("soundcloud", soundcloud);
+      if (deezer != null && deezer != "") formData.append("deezer", deezer);
+      if (pandora != null && pandora != "") formData.append("pandora", pandora);
+      if (youtubeMusic != null && youtubeMusic != "") formData.append("youtubeMusic", youtubeMusic);
+      if (bandcamp != null && bandcamp != "") formData.append("bandcamp", bandcamp);
+      if (soundxyz != null && soundxyz != "") formData.append("soundxyz", soundxyz);
 
-      console.log(data);
+  
+      // Only append the image if it exists
+      if (formImage) {
+        formData.append("image", formImage);
+      }
+  
+      // Send the form data
+      const { data } = await apiClient.post("/user", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       setAlertt("Loading.. Updating Your Profile..");
-    
-    } catch (e) {
-      //console.error(e?.message);
-      setAlertt(e?.message);
+  
+      console.log(data);
+  
+    } catch (error) {
+      console.error("Error:", error.response || error.message);
+      setAlertt(error?.message || "An unknown error occurred");
     } finally {
       setIsLoading(false);
       setEditing(false);
       setAlertt("Profile updated successfully");
     }
-  }
+  };
     
   const handleFileSelection = (e:any) => {
     if (e.target.files && e.target.files.length > 0) {
       // Update the state with the first selected file
-      const avatar = convertToBase64(e.target.files[0]);
+      //const avatar = convertToBase64(e.target.files[0]);
+      const avatar = e.target.files[0];
       console.log(avatar);
-      setAvatarImage(avatar);
+      setAvatarImage(convertToBase64(e.target.files[0]));
+      setFormImage(avatar);
     }
   };
 
@@ -315,8 +332,7 @@ const Profile =  () => {
   };
 
   const containerStyle = {
-    width: "100%",
-    maxWidth: "400px", // Limit width on larger screens
+    width: "100%", // Limit width on larger screens
     margin: "0 auto", // Center the container
     padding: "10px", // Add padding to prevent content from touching edges
   };
@@ -341,10 +357,9 @@ const Profile =  () => {
           <br></br>
 
           <div style={{margin:"0 auto",  textAlign:"center" }}>
-            <img src={user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline", marginBottom:"2%"}} alt="Avatar" />
+            <img src={avatarImage} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline", marginBottom:"2%"}} alt="Avatar" />
             <p>{user.name}</p>
             <p>{user.username}</p>
-            <p>{user.email}</p>
             <p>
               {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} />{user.location}</span>}
               {user.website && <a href={ user.website } target="_blank"><FontAwesomeIcon icon={faGlobe} /> Website</a>}
@@ -402,7 +417,7 @@ const Profile =  () => {
         <br></br>
        
         <form>
-         <img src={user.image} style={{ borderRadius: '50%', width:"75px", height:"75px", display:"inline"}} alt="Avatar" />
+         <img src={avatarImage} style={{ borderRadius: '50%', width:"75px", height:"75px", display:"inline"}} alt="Avatar" />
           <div style={{display:"inline"}}>
             <input style={{display:"inline", marginLeft:"10px"}} 
                 type="file"
