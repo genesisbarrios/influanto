@@ -9,11 +9,8 @@ import axios from 'axios';
 import FormData from 'form-data';
 import { Readable } from 'stream';
 
-export const config = {
-  api: {
-    bodyParser: false, // Disable body parsing so formidable can handle it
-  },
-};
+export const dynamic = 'force-dynamic'; // Ensures dynamic behavior
+export const bodyParser = false; // Disables the body parser
 
 // Cloudinary configuration
 cloudinary.config({
@@ -79,7 +76,7 @@ export async function POST(req: Request) {
     }
     let image;
 
-    if (image) {
+    if (formData.get("image")) {
       image = formData.get("image") as File;
 
       const arrayBuffer = await image.arrayBuffer();
