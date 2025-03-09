@@ -10,7 +10,7 @@ import FormData from 'form-data';
 import { Readable } from 'stream';
 
 export const dynamic = 'force-dynamic'; // Ensures dynamic behavior
-export const bodyParser = false; // Disables the body parser
+// export const bodyParser = false; // Disables the body parser
 
 // Cloudinary configuration
 cloudinary.config({
