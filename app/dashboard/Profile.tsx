@@ -458,14 +458,14 @@ const Profile =  () => {
               <label style={{display:"block"}}>LinkedIn</label> 
               <input type="text" className="input mb-2 w-3/4" placeholder={user?.linkedin || "handle"} onChange={(e) => handleLinkedInChange(e)} />
               
-              <label style={{display:"block"}}>Etsy</label>   <br />
+              <label style={{display:"block"}}>Etsy</label> 
               <input type="text" className="input mb-2 w-3/4" placeholder={user?.etsy || "handle"} onChange={(e) => handleEtsyChange(e)} />
               
               <label style={{display:"block"}}>Patreon</label> 
               <input type="text" className="input mb-2 w-3/4" placeholder={user?.patreon || "handle"} onChange={(e) => handlePatreonChange(e)} />
             </div>
             <div className="w-full lg:w-1/2 p-2">
-              <label>TikTok</label> 
+            <label style={{display:"block"}}>TikTok</label> 
               <input type="text" className="input mb-2 w-3/4" placeholder={user?.tiktok || "handle"} onChange={(e) => handleTikTokChange(e)} />
               <br />
               <label>YouTube</label> 
@@ -474,7 +474,7 @@ const Profile =  () => {
               <label>Telegram</label> 
               <input type="text" className="input mb-2 w-3/4" placeholder={user?.telegram || "handle"} onChange={(e) => handleTelegramChange(e)} />
               <br />
-              <label>GitHub</label> 
+              <label  style={{display:"block"}}>GitHub</label> 
               <input type="text" className="input mb-2 w-3/4" placeholder={user?.github || "handle"} onChange={(e) => handleGithubChange(e)} />
               <br />
               <label>SubStack</label> 
@@ -493,7 +493,7 @@ const Profile =  () => {
           <br></br>
           {isEditingStreaming && <div className="flex flex-wrap w-full">
             <div className="w-full sm:w-1/2 p-2">
-              <label>Spotify</label> 
+              <label  style={{display:"block"}}>Spotify</label> 
               <input type="text" className="input mb-2 w-3/4" placeholder={user?.spotify || "Spotify URI"} onChange={(e) => handleSpotifyChange(e)} />
               <br />
               <label>Apple Music</label> 
@@ -519,7 +519,7 @@ const Profile =  () => {
               <label>Pandora</label>   <br />
               <input type="text" className="input mb-2 w-3/4" placeholder={user?.pandora || "Artist ID"} onChange={(e) => handlePandoraChange(e)} />
               <br />
-              <label>Deezer</label> 
+              <label style={{display:"block"}}>Deezer</label> 
               <input type="text" className="input mb-2 w-3/4" placeholder={user?.deezer || "Artist ID"} onChange={(e) => handleDeezerChange(e)} />
               <br />
               <label>Sound.xyz</label> 
