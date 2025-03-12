@@ -23,7 +23,7 @@ const LinkInBio =  () => {
   const [linksColor, setLinksColor] = useState <any>();
   const [linkInBio, setLinkInBio] = useState<any>();
   const [links, setLinks] = useState<any[]>([
-    { url: "", name: "" }
+    { url: "", name: "", image: "" }
   ]);
 
   const [isEditing, setEditing] = useState(false);
@@ -69,8 +69,11 @@ const LinkInBio =  () => {
   };
 
   const handleImageUpload = (index: number, result: any) => {
-    const imageUrl = result.info.secure_url;
+    console.log('handle upload')
+    console.log(result);
+    const imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/v1741745302/${result.info.publicId}.png`;
     updateImage(index, imageUrl);
+    console.log(imageUrl);
   };
 
   useEffect(() => {
@@ -186,11 +189,12 @@ const LinkInBio =  () => {
           {links && user && (
             <div>
                 {links.map((link:any, index:number) => (
-                    link.url && link.name && (
-                        <div key={index} className="p-2 border rounded-lg mb-2">
-                            <a href={link.url} target="_blank" rel="noopener noreferrer" style={{color: linksColor}}>{link.name}</a>
-                        </div>
-                    )
+                  link.url && link.name && (
+                    <div key={index} className="p-2 border rounded-lg mb-2" style={{display:"flex", alignItems: 'center', justifyContent: 'center'}}>
+                        {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
+                        <a href={link.url} target="_blank" rel="noopener noreferrer" style={{color: linksColor}}>{link.name}</a>
+                    </div>
+                  )
                 ))}
                 <br />
                 <a
@@ -239,8 +243,8 @@ const LinkInBio =  () => {
                     />
                     <CldUploadWidget
                       uploadPreset="LinkInBioThumbnail" // Replace with your actual upload preset
-                      onUploadAdded={(results: any) => {
-                        const result = JSON.parse(results);
+                      options={{ publicId: `user_${user.id}_link_${index}_thumbnail` }}
+                      onUploadAdded={(result: any) => {
                         handleImageUpload(index, result);
                       }}
                     >
