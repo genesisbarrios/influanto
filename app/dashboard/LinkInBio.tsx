@@ -11,6 +11,9 @@ import ButtonEdit from "@/components/ButtonEdit";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import Head from 'next/head';
 import { text } from "stream/consumers";
+import { CldUploadWidget } from 'next-cloudinary';
+
+const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
 const LinkInBio =  () => {
   const {data, status} = useSession();
@@ -57,6 +60,17 @@ const LinkInBio =  () => {
   const removeLink = (index:number) => {
       const newLinks = links.filter((_:any, i:any) => i !== index);
       setLinks(newLinks);
+  };
+
+  const updateImage = (index: number, imageUrl: string) => {
+    const newLinks = [...links];
+    newLinks[index].image = imageUrl;
+    setLinks(newLinks);
+  };
+
+  const handleImageUpload = (index: number, result: any) => {
+    const imageUrl = result.info.secure_url;
+    updateImage(index, imageUrl);
   };
 
   useEffect(() => {
@@ -130,14 +144,6 @@ const LinkInBio =  () => {
     }
   }
 
-  const handleFileSelection = (e:any) => {
-    if (e.target.files && e.target.files.length > 0) {
-      // Update the state with the first selected file
-      const img = convertToBase64(e.target.files[0]);
-      setLogoImage(img);
-    }
-  };
-
   const containerStyle = {
     width: "100%",
     maxWidth: "400px", // Limit width on larger screens
@@ -209,39 +215,14 @@ const LinkInBio =  () => {
         <h1>Edit Links</h1>
           <div className="flex flex-wrap w-full">
             <div className="w-full lg:w-full p-2">
-            <div>
-              <h2>Background Color</h2>
-               <input
-                  type="color"
-                  value={bgColor}
-                  onChange={(e) => setBgColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2>Text Color</h2>
-               <input
-                  type="color"
-                  value={textColor}
-                  onChange={(e) => setTextColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2>Links Color</h2>
-               <input
-                  type="color"
-                  value={linksColor}
-                  onChange={(e) => setLinksColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-             </div>
              {links.map((link:any, index:number) => (
                 <div key={index} className="mb-4">
-                    <label style={{ display: "inline" }}>Link {index + 1}</label>
-                    <button
-                        type="button"
-                        className="btn btn-alert btn-sm ml-2"
-                        onClick={() => removeLink(index)}
-                    >
-                        Remove
-                    </button>
+                    <label style={{ display: "block" }}>
+                      Link {index + 1}
+                      {link.image && (
+                        <img src={link.image} alt={`Link ${index + 1} thumbnail`} style={{ width: "30px", height: "30px", borderRadius: "50%", marginLeft: "10px" }} />
+                      )}
+                    </label>
                     <input
                         type="text"
                         className="input mt-2 mb-2 mr-4 w-3/4"
@@ -256,8 +237,28 @@ const LinkInBio =  () => {
                         value={link.name}
                         onChange={(e) => updateLink(index, 'name', e.target.value)}
                     />
-                    
+                    <CldUploadWidget
+                      uploadPreset="LinkInBioThumbnail" // Replace with your actual upload preset
+                      onUploadAdded={(results: any) => {
+                        const result = JSON.parse(results);
+                        handleImageUpload(index, result);
+                      }}
+                    >
+                      {({ open }: { open: () => void }) => (
+                      <button type="button" onClick={() => open()} className="btn btn-primary btn-sm">
+                        Upload Image
+                      </button>
+                      )}
+                    </CldUploadWidget>
+                     <button
+                        type="button"
+                        className="btn btn-alert btn-sm ml-2"
+                        onClick={() => removeLink(index)}
+                    >
+                        Remove
+                    </button>
                 </div>
+                
             ))}
           
             <button
@@ -267,6 +268,30 @@ const LinkInBio =  () => {
             >
                 Add Link
             </button>
+            <h1 style={{display:"block"}} className="mt-8 mb-2">Styles</h1>
+            <div className="flex flex-wrap w-full"> 
+               <h2 style={{display:"block"}} className="mr-2">BG</h2>
+               <input
+                  type="color"
+                  value={bgColor}
+                  onChange={(e) => setBgColor(e.target.value)}
+                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                />
+                <h2 style={{display:"block"}} className="ml-2 mr-2">Text</h2>
+               <input
+                  type="color"
+                  value={textColor}
+                  onChange={(e) => setTextColor(e.target.value)}
+                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                />
+                <h2 style={{display:"block"}} className="ml-2 mr-2">Links</h2>
+               <input
+                  type="color"
+                  value={linksColor}
+                  onChange={(e) => setLinksColor(e.target.value)}
+                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                />
+             </div>
             </div>
           </div>
 

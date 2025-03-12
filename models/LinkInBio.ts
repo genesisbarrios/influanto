@@ -28,6 +28,9 @@ const linkInBioSchema = new mongoose.Schema(
           type: String,
           required: true,
         },
+        image: {
+          type: String,
+        },
         displayVideo: {
           type: Boolean,
           required: false,

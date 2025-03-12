@@ -181,7 +181,12 @@ const LinkInBioPage =  () => {
             <hr style={{margin: "5% 0"}}></hr>
 
             {links.map((link, index) => 
-              link.url && <div key={index} className="p-2 border rounded-lg mb-2"><a href={link.url} style={{color:linksColor}}>{link.name}</a></div>
+              link.url && (
+                <div key={index} className="p-2 border rounded-lg mb-2" style={{borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                  {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
+                  <a href={link.url} style={{color:linksColor}}>{link.name}</a>
+                </div>
+              )
             )}
             {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
             <br></br>
