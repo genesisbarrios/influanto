@@ -113,12 +113,20 @@ const PitchToSpotify = () => {
               <p className="text-xs text-gray-700">
                 {playlist.externalUrl ? (
                   <a 
-                    href={playlist.externalUrl} target="_blank"
+                    href={playlist.externalUrl} target="_blank" rel="noopener noreferrer"
                     className="inline-block mt-2 px-4 py-2 text-white bg-blue-500 rounded-lg text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
                     Social Media
                   </a>
-                ) : (<></>)}
+                ) : null}
+                {playlist.email ? (
+                  <a 
+                    href={`mailto:${playlist.email}`} 
+                    className="inline-block mt-2 px-4 py-2 text-white bg-blue-500 rounded-lg text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  >
+                    Email
+                  </a>
+                ) : null}
               </p>
             </div>
           ))}

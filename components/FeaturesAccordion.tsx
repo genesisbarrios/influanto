@@ -46,9 +46,9 @@ const features = [
     ),
   },
   {
-    title: "Playlist Pitching",
+    title: "Playlist Curator Search Tool",
     description:
-      "Use our Playlist Pitching Tool to find and contact Spotify Curators. (Coming Soon)",
+      "Use our Curator Search Tool to find and contact Playlist Curators!",
       type: "image",
       path: "https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       alt: "A computer",
@@ -62,7 +62,7 @@ const features = [
   {
     title: "QR Code Generator",
     description:
-      "Create an FREE Static QR Code",
+      "Create FREE Static QR Codes!",
     type: "image",
     path: "https://images.unsplash.com/photo-1573867639040-6dd25fa5f597?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     alt: "wire frames",
