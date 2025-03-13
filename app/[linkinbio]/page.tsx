@@ -112,6 +112,18 @@ const LinkInBioPage =  () => {
         } 
     }
   }
+  
+  function isYouTubeLinkCheck(url: string): boolean {
+    const youtubeRegex = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$/;
+    
+    return youtubeRegex.test(url);
+  }
+
+  // Function to get the YouTube video ID
+  function getYouTubeVideoId(url: string): string | null {
+    const match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
+  }
 
   useEffect(() => {
     getUser();
@@ -183,8 +195,21 @@ const LinkInBioPage =  () => {
             {links.map((link, index) => 
               link.url && (
                 <div key={index} className="p-2 border rounded-lg mb-2" style={{borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                  {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
-                  <a href={link.url} style={{color:linksColor}}>{link.name}</a>
+                  {isYouTubeLinkCheck(link.url) ? (
+                    <iframe
+                        width="560"
+                        height="315"
+                        src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}`}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                    ></iframe>
+                ) : (
+                  <>
+                    {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" style={{color: linksColor}}>{link.name}</a>
+                  </>
+                )}
                 </div>
               )
             )}

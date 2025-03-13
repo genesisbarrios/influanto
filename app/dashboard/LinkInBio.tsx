@@ -68,6 +68,36 @@ const LinkInBio =  () => {
     setLinks(newLinks);
   };
 
+  function isYouTubeLinkCheck(url: string): boolean {
+    const youtubeRegex = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$/;
+    
+    return youtubeRegex.test(url);
+  }
+
+  // Function to check if a URL is a YouTube link
+  function isYouTubeLink(index: number, url: string): boolean {
+    const youtubeRegex = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$/;
+    
+    const test = youtubeRegex.test(url);
+    return test;
+  }
+
+  // Function to update YouTube link options
+  function updateYouTubeLinkOptions(index: number, value: boolean) {
+    // Assuming you have a state or a method to update the link
+    const updatedLinks = [...links];
+    updatedLinks[index].displayVideo = value;
+    setLinks(updatedLinks);
+    console.log(updatedLinks);
+  }
+
+  // Function to get the YouTube video ID
+  function getYouTubeVideoId(url: string): string | null {
+    const match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
+  }
+
+
   const handleImageUpload = (index: number, result: any) => {
     console.log('handle upload')
     console.log(result);
@@ -191,8 +221,20 @@ const LinkInBio =  () => {
                 {links.map((link:any, index:number) => (
                   link.url && link.name && (
                     <div key={index} className="p-2 border rounded-lg mb-2" style={{display:"flex", alignItems: 'center', justifyContent: 'center'}}>
-                        {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
-                        <a href={link.url} target="_blank" rel="noopener noreferrer" style={{color: linksColor}}>{link.name}</a>
+                         {isYouTubeLinkCheck(link.url) ? (
+                            <iframe
+                                width="560"
+                                height="315"
+                                src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}`}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            ></iframe>
+                        ) : (
+                          <>
+                            {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
+                            <a href={link.url} target="_blank" rel="noopener noreferrer" style={{color: linksColor}}>{link.name}</a>
+                          </>
+                        )}
                     </div>
                   )
                 ))}
@@ -223,6 +265,17 @@ const LinkInBio =  () => {
                 <div key={index} className="mb-4">
                     <label style={{ display: "block" }}>
                       Link {index + 1}
+                      {isYouTubeLinkCheck(link.url) && (
+                        <div>
+                            <iframe
+                                width="100%"
+                                height="auto"
+                                src={`https://www.youtube.com/embed/` +  getYouTubeVideoId(link.url)}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            ></iframe>
+                        </div>
+                    )}
                       {link.image && (
                         <img src={link.image} alt={`Link ${index + 1} thumbnail`} style={{ width: "30px", height: "30px", borderRadius: "50%", marginLeft: "10px" }} />
                       )}
@@ -241,6 +294,19 @@ const LinkInBio =  () => {
                         value={link.name}
                         onChange={(e) => updateLink(index, 'name', e.target.value)}
                     />
+                     {isYouTubeLink(index, link.url) && (
+                      <div>
+                          <label>
+                              Display Video:
+                              <input
+                                  type="checkbox" className="mr-2"
+                                  defaultChecked={link.displayVideo || false}
+                                  checked={link.displayVideo || false}
+                                  onChange={(e) => updateYouTubeLinkOptions(index, e.target.checked)}
+                              />
+                          </label>
+                      </div>
+                  )}
                     <CldUploadWidget
                       uploadPreset="LinkInBioThumbnail" // Replace with your actual upload preset
                       options={{ publicId: `user_${user.id}_link_${index}_thumbnail` }}
