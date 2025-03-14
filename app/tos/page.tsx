@@ -57,7 +57,7 @@ const TOS = () => {
           className="leading-relaxed whitespace-pre-wrap"
           style={{ fontFamily: "sans-serif" }}
         >
-          {`Last Updated: September 26, 2023
+          {`Last Updated: March 14, 2025
 
 Welcome to influanto!
 
@@ -87,7 +87,7 @@ These Terms are governed by the laws of France.
 
 We may update these Terms from time to time. Users will be notified of any changes via email.
 
-For any questions or concerns regarding these Terms of Service, please contact us atinfo@influanto.com.
+For any questions or concerns regarding these Terms of Service, please contact us at info@influanto.com.
 
 Thank you for using influanto!`}
         </pre>

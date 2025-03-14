@@ -110,7 +110,7 @@ const PitchToSpotify = () => {
               <p className="text-sm text-gray-700">{playlist.description || "No description available"}</p>
 
               {/* External Social URL */}
-              <p className="text-xs text-gray-700">
+              <div className="text-xs text-gray-700">
                 {playlist.externalUrl ? (
                   <a 
                     href={playlist.externalUrl} target="_blank" rel="noopener noreferrer"
@@ -127,7 +127,7 @@ const PitchToSpotify = () => {
                     Email
                   </a>
                 ) : null}
-              </p>
+              </div>
             </div>
           ))}
         </div>
