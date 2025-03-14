@@ -25,7 +25,6 @@ const LinkInBio =  () => {
   const [links, setLinks] = useState<any[]>([
     { url: "", name: "", image: "" }
   ]);
-
   const [isEditing, setEditing] = useState(false);
   const [location, setLocation] = useState("");
   const [logoImage, setLogoImage] = useState(null);
@@ -70,14 +69,12 @@ const LinkInBio =  () => {
 
   function isYouTubeLinkCheck(url: string): boolean {
     const youtubeRegex = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$/;
-    
     return youtubeRegex.test(url);
   }
 
   // Function to check if a URL is a YouTube link
   function isYouTubeLink(index: number, url: string): boolean {
     const youtubeRegex = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$/;
-    
     const test = youtubeRegex.test(url);
     return test;
   }
@@ -96,7 +93,6 @@ const LinkInBio =  () => {
     const match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     return match ? match[1] : null;
   }
-
 
   const handleImageUpload = (index: number, result: any) => {
     console.log('handle upload')
@@ -221,21 +217,20 @@ const LinkInBio =  () => {
                 {links.map((link:any, index:number) => (
                   link.url && link.name && (
                     <div key={index} className="p-2 border rounded-lg mb-2" style={{display:"flex", alignItems: 'center', justifyContent: 'center'}}>
-                         {isYouTubeLinkCheck(link.url) ? (
-                            <iframe
-                                width="560"
-                                height="315"
-                                src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}`}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            ></iframe>
-                        ) : (
-                          <>
-                            {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
-                            <a href={link.url} target="_blank" rel="noopener noreferrer" style={{color: linksColor}}>{link.name}</a>
-                          </>
-                        )}
-                    </div>
+                      {isYouTubeLinkCheck(link.url) ? (
+                        <iframe
+                            width="560"
+                            height="315"
+                            src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}`}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                        ></iframe> ) : (
+                        <>
+                          {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
+                          <a href={link.url} target="_blank" rel="noopener noreferrer" style={{color: linksColor}}>{link.name}</a>
+                        </>
+                      )}
+                </div>
                   )
                 ))}
                 <br />
