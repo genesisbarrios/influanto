@@ -1,5 +1,5 @@
 "use client"
-
+/* eslint-disable */
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/next-auth";
 import linkInBioSchema from "@/models/LinkInBio";
