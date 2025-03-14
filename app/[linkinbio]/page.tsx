@@ -105,7 +105,6 @@ const LinkInBioPage =  () => {
         setTextColor(data.linkInBio?.textColor);
         setLinksColor(data.linkInBio?.linksColor);
         setLinks(data.linkInBio?.links);
-        
         } catch (e) {
         //console.error(e?.message);
         setAlertt(e?.message);
@@ -115,7 +114,6 @@ const LinkInBioPage =  () => {
   
   function isYouTubeLinkCheck(url: string): boolean {
     const youtubeRegex = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$/;
-    
     return youtubeRegex.test(url);
   }
 
