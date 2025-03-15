@@ -24,12 +24,12 @@ const links: {
     label: "Pricing",
   },
   {
-    href: "/#testimonials",
-    label: "Reviews",
-  },
-  {
     href: "/#faq",
     label: "FAQ",
+  },
+  {
+    href: "/dashboard",
+    label: "Tools",
   },
 ];
 

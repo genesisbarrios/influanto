@@ -61,15 +61,15 @@ const TOS = () => {
             <li>
               Sign Up for an Account by signing in with your email or Gmail account.
               <img
-                src="/images/signup-example.png"
+                src="/1.signin.gif"
                 alt="Sign Up Example"
                 className="my-4"
               />
             </li>
             <li>
-              Now you can access your dashboard with all of our features on the left menu.
+              Now you can access the dashboard with all of our features on the left menu.
               <img
-                src="/images/dashboard-example.png"
+                src="/2.dashboardmenu.gif"
                 alt="Dashboard Example"
                 className="my-4"
               />
@@ -77,31 +77,23 @@ const TOS = () => {
             <li>
               Customize your profile first with your avatar image and bio. 
               <img
-                src="/images/profile-customization.png"
+                src="/3.profile.gif"
                 alt="Profile Customization Example"
                 className="my-4"
               />
             </li>
             <li>
-              Then Add Links To Your Bio
+              Then Add Links To Your Bio and Share your unique link with your audience.
               <img
-                src="/images/links-customization.png"
+                src="/4.linkinbio.gif"
                 alt="Link In Bio Customization Example"
                 className="my-4"
               />
             </li>
             <li>
-              Share your unique link with your audience.
-              <img
-                src="/images/share-link-example.png"
-                alt="Share Link Example"
-                className="my-4"
-              />
-            </li> 
-            <li>
               Create your first QR Code!
               <img
-                src="/images/share-link-example.png"
+                src="/5.qrcodes.gif"
                 alt="Share Link Example"
                 className="my-4"
               />
@@ -109,13 +101,14 @@ const TOS = () => {
             <li>
               Start finding Spotify Playlists to pitch your music to! Search by genre to find playlists.
               <img
-                src="/images/share-link-example.png"
+                src="/6.searchcurator.gif"
                 alt="Share Link Example"
                 className="my-4"
               />
             </li>
           </ol>
-
+          
+          <p>Thank you for using influanto!</p>
           <p>
             For any questions or concerns, please contact us at{" "}
             <a href="mailto:info@influanto.com" className="text-blue-500">
@@ -123,7 +116,7 @@ const TOS = () => {
             </a>.
           </p>
 
-          <p>Thank you for using influanto!</p>
+         
         </div>
       </div>
     </main>
