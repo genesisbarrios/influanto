@@ -157,7 +157,6 @@ const LinkInBioPage =  () => {
             <img src={user.image || fallbackImageUrl} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline", marginBottom:"2%"}} alt="Avatar" />
                     
             <p>{user.name}</p>
-            <p>{user.email}</p>
             <p>
               {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} color="darkred" />{user.location}</span>}
               {user.website && <a href={ user.website } target="_blank"><FontAwesomeIcon icon={faGlobe} color="lightblue" /> Website</a>}
