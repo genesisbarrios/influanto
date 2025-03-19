@@ -96,7 +96,9 @@ const Profile =  () => {
   useEffect(() => {
     getUser();
     setFormEmail(data?.user?.email);
-    setAvatarImage(data?.user?.image);
+    if(!avatarImage){
+      setAvatarImage(data?.user?.image);
+    }
   }, []);
 
   useEffect(() => {

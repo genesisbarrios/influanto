@@ -105,6 +105,7 @@ const LinkInBioPage =  () => {
         setTextColor(data.linkInBio?.textColor);
         setLinksColor(data.linkInBio?.linksColor);
         setLinks(data.linkInBio?.links);
+        console.log(data.linkInBio?.links);
         } catch (e) {
         //console.error(e?.message);
         setAlertt(e?.message);
