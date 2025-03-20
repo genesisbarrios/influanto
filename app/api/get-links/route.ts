@@ -24,7 +24,7 @@ export async function GET(req: NextRequest, {params}: {params: {id: string}}) {
 
       if (!linkInBio) {
         return NextResponse.json(
-          { error: "Links Not Found" },
+          { error: "Link In Bio not found. Start creating yours now!" },
           { status: 404 }
         );
       }

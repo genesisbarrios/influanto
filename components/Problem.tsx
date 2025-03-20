@@ -47,7 +47,7 @@ const Problem = () => {
           Tiring of having to go to multiple platforms for support?
         </h2>
         <p className="max-w-xl mx-auto text-lg opacity-90 leading-relaxed mb-12 md:mb-20">
-          with influanto you can create and manage your Links Pages, EPK, Website, QR Codes, Promo Content, Playlist Pitching, and Bulk Comments/DMs all in one place.
+          with influanto you can create and manage your Link in Bio, Release Pages, generate QR Codes, find Playlist Curators, and send Bulk Comments/DMs all in one place.
         </p>
 
         <div className="flex flex-col md:flex-row justify-center items-center md:items-start gap-6">
@@ -59,7 +59,7 @@ const Problem = () => {
 
           <Arrow extraStyle="md:-scale-x-100 md:-rotate-90" />
 
-          <Step emoji="😔" text="Stops Following up and Promoting" />
+          <Step emoji="😔" text="Stops Following up and Promoting, losing fans in the process" />
         </div>
       </div>
     </section>

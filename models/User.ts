@@ -17,6 +17,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    displayEmail :{
+      type: Boolean,
+      default: false
+    },
     image: {
       type: String,
     },

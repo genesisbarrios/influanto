@@ -10,7 +10,7 @@ import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGlobe, faLocation } from "@fortawesome/free-solid-svg-icons";
+import { faGlobe, faLocation, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { set } from "mongoose";
 import config from "@/config";
 import { getSEOTags } from "@/libs/seo";
@@ -24,6 +24,7 @@ const LinkInBioPage =  () => {
   const [userName, setUserName] = useState("");
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
+  const [displayEmail, setDisplayEmail] = useState<Boolean>();
   const [avatarImage, setAvatarImage] = useState(null);
   const [location, setLocation] = useState("");
   const [instagram, setInstagram] = useState("");
@@ -76,6 +77,7 @@ const LinkInBioPage =  () => {
         setAvatarImage(data.user.image);
         setFormName(data.user.name);
         setFormEmail(data.user.email);
+        setDisplayEmail(data.user.displayEmail);
         setLocation(data.user.location);
         setWebsite(data.user.website);
         setBio(data.user.bio);
@@ -175,7 +177,8 @@ const LinkInBioPage =  () => {
             {user.github && <a href={"https://github.com/" + user.github } target="_blank" style={{marginRight:"10px"}}><FontAwesomeIcon icon={faGithub} /></a>}
             {user.patreon && <a href={"https://patreon.com/" + user.patreon } target="_blank" style={{marginRight:"10px", color:"black"}}><FontAwesomeIcon icon={faPatreon} /></a>}
             {user.substack && <a href={"https://substack.com/" + user.substack } target="_blank" style={{display:"inline-block"}}><img src="/substack.png" width={16}/></a>}
-            
+            {displayEmail && <a href={`mailto:${user.email}`}><FontAwesomeIcon icon={faEnvelope} color="grey" /></a>}
+
             {user.spotify && <h3 className="mt-5">Listen</h3>}
             {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{marginRight:"10px", color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
             {user.appleMusic && <a href={"https://music.apple.com/" + user.appleMusic } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
@@ -187,13 +190,13 @@ const LinkInBioPage =  () => {
             {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{marginRight:"10px", color:"darkblue", display:"inline-block"}}><img src="/pandora.png" width={16}/></a>}
             {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
             {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
-            
+             
             <hr style={{margin: "5% 0"}}></hr>
 
             {links.map((link, index) => 
               link.url && (
                 <div key={index} className="p-2 border rounded-lg mb-2" style={{borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                  {isYouTubeLinkCheck(link.url) ? (
+                  {isYouTubeLinkCheck(link.url) && link.displayVideo ? (
                     <iframe
                         width="560"
                         height="315"

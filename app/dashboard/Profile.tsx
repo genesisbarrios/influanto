@@ -10,7 +10,7 @@ import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGlobe, faLocation } from "@fortawesome/free-solid-svg-icons";
+import { faGlobe, faLocation, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { set } from "mongoose";
 import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
@@ -50,6 +50,7 @@ const Profile =  () => {
   const [youtubeMusic, setYouTubeMusic] = useState("");
   const [bandcamp, setBandcamp] = useState("");
   const [soundxyz, setSoundxyz] = useState("");
+  const [displayEmail, setDisplayEmail] = useState(Boolean);
 
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
@@ -61,6 +62,8 @@ const Profile =  () => {
       setAvatarImage(data?.image);
       setFormName(data.name);
       setFormUserName(data.username);
+      setFormEmail(data.email);
+      setDisplayEmail(data.displayEmail);
       setLocation(data.location);
       setWebsite(data.website);
       setBio(data.bio);
@@ -141,6 +144,7 @@ const Profile =  () => {
       if (formName != null && formName != "") formData.append("name", formName);
       if (formUserName != null && formUserName != "") formData.append("username", formUserName);
       if (formEmail != null && formEmail != "") formData.append("email", user?.email);
+      if (displayEmail != null) formData.append("displayEmail", displayEmail.toString());
       if (location != null && location != "") formData.append("location", location);
       if (website != null && website != "") formData.append("website", website);
       if (bio != null && bio != "") formData.append("bio", bio);
@@ -379,7 +383,8 @@ const Profile =  () => {
             {user.github && <a href={"https://github.com/" + user.github } target="_blank" style={{marginRight:"10px"}}><FontAwesomeIcon icon={faGithub} /></a>}
             {user.patreon && <a href={"https://patreon.com/" + user.patreon } target="_blank" style={{marginRight:"10px", color:"black"}}><FontAwesomeIcon icon={faPatreon} /></a>}
             {user.substack && <a href={"https://substack.com/" + user.substack } target="_blank" style={{display:"inline-block"}}><img src="/substack.png" width={16}/></a>}
-            
+            {displayEmail && <a href={`mailto:${user.email}`}><FontAwesomeIcon icon={faEnvelope} color="grey" /></a>}
+
             <h3 className="mt-5">Listen</h3>
             {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{marginRight:"10px", color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
             {user.appleMusic && <a href={"https://music.apple.com/" + user.appleMusic } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
@@ -391,6 +396,7 @@ const Profile =  () => {
             {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{marginRight:"10px", color:"darkblue", display:"inline-block"}}><img src="/pandora.png" width={16}/></a>}
             {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
             {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
+            
             <br></br>
             {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
             
@@ -443,6 +449,18 @@ const Profile =  () => {
           <br />
           <label style={{display:"block"}}>Bio</label> 
           <input type="text" className="input mb-2 w-3/4" placeholder={user?.bio || "Describe Yourself"} onChange={(e) => handleBioChange(e)} />
+          <br />
+          <label style={{display:"block"}}>Email</label>
+          <p className="text-sm mb-2">{user?.email}</p>
+          <label style={{display:"block"}}>
+            <input 
+              type="checkbox" 
+              className="mr-2" 
+              checked={displayEmail} 
+              onChange={(e) => setDisplayEmail(e.target.checked)} 
+            /> 
+            Display Email
+          </label>
           <br />
 
           <h1>Socials</h1>

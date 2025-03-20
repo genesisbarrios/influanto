@@ -91,6 +91,7 @@ export async function POST(req: Request) {
     user.name = formData.get("name") as string || user.name;
     user.username = formData.get("username") as string || user.username;
     user.email = formData.get("email") as string || user.email;
+    user.displayEmail = formData.get("displayEmail") === "true" ? true : formData.get("displayEmail") === "false" ? false : user.displayEmail;
     user.location = formData.get("location") as string || user.location;
     user.website = formData.get("website") as string || user.website;
     user.bio = formData.get("bio") as string || user.bio;

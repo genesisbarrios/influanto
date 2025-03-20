@@ -56,10 +56,30 @@ const LinkInBio =  () => {
       console.log(newLinks);
   };
 
-  const removeLink = (index:number) => {
-      const newLinks = links.filter((_:any, i:any) => i !== index);
-      setLinks(newLinks);
-  };
+  const removeLink = async (index: number) => {
+    const imageToDelete = links[index]?.image;
+
+    if (imageToDelete) {
+        try {
+            let publicId = imageToDelete.split('/').slice(-2).join('/').split('.')[0]; // Extract publicId including folder structure if present
+            publicId = publicId.substring(publicId.indexOf('/') + 1); // Slice whatever comes before the first '/'
+            console.log(imageToDelete);
+            console.log(`Sending publicId to backend: ${publicId}`);
+            if (publicId) {
+                await apiClient.delete('/delete-image', {
+                    data: { publicId }, // Use 'data' to send payload with DELETE
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                console.log(`Image with publicId ${publicId} deleted successfully`);
+            }
+        } catch (error) {
+            console.error('Error deleting image from Cloudinary:', error.response?.data || error.message); // Log detailed error
+        }
+    }
+
+    const newLinks = links.filter((_: any, i: any) => i !== index);
+    setLinks(newLinks);
+};
 
   const updateImage = (index: number, imageUrl: string) => {
     const newLinks = [...links];
@@ -289,6 +309,7 @@ const LinkInBio =  () => {
                         value={link.name}
                         onChange={(e) => updateLink(index, 'name', e.target.value)}
                     />
+                    <br></br>
                      {isYouTubeLink(index, link.url) && (
                       <div>
                           <label>
@@ -302,6 +323,7 @@ const LinkInBio =  () => {
                           </label>
                       </div>
                   )}
+                  {!link.image && 
                     <CldUploadWidget
                       uploadPreset="LinkInBioThumbnail" // Replace with your actual upload preset
                       options={{ publicId: `user_${user.id}_link_${index}_thumbnail` }}
@@ -310,14 +332,15 @@ const LinkInBio =  () => {
                       }}
                     >
                       {({ open }: { open: () => void }) => (
-                      <button type="button" onClick={() => open()} className="btn btn-primary btn-sm">
+                      <button type="button" onClick={() => open()} className="btn btn-primary btn-sm mr-2">
                         Upload Image
                       </button>
                       )}
                     </CldUploadWidget>
+                  }
                      <button
                         type="button"
-                        className="btn btn-alert btn-sm ml-2"
+                        className="btn btn-alert btn-sm"
                         onClick={() => removeLink(index)}
                     >
                         Remove
