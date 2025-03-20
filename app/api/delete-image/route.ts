@@ -19,8 +19,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET, // Replace with your actual API secret
 });
 
-export const methods = ['DELETE']; // Explicitly allow the DELETE method
-
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
 
