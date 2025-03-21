@@ -149,26 +149,6 @@ const LinkInBio =  () => {
     } 
   }
 
-  // Assuming avatarImage is a File object
-  const convertToBase64 = (avatarImage:any) => {
-    if (avatarImage && avatarImage instanceof File) {
-      const reader = new FileReader();
-
-      reader.onload = function(event) {
-        // Set the Base64 string to the state
-        setLogoImage(event.target.result);
-      };
-
-      reader.onerror = function(error) {
-        console.log('Error: ', error);
-      };
-
-      reader.readAsDataURL(avatarImage);
-    } else {
-      console.log('avatarImage is not a file');
-    }
-  };
-
   const handleEditLinkInBio = async (e:any) => {
     e.preventDefault();
     console.log('Edit Link In Bio');
@@ -229,7 +209,7 @@ const LinkInBio =  () => {
           </div>
           <br></br>
         <div style={{margin:"0 auto", textAlign:"center", color: textColor }}>
-          <img src={data.user.image} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline" }} alt="Avatar" />
+          <img src={data.user.image ?? fallbackImageUrl} onError={(e) => e.currentTarget.src = fallbackImageUrl} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline" }} alt="Avatar" />
           <p>{data.user.name}</p>
           <br></br>
           {links && user && (
