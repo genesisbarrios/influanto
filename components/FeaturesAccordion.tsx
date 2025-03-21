@@ -134,7 +134,7 @@ const Item = ({
   isOpen: boolean;
   setFeatureSelected: () => void;
 }) => {
-  const accordion = useRef(null);
+  const accordion = useRef<HTMLDivElement | null>(null);
   const { title, description, svg } = feature;
 
   return (
@@ -202,8 +202,8 @@ const Media = ({ feature }: { feature: Feature }) => {
   } else if (type === "image") {
     return (
       <Image
-        src={path}
-        alt={alt}
+        src={path || "/fallback-image.png"}
+        alt={alt || "Default alt text"}
         className={`${style} object-cover object-center`}
         width={size.width}
         height={size.height}
