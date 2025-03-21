@@ -24,7 +24,7 @@ const Profile =  () => {
   const [formName, setFormName] = useState("");
   const [formUserName, setFormUserName] = useState("");
   const [formEmail, setFormEmail] = useState("");
-  const [avatarImage, setAvatarImage] = useState(null);
+  const [avatarImage, setAvatarImage] = useState<string | null>(null);
   const [formImage, setFormImage] = useState(null);
   const [location, setLocation] = useState("");
   const [instagram, setInstagram] = useState("");
@@ -98,9 +98,9 @@ const Profile =  () => {
 
   useEffect(() => {
     getUser();
-    setFormEmail(data?.user?.email);
+    setFormEmail(data?.user?.email ?? "");
     if(!avatarImage){
-      setAvatarImage(data?.user?.image);
+      setAvatarImage(data?.user?.image ?? null);
     }
   }, []);
 
@@ -120,7 +120,9 @@ const Profile =  () => {
 
       reader.onload = function(event) {
         // Set the Base64 string to the state
-        setAvatarImage(event.target.result);
+        if (event.target && typeof event.target.result === 'string') {
+          setAvatarImage(event.target.result);
+        }
       };
 
       reader.onerror = function(error) {
@@ -363,7 +365,7 @@ const Profile =  () => {
           <br></br>
 
           <div style={{margin:"0 auto",  textAlign:"center" }}>
-            <img src={avatarImage} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline", marginBottom:"2%"}} alt="Avatar" />
+            <img src={avatarImage || fallbackImageUrl} style={{ borderRadius: '50%', width:"75px", height:"75px", display:"inline"}} alt="Avatar" />
             <p>{user.name}</p>
             <p>{user.username}</p>
             <p>
@@ -425,7 +427,7 @@ const Profile =  () => {
         <br></br>
        
         <form>
-         <img src={avatarImage} style={{ borderRadius: '50%', width:"75px", height:"75px", display:"inline"}} alt="Avatar" />
+         <img src={avatarImage || fallbackImageUrl} style={{ borderRadius: '50%', width:"75px", height:"75px", display:"inline"}} alt="Avatar" />
           <div style={{display:"inline"}}>
             <input style={{display:"inline", marginLeft:"10px"}} 
                 type="file"
