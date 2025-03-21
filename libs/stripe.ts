@@ -29,6 +29,9 @@ export const createCheckout = async ({
   couponId,
 }: CreateCheckoutParams): Promise<string> => {
   try {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error("STRIPE_SECRET_KEY is not defined in environment variables.");
+    }
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: "2023-08-16", // TODO: update this when Stripe updates their API
       typescript: true,
@@ -80,10 +83,13 @@ export const createCheckout = async ({
       ...extraParams,
     });
 
+    if (!stripeSession.url) {
+      throw new Error("Stripe session URL is null.");
+    }
     return stripeSession.url;
   } catch (e) {
     console.error(e);
-    return null;
+    throw new Error("Failed to create checkout session.");
   }
 };
 
@@ -92,6 +98,9 @@ export const createCustomerPortal = async ({
   customerId,
   returnUrl,
 }: CreateCustomerPortalParams): Promise<string> => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY is not defined in environment variables.");
+  }
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: "2023-08-16", // TODO: update this when Stripe updates their API
     typescript: true,
@@ -108,6 +117,9 @@ export const createCustomerPortal = async ({
 // This is used to get the uesr checkout session and populate the data so we get the planId the user subscribed to
 export const findCheckoutSession = async (sessionId: string) => {
   try {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error("STRIPE_SECRET_KEY is not defined in environment variables.");
+    }
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: "2023-08-16", // TODO: update this when Stripe updates their API
       typescript: true,
