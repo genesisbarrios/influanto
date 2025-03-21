@@ -2,7 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 
 const PitchToSpotify = () => {
-  const [playlists, setPlaylists] = useState([]);
+  interface Playlist {
+    playlistCoverImage?: string;
+    name: string;
+    url: string;
+    owner: string;
+    ownerProfileUrl: string;
+    description?: string;
+    externalUrl?: string;
+    email?: string;
+  }
+
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState('');
   const { data, status } = useSession();
