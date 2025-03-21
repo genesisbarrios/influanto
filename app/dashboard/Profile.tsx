@@ -204,7 +204,6 @@ const Profile =  () => {
       //const avatar = convertToBase64(e.target.files[0]);
       const avatar = e.target.files[0];
       console.log(avatar);
-      setAvatarImage(convertToBase64(e.target.files[0]));
       setFormImage(avatar);
     }
   };
