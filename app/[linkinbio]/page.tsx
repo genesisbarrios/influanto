@@ -198,8 +198,9 @@ const LinkInBioPage =  () => {
                 <div key={index} className="p-2 border rounded-lg mb-2" style={{borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                   {isYouTubeLinkCheck(link.url) && link.displayVideo ? (
                     <iframe
-                        width="560"
+                        width="100%"
                         height="315"
+                        style={{ maxWidth: '100%', borderRadius: '12px' }}
                         src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}`}
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
