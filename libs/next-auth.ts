@@ -7,17 +7,17 @@ import config from "@/config";
 import connectMongo from "./mongo";
 
 interface NextAuthOptionsExtended extends NextAuthOptions {
-  adapter: any;
+  adapter?: any;
 }
 
-export const authOptions: NextAuthOptionsExtended = {
+export const authOptions: NextAuthOptionsExtended  = {
   // Set any random key in .env.local
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || (() => { throw new Error("NEXTAUTH_SECRET is not defined in environment variables"); })(),
   providers: [
     GoogleProvider({
       // Follow the "Login with Google" tutorial to get your credentials
-      clientId: process.env.GOOGLE_ID,
-      clientSecret: process.env.GOOGLE_SECRET,
+      clientId: process.env.GOOGLE_ID || (() => { throw new Error("GOOGLE_ID is not defined in environment variables"); })(),
+      clientSecret: process.env.GOOGLE_SECRET || (() => { throw new Error("GOOGLE_SECRET is not defined in environment variables"); })(),
       async profile(profile) {
         return {
           id: profile.sub,
@@ -45,7 +45,7 @@ export const authOptions: NextAuthOptionsExtended = {
   ...(connectMongo && { adapter: MongoDBAdapter(connectMongo) }),
 
   callbacks: {
-    session: async ({ session, token }) => {
+    session: async ({ session, token }: { session: any; token: any }) => {
       if (session?.user) {
         session.user.id = token.sub;
       }
