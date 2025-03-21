@@ -14,7 +14,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-08-16",
   typescript: true,
 });
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
 
 // This is where we receive Stripe webhook events
 // It used to update the user data, send emails, etc...
@@ -31,6 +31,12 @@ export async function POST(req: NextRequest) {
 
   // verify Stripe event is legit
   try {
+    if (!signature) {
+      throw new Error("Stripe signature is missing");
+    }
+    if (!webhookSecret) {
+      throw new Error("STRIPE_WEBHOOK_SECRET is not defined in the environment variables");
+    }
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err) {
     console.error(`Webhook signature verification failed. ${err.message}`);
@@ -50,7 +56,7 @@ export async function POST(req: NextRequest) {
         const session = await findCheckoutSession(stripeObject.id);
 
         const customerId = session?.customer;
-        const priceId = session?.line_items?.data[0]?.price.id;
+        const priceId = session?.line_items?.data[0]?.price?.id ?? null;
         const userId = stripeObject.client_reference_id;
         const plan = configFile.stripe.plans.find((p) => p.priceId === priceId);
 
@@ -134,10 +140,8 @@ export async function POST(req: NextRequest) {
 
         const stripeObject: Stripe.Invoice = event.data
           .object as Stripe.Invoice;
-
-        const priceId = stripeObject.lines.data[0].price.id;
+        const priceId = stripeObject.lines.data[0]?.price?.id ?? null;
         const customerId = stripeObject.customer;
-
         const user = await User.findOne({ customerId });
 
         // Make sure the invoice is for the same plan (priceId) the user subscribed to
