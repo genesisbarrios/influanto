@@ -19,54 +19,59 @@ export async function POST(req: NextRequest) {
 
   // Parse the incoming JSON body
   const body = await req.json();
-  console.log("Updating LinkInBio for user:", userId, body);
+  console.log("Updating or creating ReleasePage for user:", userId, body);
 
   try {
-    // Ensure links are included in the request and are in the correct format
+    // Extract the id from the body if provided
+    const { id, bgColor, textColor, linksColor, links, name, description, video, image } = body;
+
+    // Prepare the update payload
     const updatePayload: any = {
       userId,
-      ...(body.bgColor && { bgColor: body.bgColor }), // Map bgColor to backgroundColor
-      ...(body.textColor && { textColor: body.textColor }), // Map textColor to textColor
-      ...(body.linksColor && { linksColor: body.linksColor }), // Map linksColor to linksColor
+      ...(bgColor && { bgColor }),
+      ...(textColor && { textColor }),
+      ...(linksColor && { linksColor }),
+      ...(name && { name }),
+      ...(image && { image }),
+      ...(description && { description }),
+      ...(video && { video }),
+      ...(Array.isArray(links) && { links }),
     };
-
-    // Check if 'links' is an array and add it to the updatePayload
-    if (Array.isArray(body.links)) {
-      updatePayload.links = body.links;
-    } else {
-      console.log("No valid links provided or links are not in the correct format");
-    }
 
     console.log("Update Payload:", updatePayload); // Debugging line to check the payload
 
-    let newReleasePage = await ReleasePage.findOne({ userId });
+    let releasePage;
 
-    if (newReleasePage) {
-      // Update the existing document
-      newReleasePage.bgColor = body.bgColor;
-      newReleasePage.textColor = body.textColor;
-      newReleasePage.linksColor = body.linksColor;
-      newReleasePage.links = body.links;
-    
-      await newReleasePage.save();
-    } else {
-      // Create a new document if none exists
-      newReleasePage = new ReleasePage({
-        userId,
-        bgColor: body.bgColor,
-        textColor: body.textColor,
-        linksColor: body.linksColor,
-        links: body.links,
-      });
-    
-      await newReleasePage.save();
+    if (id) {
+      // If an id is provided, attempt to find and update the existing document
+      releasePage = await ReleasePage.findOneAndUpdate(
+        { _id: id, userId },
+        updatePayload,
+        { new: true } // Return the updated document
+      );
     }
-    
-    return NextResponse.json({ data:  newReleasePage }, { status: 200 });
-    
+
+    if (!releasePage) {
+      // If no id is provided or the document doesn't exist, create a new one
+      releasePage = new ReleasePage({
+        userId,
+        bgColor,
+        textColor,
+        linksColor,
+        links,
+        video,
+        image,
+        description,
+        name
+      });
+
+      await releasePage.save();
+    }
+
+    return NextResponse.json({ data: releasePage }, { status: 200 });
   } catch (error) {
     // Handle errors and log them
-    console.error("Error updating Release Page:", error);
+    console.error("Error updating or creating ReleasePage:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
