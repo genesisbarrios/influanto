@@ -97,6 +97,16 @@ const ReleasePages = () => {
   const [textColor, setTextColor] = useState("#000000");
   const [linksColor, setLinksColor] = useState("#0000ff");
 
+  const handleDelete = async (pageId: any) => {
+    try {
+      await apiClient.delete(`/delete-release-page/${pageId}`);
+      setReleasePages(releasePages.filter((page) => page.id !== pageId));
+    } catch (e) {
+      console.error(e?.message); // Log the error instead of triggering an alert
+      setAlert(e?.message);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -306,12 +316,20 @@ const ReleasePages = () => {
               >
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white">
                   <h3 className="text-lg font-bold">{page.title}</h3>
-                  <button
-                    className="btn btn-primary btn-sm mt-2"
-                    onClick={() => handleEdit(page)}
-                  >
-                    Edit
-                  </button>
+                  <div className="flex space-x-2 mt-2">
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => handleEdit(page)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn btn-alert btn-sm"
+                      onClick={() => handleDelete(page.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
