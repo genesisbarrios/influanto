@@ -7,6 +7,7 @@ import apiClient from "@/libs/api";
 import { useSession } from "next-auth/react";
 import Head from 'next/head';
 import { CldUploadWidget } from 'next-cloudinary';
+import { debounce } from "lodash"; // Import lodash for debouncing
 
 const ReleasePages = () => {
   const { data, status } = useSession();
@@ -14,6 +15,7 @@ const ReleasePages = () => {
   const [alert, setAlert] = useState("");
   const [editingPage, setEditingPage] = useState<any | null>(null);
   const [createPage, setCreatePage] = useState(false);
+  const [isNameUnique, setIsNameUnique] = useState(true);
 
   const predefinedLinks = [
     { name: "Spotify", url: "" },
@@ -45,7 +47,8 @@ const ReleasePages = () => {
   }, [data]);
 
   const handleCreate = async () => {
-   setCreatePage(true);
+    setEditingPage({ name: "", description: "", links: [], image: "", video: "" }); // Initialize editingPage
+    setCreatePage(true);
   };
 
   const handleEdit = (page: any) => {
@@ -107,6 +110,37 @@ const ReleasePages = () => {
     }
   };
 
+  const checkNameUniqueness = debounce(async (name: string) => {
+    try {
+      const { data } = await apiClient.get("/get-release-page-uniqueness", {
+        params: { name: name },
+      });
+      if(data){
+        setIsNameUnique(data);
+        console.log('uniqueness check')
+        console.log(data)
+        if(data == false){
+          setEditingPage({ ...editingPage, name: "" });
+        }
+      }
+    } catch (e) {
+      console.error(e?.message);
+    }
+  }, 300);
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value;
+    setEditingPage({ ...editingPage, name }); // Update the name immediately in the state
+  };
+
+  const handleNameBlur = () => {
+    if (editingPage?.name) {
+      console.log('checking uniqueness')
+      console.log(editingPage.name)
+      checkNameUniqueness(editingPage.name); // Check uniqueness only when the user finishes editing
+    }
+  };
+
   return (
     <>
       <Head>
@@ -124,7 +158,7 @@ const ReleasePages = () => {
               Create
             </button>
           )}
-        </div>
+        </div> 
         {createPage ? (
           <div className="p-4 bg-gray-100 rounded-md">
             <h3 className="text-xl font-bold mb-4">Create Release Page</h3>
@@ -132,13 +166,17 @@ const ReleasePages = () => {
               <label className="block font-bold mb-2">Name</label>
               <input
                 type="text"
-                className="input w-full"
+                className={`input w-full ${!isNameUnique ? "border-red-500" : ""}`}
                 placeholder="Enter release page name"
                 value={editingPage?.name || ""}
-                onChange={(e) =>
-                  setEditingPage({ ...editingPage, name: e.target.value })
-                }
+                onChange={handleNameChange}
+                onBlur={handleNameBlur} // Trigger uniqueness check on blur
               />
+              {!isNameUnique && (
+                <p className="text-red-500 text-sm mt-1">
+                  This name is already taken. Please choose another.
+                </p>
+              )}
             </div>
             <div className="mb-4">
               <label className="block font-bold mb-2">Description</label>
@@ -151,11 +189,12 @@ const ReleasePages = () => {
                 }
               />
             </div>
+            {editingPage.name && 
             <div className="mb-4">
               <label className="block font-bold mb-2">Image</label>
               <CldUploadWidget
                 uploadPreset="ReleasePageImages" // Replace with your actual upload preset
-                options={{ publicId: `user_${data?.user?.id}_releasePage_thumbnail_${editingPage.name}` }}
+                options={{ publicId: `user_${data?.user?.id}_releasePage_thumbnail` }}
                 onUploadAdded={(result: any) => {
                   handleImageUpload(result);
                 }}
@@ -179,6 +218,7 @@ const ReleasePages = () => {
                 />
               )}
             </div>
+          }
             <div className="mb-4">
               <label className="block font-bold mb-2">YouTube Video Link</label>
               <input
