@@ -59,10 +59,11 @@ const ReleasePages = () => {
     try {
       console.log('editing page');
       console.log(editingPage);
-      //await apiClient.put(`/update-release-page/${editingPage.id}`, editingPage);
-      //setEditingPage(null);
-      //setCreatePage(false);
-      //getReleasePages(data?.user?.id);
+      await apiClient.post(`/release/`, editingPage);
+
+      setEditingPage(null);
+      setCreatePage(false);
+      getReleasePages(data?.user?.id);
     } catch (e) {
       console.error(e?.message); // Log the error instead of triggering an alert
       setAlert(e?.message);
@@ -75,9 +76,13 @@ const ReleasePages = () => {
       setEditingPage({ ...editingPage, image: imageUrl });
   };
 
-  const getYouTubeVideoId = (url: string): string | null => {
-    const match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    return match ? match[1] : null;
+  const getYouTubeVideoId = (url: string): { videoId: string | null; playlistId: string | null } => {
+    const videoMatch = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    const playlistMatch = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+    return {
+      videoId: videoMatch ? videoMatch[1] : null,
+      playlistId: playlistMatch ? playlistMatch[1] : null,
+    };
   };
 
   const handleLinkChange = (index: number, field: string, value: string) => {
@@ -194,7 +199,7 @@ const ReleasePages = () => {
               <label className="block font-bold mb-2">Image</label>
               <CldUploadWidget
                 uploadPreset="ReleasePageImages" // Replace with your actual upload preset
-                options={{ publicId: `user_${data?.user?.id}_releasePage_thumbnail` }}
+                options={{ publicId: `user_${data?.user?.id}_releasePage_thumbnail_${releasePages.length + 1}` }}
                 onUploadAdded={(result: any) => {
                   handleImageUpload(result);
                 }}
@@ -219,17 +224,27 @@ const ReleasePages = () => {
               )}
             </div>
           }
-            <div className="mb-4">
+           <div className="mb-4">
               <label className="block font-bold mb-2">YouTube Video Link</label>
               <input
                 type="text"
                 className="input w-full"
                 placeholder="Enter YouTube video link"
-                value={editingPage?.video || ""}
+                value={editingPage.video || ""}
                 onChange={(e) =>
                   setEditingPage({ ...editingPage, video: e.target.value })
                 }
               />
+              {editingPage.video && getYouTubeVideoId(editingPage.video) && (
+                <iframe
+                  width="100%"
+                  height="315"
+                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(editingPage.video).videoId}`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="mt-4"
+                ></iframe>
+              )}
             </div>
             <div className="mb-4">
               <h4 className="font-bold mb-2">Streaming Links</h4>
@@ -355,13 +370,19 @@ const ReleasePages = () => {
                 }}
               >
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white">
-                  <h3 className="text-lg font-bold">{page.title}</h3>
+                  <h3 className="text-lg font-bold">{page.name}</h3>
                   <div className="flex space-x-2 mt-2">
                     <button
                       className="btn btn-primary btn-sm"
                       onClick={() => handleEdit(page)}
                     >
                       Edit
+                    </button>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => window.location.href = `/releasepage/${page.name}`}
+                    >
+                      Visit
                     </button>
                     <button
                       className="btn btn-alert btn-sm"
@@ -404,7 +425,7 @@ const ReleasePages = () => {
               <label className="block font-bold mb-2">Image</label>
               <CldUploadWidget
                 uploadPreset="ReleasePageImages" // Replace with your actual upload preset
-                options={{ publicId: `user_${data?.user?.id}_releasePage_thumbnail_${editingPage.name}` }}
+                options={{ publicId: `user_${data?.user?.id}_releasePage_thumbnail_${releasePages.length + 1}` }}
                 onUploadAdded={(result: any) => {
                   handleImageUpload(result);
                 }}
@@ -441,9 +462,9 @@ const ReleasePages = () => {
               />
               {editingPage.video && getYouTubeVideoId(editingPage.video) && (
                 <iframe
-                  width="560"
+                  width="100%"
                   height="315"
-                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(editingPage.video)}`}
+                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(editingPage.video).videoId}`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   className="mt-4"
@@ -502,7 +523,7 @@ const ReleasePages = () => {
                       className="input w-full"
                       placeholder="Enter link URL"
                       value={link.url || ""}
-                      onChange={(e) => handleLinkChange(index, "name", e.target.value)}
+                      onChange={(e) => handleLinkChange(index, "url", e.target.value)}
                     />
                     <button
                       className="btn btn-alert btn-sm mt-2"

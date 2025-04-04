@@ -213,10 +213,10 @@ const Profile =  () => {
    setFormName(e.target.value);
   }
 
-  const handleUserNameChange = (e:any) => {
-    console.log('handle UserName Change')
-    setFormUserName(e.target.value);
-  }
+  const handleUserNameChange = (e: any) => {
+    console.log('handle UserName Change');
+    setFormUserName(e.target.value.replace(/\s+/g, ''));
+  };
 
   const handleWebsiteChange = (e:any) => {
     console.log('handle Email Change')
