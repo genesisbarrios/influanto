@@ -75,6 +75,29 @@ const ReleasePageView =  () => {
         const data = response.data;
   
         console.log(data);
+
+        // Ensure all properties are being set
+        setTwitter(data.user.twitter || "");
+        setFacebook(data.user.facebook || "");
+        setLinkedIn(data.user.linkedin || "");
+        setYouTube(data.user.youtube || "");
+        setTikTok(data.user.tiktok || "");
+        setGithub(data.user.github || "");
+        setPatreon(data.user.patreon || "");
+        setSubstack(data.user.substack || "");
+        setTelegram(data.user.telegram || "");
+        setEtsy(data.user.etsy || "");
+        setSpotify(data.user.spotify || "");
+        setAppleMusic(data.user.appleMusic || "");
+        setTidal(data.user.tidal || "");
+        setAmazonMusic(data.user.amazonMusic || "");
+        setSoundCloud(data.user.soundcloud || "");
+        setDeezer(data.user.deezer || "");
+        setPandora(data.user.pandora || "");
+        setYouTubeMusic(data.user.youtubeMusic || "");
+        setBandcamp(data.user.bandcamp || "");
+        setSoundxyz(data.user.soundxyz || "");
+
         setAvatarImage(data.user.image);
         setFormName(data.user.name);
         setFormEmail(data.user.email);
@@ -82,27 +105,6 @@ const ReleasePageView =  () => {
         setLocation(data.user.location);
         setWebsite(data.user.website);
         setBio(data.user.bio);
-        setInstagram(data.user.instagram);
-        setTwitter(data.user.twitter);
-        setFacebook(data.user.facebook);
-        setLinkedIn(data.user.linkedin);
-        setYouTube(data.user.youtube);
-        setTikTok(data.user.tiktok);
-        setGithub(data.user.github);
-        setPatreon(data.user.patreon);
-        setSubstack(data.user.substack);
-        setTelegram(data.user.telegram);
-        setEtsy(data.user.etsy);
-        setSpotify(data.user.spotify);
-        setAppleMusic(data.user.appleMusic);
-        setTidal(data.user.tidal);
-        setAmazonMusic(data.user.amazonMusic);
-        setSoundCloud(data.user.soundcloud);
-        setDeezer(data.user.deezer);
-        setPandora(data.user.pandora);
-        setYouTubeMusic(data.user.youtubeMusic);
-        setBandcamp(data.user.bandcamp);
-        setSoundxyz(data.user.soundxyz);
         setUser(data.user);
         setBgColor(data.releasePage?.backgroundColor);
         setTextColor(data.releasePage?.textColor);
@@ -123,6 +125,22 @@ const ReleasePageView =  () => {
   function getYouTubeVideoId(url: string): string | null {
     const match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     return match ? match[1] : null;
+  }
+
+  function getYouTubeEmbedUrl(url: string): string {
+    const videoIdMatch = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    const playlistIdMatch = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+    const videoId = videoIdMatch ? videoIdMatch[1] : null;
+    const playlistId = playlistIdMatch ? playlistIdMatch[1] : null;
+
+    if (videoId && playlistId) {
+      return `https://www.youtube.com/embed/${videoId}?list=${playlistId}`;
+    } else if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}`;
+    } else if (playlistId) {
+      return `https://www.youtube.com/embed/videoseries?list=${playlistId}`;
+    }
+    return url; // Fallback to the original URL if no match
   }
 
   function getPlatformName(url: string): string {
@@ -209,8 +227,8 @@ const ReleasePageView =  () => {
     return (
       <div
         style={{
-          textAlign: "center", height:"100vh",
-          paddingTop: "5%",
+          textAlign: "center", minHeight:"100vh",
+          padding: "5% 0",
           color: textColor || "white",
           backgroundColor: bgColor || "black",
         }}
@@ -238,75 +256,214 @@ const ReleasePageView =  () => {
           <div
             style={{
               margin: "0 auto",
-              width: "30%",
+              width: "25%",
               textAlign: "center",
               marginTop: "2%",
+              ...(window.innerWidth <= 768 ? { width: "80%" } : {}), // Adjust width for mobile
             }}
           >
-            {releasePage.links.map((link: { url: string; displayVideo: boolean }, index: number) => {
-              const platformName = getPlatformName(link.url);
-              const platformIcon = getPlatformIcon(platformName); // Function to get the platform icon
-              return (
-                <div
-                  key={index}
-                  style={{
-                    marginBottom: "20px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  {isYouTubeLinkCheck(link.url) && link.displayVideo ? (
-                    <iframe
-                      width="100%"
-                      height="315"
-                      style={{ maxWidth: "100%", borderRadius: "12px" }}
-                      src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}`}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                  ) : (
-                    <>
-                      <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
-                        {platformIcon && (
-                          <FontAwesomeIcon
-                            icon={platformIcon}
-                            style={{
-                              marginRight: "10px",
-                              fontSize: "20px",
-                              color: linksColor || "white",
-                            }}
-                          />
-                        )}
-                        <p style={{ margin: 0, fontWeight: "bold", color: linksColor || "white" }}>
-                          {platformName}
-                        </p>
-                      </div>
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: "inline-block",
-                          padding: "10px 20px",
-                          backgroundColor: releasePage.linksColor,
-                          color: "white",
-                          borderRadius: "5px",
-                          textDecoration: "none",
-                        }}
-                      >
-                        Stream
-                      </a>
-                    </>
-                  )}
-                </div>
-              );
-            })}
+            {/* Render YouTube video at the top */}
+            {releasePage.links
+              .filter((link: { url: string; displayVideo: boolean }) => isYouTubeLinkCheck(link.url))
+              .map((link: { url: string; displayVideo: boolean }, index: number) => (
+                <iframe
+                  key={`youtube-${index}`}
+                  width="100%"
+                  height="315"
+                  style={{ maxWidth: "100%", borderRadius: "12px", marginBottom: "20px" }}
+                  src={getYouTubeEmbedUrl(link.url)}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              ))}
+
+            {/* Render other links */}
+            {releasePage.links
+              .filter((link: { url: string; displayVideo: boolean }) => !isYouTubeLinkCheck(link.url))
+              .map((link: { url: string; displayVideo: boolean }, index: number) => {
+                const platformName = getPlatformName(link.url);
+                const platformIcon = getPlatformIcon(platformName); // Function to get the platform icon
+                return (
+                  <div
+                    key={index}
+                    style={{
+                      marginBottom: "20px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center", // Center the links
+                      margin: "0 auto", // Center the container
+                      ...(window.innerWidth <= 768 ? { width: "80%" } : {}), // Adjust width for mobile
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                      {platformIcon && (
+                        <FontAwesomeIcon
+                          icon={platformIcon}
+                          style={{
+                            marginRight: "10px",
+                            fontSize: "20px",
+                            color: linksColor || "white",
+                          }}
+                        />
+                      )}
+                      <p style={{ margin: 0, fontWeight: "bold", color: linksColor || "white" }}>
+                        {platformName}
+                      </p>
+                    </div>
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "inline-block",
+                        padding: "10px 20px",
+                        backgroundColor: releasePage.linksColor,
+                        color: "white",
+                        borderRadius: "5px",
+                        textDecoration: "none",
+                      }}
+                    >
+                      Stream
+                    </a>
+                  </div>
+                );
+              })}
+          </div>
+
+          {/* User Social Icons */}
+          <div
+            style={{
+              marginTop: "50px",
+              display: "flex",
+              justifyContent: "center",
+              gap: "15px",
+            }}
+          >
+            {instagram && (
+              <a href={`https://instagram.com/${user.instagram}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faInstagram} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {twitter && (
+              <a href={`https://twitter.com/${user.twitter}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faTwitter} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {facebook && (
+              <a href={user.facebook} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faFacebook} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {linkedin && (
+              <a href={`https://linkedin.com/in/${user.linkedin}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faLinkedin} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {telegram && (
+              <a href={`https://t.me/${user.telegram}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faTelegram} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {github && (
+              <a href={`https://github.com/${user.github}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faGithub} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {tiktok && (
+              <a href={`https://tiktok.com/@${user.tiktok}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faTiktok} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {patreon && (
+              <a href={`https://patreon.com/${user.patreon}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faPatreon} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {substack && (
+              <a href={`https://substack.com/${user.substack}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faWebflow} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {etsy && (
+              <a href={`https://etsy.com/${user.etsy}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faEtsy} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {soundxyz && (  
+              <a href={`https://sound.xyz/${user.soundxyz}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faWebAwesome} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {bandcamp && (
+              <a href={`https://bandcamp.com/${user.bandcamp}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faBandcamp} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {deezer && (
+              <a href={`https://deezer.com/${user.deezer}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faDeezer} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {youtube && (   
+              <a href={`https://youtube.com/${user.youtube}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faYoutube} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {youtubeMusic && (
+              <a href={`https://music.youtube.com/${user.youtubeMusic}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faYoutubeSquare} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {amazonMusic && (
+              <a href={`https://music.amazon.com/${user.amazonMusic}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faAmazon} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {soundcloud && (
+              <a href={`https://soundcloud.com/${user.soundcloud}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faSoundcloud} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {pandora && (
+              <a href={`https://pandora.com/${user.pandora}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faGlobe} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {tidal && (
+              <a href={`https://tidal.com/${user.tidal}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faGlobe} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}  
+             {website && (
+              <a href={user.website} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faGlobe} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+           
           </div>
 
           {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
         </div>
+        <style jsx global>{`
+          .responsive-container {
+            width: 25%;
+          }
+
+          .responsive-link {
+            width: 100%;
+          }
+
+          @media (max-width: 768px) {
+            .responsive-container {
+              width: 80%;
+            }
+
+            .responsive-link {
+              width: 100%;
+            }
+          }
+        `}</style>
       </div>
     );
   }
