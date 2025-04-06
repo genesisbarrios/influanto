@@ -256,7 +256,7 @@ const ReleasePageView =  () => {
           <div
             style={{
               margin: "0 auto",
-              width: "25%",
+              width: "35%",
               textAlign: "center",
               marginTop: "2%",
               ...(window.innerWidth <= 768 ? { width: "80%" } : {}), // Adjust width for mobile
@@ -447,7 +447,7 @@ const ReleasePageView =  () => {
         </div>
         <style jsx global>{`
           .responsive-container {
-            width: 25%;
+            width: 35%;
           }
 
           .responsive-link {
