@@ -125,6 +125,47 @@ const ReleasePageView =  () => {
     return match ? match[1] : null;
   }
 
+  function getPlatformName(url: string): string {
+    if (url.includes("spotify.com")) return "Spotify";
+    if (url.includes("apple.com")) return "Apple Music";
+    if (url.includes("tidal.com")) return "Tidal";
+    if (url.includes("youtube.com") || url.includes("youtu.be")) return "YouTube";
+    if (url.includes("soundcloud.com")) return "SoundCloud";
+    if (url.includes("deezer.com")) return "Deezer";
+    if (url.includes("pandora.com")) return "Pandora";
+    if (url.includes("bandcamp.com")) return "Bandcamp";
+    if (url.includes("sound.xyz")) return "Sound.xyz";
+    
+    // Default case: Extract the name before the first dot
+    const match = url.match(/:\/\/(www\.)?([^\.]+)/);
+    return match ? match[2] : "Unknown Platform";
+  }
+
+  function getPlatformIcon(platformName: string) {
+    switch (platformName.toLowerCase()) {
+      case "spotify":
+        return faSpotify;
+      case "apple music":
+        return faApple;
+      case "tidal":
+        return faAmazon; // Replace with Tidal icon if available
+      case "youtube":
+        return faYoutube;
+      case "soundcloud":
+        return faSoundcloud;
+      case "deezer":
+        return faDeezer;
+      case "pandora":
+        return faGlobe; // Replace with Pandora icon if available
+      case "bandcamp":
+        return faBandcamp;
+      case "sound.xyz":
+        return faGlobe; // Replace with Sound.xyz icon if available
+      default:
+        return faGlobe; // Default icon
+    }
+  }
+
   useEffect(() => {
     getReleasePage();
   }, []);
@@ -139,6 +180,14 @@ const ReleasePageView =  () => {
    }
   }, [user, userName, bgColor, textColor, linksColor, user, releasePage]);
   
+  useEffect(() => {
+    if (releasePage) {
+      setBgColor(releasePage.backgroundColor || "");
+      setTextColor(releasePage.textColor || "");
+      setLinksColor(releasePage.linksColor || "");
+    }
+  }, [releasePage]);
+
   useEffect(() => {
     if (bgColor) {
       document.documentElement.style.setProperty("--bg-color", bgColor);
@@ -158,29 +207,57 @@ const ReleasePageView =  () => {
     return <div className="m-5 text-center">Loading...</div>;
   }else if (user){
     return (
-      <div className="p-6 bg-white shadow w-3/4 md:w-1/2 rounded-lg" style={{ margin: "0 auto", textAlign: "center", marginTop: "5%", color: "#333333" }}>
-        <div style={{ margin: "0 auto", textAlign: "center", color: textColor }}>
+      <div
+        style={{
+          textAlign: "center", height:"100vh",
+          paddingTop: "5%",
+          color: textColor || "white",
+          backgroundColor: bgColor || "black",
+        }}
+      >
+        <div>
           {/* Image */}
           <img
-            src={user.image || fallbackImageUrl}
+            src={releasePage.image || fallbackImageUrl}
             onError={(e) => (e.currentTarget.src = fallbackImageUrl)}
-            style={{ borderRadius: "50%", width: "100px", height: "100px", display: "inline", marginBottom: "2%" }}
+            style={{
+              borderRadius: "15px",
+              width: "100px",
+              height: "100px",
+              display: "inline",
+              marginBottom: "2%",
+            }}
             alt="Avatar"
           />
 
           {/* Name and Description */}
-          <p>{user.name}</p>
-          <p style={{ marginBottom: "2%" }}>{user.bio}</p>
+          <p>{releasePage.name}</p>
+          <p style={{ marginBottom: "2%" }}>{releasePage.description}</p>
 
-          {/* YouTube Video */}
-          {releasePage.video && (
-            <div style={{ marginBottom: "2%" }}>
-              {releasePage.map(
-                (link: { url: string; displayVideo: boolean }, index: number) =>
-                  isYouTubeLinkCheck(link.url) &&
-                  link.displayVideo && (
+          {/* Links */}
+          <div
+            style={{
+              margin: "0 auto",
+              width: "30%",
+              textAlign: "center",
+              marginTop: "2%",
+            }}
+          >
+            {releasePage.links.map((link: { url: string; displayVideo: boolean }, index: number) => {
+              const platformName = getPlatformName(link.url);
+              const platformIcon = getPlatformIcon(platformName); // Function to get the platform icon
+              return (
+                <div
+                  key={index}
+                  style={{
+                    marginBottom: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  {isYouTubeLinkCheck(link.url) && link.displayVideo ? (
                     <iframe
-                      key={index}
                       width="100%"
                       height="315"
                       style={{ maxWidth: "100%", borderRadius: "12px" }}
@@ -189,120 +266,43 @@ const ReleasePageView =  () => {
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                     ></iframe>
-                  )
-              )}
-            </div>
-          )}
-
-          {/* Links */}
-          <div style={{ textAlign: "left", marginTop: "2%" }}>
-            {user.instagram && (
-              <a href={"https://instagram.com/" + user.instagram} target="_blank" style={{ marginRight: "10px", color: "orange" }}>
-                <FontAwesomeIcon icon={faInstagram} />
-              </a>
-            )}
-            {user.tiktok && (
-              <a href={"https://tiktok.com/@" + user.tiktok} target="_blank" style={{ marginRight: "10px", color: "pink" }}>
-                <FontAwesomeIcon icon={faTiktok} />
-              </a>
-            )}
-            {user.twitter && (
-              <a href={"https://twitter.com/" + user.twitter} target="_blank" style={{ marginRight: "10px", color: "lightblue" }}>
-                <FontAwesomeIcon icon={faTwitter} />
-              </a>
-            )}
-            {user.facebook && (
-              <a href={user.facebook} target="_blank" style={{ marginRight: "10px", color: "blue" }}>
-                <FontAwesomeIcon icon={faFacebook} />
-              </a>
-            )}
-            {user.youtube && (
-              <a href={"https://youtube.com/@" + user.youtube} target="_blank" style={{ marginRight: "10px", color: "red" }}>
-                <FontAwesomeIcon icon={faYoutube} />
-              </a>
-            )}
-            {user.telegram && (
-              <a href={"https://t.me/" + user.telegram} target="_blank" style={{ marginRight: "10px", color: "lightblue" }}>
-                <FontAwesomeIcon icon={faTelegram} />
-              </a>
-            )}
-            {user.linkedin && (
-              <a href={"https://linkedin.com/" + user.linkedin} target="_blank" style={{ marginRight: "10px", color: "darkblue" }}>
-                <FontAwesomeIcon icon={faLinkedin} />
-              </a>
-            )}
-            {user.github && (
-              <a href={"https://github.com/" + user.github} target="_blank" style={{ marginRight: "10px" }}>
-                <FontAwesomeIcon icon={faGithub} />
-              </a>
-            )}
-            {user.patreon && (
-              <a href={"https://patreon.com/" + user.patreon} target="_blank" style={{ marginRight: "10px", color: "black" }}>
-                <FontAwesomeIcon icon={faPatreon} />
-              </a>
-            )}
-            {user.substack && (
-              <a href={"https://substack.com/" + user.substack} target="_blank" style={{ display: "inline-block" }}>
-                <img src="/substack.png" width={16} />
-              </a>
-            )}
-            {displayEmail && (
-              <a href={`mailto:${user.email}`}>
-                <FontAwesomeIcon icon={faEnvelope} color="grey" />
-              </a>
-            )}
-
-            {user.spotify && <h3 className="mt-5">Listen</h3>}
-            {user.spotify && (
-              <a href={"https://open.spotify.com/artist/" + user.spotify} target="_blank" style={{ marginRight: "10px", color: "green" }}>
-                <FontAwesomeIcon icon={faSpotify} />
-              </a>
-            )}
-            {user.appleMusic && (
-              <a href={"https://music.apple.com/" + user.appleMusic} target="_blank" style={{ marginRight: "10px", color: "pink" }}>
-                <FontAwesomeIcon icon={faApple} />
-              </a>
-            )}
-            {user.tidal && (
-              <a href={"https://tidal.com/" + user.tidal} target="_blank" style={{ marginRight: "10px", color: "black", display: "inline-block" }}>
-                <img src="/tidal.png" width={16} />
-              </a>
-            )}
-            {user.youtubeMusic && (
-              <a href={"https://music.youtube.com/channel/" + user.youtubeMusic} target="_blank" style={{ marginRight: "10px", color: "red" }}>
-                <FontAwesomeIcon icon={faSquareYoutube} />
-              </a>
-            )}
-            {user.amazonMusic && (
-              <a href={"https://music.amazon.com/" + user.amazonMusic} target="_blank" style={{ marginRight: "10px", color: "orange" }}>
-                <FontAwesomeIcon icon={faAmazon} />
-              </a>
-            )}
-            {user.soundcloud && (
-              <a href={"https://soundcloud.com/" + user.soundcloud} target="_blank" style={{ marginRight: "10px", color: "orange" }}>
-                <FontAwesomeIcon icon={faSoundcloud} />
-              </a>
-            )}
-            {user.deezer && (
-              <a href={"https://deezer.com/" + user.deezer} target="_blank" style={{ marginRight: "10px", color: "purple" }}>
-                <FontAwesomeIcon icon={faDeezer} />
-              </a>
-            )}
-            {user.pandora && (
-              <a href={"https://pandora.com/" + user.pandora} target="_blank" style={{ marginRight: "10px", color: "darkblue", display: "inline-block" }}>
-                <img src="/pandora.png" width={16} />
-              </a>
-            )}
-            {user.bandcamp && (
-              <a href={user.bandcamp} target="_blank" style={{ marginRight: "10px", color: "lightblue" }}>
-                <FontAwesomeIcon icon={faBandcamp} />
-              </a>
-            )}
-            {user.soundxyz && (
-              <a href={"https://sound.xyz/" + user.soundxyz} target="_blank" style={{ marginRight: "10px", display: "inline-block" }}>
-                <img src="/soundxyz.png" width={16} />
-              </a>
-            )}
+                  ) : (
+                    <>
+                      <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                        {platformIcon && (
+                          <FontAwesomeIcon
+                            icon={platformIcon}
+                            style={{
+                              marginRight: "10px",
+                              fontSize: "20px",
+                              color: linksColor || "white",
+                            }}
+                          />
+                        )}
+                        <p style={{ margin: 0, fontWeight: "bold", color: linksColor || "white" }}>
+                          {platformName}
+                        </p>
+                      </div>
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: "inline-block",
+                          padding: "10px 20px",
+                          backgroundColor: releasePage.linksColor,
+                          color: "white",
+                          borderRadius: "5px",
+                          textDecoration: "none",
+                        }}
+                      >
+                        Stream
+                      </a>
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}

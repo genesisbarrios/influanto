@@ -380,7 +380,7 @@ const ReleasePages = () => {
                     </button>
                     <button
                       className="btn btn-secondary btn-sm"
-                      onClick={() => window.location.href = `/releasepage/${page.name}`}
+                      onClick={() => window.location.href = `/release/${page.name}`}
                     >
                       Visit
                     </button>
