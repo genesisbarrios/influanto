@@ -19,6 +19,7 @@ const QRCodeGenerator = () => {
   const [qrCodes, setQRCodes] = useState<any>();
   const [newLink, setNewLink] = useState('');
   const [newName, setNewName] = useState('');
+  const [newColor, setNewColor] = useState('');
   const [showCreateView, setShowCreateView] = useState(false);
   const {data, status} = useSession();
   const [user, setUser] = useState<any>();
@@ -79,8 +80,8 @@ const QRCodeGenerator = () => {
       } else if (response.data.error) {
         setAlert(response.data.error);  // If there's an error from the backend
       }
-    } catch (e) {
-      setAlert(e);
+    } catch (e: any) {
+      setAlert(e?.message || "An error occurred while deleting the QR Code."); // Ensure the error message is a string
     }
   };
 
@@ -109,17 +110,16 @@ const QRCodeGenerator = () => {
       console.log(data[0].codes);
       setQRCodes(data[0].codes);
     } catch (e) {
-      //console.error(e?.message);
       setAlert(e?.message);
     } 
   }
 
   const addQRCode = async () => {
-
     try {
       const { data } = await apiClient.post("/codes", {
-        link : newLink,
-        name: newName
+        link: newLink,
+        name: newName,
+        color: newColor // Ensure the color is sent to the backend
       });
 
       console.log(data);
@@ -127,7 +127,6 @@ const QRCodeGenerator = () => {
       setShowCreateView(false);
       getQrCodes();
     } catch (e) {
-      //console.error(e?.message);
       setAlert(e?.message);
     } finally {
       setIsLoading(false);
@@ -149,14 +148,14 @@ const QRCodeGenerator = () => {
     <div className="p-4 bg-white shadow rounded-md text-black">
       <div className="flex justify-between items-center">
       <h2 className="text-xl font-bold mb-2">QR Codes</h2>
-        {!showCreateView &&
+        {!showCreateView && qrCodes?.length < 10 && (
           <button
             onClick={() => setShowCreateView(true)}
             className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             Create
           </button>
-        }
+        )}
       </div>
 
 
@@ -176,16 +175,24 @@ const QRCodeGenerator = () => {
           onChange={(e) => setNewName(e.target.value)}
           className="mb-2 px-3 py-2 bg-white border border-gray-300 rounded w-full"
         />
+        <label className="mr-2">Color</label>
+        <div className="flex items-center">
+          <input
+            type="color"
+            value={newColor}
+            onChange={(e) => setNewColor(e.target.value)}
+            className="w-12 h-12 mr-4 border-1 border-gray-300 rounded-lg cursor-pointer"
+          />
+          {newLink && (
+            <div>
+              <QRCode value={newLink} size={128} fgColor={newColor} bgColor="transparent"/>
+            </div>
+          )}
+        </div>
         
-        {newLink && (
-          <div className="mb-2">
-            <QRCode value={newLink} size={128} />
-          </div>
-        )}
-
         <button
           onClick={addQRCode}
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          className="px-4 py-2 mt-4 bg-green-500 text-white rounded hover:bg-green-600"
         >
           Add QR Code
         </button>
@@ -205,7 +212,7 @@ const QRCodeGenerator = () => {
           <div key={code._id} className="border border-gray-300 p-4 rounded">
             <p className="mb-1 text-lg font-bold">{code.name}</p>
             <div className="mb-2">
-              <QRCode value={code.url} size={128} />
+              <QRCode value={code.url} size={128} bgColor="transparent" fgColor={code.color || "#000000"} />
             </div>
             <p className="mb-2 break-words">{code.url}</p>
 

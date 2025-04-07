@@ -55,6 +55,44 @@ const Profile =  () => {
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
   
+  const validateInput = (value: string, allowLinks = false) => {
+    if (!allowLinks && (value.includes("http://") || value.includes("https://"))) {
+        setAlertt("Links are not allowed in this field.");
+        return false;
+    }
+    if (value.includes("@")) {
+        setAlertt("The '@' character is not allowed in this field.");
+        return false;
+    }
+    return true;
+  };
+
+  const validateYoutubeInput = (value: string, allowLinks = false) => {
+    if (value.includes("@")) {
+        return true;
+    }else{
+      setAlertt("The '@' character must be included in your YouTube Handle.");
+    }
+    return true;
+  };
+
+  const validateFacebookLink = (value: string) => {
+    if (!value.startsWith("https://")) {
+        setAlertt("Facebook link must start with 'https://'.");
+        return false;
+    }
+    return true;
+  };
+
+  const validateWebsite = (value: string) => {
+    if (!value.startsWith("https://")) {
+        setAlertt("Website must start with 'https://'.");
+        return false;
+    }
+    setAlertt("");
+    return true;
+  };
+
   const getUser = async () => {
     try {
       const { data } = await apiClient.get("/get-user");
@@ -208,134 +246,186 @@ const Profile =  () => {
     }
   };
 
-  const handleNameChange = (e:any) => {
-    console.log('handle Name Change')
-   setFormName(e.target.value);
-  }
+  const handleNameChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setFormName(newValue);
+    }
+  };
 
   const handleUserNameChange = (e: any) => {
-    console.log('handle UserName Change');
-    setFormUserName(e.target.value.replace(/\s+/g, ''));
+    const newValue = e.target.value.replace(/\s+/g, '');
+    if (validateInput(newValue)) {
+        setFormUserName(newValue);
+    }
   };
 
-  const handleWebsiteChange = (e:any) => {
-    console.log('handle Email Change')
-    setWebsite(e.target.value);
+  const handleWebsiteChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateWebsite(newValue)) {
+        setWebsite(newValue);
+    }
   };
 
-  const handleBioChange = (e:any) => {
-    console.log('handle Email Change')
-    setBio(e.target.value);
+  const handleBioChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setBio(newValue);
+    }
   };
 
-  const handleLocationChange = (e:any) => {
-    console.log('handle Location Change')
-    setLocation(e.target.value);
+  const handleLocationChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setLocation(newValue);
+    }
   };
 
-  const handleInstagramChange = (e:any) => {
-    console.log('handle Instagram Change')
-    setInstagram(e.target.value);
+  const handleInstagramChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setInstagram(newValue);
+    }
   };
 
-  const handleTwitterChange = (e:any) => {
-    console.log('handle Twitter Change')
-    setTwitter(e.target.value);
+  const handleTwitterChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setTwitter(newValue);
+    }
   };
 
-  const handleFacebookChange = (e:any) => {
-    console.log('handle Facebook Change')
-    setFacebook(e.target.value);
+  const handleFacebookChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateFacebookLink(newValue)) {
+        setFacebook(newValue);
+    }
   };
 
-  const handleLinkedInChange = (e:any) => {
-    console.log('handle Facebook Change')
-    setLinkedIn(e.target.value);
+  const handleLinkedInChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setLinkedIn(newValue);
+    }
   };
 
-  const handleYouTubeChange = (e:any) => {
-    console.log('handle Facebook Change')
-    setYouTube(e.target.value);
+  const handleYouTubeChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateYoutubeInput(newValue)) {
+        setYouTube(newValue);
+    }
   };
 
-  const handleTikTokChange = (e:any) => {
-    console.log('handle Facebook Change')
-    setTikTok(e.target.value);
+  const handleTikTokChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setTikTok(newValue);
+    }
   };
 
-  const handleGithubChange = (e:any) => {
-    console.log('handle Facebook Change')
-    setGithub(e.target.value);
+  const handleGithubChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setGithub(newValue);
+    }
   };
 
-  const handleEtsyChange = (e:any) => {
-    console.log('handle Email Change')
-    setEtsy(e.target.value);
+  const handleEtsyChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setEtsy(newValue);
+    }
   };
 
-  const handlePatreonChange = (e:any) => {
-    console.log('handle Email Change')
-    setPatreon(e.target.value);
+  const handlePatreonChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setPatreon(newValue);
+    }
   };
 
-  const handleTelegramChange = (e:any) => {
-    console.log('handle Email Change')
-    setTelegram(e.target.value);
-  };
-  
-  const handleSubstackChange = (e:any) => {
-    console.log('handle Email Change')
-    setSubstack(e.target.value);
+  const handleTelegramChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setTelegram(newValue);
+    }
   };
 
-  const handleSpotifyChange = (e:any) => {
-    console.log('handle Email Change')
-    setSpotify(e.target.value);
-  };
-  
-  const handleAppleMusicChange = (e:any) => {
-    console.log('handle Email Change')
-    setAppleMusic(e.target.value);
+  const handleSubstackChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setSubstack(newValue);
+    }
   };
 
-  const handleSoundcloudChange = (e:any) => {
-    console.log('handle Email Change')
-    setSoundCloud(e.target.value);
-  };
-  
-  const handleSoundChange = (e:any) => {
-    console.log('handle Email Change')
-    setSoundxyz(e.target.value);
+  const handleSpotifyChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setSpotify(newValue);
+    }
   };
 
-  const handleTidalChange = (e:any) => {
-    console.log('handle Email Change')
-    setTidal(e.target.value);
-  };
-  
-  const handleAmazonMusicChange = (e:any) => {
-    console.log('handle Email Change')
-    setAmazonMusic(e.target.value);
+  const handleAppleMusicChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setAppleMusic(newValue);
+    }
   };
 
-  const handleBandcampChange = (e:any) => {
-    console.log('handle Email Change')
-    setBandcamp(e.target.value);
+  const handleSoundcloudChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setSoundCloud(newValue);
+    }
   };
 
-  const handleDeezerChange = (e:any) => {
-    console.log('handle Email Change')
-    setDeezer(e.target.value);
-  };
-  
-  const handlePandoraChange = (e:any) => {
-    console.log('handle Email Change')
-    setPandora(e.target.value);
+  const handleSoundChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setSoundxyz(newValue);
+    }
   };
 
-  const handleYouTubeMusicChange = (e:any) => {
-    console.log('handle Email Change')
-    setYouTubeMusic(e.target.value);
+  const handleTidalChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setTidal(newValue);
+    }
+  };
+
+  const handleAmazonMusicChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setAmazonMusic(newValue);
+    }
+  };
+
+  const handleBandcampChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setBandcamp(newValue);
+    }
+  };
+
+  const handleDeezerChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setDeezer(newValue);
+    }
+  };
+
+  const handlePandoraChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setPandora(newValue);
+    }
+  };
+
+  const handleYouTubeMusicChange = (e: any) => {
+    const newValue = e.target.value;
+    if (validateInput(newValue)) {
+        setYouTubeMusic(newValue);
+    }
   };
 
   const containerStyle = {
@@ -548,7 +638,7 @@ const Profile =  () => {
               <br />
             </div>
           </div>}
-          {alert && <div className="alert mt-5 w-1/2">{alert}</div>}
+          {alert && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alert}</div>}
           <button 
             className="btn btn-primary btn-block btn-sm btn-narrow"
             style={{width:"35%", display:"inline", margin:"8% 0 0"}}

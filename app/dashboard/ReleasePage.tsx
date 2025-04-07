@@ -16,6 +16,9 @@ const ReleasePages = () => {
   const [editingPage, setEditingPage] = useState<any | null>(null);
   const [createPage, setCreatePage] = useState(false);
   const [isNameUnique, setIsNameUnique] = useState(true);
+  const [bgColor, setBgColor] = useState("#ffffff");
+  const [textColor, setTextColor] = useState("#000000");
+  const [linksColor, setLinksColor] = useState("#0000ff");
 
   const predefinedLinks = [
     { name: "Spotify", url: "" },
@@ -47,7 +50,7 @@ const ReleasePages = () => {
   }, [data]);
 
   const handleCreate = async () => {
-    setEditingPage({ name: "", description: "", links: [], image: "", video: "" }); // Initialize editingPage
+    setEditingPage({ name: "", description: "", links: [], image: "", video: "", bgColor, linksColor, textColor }); // Initialize editingPage
     setCreatePage(true);
   };
 
@@ -59,7 +62,12 @@ const ReleasePages = () => {
     try {
       console.log('editing page');
       console.log(editingPage);
-      await apiClient.post(`/release/`, editingPage);
+      await apiClient.post(`/release/`, {
+        ...editingPage,
+        bgColor,
+        textColor,
+        linksColor,
+      }); // Include bgColor, textColor, and linksColor
 
       setEditingPage(null);
       setCreatePage(false);
@@ -100,10 +108,6 @@ const ReleasePages = () => {
     const updatedLinks = (editingPage?.links || []).filter((_: any, i: number) => i !== index);
     setEditingPage({ ...editingPage, links: updatedLinks });
   };
-
-  const [bgColor, setBgColor] = useState("#ffffff");
-  const [textColor, setTextColor] = useState("#000000");
-  const [linksColor, setLinksColor] = useState("#0000ff");
 
   const handleDelete = async (pageId: any) => {
     try {

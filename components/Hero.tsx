@@ -13,10 +13,10 @@ const Hero = () => {
          The all in one marketing platform for content creators by content creators.
         </h1>
         <p className="text-lg opacity-80 leading-relaxed">
-          The platform with all you need to market and promote your music. Create a free link in bio today. 
+          The platform with all you need to market and promote your music.
         </p>
         <p className="text-lg opacity-80 leading-relaxed">
-          Link In Bio, FREE QR Code Generator, and Playlist Curator Search.
+          Link In Bio, Release Pages, FREE QR Code Generator, and Playlist Curator Search.
         </p>
         <p className="text-lg opacity-80 leading-relaxed">
           Coming Soon: Send bulk comments and DMs to your supporters on social media.

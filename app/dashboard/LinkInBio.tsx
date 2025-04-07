@@ -49,11 +49,11 @@ const LinkInBio =  () => {
     setLinks([...links, { url: "", name: "" }]);
   };
 
-  const updateLink = (index:number, field:any, value:any) => {
-      const newLinks = [...links];
-      newLinks[index][field] = value;
-      setLinks(newLinks);
-      console.log(newLinks);
+  const updateLink = (index: number, field: any, value: any) => {
+    const newLinks = [...links];
+    newLinks[index][field] = value;
+    setLinks(newLinks);
+    console.log('Updated links state:', newLinks); // Log to confirm state update
   };
 
   const removeLink = async (index: number) => {
@@ -115,11 +115,11 @@ const LinkInBio =  () => {
   }
 
   const handleImageUpload = (index: number, result: any) => {
-    console.log('handle upload')
-    console.log(result);
-    const imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/v1741745302/${result.info.publicId}.png`;
-    updateImage(index, imageUrl);
-    console.log(imageUrl);
+    console.log('handle upload triggered');
+    console.log('Upload result:', result);
+    const imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/v${result.info.version}/${result.info.public_id}.png`; // Fixed URL construction
+    updateLink(index, 'image', imageUrl); // Save the image URL to the links array
+    console.log('Image URL saved to link:', imageUrl);
   };
 
   useEffect(() => {
@@ -303,11 +303,12 @@ const LinkInBio =  () => {
                           </label>
                       </div>
                   )}
-                  {!link.image && 
+                  {!isYouTubeLink(index, link.url) && !link.image && 
                     <CldUploadWidget
-                      uploadPreset="LinkInBioThumbnail" // Replace with your actual upload preset
-                      options={{ publicId: `user_${user.id}_link_${index}_thumbnail` }}
-                      onUploadAdded={(result: any) => {
+                      uploadPreset="LinkInBioThumbnail" // Ensure this matches your Cloudinary preset
+                      options={{ folder: `user_${user.id}_links`, publicId: `link_${index}_thumbnail` }} // Adjusted folder and publicId
+                      onSuccess={(result: any) => {
+                        console.log('Upload callback triggered'); // Log to confirm callback is triggered
                         handleImageUpload(index, result);
                       }}
                     >

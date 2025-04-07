@@ -25,7 +25,7 @@ const features = [
   {
     title: "Link in Bio",
     description:
-      "Create a Link in Bio Page and Promotion Pages for your Releases (+ QR Code Generation)",
+      "Create a Link in Bio Page and Promotional Pages for your Releases",
     type: "image",
     path: "https://images.unsplash.com/photo-1717587510454-0c26222e0bbb?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     alt: "computer picture",

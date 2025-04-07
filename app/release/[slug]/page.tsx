@@ -77,6 +77,7 @@ const ReleasePageView =  () => {
         console.log(data);
 
         // Ensure all properties are being set
+        setInstagram(data.user.instagram || "");
         setTwitter(data.user.twitter || "");
         setFacebook(data.user.facebook || "");
         setLinkedIn(data.user.linkedin || "");
@@ -153,6 +154,7 @@ const ReleasePageView =  () => {
     if (url.includes("pandora.com")) return "Pandora";
     if (url.includes("bandcamp.com")) return "Bandcamp";
     if (url.includes("sound.xyz")) return "Sound.xyz";
+    if (url.includes("amazon.com")) return "Amazon Music"; // Capitalize Amazon Music
     
     // Default case: Extract the name before the first dot
     const match = url.match(/:\/\/(www\.)?([^\.]+)/);
@@ -179,6 +181,8 @@ const ReleasePageView =  () => {
         return faBandcamp;
       case "sound.xyz":
         return faGlobe; // Replace with Sound.xyz icon if available
+      case "amazon music":
+        return faAmazon;// Replace with Sound.xyz icon if available
       default:
         return faGlobe; // Default icon
     }
@@ -256,7 +260,7 @@ const ReleasePageView =  () => {
           <div
             style={{
               margin: "0 auto",
-              width: "35%",
+              width: "25%",
               textAlign: "center",
               marginTop: "2%",
               ...(window.innerWidth <= 768 ? { width: "80%" } : {}), // Adjust width for mobile
@@ -284,11 +288,14 @@ const ReleasePageView =  () => {
               .map((link: { url: string; displayVideo: boolean }, index: number) => {
                 const platformName = getPlatformName(link.url);
                 const platformIcon = getPlatformIcon(platformName); // Function to get the platform icon
+                const buttonText = ["Amazon Music", "Bandcamp", "Sound.xyz"].includes(platformName)
+                  ? "Buy / Stream"
+                  : "Stream"; // Conditional button text
+
                 return (
                   <div
                     key={index}
                     style={{
-                      marginBottom: "20px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center", // Center the links
@@ -296,7 +303,7 @@ const ReleasePageView =  () => {
                       ...(window.innerWidth <= 768 ? { width: "80%" } : {}), // Adjust width for mobile
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                    <div style={{  marginBottom: "20px", display: "flex", alignItems: "center", flex: 1 }}>
                       {platformIcon && (
                         <FontAwesomeIcon
                           icon={platformIcon}
@@ -316,15 +323,15 @@ const ReleasePageView =  () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
-                        display: "inline-block",
-                        padding: "10px 20px",
+                        display: "inline-block",  marginBottom: "20px",
+                        padding: "5px 10px", fontSize: "13px",
                         backgroundColor: releasePage.linksColor,
                         color: "white",
                         borderRadius: "5px",
                         textDecoration: "none",
                       }}
                     >
-                      Stream
+                      {buttonText}
                     </a>
                   </div>
                 );
@@ -375,36 +382,6 @@ const ReleasePageView =  () => {
                 <FontAwesomeIcon icon={faTiktok} style={{ fontSize: "24px", color: linksColor || "white" }} />
               </a>
             )}
-            {patreon && (
-              <a href={`https://patreon.com/${user.patreon}`} target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faPatreon} style={{ fontSize: "24px", color: linksColor || "white" }} />
-              </a>
-            )}
-            {substack && (
-              <a href={`https://substack.com/${user.substack}`} target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faWebflow} style={{ fontSize: "24px", color: linksColor || "white" }} />
-              </a>
-            )}
-            {etsy && (
-              <a href={`https://etsy.com/${user.etsy}`} target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faEtsy} style={{ fontSize: "24px", color: linksColor || "white" }} />
-              </a>
-            )}
-            {soundxyz && (  
-              <a href={`https://sound.xyz/${user.soundxyz}`} target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faWebAwesome} style={{ fontSize: "24px", color: linksColor || "white" }} />
-              </a>
-            )}
-            {bandcamp && (
-              <a href={`https://bandcamp.com/${user.bandcamp}`} target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faBandcamp} style={{ fontSize: "24px", color: linksColor || "white" }} />
-              </a>
-            )}
-            {deezer && (
-              <a href={`https://deezer.com/${user.deezer}`} target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faDeezer} style={{ fontSize: "24px", color: linksColor || "white" }} />
-              </a>
-            )}
             {youtube && (   
               <a href={`https://youtube.com/${user.youtube}`} target="_blank" rel="noopener noreferrer">
                 <FontAwesomeIcon icon={faYoutube} style={{ fontSize: "24px", color: linksColor || "white" }} />
@@ -434,7 +411,37 @@ const ReleasePageView =  () => {
               <a href={`https://tidal.com/${user.tidal}`} target="_blank" rel="noopener noreferrer">
                 <FontAwesomeIcon icon={faGlobe} style={{ fontSize: "24px", color: linksColor || "white" }} />
               </a>
+            )}
+            {deezer && (
+              <a href={`https://deezer.com/${user.deezer}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faDeezer} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {bandcamp && (
+              <a href={`https://bandcamp.com/${user.bandcamp}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faBandcamp} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
             )}  
+            {soundxyz && (  
+              <a href={`https://sound.xyz/${user.soundxyz}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faWebAwesome} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {patreon && (
+              <a href={`https://patreon.com/${user.patreon}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faPatreon} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {substack && (
+              <a href={`https://substack.com/${user.substack}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faWebflow} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
+            {etsy && (
+              <a href={`https://etsy.com/${user.etsy}`} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faEtsy} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              </a>
+            )}
              {website && (
               <a href={user.website} target="_blank" rel="noopener noreferrer">
                 <FontAwesomeIcon icon={faGlobe} style={{ fontSize: "24px", color: linksColor || "white" }} />

@@ -13,6 +13,7 @@ const CodesSchema = new mongoose.Schema(
       {
         url: { type: String, required: true },
         name: { type: String },
+        color: { type: String },
       },
     ],
   },

@@ -18,7 +18,16 @@ const Community = () => {
   const getUsers = async () => {
     try {
       const { data } = await apiClient.get("/get-users");
-      const filteredUsers = data.filter((user: any) => user.name && (user.bio || user.image || user.instagram || user.twitter || user.facebook || user.spotify || user.youtube));
+      const filteredUsers = data.filter((user: any) => 
+        user.name && (user.image || user.instagram || user.twitter || user.facebook || user.spotify || user.youtube) &&
+        user.username &&
+        user.username !== null &&
+        user.username !== "" &&
+        user.name !== null &&
+        user.name !== "" &&
+        user.bio !== null && 
+        user.bio !== ""   
+      );
       setUsers(filteredUsers);
     } catch (e) {
       setAlertt(e?.message);
