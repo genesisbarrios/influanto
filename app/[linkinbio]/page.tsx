@@ -154,8 +154,8 @@ const LinkInBioPage =  () => {
     return <div className="m-5 text-center">Loading...</div>;
   }else if (user){
     return (
-     
-      <div className="p-6 bg-white shadow w-3/4 md:w-1/2 rounded-lg" style={{margin:"0 auto", textAlign:"center", marginTop:"5%", color:"#333333"}}> 
+     <>
+      <div className="p-6 bg-white shadow w-3/4 md:w-1/2 rounded-lg" style={{margin:"0 auto", textAlign:"center", marginTop:"5%", marginBottom:"10%", color:"#333333"}}> 
           <div style={{margin:"0 auto", textAlign:"center", color:textColor}}>
             <img src={user.image || fallbackImageUrl} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline", marginBottom:"2%"}} alt="Avatar" />
                     
@@ -219,6 +219,13 @@ const LinkInBioPage =  () => {
             <br></br>
           </div>
         </div>
+      {/* Move the Influanto icon inside the main container for correct relative path resolution */}
+      <div style={{ textAlign: "center", marginTop: "32px" }}>
+        <a href="https://influanto.com" target="_blank" rel="noopener noreferrer">
+          <img src="/icon.png" alt="Influanto" style={{ width: "48px", height: "48px", display: "inline-block" }} />
+        </a>
+      </div>
+    </>
     );
   }
 };
