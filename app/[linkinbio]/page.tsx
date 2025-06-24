@@ -222,7 +222,7 @@ const LinkInBioPage =  () => {
       {/* Move the Influanto icon inside the main container for correct relative path resolution */}
       <div style={{ textAlign: "center", marginTop: "32px", marginBottom: "32px" }}>
         <a href="https://influanto.com" target="_blank" rel="noopener noreferrer">
-          <img src="/icon.png" alt="Influanto" style={{ width: "48px", height: "48px", display: "inline-block" }} />
+          <img src="/icon.png" alt="Influanto" style={{ width: "40px", height: "40px", display: "inline-block" }} />
         </a>
       </div>
     </>
