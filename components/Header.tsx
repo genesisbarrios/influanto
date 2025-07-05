@@ -28,9 +28,15 @@ const links: {
     label: "FAQ",
   },
   {
-    href: "/dashboard",
-    label: "Tools",
+    href: "/tools",
+    label: "Free Tools",
   },
+  
+  {
+    href: "/dashboard",
+    label: "Dashboard",
+  },
+
 ];
 
 const cta: JSX.Element = <ButtonSignin extraStyle="btn-primary" />;
