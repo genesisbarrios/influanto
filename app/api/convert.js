@@ -6,11 +6,11 @@ import { promises as fs } from 'fs';
 import { nanoid } from 'nanoid';
 import multer from 'multer';
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+// export const config = {
+//   api: {
+//     bodyParser: false,
+//   },
+// };
 
 const upload = multer({
   storage: multer.diskStorage({
