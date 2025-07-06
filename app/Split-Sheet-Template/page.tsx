@@ -66,23 +66,61 @@ export default function SplitSheetTemplate() {
     doc.text(`Date of Creation: ${form.date}`, 10, 40);
     doc.text(`Artist(s): ${form.artists}`, 10, 50);
 
+    // Primary Contributors Table
     doc.text("Primary Contributors:", 10, 60);
-    contributors.forEach((c, i) => {
-      doc.text(
-        `${i + 1}. Name: ${c.name} | Role: ${c.role} | Ownership: ${c.ownership}% | Contact: ${c.contact}`,
-        15,
-        70 + i * 8
-      );
+
+    // Table headers
+    let contributorsTableY = 65;
+    doc.setFillColor(243, 244, 246);
+    doc.rect(10, contributorsTableY, 40, 8, "F"); // Name
+    doc.rect(50, contributorsTableY, 30, 8, "F"); // Role
+    doc.rect(80, contributorsTableY, 40, 8, "F"); // Ownership %
+    doc.rect(120, contributorsTableY, 70, 8, "F"); // Contact
+    doc.setTextColor(0);
+    doc.text("Name", 12, contributorsTableY + 6);
+    doc.text("Role", 52, contributorsTableY + 6);
+    doc.text("Ownership %", 82, contributorsTableY + 6);
+    doc.text("Contact", 122, contributorsTableY + 6);
+
+    // Table rows
+    let contributorsRowY = contributorsTableY + 8;
+    contributors.forEach((c) => {
+      doc.rect(10, contributorsRowY, 40, 8);
+      doc.rect(50, contributorsRowY, 30, 8);
+      doc.rect(80, contributorsRowY, 40, 8);
+      doc.rect(120, contributorsRowY, 70, 8);
+      doc.text(c.name || "", 12, contributorsRowY + 6);
+      doc.text(c.role || "", 52, contributorsRowY + 6);
+      doc.text(c.ownership || "", 82, contributorsRowY + 6);
+      doc.text(c.contact || "", 122, contributorsRowY + 6);
+      contributorsRowY += 8;
     });
 
-    let pubStartY = 70 + contributors.length * 8 + 10;
+    // Publishing Details Table
+    let pubStartY = contributorsRowY + 10;
     doc.text("Publishing Details:", 10, pubStartY);
-    publishing.forEach((p, i) => {
-      doc.text(
-        `${i + 1}. Contributor: ${p.contributorName} | Publisher: ${p.publisher} | ${p.percent}%`,
-        15,
-        pubStartY + 10 + i * 8
-      );
+
+    // Table headers
+    let publishingTableY = pubStartY + 5;
+    doc.setFillColor(243, 244, 246);
+    doc.rect(10, publishingTableY, 60, 8, "F"); // Contributor Name
+    doc.rect(70, publishingTableY, 70, 8, "F"); // Publisher
+    doc.rect(140, publishingTableY, 50, 8, "F"); // Publishing %
+    doc.setTextColor(0);
+    doc.text("Contributor Name", 12, publishingTableY + 6);
+    doc.text("Publisher", 72, publishingTableY + 6);
+    doc.text("Publishing %", 142, publishingTableY + 6);
+
+    // Table rows
+    let publishingRowY = publishingTableY + 8;
+    publishing.forEach((p) => {
+      doc.rect(10, publishingRowY, 60, 8);
+      doc.rect(70, publishingRowY, 70, 8);
+      doc.rect(140, publishingRowY, 50, 8);
+      doc.text(p.contributorName || "", 12, publishingRowY + 6);
+      doc.text(p.publisher || "", 72, publishingRowY + 6);
+      doc.text(p.percent || "", 142, publishingRowY + 6);
+      publishingRowY += 8;
     });
 
     let termsY = pubStartY + 10 + publishing.length * 8 + 10;

@@ -6,16 +6,12 @@ import { promises as fs } from 'fs';
 import { nanoid } from 'nanoid';
 import multer from 'multer';
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+
 
 const upload = multer({
   storage: multer.diskStorage({
     destination: '/tmp',
-    filename: (req, file, cb) => {
+    filename: (req:any, file:any, cb:any) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
       cb(null, file.fieldname + '-' + uniqueSuffix + '.' + file.originalname.split('.').pop());
     },
@@ -23,8 +19,8 @@ const upload = multer({
 });
 
 // Helper to run ffmpeg
-const convertAudio = (inputPath, outputPath) => {
-  return new Promise((resolve, reject) => {
+const convertAudio = (inputPath:any, outputPath:any) => {
+  return new Promise<void>((resolve, reject) => {
     const command = `ffmpeg -y -i "${inputPath}" "${outputPath}"`;
     exec(command, (error, stdout, stderr) => {
       if (error) {
@@ -38,9 +34,9 @@ const convertAudio = (inputPath, outputPath) => {
 };
 
 // For Next.js App Router: use /app/api/convert/route.js and export POST
-export async function POST(req) {
+export async function POST(req:any) {
   return new Promise((resolve) => {
-    upload.single('audioFile')(req, {}, async (err) => {
+    upload.single('audioFile')(req, {} as any, async (err:any) => {
       if (err || !req.file) {
         resolve(
           new Response(JSON.stringify({ error: 'Error uploading file.' }), { status: 500 })
