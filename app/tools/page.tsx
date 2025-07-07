@@ -36,9 +36,9 @@ const tools = [
 //     icon: "🎹",
 //   },
   {
-    title: "Split Sheet Template",
-    description: "Easily create and save music split sheets.",
-    href: "/Split-Sheet-Template",
+    title: "Split Sheet Generator",
+    description: "Create and export split sheets for your music collaborations.",
+    href: "/Split-Sheet-Generator",
     icon: "📄",
   },
   {
