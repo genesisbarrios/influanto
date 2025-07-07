@@ -58,7 +58,7 @@ export default function ReverbandDelay() {
           <div style={{ width: "50%" }}>
             <h2 className="text-2xl font-bold mb-4" style={{color: "#181b20"}}>Delay & Reverb Time Calculator</h2>
             <p style={{color: "#181b20"}}>
-              Enter your song's BPM and select a note value to calculate delay times. If the provided settings do not fit your needs you can also tweak them. As long as you use values that divide into the total reverb time.
+              Enter your song&apos;s BPM and select a note value to calculate delay times. If the provided settings do not fit your needs you can also tweak them. As long as you use values that divide into the total reverb time.
             </p>
           </div>
           <div style={{ width: "50%", display: "flex", alignItems: "flex-end", gap: "20px" }}>

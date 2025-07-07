@@ -1,16 +1,9 @@
 // Next.js API routes must be inside /pages/api or /app/api (with App Router) and use the correct handler signature.
 // For the App Router, use /app/api/convert/route.js and export POST as a named export.
-
 import { exec } from 'child_process';
 import { promises as fs } from 'fs';
 import { nanoid } from 'nanoid';
 import multer from 'multer';
-
-// export const config = {
-//   api: {
-//     bodyParser: false,
-//   },
-// };
 
 const upload = multer({
   storage: multer.diskStorage({
