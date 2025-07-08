@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
-
+import Head from 'next/head';
 
 export default function BPMCalculator() {
   const [bpm, setBpm] = useState<number>(0);
@@ -57,6 +57,15 @@ export default function BPMCalculator() {
 
   return (
     <>  
+      <Head>
+        <title>Influanto | BPM Calculator</title>
+        <meta name="description" content="Free Musician Tools: BPM Calculator + more" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content="FREE Musician Tools" />
+        <meta property="og:description" content="Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
+        <meta name="twitter:title" content="FREE Musician Tools" />
+        <meta name="twitter:description" content="Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
+      </Head>
       <Suspense>
         <Header />
       </Suspense>

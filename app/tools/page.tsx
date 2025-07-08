@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import Head from 'next/head';
 
 const calcDelayMs = (bpm: number, note: number) => {
   if (!bpm || !note) return "";
@@ -56,6 +57,15 @@ export default function Tools() {
     <Suspense>
         <Header />
     </Suspense>
+     <Head>
+          <title>Influanto | FREE Musician Tools</title>
+          <meta name="description" content="Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <meta property="og:title" content="FREE Musician Tools" />
+          <meta property="og:description" content="Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
+          <meta name="twitter:title" content="FREE Musician Tools" />
+          <meta name="twitter:description" content="Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
+        </Head>
     <div style={{ display: "flex", minHeight: "80vh", width: "100%" }}>
       {/* Left: Free Tools Grid */}
       <div
