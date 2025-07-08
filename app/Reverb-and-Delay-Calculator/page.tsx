@@ -50,18 +50,26 @@ export default function ReverbandDelay() {
     <Suspense>
         <Header />
     </Suspense>
-    <div style={{ display: "flex", minHeight: "80vh", width: "100%", color: "#181b20" }}>
+    <div 
+      id="delay-bg"
+      style={{ 
+        display: "flex", 
+        flexDirection: "column",
+        minHeight: "80vh", 
+        width: "100%", 
+        color: "#181b20" 
+      }}
+    >
       {/* Left: Calculator */}
       <div
         style={{
-          width: "70%",
           padding: "2rem",
           background: "#f9fafb",
-          borderRight: "1px solid #e5e7eb",
           color: "#181b20",
           display: "flex",
           flexDirection: "column"
         }}
+        className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
       >
         <div style={{ display: "flex", width: "100%", marginBottom: "1.5rem" }}>
           <div style={{ width: "50%" }}>
@@ -195,7 +203,6 @@ export default function ReverbandDelay() {
       {/* Right: Sign up and info */}
       <div
         style={{
-          width: "30%",
           padding: "2rem",
           display: "flex",
           flexDirection: "column",
@@ -204,6 +211,7 @@ export default function ReverbandDelay() {
           background: "#fff",
           color: "#181b20"
         }}
+        className="w-full sm:w-1/4 p-8"
       >
         <h3 className="text-xl font-bold mb-4" style={{color: "#181b20"}}>Join Influanto</h3>
         <button
@@ -229,6 +237,17 @@ export default function ReverbandDelay() {
         </div>
       </div>
     </div>
+    <style>{`
+      #delay-bg {
+        background: #638bcf !important;
+      }
+      
+      @media (min-width: 640px) {
+        #delay-bg {
+          flex-direction: row !important;
+        }
+      }
+    `}</style>
      
     <Footer></Footer>
     </>

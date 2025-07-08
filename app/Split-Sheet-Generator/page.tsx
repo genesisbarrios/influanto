@@ -184,8 +184,10 @@ export default function SplitSheetTemplate() {
         <Header />
       </Suspense>
       <div
+        id="split-sheet-bg"
         style={{
           display: "flex",
+          flexDirection: "column",
           minHeight: "80vh",
           width: "100%",
           textAlign: "center",
@@ -194,20 +196,19 @@ export default function SplitSheetTemplate() {
       >
         <div
           style={{
-            width: "70%",
             padding: "2rem",
             background: "#f9fafb",
-            borderRight: "1px solid #e5e7eb",
             display: "flex",
             flexDirection: "column",
             alignItems: "start"
           }}
+          className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
         >
           <h1 className="text-3xl font-bold mb-4" style={{ color: "#181b20" }}>
             Split Sheet Template
           </h1>
           <form
-            style={{ maxWidth: 600, width: "100%", textAlign: "left" }}
+            style={{ width: "100%", textAlign: "left" }}
             onSubmit={e => { e.preventDefault(); handleDownloadPDF(); }}
           >
             <label>Song Title:</label>
@@ -266,50 +267,50 @@ export default function SplitSheetTemplate() {
 
             <label>Primary Contributors:</label>
             {contributors.map((c, idx) => (
-              <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <div key={idx} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }} className="contributor-row">
                 <input
                   placeholder="Name"
                   value={c.name}
                   onChange={e => handleContributorChange(idx, "name", e.target.value)}
                   style={{
-                    flex: 2,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem", color:"white"
                   }}
+                  className="w-full sm:flex-2"
                 />
                 <input
                   placeholder="Role"
                   value={c.role}
                   onChange={e => handleContributorChange(idx, "role", e.target.value)}
                   style={{
-                    flex: 1,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem", color:"white"
                   }}
+                  className="w-full sm:flex-1"
                 />
                 <input
                   placeholder="Ownership %"
                   value={c.ownership}
                   onChange={e => handleContributorChange(idx, "ownership", e.target.value)}
                   style={{
-                    flex: 1,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
-                    padding: "0.5rem", color:"white"
+                    padding: "0.5rem", color:"white",
                   }}
+                  className="w-full sm:flex-1"
                 />
                 <input
                   placeholder="Contact Info"
                   value={c.contact}
                   onChange={e => handleContributorChange(idx, "contact", e.target.value)}
                   style={{
-                    flex: 2,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem", color:"white"
                   }}
+                  className="w-full sm:flex-2"
                 />
                 <button
                   type="button"
@@ -320,6 +321,7 @@ export default function SplitSheetTemplate() {
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem"
                   }}
+                  className="w-full sm:w-auto"
                 >✕</button>
               </div>
             ))}
@@ -338,39 +340,39 @@ export default function SplitSheetTemplate() {
 
 
             {publishing.map((p, idx) => (
-              <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <div key={idx} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }} className="publishing-row">
                 <input
                   placeholder="Contributor Name"
                   value={p.contributorName}
                   onChange={e => handlePublishingChange(idx, "contributorName", e.target.value)}
                   style={{
-                    flex: 2,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem", color:"white"
                   }}
+                  className="w-full sm:flex-2"
                 />
                 <input
                   placeholder="Publisher"
                   value={p.publisher}
                   onChange={e => handlePublishingChange(idx, "publisher", e.target.value)}
                   style={{
-                    flex: 2,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem", color:"white"
                   }}
+                  className="w-full sm:flex-2"
                 />
                 <input
                   placeholder="Publishing %"
                   value={p.percent}
                   onChange={e => handlePublishingChange(idx, "percent", e.target.value)}
                   style={{
-                    flex: 1,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem", color:"white"
                   }}
+                  className="w-full sm:flex-1"
                 />
                 <button
                   type="button"
@@ -381,6 +383,7 @@ export default function SplitSheetTemplate() {
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem"
                   }}
+                  className="w-full sm:w-auto"
                 >✕</button>
               </div>
             ))}
@@ -441,7 +444,6 @@ export default function SplitSheetTemplate() {
         </div>
         <div
           style={{
-            width: "30%",
             padding: "2rem",
             background: "#fff",
             display: "flex",
@@ -449,7 +451,9 @@ export default function SplitSheetTemplate() {
             alignItems: "center",
             justifyContent: "center"
           }}
+          className="w-full sm:w-1/4 p-8"
         >
+            <h3 className="text-xl font-bold mb-4" style={{color: "#181b20"}}>Join Influanto</h3>
           <button
             className="btn btn-primary"
             style={{
@@ -473,6 +477,26 @@ export default function SplitSheetTemplate() {
           </div>
         </div>
       </div>
+      <style>{`
+        #split-sheet-bg {
+          background: #638bcf !important;
+        }
+        
+        @media (min-width: 640px) {
+          #split-sheet-bg {
+            flex-direction: row !important;
+          }
+          .contributor-row, .publishing-row {
+            flex-direction: row !important;
+          }
+          .sm\\:flex-2 {
+            flex: 2;
+          }
+          .sm\\:flex-1 {
+            flex: 1;
+          }
+        }
+      `}</style>
       <Footer />
     </>
   );

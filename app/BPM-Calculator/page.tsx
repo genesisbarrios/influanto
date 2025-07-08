@@ -73,6 +73,7 @@ export default function BPMCalculator() {
         id="bpm-bg"
         style={{
           display: "flex",
+          flexDirection: "column",
           minHeight: "80vh",
           width: "100%",
           textAlign: "center"
@@ -81,13 +82,9 @@ export default function BPMCalculator() {
         {/* Left: Calculator */}
         <div
           style={{
-            width: "70%",
-            padding: "2rem",
-            background: "#f9fafb",
-            borderRight: "1px solid #e5e7eb",
-            display: "flex",
-            flexDirection: "column"
+            background: "#f9fafb"
           }}
+          className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
         >
             <h1 className="text-3xl font-bold mb-4" style={{color: "#181b20"}}>Tap Tempo - BPM Calculator</h1>
             <p style={{color: "#181b20"}}>
@@ -124,14 +121,13 @@ export default function BPMCalculator() {
         {/* Right: Sign up and info */}
         <div
           style={{
-            width: "30%",
-            padding: "2rem",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             background: "#fff"
-          }}
+          }} 
+          className="w-full sm:w-1/4 p-8"
         >
           <h3 className="text-xl font-bold mb-4">Join Influanto</h3>
           <button
@@ -160,6 +156,12 @@ export default function BPMCalculator() {
       <style>{`
         #bpm-bg {
           background: #638bcf !important;
+        }
+        
+        @media (min-width: 640px) {
+          #bpm-bg {
+            flex-direction: row !important;
+          }
         }
       `}</style>
       <Footer />

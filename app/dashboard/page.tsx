@@ -31,7 +31,7 @@ export default function Dashboard() {
     <div className="flex min-h-screen bg-base-200">
       {/* Sidebar menu */}
       <aside className="w-1/4 sm:w-1/3 p-4 bg-base-100 sm:w-1/3 sm:p-8 xs:pr-8">
-        <ul className="menu bg-base-100 w-full p-2 rounded-box text-[0.8em] md:text-base lg:text-lg">
+        <ul className="menu bg-base-100 w-full p-2 rounded-box text-xs sm:text-sm md:text-base lg:text-lg">
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('profile')}>Profile</button>
           </li>

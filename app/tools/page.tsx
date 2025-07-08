@@ -66,15 +66,22 @@ export default function Tools() {
           <meta name="twitter:title" content="FREE Musician Tools" />
           <meta name="twitter:description" content="Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
         </Head>
-    <div style={{ display: "flex", minHeight: "80vh", width: "100%" }}>
+    <div 
+      id="tools-bg"
+      style={{ 
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "80vh", 
+        width: "100%" 
+      }}
+    >
       {/* Left: Free Tools Grid */}
       <div
         style={{
-          width: "70%",
           padding: "2rem",
-          background: "#f9fafb",
-          borderRight: "1px solid #e5e7eb",
+          background: "#f9fafb"
         }}
+        className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
       >
         <h2 className="text-2xl font-bold ml-8 mb-8 mt-4" style={{color: "#181b20"}}>Free Tools</h2>
         <div
@@ -120,14 +127,14 @@ export default function Tools() {
       {/* Right: Sign up and info */}
       <div
         style={{
-          width: "30%",
           padding: "2rem",
+          background: "#fff",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
-          background: "#fff",
+          justifyContent: "center"
         }}
+        className="w-full sm:w-1/4 p-8"
       >
         <h3 className="text-xl font-bold mb-4" style={{color: "#181b20"}}>Join Influanto</h3>
         <button
@@ -153,6 +160,17 @@ export default function Tools() {
         </div>
       </div>
     </div>
+    <style>{`
+      #tools-bg {
+        background: #638bcf !important;
+      }
+      
+      @media (min-width: 640px) {
+        #tools-bg {
+          flex-direction: row !important;
+        }
+      }
+    `}</style>
     <Footer></Footer>
     </>
   );
