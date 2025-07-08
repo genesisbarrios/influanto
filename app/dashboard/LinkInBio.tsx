@@ -175,9 +175,9 @@ const LinkInBio =  () => {
 
   const containerStyle = {
     width: "100%",
-    maxWidth: "400px", // Limit width on larger screens
-    margin: "0 auto", // Center the container
-    padding: "10px", // Add padding to prevent content from touching edges
+    maxWidth: "100%", // Ensure it doesn't exceed container
+    margin: "0 auto",
+    padding: "0", // Remove padding to prevent overflow
   };
   
 
@@ -197,7 +197,7 @@ const LinkInBio =  () => {
         <meta name="twitter:title" content="Link In Bio Tool" />
         <meta name="twitter:description" content="Generate and manage your Link In Bio easily." />
       </Head>
-      <div className="p-4 bg-white shadow rounded-md text-black">
+      <div className="p-2 sm:p-4 bg-white shadow rounded-md text-black w-full max-w-full">
          <div className="w-full flex justify-between items-center">
             <h2 className="text-2xl font-bold mb-2">Link In Bio</h2>
             <button 
@@ -249,9 +249,10 @@ const LinkInBio =  () => {
   </>
     );
   }else{
-    return (
-      <div className="p-4 bg-white shadow rounded-md"  style={containerStyle}>
-        <h2 className="text-xl sm:text-2xl font-bold mb-2 inline">Link In Bio</h2>
+    return (      <div className="p-2 sm:p-4 bg-white shadow rounded-md w-full max-w-full">
+        <div className="w-full flex flex-wrap">
+          <h2 className="text-xl sm:text-2xl font-bold mb-2 inline">Link In Bio</h2>
+          <br></br>
         <form>
         <h1>Edit Links</h1>
           <div className="flex flex-wrap w-full">
@@ -277,14 +278,14 @@ const LinkInBio =  () => {
                     </label>
                     <input
                         type="text"
-                        className="input mt-2 mb-2 mr-4 w-3/4"
+                        className="input mt-2 mb-2 w-full"
                         placeholder="URL"
                         value={link.url}
                         onChange={(e) => updateLink(index, 'url', e.target.value)}
                     />
                     <input
                         type="text"
-                        className="input mb-2 w-3/4"
+                        className="input mb-2 w-full"
                         placeholder="Name"
                         value={link.name}
                         onChange={(e) => updateLink(index, 'name', e.target.value)}
@@ -337,48 +338,54 @@ const LinkInBio =  () => {
             >
                 Add Link
             </button>
-            <h1 style={{display:"block"}} className="mt-8 mb-2">Styles</h1>
-            <div className="flex flex-wrap w-full"> 
-               <h2 style={{display:"block"}} className="mr-2">BG</h2>
-               <input
-                  type="color"
-                  value={bgColor}
-                  onChange={(e) => setBgColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2 style={{display:"block"}} className="ml-2 mr-2">Text</h2>
-               <input
-                  type="color"
-                  value={textColor}
-                  onChange={(e) => setTextColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2 style={{display:"block"}} className="ml-2 mr-2">Links</h2>
-               <input
-                  type="color"
-                  value={linksColor}
-                  onChange={(e) => setLinksColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
+            <h1 className="mt-8 mb-2 w-full">Styles</h1>
+            <div className="flex flex-wrap items-center gap-2 w-full"> 
+               <div className="flex items-center gap-1">
+                 <span className="text-sm">BG</span>
+                 <input
+                    type="color"
+                    value={bgColor}
+                    onChange={(e) => setBgColor(e.target.value)}
+                    className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer"
+                  />
+               </div>
+               <div className="flex items-center gap-1">
+                 <span className="text-sm">Text</span>
+                 <input
+                    type="color"
+                    value={textColor}
+                    onChange={(e) => setTextColor(e.target.value)}
+                    className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer"
+                  />
+               </div>
+               <div className="flex items-center gap-1">
+                 <span className="text-sm">Links</span>
+                 <input
+                    type="color"
+                    value={linksColor}
+                    onChange={(e) => setLinksColor(e.target.value)}
+                    className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer"
+                  />
+               </div>
              </div>
             </div>
           </div>
 
-          <br />
-          <button 
-            className="btn btn-primary btn-block btn-sm btn-narrow"
-            style={{width:"35%", display:"inline", margin:"2% 0"}}
-            onClick={(e) => handleEditLinkInBio(e)} 
-            type="submit">
-            Submit
-        </button> 
-        <button
-          className="btn btn-alert btn-block btn-sm btn-narrow"
-          style={{ width: "35%", display: "inline", margin: "2% 5%" }}
-          onClick={() => setEditing(false)}> {/* Changed to setEditing(false) to handle cancel */}
-          Cancel
-        </button>
+          <div className="flex flex-col sm:flex-row gap-2 mt-4">
+            <button 
+              className="btn btn-primary btn-sm flex-1"
+              onClick={(e) => handleEditLinkInBio(e)} 
+              type="submit">
+              Submit
+          </button> 
+          <button
+            className="btn btn-alert btn-sm flex-1"
+            onClick={() => setEditing(false)}>
+            Cancel
+          </button>
+          </div>
         </form>
+        </div>
       </div>
    
       );

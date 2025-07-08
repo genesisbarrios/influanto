@@ -38,9 +38,9 @@ export default function Dashboard() {
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('link-in-bio')}>Link in Bio</button>
           </li>
-          <li>
+          {/* <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('release-page')}>Release Pages</button>
-          </li>
+          </li> */}
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('qr-code-generator')}>QR Codes</button>
           </li>

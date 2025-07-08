@@ -137,9 +137,51 @@ const ReleasePages = () => {
     }
   }, 300);
 
+  const validateReleasePageName = (name: string): { isValid: boolean; message: string } => {
+    if (!name) return { isValid: true, message: "" };
+    
+    // Check for spaces
+    if (name.includes(' ')) {
+      return { isValid: false, message: "Release page name cannot contain spaces. Use hyphens (-) or underscores (_) instead." };
+    }
+    
+    // Check length
+    if (name.length < 3) {
+      return { isValid: false, message: "Release page name must be at least 3 characters long." };
+    }
+    
+    if (name.length > 50) {
+      return { isValid: false, message: "Release page name must be 50 characters or less." };
+    }
+    
+    // Check allowed characters (letters, numbers, hyphens, underscores)
+    const allowedPattern = /^[a-zA-Z0-9_-]+$/;
+    if (!allowedPattern.test(name)) {
+      return { isValid: false, message: "Release page name can only contain letters, numbers, hyphens (-), and underscores (_)." };
+    }
+    
+    // Check if it starts with letter or number
+    const startsWithLetterOrNumber = /^[a-zA-Z0-9]/.test(name);
+    if (!startsWithLetterOrNumber) {
+      return { isValid: false, message: "Release page name must start with a letter or number." };
+    }
+    
+    return { isValid: true, message: "" };
+  };
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const name = e.target.value;
-    setEditingPage({ ...editingPage, name }); // Update the name immediately in the state
+    let name = e.target.value;
+    
+    // Auto-format: convert to lowercase and replace spaces with hyphens
+    name = name.toLowerCase().replace(/\s+/g, '-');
+    
+    const validation = validateReleasePageName(name);
+    
+    setEditingPage({ 
+      ...editingPage, 
+      name,
+      nameError: validation.isValid ? "" : validation.message
+    });
   };
 
   const handleNameBlur = () => {
@@ -175,12 +217,17 @@ const ReleasePages = () => {
               <label className="block font-bold mb-2">Name</label>
               <input
                 type="text"
-                className={`input w-full ${!isNameUnique ? "border-red-500" : ""}`}
+                className={`input w-full ${!isNameUnique || editingPage?.nameError ? "border-red-500" : ""}`}
                 placeholder="Enter release page name"
                 value={editingPage?.name || ""}
                 onChange={handleNameChange}
                 onBlur={handleNameBlur} // Trigger uniqueness check on blur
               />
+              {editingPage?.nameError && (
+                <p className="text-red-500 text-sm mt-1">
+                  {editingPage.nameError}
+                </p>
+              )}
               {!isNameUnique && (
                 <p className="text-red-500 text-sm mt-1">
                   This name is already taken. Please choose another.
