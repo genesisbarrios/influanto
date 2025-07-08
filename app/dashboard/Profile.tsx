@@ -55,6 +55,38 @@ const Profile =  () => {
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
   
+  const validateUsername = (value: string) => {
+    // Remove spaces and convert to lowercase
+    const cleanValue = value.replace(/\s+/g, '').toLowerCase();
+    
+    // Check for invalid characters (only allow letters, numbers, underscore, hyphen)
+    if (!/^[a-zA-Z0-9_-]*$/.test(cleanValue)) {
+        setAlertt("Username can only contain letters, numbers, underscores, and hyphens.");
+        return false;
+    }
+    
+    // Check minimum length
+    if (cleanValue.length > 0 && cleanValue.length < 3) {
+        setAlertt("Username must be at least 3 characters long.");
+        return false;
+    }
+    
+    // Check maximum length
+    if (cleanValue.length > 30) {
+        setAlertt("Username cannot be longer than 30 characters.");
+        return false;
+    }
+    
+    // Check if username starts with a letter or number
+    if (cleanValue.length > 0 && !/^[a-zA-Z0-9]/.test(cleanValue)) {
+        setAlertt("Username must start with a letter or number.");
+        return false;
+    }
+    
+    setAlertt("");
+    return true;
+  };
+
   const validateInput = (value: string, allowLinks = false) => {
     if (!allowLinks && (value.includes("http://") || value.includes("https://"))) {
         setAlertt("Links are not allowed in this field.");
@@ -254,8 +286,8 @@ const Profile =  () => {
   };
 
   const handleUserNameChange = (e: any) => {
-    const newValue = e.target.value.replace(/\s+/g, '');
-    if (validateInput(newValue)) {
+    const newValue = e.target.value.replace(/\s+/g, '').toLowerCase();
+    if (validateUsername(newValue)) {
         setFormUserName(newValue);
     }
   };
