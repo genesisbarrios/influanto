@@ -175,6 +175,17 @@ export default function SplitSheetTemplate() {
       rowY += 8;
     });
 
+     
+    // Add Influanto logo at the bottom, centered
+    const logoY = rowY + 20; // Position logo 20 units below the signatures table
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const logoWidth = 40; // Adjust logo width as needed
+    const logoHeight = 20; // Adjust logo height as needed
+    const logoX = (pageWidth - logoWidth) / 2; // Center the logo horizontally
+    
+    // Add the logo image
+    doc.addImage('/TRANSPARENT_LOGO_BLK.png', 'PNG', logoX, logoY, logoWidth, logoHeight);
+
     doc.save(`${form.songTitle + " SplitSheet " + form.date + " influanto" || "split-sheet"}.pdf`);
   };
 
