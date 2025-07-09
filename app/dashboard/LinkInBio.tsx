@@ -177,7 +177,6 @@ const LinkInBio =  () => {
     width: "100%",
     maxWidth: "100%", // Ensure it doesn't exceed container
     margin: "0 auto",
-    padding: "0", // Remove padding to prevent overflow
   };
   
 
@@ -197,7 +196,7 @@ const LinkInBio =  () => {
         <meta name="twitter:title" content="Link In Bio Tool" />
         <meta name="twitter:description" content="Generate and manage your Link In Bio easily." />
       </Head>
-      <div className="p-2 sm:p-4 bg-white shadow rounded-md text-black w-full max-w-full">
+        <div className="p-4 bg-white shadow rounded-md text-black" style={containerStyle}>
          <div className="w-full flex justify-between items-center">
             <h2 className="text-2xl font-bold mb-2">Link In Bio</h2>
             <button 
@@ -219,8 +218,9 @@ const LinkInBio =  () => {
                     <div key={index} className="p-2 border rounded-lg mb-2" style={{display:"flex", alignItems: 'center', justifyContent: 'center'}}>
                       {isYouTubeLinkCheck(link.url) ? (
                         <iframe
-                            width="560"
-                            height="315"
+                            width="100%"
+                            height="200"
+                            style={{maxWidth: "400px"}}
                             src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}`}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
@@ -249,7 +249,8 @@ const LinkInBio =  () => {
   </>
     );
   }else{
-    return (      <div className="p-2 sm:p-4 bg-white shadow rounded-md w-full max-w-full">
+    return (
+      <div className="p-4 bg-white shadow rounded-md " style={containerStyle}>
         <div className="w-full flex flex-wrap">
           <h2 className="text-xl sm:text-2xl font-bold mb-2 inline">Link In Bio</h2>
           <br></br>
@@ -265,7 +266,8 @@ const LinkInBio =  () => {
                         <div>
                             <iframe
                                 width="100%"
-                                height="auto"
+                                height="200"
+                                style={{maxWidth: "400px"}}
                                 src={`https://www.youtube.com/embed/` +  getYouTubeVideoId(link.url)}
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowFullScreen
@@ -278,14 +280,14 @@ const LinkInBio =  () => {
                     </label>
                     <input
                         type="text"
-                        className="input mt-2 mb-2 w-full"
+                        className="input mt-2 mb-2 w-3/4"
                         placeholder="URL"
                         value={link.url}
                         onChange={(e) => updateLink(index, 'url', e.target.value)}
                     />
                     <input
                         type="text"
-                        className="input mb-2 w-full"
+                        className="input mb-2 w-3/4"
                         placeholder="Name"
                         value={link.name}
                         onChange={(e) => updateLink(index, 'name', e.target.value)}
@@ -314,7 +316,7 @@ const LinkInBio =  () => {
                       }}
                     >
                       {({ open }: { open: () => void }) => (
-                      <button type="button" onClick={() => open()} className="btn btn-primary btn-sm mr-2">
+                      <button type="button" onClick={() => open()} className="btn btn-primary btn-sm btn-narrow">
                         Upload Image
                       </button>
                       )}
@@ -322,7 +324,7 @@ const LinkInBio =  () => {
                   }
                      <button
                         type="button"
-                        className="btn btn-alert btn-sm"
+                        className="btn btn-alert btn-sm btn-narrow ml-2"
                         onClick={() => removeLink(index)}
                     >
                         Remove
@@ -333,7 +335,7 @@ const LinkInBio =  () => {
           
             <button
                 type="button"
-                className="btn btn-primary btn-sm"
+                className="btn btn-primary btn-sm btn-narrow"
                 onClick={addLink}
             >
                 Add Link
@@ -371,19 +373,20 @@ const LinkInBio =  () => {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 mt-4">
-            <button 
-              className="btn btn-primary btn-sm flex-1"
-              onClick={(e) => handleEditLinkInBio(e)} 
-              type="submit">
-              Submit
-          </button> 
-          <button
-            className="btn btn-alert btn-sm flex-1"
-            onClick={() => setEditing(false)}>
-            Cancel
-          </button>
-          </div>
+          {alert && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alert}</div>}
+          <button 
+            className="btn btn-primary btn-block btn-sm btn-narrow"
+            style={{width:"35%", display:"inline", margin:"8% 0 0"}}
+            onClick={(e) => handleEditLinkInBio(e)} 
+            type="submit">
+            Submit
+        </button>
+        <button
+          className="btn btn-alert btn-block btn-sm btn-narrow"
+          style={{ width: "35%", display: "inline", margin: "2% 5%" }}
+          onClick={() => setEditing(false)}>
+          Cancel
+        </button>
         </form>
         </div>
       </div>

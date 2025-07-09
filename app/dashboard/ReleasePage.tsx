@@ -56,10 +56,20 @@ const ReleasePages = () => {
 
   const handleEdit = (page: any) => {
     setEditingPage(page);
+    // Populate color states with values from the selected page
+    setBgColor(page.bgColor || "#ffffff");
+    setTextColor(page.textColor || "#000000");
+    setLinksColor(page.linksColor || "#0000ff");
   };
 
   const handleSave = async () => {
     try {
+      // Check if we're creating a new page and already have the maximum allowed
+      if (!editingPage?._id && releasePages.length >= 3) {
+        setAlert("You can only create up to 3 release pages.");
+        return;
+      }
+
       console.log('editing page');
       console.log(editingPage);
       await apiClient.post(`/release/`, {
@@ -111,11 +121,21 @@ const ReleasePages = () => {
 
   const handleDelete = async (pageId: any) => {
     try {
-      await apiClient.delete(`/delete-release-page/${pageId}`);
-      setReleasePages(releasePages.filter((page) => page.id !== pageId));
-    } catch (e) {
-      console.error(e?.message); // Log the error instead of triggering an alert
-      setAlert(e?.message);
+      console.log('Deleting page with ID:', pageId);
+      await apiClient.delete(`/delete-release-page`, {
+        data: { id: pageId }
+      });
+      
+      // Update the UI immediately by filtering out the deleted page
+      // Try both 'id' and '_id' fields to handle different ID formats
+      setReleasePages(releasePages.filter((page) => 
+        page.id !== pageId && page._id !== pageId
+      ));
+      
+      setAlert("Release page deleted successfully.");
+    } catch (e: any) {
+      console.error('Delete error:', e);
+      setAlert(e?.response?.data?.message || e?.message || "Failed to delete release page.");
     }
   };
 
@@ -172,8 +192,8 @@ const ReleasePages = () => {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let name = e.target.value;
     
-    // Auto-format: convert to lowercase and replace spaces with hyphens
-    name = name.toLowerCase().replace(/\s+/g, '-');
+    // Auto-format: replace spaces with hyphens but preserve case
+    name = name.replace(/\s+/g, '-');
     
     const validation = validateReleasePageName(name);
     
@@ -411,7 +431,7 @@ const ReleasePages = () => {
           <div className="grid grid-cols-1 gap-4">
             {Array.isArray(releasePages) && releasePages.map((page: any) => (
               <div
-                key={page.id}
+                key={page.id || page._id}
                 className="relative rounded-lg overflow-hidden shadow-lg"
                 style={{
                   backgroundImage: `url(${page.image})`,
@@ -437,7 +457,7 @@ const ReleasePages = () => {
                     </button>
                     <button
                       className="btn btn-alert btn-sm"
-                      onClick={() => handleDelete(page.id)}
+                      onClick={() => handleDelete(page.id || page._id)}
                     >
                       Delete
                     </button>

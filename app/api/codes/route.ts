@@ -25,8 +25,8 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
                 );
             } else {
                 try {
-                    // Extract the `link` from the request body
-                    const { link, name } = await req.json();
+                    // Extract the `link`, `name`, and `color` from the request body
+                    const { link, name, color } = await req.json();
 
                     if (!link) {
                         return NextResponse.json(
@@ -46,8 +46,8 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
                         });
                     }
 
-                    // Push the new code to the `codes` array
-                    existingCodes.codes.push({ name: name, url: link });
+                    // Push the new code to the `codes` array with color
+                    existingCodes.codes.push({ name: name, url: link, color: color || "#000000" });
 
                     // Save the updated Codes document
                     await existingCodes.save();

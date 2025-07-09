@@ -19,7 +19,7 @@ const QRCodeGenerator = () => {
   const [qrCodes, setQRCodes] = useState<any>();
   const [newLink, setNewLink] = useState('');
   const [newName, setNewName] = useState('');
-  const [newColor, setNewColor] = useState('');
+  const [newColor, setNewColor] = useState('#000000');
   const [showCreateView, setShowCreateView] = useState(false);
   const {data, status} = useSession();
   const [user, setUser] = useState<any>();
@@ -73,15 +73,16 @@ const QRCodeGenerator = () => {
       const response = await apiClient.delete(`/delete-code`, {
         data: { id }  // The 'id' is sent in the request body
       });
-      if (response.data.message) {
-        // If the deletion is successful, filter out the deleted QR code
-        setQRCodes(qrCodes.filter((code: any) => code._id !== id));
-        setAlert("QR Code deleted successfully.");
-      } else if (response.data.error) {
-        setAlert(response.data.error);  // If there's an error from the backend
-      }
+      
+      // If we get here, the deletion was successful
+      setQRCodes(qrCodes.filter((code: any) => code._id !== id));
+      setAlert("QR Code deleted successfully.");
+      
     } catch (e: any) {
-      setAlert(e?.message || "An error occurred while deleting the QR Code."); // Ensure the error message is a string
+      console.error('Delete error:', e);
+      // Handle error response from backend
+      const errorMessage = e?.response?.data?.error || e?.response?.data?.message || "An error occurred while deleting the QR Code.";
+      setAlert(errorMessage);
     }
   };
 
@@ -125,6 +126,12 @@ const QRCodeGenerator = () => {
       console.log(data);
       setAlert("QR Code saved successfully");
       setShowCreateView(false);
+      
+      // Reset form fields after successful save
+      setNewLink('');
+      setNewName('');
+      setNewColor('#000000');
+      
       getQrCodes();
     } catch (e) {
       setAlert(e?.message);
@@ -198,7 +205,13 @@ const QRCodeGenerator = () => {
         </button>
 
         <button
-            onClick={() => setShowCreateView(false)}
+            onClick={() => {
+              setShowCreateView(false);
+              // Reset form fields when canceling
+              setNewLink('');
+              setNewName('');
+              setNewColor('#000000');
+            }}
             className="mb-4 ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             Cancel
