@@ -71,15 +71,22 @@ export default function ReverbandDelay() {
         }}
         className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
       >
-        <div style={{ display: "flex", width: "100%", marginBottom: "1.5rem" }}>
-          <div style={{ width: "50%" }}>
+        <div style={{ display: "flex", flexDirection: "column", width: "100%", marginBottom: "1.5rem" }}>
+          <div style={{ width: "100%", marginBottom: "1rem" }}>
             <h2 className="text-2xl font-bold mb-4" style={{color: "#181b20"}}>Delay & Reverb Time Calculator</h2>
             <p style={{color: "#181b20"}}>
               Enter your song&apos;s BPM and select a note value to calculate delay times. If the provided settings do not fit your needs you can also tweak them. As long as you use values that divide into the total reverb time.
             </p>
           </div>
-          <div style={{ width: "50%", display: "flex", alignItems: "flex-end", gap: "20px" }}>
-            <div>
+          <div style={{ 
+            width: "100%", 
+            display: "flex", 
+            flexDirection: "row",
+            gap: "15px",
+            alignItems: "flex-end",
+            flexWrap: "wrap"
+          }} className="sm:justify-start justify-center">
+            <div style={{ minWidth: "120px", flex: "1 1 auto" }}>
               <label className="block mb-2 font-semibold" style={{color: "#181b20"}}>BPM</label>
               <input
                 type="number"
@@ -88,16 +95,28 @@ export default function ReverbandDelay() {
                 value={bpm}
                 onChange={e => setBpm(Number(e.target.value))}
                 className="input"
-                style={{ width: "120px", padding: "0.5rem", fontSize: "1rem", color: "white" }}
+                style={{ 
+                  width: "100%", 
+                  maxWidth: "120px",
+                  padding: "0.5rem", 
+                  fontSize: "1rem", 
+                  color: "white" 
+                }}
               />
             </div>
-            <div>
+            <div style={{ minWidth: "140px", flex: "1 1 auto" }}>
               <label className="block mb-2 font-semibold" style={{color: "#181b20"}}>Reverb Pre-Delay</label>
               <select
                 value={preDelayOption}
                 onChange={e => setPreDelayOption(e.target.value as "1/32" | "1/64")}
                 className="input"
-                style={{ width: "120px", padding: "0.5rem", fontSize: "1rem", color: "white" }}
+                style={{ 
+                  width: "100%", 
+                  maxWidth: "140px",
+                  padding: "0.5rem", 
+                  fontSize: "1rem", 
+                  color: "white" 
+                }}
               >
                 <option value="1/32">1/32 Note</option>
                 <option value="1/64">1/64 Note</option>

@@ -57,140 +57,241 @@ export default function SplitSheetTemplate() {
   const addPublishing = () => setPublishing([...publishing, { contributorName: "", publisher: "", percent: "" }]);
   const removePublishing = (idx: number) => setPublishing(publishing.filter((_, i) => i !== idx));
 
-  const handleDownloadPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text("SPLIT SHEET AGREEMENT", 10, 15);
-    doc.setFontSize(12);
-    doc.text(`Song Title: ${form.songTitle}`, 10, 30);
-    doc.text(`Date of Creation: ${form.date}`, 10, 40);
-    doc.text(`Artist(s): ${form.artists}`, 10, 50);
+const handleDownloadPDF = () => {
+  const doc = new jsPDF();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  let currentY = 0;
 
-    // Primary Contributors Table
-    doc.text("Primary Contributors:", 10, 60);
+  // Add Influanto branding at the top right
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100);
+  const brandingText = "influanto";
+  const pageWidthTop = doc.internal.pageSize.getWidth();
+  const textWidth = doc.getTextWidth(brandingText);
+  const brandingX = pageWidthTop - textWidth - 10;
+  doc.text(brandingText, brandingX, 10);
+  
+  doc.setFontSize(16);
+  doc.setTextColor(0);
+  doc.text("SPLIT SHEET AGREEMENT", 10, 15);
+  doc.setFontSize(12);
+  doc.text(`Song Title: ${form.songTitle}`, 10, 30);
+  doc.text(`Date of Creation: ${form.date}`, 10, 40);
+  doc.text(`Artist(s): ${form.artists}`, 10, 50);
 
-    // Table headers
-    let contributorsTableY = 65;
-    doc.setFillColor(243, 244, 246);
-    doc.rect(10, contributorsTableY, 40, 8, "F"); // Name
-    doc.rect(50, contributorsTableY, 30, 8, "F"); // Role
-    doc.rect(80, contributorsTableY, 40, 8, "F"); // Ownership %
-    doc.rect(120, contributorsTableY, 70, 8, "F"); // Contact
-    doc.setTextColor(0);
-    doc.text("Name", 12, contributorsTableY + 6);
-    doc.text("Role", 52, contributorsTableY + 6);
-    doc.text("Ownership %", 82, contributorsTableY + 6);
-    doc.text("Contact", 122, contributorsTableY + 6);
+  // Primary Contributors Table
+  doc.text("Primary Contributors:", 10, 60);
+  currentY = 65;
 
-    // Table rows
-    let contributorsRowY = contributorsTableY + 8;
-    contributors.forEach((c) => {
-      doc.rect(10, contributorsRowY, 40, 8);
-      doc.rect(50, contributorsRowY, 30, 8);
-      doc.rect(80, contributorsRowY, 40, 8);
-      doc.rect(120, contributorsRowY, 70, 8);
-      doc.text(c.name || "", 12, contributorsRowY + 6);
-      doc.text(c.role || "", 52, contributorsRowY + 6);
-      doc.text(c.ownership || "", 82, contributorsRowY + 6);
-      doc.text(c.contact || "", 122, contributorsRowY + 6);
-      contributorsRowY += 8;
-    });
+  // Table headers
+  doc.setFillColor(243, 244, 246);
+  doc.rect(10, currentY, 40, 8, "F");
+  doc.rect(50, currentY, 50, 8, "F");
+  doc.rect(100, currentY, 15, 8, "F");
+  doc.rect(115, currentY, 75, 8, "F");
+  doc.setTextColor(0);
+  doc.text("Name", 12, currentY + 6);
+  doc.text("Role", 52, currentY + 6);
+  doc.text("Own %", 102, currentY + 6);
+  doc.text("Contact", 117, currentY + 6);
 
-    // Publishing Details Table
-    let pubStartY = contributorsRowY + 10;
-    doc.text("Publishing Details:", 10, pubStartY);
+  currentY += 8;
 
-    // Table headers
-    let publishingTableY = pubStartY + 5;
-    doc.setFillColor(243, 244, 246);
-    doc.rect(10, publishingTableY, 60, 8, "F"); // Contributor Name
-    doc.rect(70, publishingTableY, 70, 8, "F"); // Publisher
-    doc.rect(140, publishingTableY, 50, 8, "F"); // Publishing %
-    doc.setTextColor(0);
-    doc.text("Contributor Name", 12, publishingTableY + 6);
-    doc.text("Publisher", 72, publishingTableY + 6);
-    doc.text("Publishing %", 142, publishingTableY + 6);
+  // Table rows with page break logic
+  contributors.forEach((c, index) => {
+    const nameLines = Math.ceil((c.name || "").length / 18) || 1;
+    const roleLines = Math.ceil((c.role || "").length / 25) || 1;
+    const contactLines = Math.ceil((c.contact || "").length / 32) || 1;
+    const rowHeight = Math.max(nameLines, roleLines, contactLines) * 8;
+    
+    // Check if we need a new page
+    if (currentY + rowHeight > pageHeight - 20) {
+      doc.addPage();
+      currentY = 20; // Start from top of new page
+      
+      // Re-add table headers on new page
+      doc.setFillColor(243, 244, 246);
+      doc.rect(10, currentY, 40, 8, "F");
+      doc.rect(50, currentY, 50, 8, "F");
+      doc.rect(100, currentY, 15, 8, "F");
+      doc.rect(115, currentY, 75, 8, "F");
+      doc.setTextColor(0);
+      doc.text("Name", 12, currentY + 6);
+      doc.text("Role", 52, currentY + 6);
+      doc.text("Own %", 102, currentY + 6);
+      doc.text("Contact", 117, currentY + 6);
+      currentY += 8;
+    }
+    
+    doc.rect(10, currentY, 40, rowHeight);
+    doc.rect(50, currentY, 50, rowHeight);
+    doc.rect(100, currentY, 15, rowHeight);
+    doc.rect(115, currentY, 75, rowHeight);
 
-    // Table rows
-    let publishingRowY = publishingTableY + 8;
-    publishing.forEach((p) => {
-      doc.rect(10, publishingRowY, 60, 8);
-      doc.rect(70, publishingRowY, 70, 8);
-      doc.rect(140, publishingRowY, 50, 8);
-      doc.text(p.contributorName || "", 12, publishingRowY + 6);
-      doc.text(p.publisher || "", 72, publishingRowY + 6);
-      doc.text(p.percent || "", 142, publishingRowY + 6);
-      publishingRowY += 8;
-    });
+    doc.text(c.name || "", 12, currentY + 6, { maxWidth: 38 });
+    doc.text(c.role || "", 52, currentY + 6, { maxWidth: 48 });
+    doc.text(c.ownership || "", 102, currentY + 6, { maxWidth: 13 });
+    doc.text(c.contact || "", 117, currentY + 6, { maxWidth: 73 });
+    
+    currentY += rowHeight;
+  });
 
-    let termsY = pubStartY + 10 + publishing.length * 8 + 10;
-    doc.text("Agreement Terms:", 10, termsY);
+  // Publishing Details Table
+  currentY += 10;
+  
+  // Check if we need a new page for publishing section
+  if (currentY + 50 > pageHeight - 20) {
+    doc.addPage();
+    currentY = 20;
+  }
+  
+  doc.text("Publishing Details:", 10, currentY);
+  currentY += 5;
 
-    // Add the agreement terms as plain text, with extra space after Ownership Percentages
-    let agreementY = termsY + 10;
-    const agreementTerms = [
-      "Ownership Percentages: Each contributor listed above agrees to the ownership percentages of the composition and master recording as indicated in this Split Sheet.",
-      "", // blank line for extra space
-      "Royalty Distribution: All royalties and revenues earned from the exploitation of the song will be distributed according to the ownership percentages specified in this document.",
-      "", // blank line for extra space
-      "Rights and Licensing: Each contributor retains the right to license their share of the song unless otherwise agreed upon in a separate agreement.",
-      "", // blank line for extra space
-      `Dispute Resolution: Any disputes that arise concerning the ownership or distribution of royalties will be resolved through mediation or arbitration under the laws of [${form.stateCountry || "FL / USA"}].`,
-      "", // blank line for extra space
-      "Signatures: By signing below, all parties agree to the terms outlined in this Split Sheet and acknowledge that their contributions to the song are accurately reflected."
-    ];
-    agreementTerms.forEach((text, i) => {
-      if (text === "") {
-        agreementY += 5; // Add extra space for the blank line
-      } else {
-        doc.text(text, 15, agreementY, { maxWidth: 180 });
-        agreementY += 10;
+  // Publishing table headers
+  doc.setFillColor(243, 244, 246);
+  doc.rect(10, currentY, 60, 8, "F");
+  doc.rect(70, currentY, 70, 8, "F");
+  doc.rect(140, currentY, 50, 8, "F");
+  doc.setTextColor(0);
+  doc.text("Contributor Name", 12, currentY + 6);
+  doc.text("Publisher", 72, currentY + 6);
+  doc.text("Publishing %", 142, currentY + 6);
+  currentY += 8;
+
+  // Publishing rows with page break logic
+  publishing.forEach((p) => {
+    const contributorNameLines = Math.ceil((p.contributorName || "").length / 25) || 1;
+    const publisherLines = Math.ceil((p.publisher || "").length / 30) || 1;
+    const percentLines = Math.ceil((p.percent || "").length / 20) || 1;
+    const rowHeight = Math.max(contributorNameLines, publisherLines, percentLines) * 8;
+    
+    // Check if we need a new page
+    if (currentY + rowHeight > pageHeight - 10) {
+      doc.addPage();
+      currentY = 20;
+      
+      // Re-add publishing headers on new page
+      doc.setFillColor(243, 244, 246);
+      doc.rect(10, currentY, 60, 8, "F");
+      doc.rect(70, currentY, 70, 8, "F");
+      doc.rect(140, currentY, 50, 8, "F");
+      doc.setTextColor(0);
+      doc.text("Contributor Name", 12, currentY + 6);
+      doc.text("Publisher", 72, currentY + 6);
+      doc.text("Publishing %", 142, currentY + 6);
+      currentY += 8;
+    }
+    
+    doc.rect(10, currentY, 60, rowHeight);
+    doc.rect(70, currentY, 70, rowHeight);
+    doc.rect(140, currentY, 50, rowHeight);
+
+    doc.text(p.contributorName || "", 12, currentY + 6, { maxWidth: 58 });
+    doc.text(p.publisher || "", 72, currentY + 6, { maxWidth: 68 });
+    doc.text(p.percent || "", 142, currentY + 6, { maxWidth: 48 });
+    
+    currentY += rowHeight;
+  });
+
+  // Agreement Terms
+  currentY += 10;
+  
+  // Check if we need a new page for agreement terms
+  if (currentY + 100 > pageHeight - 20) {
+    doc.addPage();
+    currentY = 20;
+  }
+  
+  doc.text("Agreement Terms:", 10, currentY);
+  currentY += 10;
+
+  const agreementTerms = [
+    "Ownership Percentages: Each contributor listed above agrees to the ownership percentages of the composition and master recording as indicated in this Split Sheet.",
+    "Royalty Distribution: All royalties and revenues earned from the exploitation of the song will be distributed according to the ownership percentages specified in this document.",
+    "Rights and Licensing: Each contributor retains the right to license their share of the song unless otherwise agreed upon in a separate agreement.",
+    `Dispute Resolution: Any disputes that arise concerning the ownership or distribution of royalties will be resolved through mediation or arbitration under the laws of [${form.stateCountry || "FL / USA"}].`,
+    "Signatures: By signing below, all parties agree to the terms outlined in this Split Sheet and acknowledge that their contributions to the song are accurately reflected."
+  ];
+
+  agreementTerms.forEach((text) => {
+    if (text === "") {
+      currentY += 5;
+    } else {
+      // Check if we need a new page
+      if (currentY + 20 > pageHeight - 20) {
+        doc.addPage();
+        currentY = 20;
       }
-    });
+      doc.text(text, 15, currentY, { maxWidth: 180 });
+      currentY += 15;
+    }
+  });
 
-    // Draw the signatures table
-    let tableY = agreementY + 5;
-    doc.setFontSize(12);
-    doc.text("Signatures:", 10, tableY);
-    tableY += 5;
+ // ...existing code...
 
-    // Table headers
-    doc.setFillColor(243, 244, 246);
-    doc.rect(10, tableY, 60, 8, "F");
-    doc.rect(70, tableY, 60, 8, "F");
-    doc.rect(130, tableY, 60, 8, "F");
-    doc.setTextColor(0);
-    doc.text("Name", 12, tableY + 6);
-    doc.text("Signature", 72, tableY + 6);
-    doc.text("Date", 132, tableY + 6);
+  // Signatures table
+  currentY += 5;
+  
+  // Check if we need a new page for signatures - calculate actual space needed
+  const signatureHeaderHeight = 8;
+  const totalSignatureRows = contributors.length;
+  const averageRowHeight = 15; // Average height per signature row
+  const totalSignatureSpace = signatureHeaderHeight + (totalSignatureRows * averageRowHeight) + 10; // Add 10 for padding
+  
+  if (currentY + totalSignatureSpace > pageHeight - 20) {
+    doc.addPage();
+    currentY = 20;
+  }
+  
+  doc.setFontSize(12);
+  doc.text("Signatures:", 10, currentY);
+  currentY += 5;
 
-    // Table rows
-    let rowY = tableY + 8;
-    contributors.forEach((c) => {
-      doc.rect(10, rowY, 60, 8);
-      doc.rect(70, rowY, 60, 8);
-      doc.rect(130, rowY, 60, 8);
-      doc.text(c.name || "", 12, rowY + 6);
-      // Signature and Date cells left blank
-      rowY += 8;
-    });
+  // Signature table headers
+  doc.setFillColor(243, 244, 246);
+  doc.rect(10, currentY, 60, 8, "F");
+  doc.rect(70, currentY, 60, 8, "F");
+  doc.rect(130, currentY, 60, 8, "F");
+  doc.setTextColor(0);
+  doc.text("Name", 12, currentY + 6);
+  doc.text("Signature", 72, currentY + 6);
+  doc.text("Date", 132, currentY + 6);
+  currentY += 8;
 
-     
-    // Add Influanto branding at the bottom, centered
-    const brandingY = rowY + 20;
-    const pageWidth = doc.internal.pageSize.getWidth();
+  // Signature rows
+  contributors.forEach((c) => {
+    const nameLines = Math.ceil((c.name || "").length / 25) || 1;
+    const rowHeight = Math.max(nameLines * 8, 15); // Increased minimum from 12 to 15
     
-    // Add text-based branding instead of image
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100); // Gray color
-    const brandingText = "Generated by Influanto";
-    const textWidth = doc.getTextWidth(brandingText);
-    const brandingX = (pageWidth - textWidth) / 2; // Center the text
+    // Check if we need a new page for individual rows
+    if (currentY + rowHeight > pageHeight - 20) {
+      doc.addPage();
+      currentY = 20;
+      
+      // Re-add signature headers on new page
+      doc.setFillColor(243, 244, 246);
+      doc.rect(10, currentY, 60, 8, "F");
+      doc.rect(70, currentY, 60, 8, "F");
+      doc.rect(130, currentY, 60, 8, "F");
+      doc.setTextColor(0);
+      doc.text("Name", 12, currentY + 6);
+      doc.text("Signature", 72, currentY + 6);
+      doc.text("Date", 132, currentY + 6);
+      currentY += 8;
+    }
     
-    doc.text(brandingText, brandingX, brandingY);
+    doc.rect(10, currentY, 60, rowHeight);
+    doc.rect(70, currentY, 60, rowHeight);
+    doc.rect(130, currentY, 60, rowHeight);
+    
+    doc.text(c.name || "", 12, currentY + 6, { maxWidth: 58 });
+    currentY += rowHeight;
+  });
 
-    doc.save(`${form.songTitle + " SplitSheet " + form.date + " influanto" || "split-sheet"}.pdf`);
-  };
+  doc.save(`${form.songTitle + " SplitSheet " + form.date + " influanto" || "split-sheet"}.pdf`);
+};
+// ...existing code...
 
   return (
     <>
