@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
@@ -10,7 +10,7 @@ export default function BPMCalculator() {
   const [tapTimes, setTapTimes] = useState<number[]>([]);
 
   // Calculate BPM from tap times
-  const handleTap = () => {
+  const handleTap = useCallback(() => {
     const now = Date.now();
     setTapTimes(prev => {
       const newTaps = [...prev, now];
@@ -23,11 +23,13 @@ export default function BPMCalculator() {
       }
       return newTaps;
     });
-  };
+  }, []);
 
   // Listen for keyboard and screen taps
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
+    let touchStartTime: number | null = null;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
       // Only count spacebar or any key
       if (e.code === "Space" || e.key === " " || e.key === "Spacebar" || e.key.length === 1) {
         if (e.code === "Space" || e.key === " " || e.key === "Spacebar") {
@@ -36,21 +38,42 @@ export default function BPMCalculator() {
         handleTap();
       }
     };
-    const handleClick = () => {
+
+    const handleTouchStart = (e: TouchEvent) => {
+      e.preventDefault(); // Prevent default touch behaviors
+      touchStartTime = Date.now();
       handleTap();
     };
-    window.addEventListener("keydown", handleKey);
-    window.addEventListener("touchstart", handleClick);
-    window.addEventListener("mousedown", handleClick);
-    return () => {
-      window.removeEventListener("keydown", handleKey);
-      window.removeEventListener("touchstart", handleClick);
-      window.removeEventListener("mousedown", handleClick);
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      e.preventDefault(); // Prevent ghost clicks
+      touchStartTime = null;
     };
-  }, []);
+
+    const handleMouseDown = (e: MouseEvent) => {
+      // Only handle mouse events if it's not a touch device
+      if (!('ontouchstart' in window)) {
+        handleTap();
+      }
+    };
+
+    // Add event listeners with proper options
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("touchstart", handleTouchStart, { passive: false });
+    window.addEventListener("touchend", handleTouchEnd, { passive: false });
+    window.addEventListener("mousedown", handleMouseDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("mousedown", handleMouseDown);
+    };
+  }, [handleTap]);
 
   // Reset BPM and tap times
-  const resetBPM = () => {
+  const resetBPM = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation(); // Prevent the reset button from triggering a tap
     setBpm(0);
     setTapTimes([]);
   };
@@ -76,13 +99,15 @@ export default function BPMCalculator() {
           flexDirection: "column",
           minHeight: "80vh",
           width: "100%",
-          textAlign: "center"
+          textAlign: "center",
+          touchAction: "manipulation" // Improve touch responsiveness
         }}
       >
         {/* Left: Calculator */}
         <div
           style={{
-            background: "#f9fafb"
+            background: "#f9fafb",
+            touchAction: "manipulation" // Prevent zoom and other touch gestures
           }}
           className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
         >
@@ -97,7 +122,8 @@ export default function BPMCalculator() {
                 fontSize: "15rem",
                 lineHeight: 1,
                 margin: "0.5em 0",
-                color: "#181b20"
+                color: "#181b20",
+                userSelect: "none" // Prevent text selection on taps
               }}
             >
               {bpm}
@@ -112,8 +138,10 @@ export default function BPMCalculator() {
                 color: "#fff",
                 border: "none",
                 cursor: "pointer",
+                touchAction: "manipulation" // Prevent double-tap zoom
             }}
             onClick={resetBPM}
+            onTouchStart={(e) => e.stopPropagation()} // Prevent tap counting when touching reset button
             >
             Reset BPM
             </button>
@@ -141,8 +169,10 @@ export default function BPMCalculator() {
               color: "#fff",
               border: "none",
               cursor: "pointer",
+              touchAction: "manipulation"
             }}
            onClick={() => window.location.href = "api/auth/signin?callbackUrl=/dashboard"}
+           onTouchStart={(e) => e.stopPropagation()} // Prevent tap counting
           >
             Sign Up
           </button>
@@ -162,6 +192,16 @@ export default function BPMCalculator() {
           #bpm-bg {
             flex-direction: row !important;
           }
+        }
+
+        /* Prevent text selection and improve touch responsiveness */
+        * {
+          -webkit-touch-callout: none;
+          -webkit-user-select: none;
+          -khtml-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
         }
       `}</style>
       <Footer />

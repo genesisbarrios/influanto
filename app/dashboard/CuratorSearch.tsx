@@ -21,23 +21,22 @@ const PitchToSpotify = () => {
 
   // Predefined list of genres
   const genres = [
-    "Pop",
-    "Reggaeton",
-    "Hip Hop",
+    "Indie Pop",
     "Rock",
+    "Hip Hop",
     "Jazz",
     "Electronic",
     "Latin",
+    "Latin Indie",
     "Reggaeton",
     "Latin Trap",
-    "Indie",
     "DnB",
     "R&B",
     "Trap",
     "Drill",
     "Post Punk",
     "House",
-    "Latin House",
+    "Dubstep",
     "Techno"
   ];
 
@@ -79,9 +78,11 @@ const PitchToSpotify = () => {
         </select>
       </div>
 
-      {/* Display Loading or Playlists */}
+      {/* Display Loading, No Results, or Playlists */}
       {loading ? (
         <p className="text-center text-gray-500">Loading...</p>
+      ) : selectedGenre && playlists.length === 0 ? (
+        <p className="text-center text-gray-500">No curators with contact information found for "{selectedGenre}". Try a different genre.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
           {playlists.map((playlist, index) => (
@@ -121,23 +122,25 @@ const PitchToSpotify = () => {
               <p className="text-sm text-gray-700">{playlist.description || "No description available"}</p>
 
               {/* External Social URL */}
-              <div className="text-xs text-gray-700">
-                {playlist.externalUrl ? (
+              <div className="text-xs text-gray-700 space-x-2">
+                {playlist.externalUrl && (
                   <a 
-                    href={playlist.externalUrl} target="_blank" rel="noopener noreferrer"
+                    href={playlist.externalUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
                     className="inline-block mt-2 px-4 py-2 text-white bg-blue-500 rounded-lg text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
                     Social Media
                   </a>
-                ) : null}
-                {playlist.email ? (
+                )}
+                {playlist.email && (
                   <a 
                     href={`mailto:${playlist.email}`} 
-                    className="inline-block mt-2 px-4 py-2 text-white bg-blue-500 rounded-lg text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="inline-block mt-2 px-4 py-2 text-white bg-green-500 rounded-lg text-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
                   >
                     Email
                   </a>
-                ) : null}
+                )}
               </div>
             </div>
           ))}

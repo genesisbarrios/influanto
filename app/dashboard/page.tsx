@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import Profile from './Profile';
 import LinkInBio from './LinkInBio';
 import QRCodeGenerator from './QRCodeGenerator';
-import PitchToSpotify from './PitchToSpotify';
+import CuratorSearch from './CuratorSearch';
 import Community from './Community';
 import ReleasePage from './ReleasePage';
 import { getServerSession } from "next-auth";
@@ -23,7 +23,7 @@ export default function Dashboard() {
     'link-in-bio': <LinkInBio />,
     'release-page': <ReleasePage />,
     'qr-code-generator': <QRCodeGenerator />,
-    'pitch-to-spotify': <PitchToSpotify />,
+    'curator-search': <CuratorSearch />,
     'community': <Community />
   };
 
@@ -45,7 +45,7 @@ export default function Dashboard() {
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('qr-code-generator')}>QR Codes</button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('pitch-to-spotify')}>Curator Search</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('curator-search')}>Curator Search</button>
           </li>
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('community')}>Community</button>
