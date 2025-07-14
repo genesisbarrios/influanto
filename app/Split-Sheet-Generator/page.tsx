@@ -320,7 +320,7 @@ const handleDownloadPDF = () => {
           className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
         >
           <h1 className="text-3xl font-bold mb-4" style={{ color: "#181b20" }}>
-            Split Sheet Template
+            Split Sheet Generator
           </h1>
           <form
             style={{ width: "100%", textAlign: "left" }}
