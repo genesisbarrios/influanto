@@ -58,7 +58,7 @@ const Footer = () => {
                   Pricing
                 </Link>
                 <Link href="/tools" className="link link-hover">
-                  FREE Tools
+                  FREE Music Tools
                 </Link>
                 
                 <Link href="/how-to-start" className="link link-hover">
