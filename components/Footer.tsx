@@ -57,10 +57,13 @@ const Footer = () => {
                 <Link href="/#pricing" className="link link-hover">
                   Pricing
                 </Link>
+                <Link href="/tools" className="link link-hover">
+                  FREE Tools
+                </Link>
+                
                 <Link href="/how-to-start" className="link link-hover">
                   How To Start Guide
                 </Link>
-               
               </div>
             </div>
 
