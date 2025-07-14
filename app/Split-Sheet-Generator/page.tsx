@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import jsPDF from "jspdf";
+import { Head } from "next/document";
 // Remove Mantine/Grid imports
 // import { MantineProvider } from "@mantine/core";
 // import { Row, Col, Container } from "react-grid-system";
@@ -298,6 +299,15 @@ const handleDownloadPDF = () => {
       <Suspense>
         <Header />
       </Suspense>
+       <Head>
+        <title>Influanto | FREE Split Sheet Generator</title>
+        <meta name="description" content="FREE Split Sheet Generator" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content="FREE Split Sheet Generator" />
+        <meta property="og:description" content="Generate and manage your Split Sheets easily." />
+        <meta name="twitter:title" content="Split Sheet Generator" />
+        <meta name="twitter:description" content="Generate and share your Split Sheets easily." />
+      </Head>
       <div
         id="split-sheet-bg"
         style={{

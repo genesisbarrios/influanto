@@ -82,12 +82,12 @@ export default function BPMCalculator() {
     <>  
       <Head>
         <title>Influanto | BPM Calculator</title>
-        <meta name="description" content="Free Musician Tools: BPM Calculator + more" />
+        <meta name="description" content="Free Producer Tools: BPM Calculator + more" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:title" content="FREE Musician Tools" />
-        <meta property="og:description" content="Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
-        <meta name="twitter:title" content="FREE Musician Tools" />
-        <meta name="twitter:description" content="Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
+        <meta property="og:title" content="FREE Producer Tools" />
+        <meta property="og:description" content="Free Producer Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
+        <meta name="twitter:title" content="FREE Producer Tools" />
+        <meta name="twitter:description" content="Free Producer Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
       </Head>
       <Suspense>
         <Header />

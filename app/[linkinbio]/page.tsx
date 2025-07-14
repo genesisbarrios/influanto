@@ -17,6 +17,7 @@ import { getSEOTags } from "@/libs/seo";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import { useRouter } from 'next/navigation'; 
 import { usePathname, useSearchParams } from 'next/navigation'
+import { Head } from "next/document";
 
 const LinkInBioPage =  () => {
   const router = useRouter();
@@ -155,6 +156,18 @@ const LinkInBioPage =  () => {
   }else if (user){
     return (
      <>
+      <Head>
+        <title>{user.name} Links | Influanto</title>
+        <meta name="description" content={`${user.name}'s Links. Powered by Influanto.com`} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content={`${user.name}'s Links. Powered by Influanto.com`} />
+        <meta property="og:description" content={`${user.name}'s Links. Powered by Influanto.com`} />
+        <meta name="twitter:title" content={`${user.name}'s Links. Powered by Influanto.com`} />
+        <meta name="twitter:description" content={`${user.name}'s Links. Powered by Influanto.com`} />
+        <meta property="og:image" content={user.image || fallbackImageUrl} />
+        <meta name="twitter:image" content={user.image || fallbackImageUrl} />
+      </Head>
+      
       <div className="p-6 bg-white shadow w-3/4 md:w-1/2 rounded-lg" style={{margin:"0 auto", textAlign:"center", marginTop:"5%", marginBottom:"5%", color:"#333333"}}> 
           <div style={{margin:"0 auto", textAlign:"center", color:textColor}}>
             <img src={user.image || fallbackImageUrl} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline", marginBottom:"2%"}} alt="Avatar" />
