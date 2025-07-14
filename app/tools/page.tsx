@@ -83,7 +83,7 @@ export default function Tools() {
         }}
         className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
       >
-        <h2 className="text-2xl font-bold ml-8 mb-8 mt-4" style={{color: "#181b20"}}>Free Tools</h2>
+        <h2 className="text-2xl font-bold ml-8 mb-8 mt-4" style={{color: "#181b20"}}>Free Music Tools</h2>
         <div
           style={{
             display: "grid",
