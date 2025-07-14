@@ -4,10 +4,7 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import jsPDF from "jspdf";
-import { Head } from "next/document";
-// Remove Mantine/Grid imports
-// import { MantineProvider } from "@mantine/core";
-// import { Row, Col, Container } from "react-grid-system";
+import Head from "next/head";
 
 export default function SplitSheetTemplate() {
 
