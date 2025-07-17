@@ -99,109 +99,141 @@ const LinkInBioPage =  () => {
   if (!user) {
     return <div className="m-5 text-center">Loading...</div>;
   }else if (user){
-    return (
-     <>
-      <Head>
-        <title>{user.name} Links | Influanto</title>
-        <meta name="description" content={`${user.name}'s Links. Powered by Influanto.com`} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:title" content={`${user.name}'s Links. Powered by Influanto.com`} />
-        <meta property="og:description" content={`${user.name}'s Links. Powered by Influanto.com`} />
-        <meta name="twitter:title" content={`${user.name}'s Links. Powered by Influanto.com`} />
-        <meta name="twitter:description" content={`${user.name}'s Links. Powered by Influanto.com`} />
-        <meta property="og:image" content={user.image || fallbackImageUrl} />
-        <meta name="twitter:image" content={user.image || fallbackImageUrl} />
-      </Head>
-      
-      <div className="p-6 bg-white shadow w-3/4 md:w-1/2 rounded-lg" style={{margin:"0 auto", textAlign:"center", marginTop:"5%", marginBottom:"5%", color:"#333333"}}> 
-          <div style={{margin:"0 auto", textAlign:"center", color:textColor}}>
-            <img src={user.image || fallbackImageUrl} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline", marginBottom:"2%"}} alt="Avatar" />
-                    
-            <p>{user.name}</p>
-            <p>
-              {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} color="darkred" />{user.location}</span>}
-              {user.website && <a href={ user.website } target="_blank"><FontAwesomeIcon icon={faGlobe} color="lightblue" /> Website</a>}
-            </p>
-          
-            <p style={{marginBottom:"2%"}}>{user.bio}</p>
+    // ...existing code...
 
-            {user.instagram && <a href={"https://instagram.com/" + user.instagram } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faInstagram} /></a>}
-            {user.tiktok && <a href={"https://tiktok.com/@" + user.tiktok } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faTiktok} /></a>}
-            {user.twitter && <a href={"https://twitter.com/" + user.twitter } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTwitter} /></a>}
-            {user.facebook && <a href={user.facebook } target="_blank" style={{marginRight:"10px", color:"blue"}}><FontAwesomeIcon icon={faFacebook} /></a>}
-            {user.youtube && <a href={"https://youtube.com/@" + user.youtube } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faYoutube} /></a>}
-            {user.telegram && <a href={"https://t.me/" + user.telegram } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTelegram} /></a>}
-            {user.linkedin && <a href={"https://linkedin.com/" + user.linkedin } target="_blank" style={{marginRight:"10px", color:"darkblue"}}><FontAwesomeIcon icon={faLinkedin} /></a>}
-            {user.github && <a href={"https://github.com/" + user.github } target="_blank" style={{marginRight:"10px"}}><FontAwesomeIcon icon={faGithub} /></a>}
-            {user.patreon && <a href={"https://patreon.com/" + user.patreon } target="_blank" style={{marginRight:"10px", color:"black"}}><FontAwesomeIcon icon={faPatreon} /></a>}
-            {user.substack && <a href={"https://substack.com/" + user.substack } target="_blank" style={{display:"inline-block"}}><img src="/substack.png" width={16}/></a>}
-            {displayEmail && <a href={`mailto:${user.email}`}><FontAwesomeIcon icon={faEnvelope} color="grey" /></a>}
-
-            {user.spotify && <h3 className="mt-5">Listen</h3>}
-            {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{marginRight:"10px", color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
-            {user.appleMusic && <a href={"https://music.apple.com/" + user.appleMusic } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
-            {user.tidal && <a href={"https://tidal.com/" + user.tidal } target="_blank" style={{marginRight:"10px", color:"black", display:"inline-block"}}><img src="/tidal.png" width={16}/></a>}
-            {user.youtubeMusic && <a href={"https://music.youtube.com/channel/" + user.youtubeMusic } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faSquareYoutube} /></a>}
-            {user.amazonMusic && <a href={"https://music.amazon.com/" + user.amazonMusic } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faAmazon} /></a>}
-            {user.soundcloud && <a href={"https://soundcloud.com/" + user.soundcloud } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faSoundcloud} /></a>}
-            {user.deezer && <a href={"https://deezer.com/" + user.deezer } target="_blank" style={{marginRight:"10px", color:"purple"}}><FontAwesomeIcon icon={faDeezer} /></a>}
-            {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{marginRight:"10px", color:"darkblue", display:"inline-block"}}><img src="/pandora.png" width={16}/></a>}
-            {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
-            {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
-             
-            <hr style={{margin: "5% 0"}}></hr>
-
-            {links.map((link, index) => 
-              link.url && (
-                <div key={index} className="p-2 border rounded-lg mb-2" style={{borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                  {isYouTubeLinkCheck(link.url) && link.displayVideo ? (
-                    <iframe
-                        width="100%"
-                        height="315"
-                        style={{ maxWidth: '100%', borderRadius: '12px' }}
-                        src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}`}
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                    ></iframe>
-                ) : (
-                  <>
-                    {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" style={{color: linksColor}}>{link.name}</a>
-                  </>
-                )}
-                </div>
-              )
-            )}
-            {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
-            <br></br>
-          </div>
-        </div>
-  {!user.hasAccess && (
-  <div style={{ 
-    position: "fixed",
-    bottom: "20px",
-    left: "50%",
-    transform: "translateX(-50%)",
-    textAlign: "center",
-    zIndex: 1000,
+return (
+ <>
+  <Head>
+    <title>{user.name} Links | Influanto</title>
+    <meta name="description" content={`${user.name}'s Links. Powered by Influanto.com`} />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta property="og:title" content={`${user.name}'s Links. Powered by Influanto.com`} />
+    <meta property="og:description" content={`${user.name}'s Links. Powered by Influanto.com`} />
+    <meta name="twitter:title" content={`${user.name}'s Links. Powered by Influanto.com`} />
+    <meta name="twitter:description" content={`${user.name}'s Links. Powered by Influanto.com`} />
+    <meta property="og:image" content={user.image || fallbackImageUrl} />
+    <meta name="twitter:image" content={user.image || fallbackImageUrl} />
+  </Head>
+  
+  {/* Main container with proper spacing for mobile */}
+  <div style={{
+    minHeight: "100vh",
+    paddingBottom: user.hasAccess ? "20px" : "80px", // Extra padding when logo is present
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start"
   }}>
-    <a href="https://influanto.com" target="_blank" rel="noopener noreferrer">
-      <img 
-        src="/icon.png" 
-        alt="Influanto" 
-        style={{ 
-          width: "32px", 
-          height: "32px", 
-          display: "inline-block",
-          borderRadius: "50%" 
-        }} 
-      />
-    </a>
+    <div 
+      className="p-6 bg-white shadow w-3/4 md:w-1/2 rounded-lg" 
+      style={{
+        margin: "0 auto", 
+        textAlign: "center", 
+        marginTop: "5%", 
+        marginBottom: "5%", 
+        color: "#333333",
+        maxWidth: "90%", // Better mobile width
+        width: "90%", // Mobile-first approach
+      }}
+    > 
+      <div style={{margin:"0 auto", textAlign:"center", color:textColor}}>
+        <img src={user.image || fallbackImageUrl} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline", marginBottom:"2%"}} alt="Avatar" />
+                
+        <p>{user.name}</p>
+        <p>
+          {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} color="darkred" />{user.location}</span>}
+          {user.website && <a href={ user.website } target="_blank"><FontAwesomeIcon icon={faGlobe} color="lightblue" /> Website</a>}
+        </p>
+      
+        <p style={{marginBottom:"2%"}}>{user.bio}</p>
+
+        {/* Social media links */}
+        {user.instagram && <a href={"https://instagram.com/" + user.instagram } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faInstagram} /></a>}
+        {user.tiktok && <a href={"https://tiktok.com/@" + user.tiktok } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faTiktok} /></a>}
+        {user.twitter && <a href={"https://twitter.com/" + user.twitter } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTwitter} /></a>}
+        {user.facebook && <a href={user.facebook } target="_blank" style={{marginRight:"10px", color:"blue"}}><FontAwesomeIcon icon={faFacebook} /></a>}
+        {user.youtube && <a href={"https://youtube.com/@" + user.youtube } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faYoutube} /></a>}
+        {user.telegram && <a href={"https://t.me/" + user.telegram } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTelegram} /></a>}
+        {user.linkedin && <a href={"https://linkedin.com/" + user.linkedin } target="_blank" style={{marginRight:"10px", color:"darkblue"}}><FontAwesomeIcon icon={faLinkedin} /></a>}
+        {user.github && <a href={"https://github.com/" + user.github } target="_blank" style={{marginRight:"10px"}}><FontAwesomeIcon icon={faGithub} /></a>}
+        {user.patreon && <a href={"https://patreon.com/" + user.patreon } target="_blank" style={{marginRight:"10px", color:"black"}}><FontAwesomeIcon icon={faPatreon} /></a>}
+        {user.substack && <a href={"https://substack.com/" + user.substack } target="_blank" style={{display:"inline-block"}}><img src="/substack.png" width={16}/></a>}
+        {displayEmail && <a href={`mailto:${user.email}`}><FontAwesomeIcon icon={faEnvelope} color="grey" /></a>}
+
+        {/* Music platforms */}
+        {user.spotify && <h3 className="mt-5">Listen</h3>}
+        {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{marginRight:"10px", color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
+        {user.appleMusic && <a href={"https://music.apple.com/" + user.appleMusic } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
+        {user.tidal && <a href={"https://tidal.com/" + user.tidal } target="_blank" style={{marginRight:"10px", color:"black", display:"inline-block"}}><img src="/tidal.png" width={16}/></a>}
+        {user.youtubeMusic && <a href={"https://music.youtube.com/channel/" + user.youtubeMusic } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faSquareYoutube} /></a>}
+        {user.amazonMusic && <a href={"https://music.amazon.com/" + user.amazonMusic } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faAmazon} /></a>}
+        {user.soundcloud && <a href={"https://soundcloud.com/" + user.soundcloud } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faSoundcloud} /></a>}
+        {user.deezer && <a href={"https://deezer.com/" + user.deezer } target="_blank" style={{marginRight:"10px", color:"purple"}}><FontAwesomeIcon icon={faDeezer} /></a>}
+        {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{marginRight:"10px", color:"darkblue", display:"inline-block"}}><img src="/pandora.png" width={16}/></a>}
+        {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
+        {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
+         
+        <hr style={{margin: "5% 0"}}></hr>
+
+        {/* Custom links */}
+        {links.map((link, index) => 
+          link.url && (
+            <div key={index} className="p-2 border rounded-lg mb-2" style={{borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+              {isYouTubeLinkCheck(link.url) && link.displayVideo ? (
+                <iframe
+                    width="100%"
+                    height="315"
+                    style={{ maxWidth: '100%', borderRadius: '12px' }}
+                    src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}`}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                ></iframe>
+            ) : (
+              <>
+                {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
+                <a href={link.url} target="_blank" rel="noopener noreferrer" style={{color: linksColor}}>{link.name}</a>
+              </>
+            )}
+            </div>
+          )
+        )}
+        {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
+        <br></br>
+      </div>
+    </div>
   </div>
-)}
-    </>
-    );
+
+  {/* Fixed logo with enhanced mobile styling */}
+  {!user.hasAccess && (
+    <div style={{ 
+      position: "fixed",
+      bottom: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      textAlign: "center",
+      zIndex: 1000,
+      backgroundColor: "rgba(255, 255, 255, 0.95)",
+      borderRadius: "50%",
+      padding: "8px",
+      boxShadow: "0 2px 15px rgba(0, 0, 0, 0.2)",
+      border: "1px solid rgba(0, 0, 0, 0.1)"
+    }}>
+      <a href="https://influanto.com" target="_blank" rel="noopener noreferrer">
+        <img 
+          src="/icon.png" 
+          alt="Influanto" 
+          style={{ 
+            width: "28px", 
+            height: "28px", 
+            display: "inline-block",
+            borderRadius: "50%" 
+          }} 
+        />
+      </a>
+    </div>
+  )}
+</>
+);
   }
 };
 
