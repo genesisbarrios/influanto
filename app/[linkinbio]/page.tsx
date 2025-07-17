@@ -212,7 +212,6 @@ return (
       transform: "translateX(-50%)",
       textAlign: "center",
       zIndex: 1000,
-      boxShadow: "0 2px 15px rgba(0, 0, 0, 0.2)",
     }}>
       <a href="https://influanto.com" target="_blank" rel="noopener noreferrer">
         <img 
