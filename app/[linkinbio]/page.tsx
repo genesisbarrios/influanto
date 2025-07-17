@@ -141,7 +141,7 @@ const LinkInBioPage =  () => {
   }, [user, userName, bgColor, textColor, linksColor, links]);
   
   useEffect(() => {
-    if (bgColor) {
+    if (document && bgColor) {
       document.documentElement.style.setProperty("--bg-color", bgColor);
     }
     
