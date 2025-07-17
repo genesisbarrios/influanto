@@ -31,6 +31,11 @@ const LinkInBioPage =  () => {
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
   
+  // Premium styling states
+  const [cardBgColor, setCardBgColor] = useState("");
+  const [font, setFont] = useState("");
+  const [bgImage, setBgImage] = useState("");
+  
   const pathname = usePathname()
   const searchParams = useSearchParams()
  
@@ -53,6 +58,12 @@ const LinkInBioPage =  () => {
         setTextColor(data.linkInBio?.textColor);
         setLinksColor(data.linkInBio?.linksColor);
         setLinks(data.linkInBio?.links);
+        
+        // Set premium styling options
+        setCardBgColor(data.linkInBio?.cardBgColor);
+        setFont(data.linkInBio?.font);
+        setBgImage(data.linkInBio?.bgImage);
+        
         console.log(data.linkInBio?.links);
         } catch (e) {
         //console.error(e?.message);
@@ -86,22 +97,45 @@ const LinkInBioPage =  () => {
   }, [user, userName, bgColor, textColor, linksColor, links]);
   
   useEffect(() => {
+    // Apply background color
     if (document && bgColor) {
-      document.documentElement.style.setProperty("--bg-color", bgColor);
+      document.body.style.backgroundColor = bgColor;
+    }
+    
+    // Apply background image
+    if (bgImage) {
+      document.body.style.backgroundImage = `url(${bgImage})`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundRepeat = 'no-repeat';
+      document.body.style.backgroundAttachment = 'fixed';
+    } else {
+      document.body.style.backgroundImage = 'none';
+    }
+    
+    // Apply font
+    if (font) {
+      document.documentElement.style.setProperty('--page-font', font);
+      document.body.style.fontFamily = font;
     }
     
     return () => {
-      document.body.style.backgroundColor = ""; // Reset when the component unmounts
+      // Cleanup on unmount
+      document.body.style.backgroundColor = "";
+      document.body.style.backgroundImage = "";
+      document.body.style.backgroundSize = "";
+      document.body.style.backgroundPosition = "";
+      document.body.style.backgroundRepeat = "";
+      document.body.style.backgroundAttachment = "";
+      document.body.style.fontFamily = "";
+      document.documentElement.style.removeProperty('--page-font');
     };
-  }, [bgColor]);
+  }, [bgColor, bgImage, font]);
   
    // Check if user data is not yet loaded
   if (!user) {
     return <div className="m-5 text-center">Loading...</div>;
   }else if (user){
-    // ...existing code...
-// ...existing code...
-// ...existing code...
 
 return (
  <>
@@ -126,58 +160,91 @@ return (
     justifyContent: "flex-start"
   }}>
     <div 
-      className="p-6 bg-white shadow rounded-lg w-[90%] max-w-[90%] md:w-[50%] md:max-w-[50%] lg:w-[40%] lg:max-w-[40%]" 
+      className="p-6 shadow rounded-lg w-[90%] max-w-[90%] md:w-[50%] md:max-w-[50%] lg:w-[40%] lg:max-w-[40%]" 
       style={{
         margin: "0 auto", 
         textAlign: "center", 
         marginTop: "5%", 
         marginBottom: "5%", 
-        color: "#333333"
+        color: "#333333",
+        backgroundColor: cardBgColor || 'white', // Apply card background color
+        fontFamily: font || 'inherit' // Apply font to the card
       }}
     > 
-      <div style={{margin:"0 auto", textAlign:"center", color:textColor}}>
-        <img src={user.image || fallbackImageUrl} onError={(e) => e.currentTarget.src = 'fallbackImageUrl'} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline", marginBottom:"2%"}} alt="Avatar" />
+      <div style={{
+        margin:"0 auto", 
+        textAlign:"center", 
+        color: textColor,
+        fontFamily: font || 'inherit'
+      }}>
+        <img 
+          src={user.image || fallbackImageUrl} 
+          onError={(e) => e.currentTarget.src = fallbackImageUrl} 
+          style={{ 
+            borderRadius: '50%', 
+            width:"100px", 
+            height:"100px", 
+            display:"inline", 
+            marginBottom:"2%" 
+          }} 
+          alt="Avatar" 
+        />
                 
-        <p>{user.name}</p>
-        <p>
+        <p style={{ fontFamily: font || 'inherit' }}>{user.name}</p>
+        <p style={{ fontFamily: font || 'inherit' }}>
           {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} color="darkred" />{user.location}</span>}
           {user.website && <a href={ user.website } target="_blank"><FontAwesomeIcon icon={faGlobe} color="lightblue" /> Website</a>}
         </p>
       
-        <p style={{marginBottom:"2%"}}>{user.bio}</p>
+        <p style={{marginBottom:"2%", fontFamily: font || 'inherit'}}>{user.bio}</p>
 
         {/* Social media links */}
-        {user.instagram && <a href={"https://instagram.com/" + user.instagram } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faInstagram} /></a>}
-        {user.tiktok && <a href={"https://tiktok.com/@" + user.tiktok } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faTiktok} /></a>}
-        {user.twitter && <a href={"https://twitter.com/" + user.twitter } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTwitter} /></a>}
-        {user.facebook && <a href={user.facebook } target="_blank" style={{marginRight:"10px", color:"blue"}}><FontAwesomeIcon icon={faFacebook} /></a>}
-        {user.youtube && <a href={"https://youtube.com/@" + user.youtube } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faYoutube} /></a>}
-        {user.telegram && <a href={"https://t.me/" + user.telegram } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTelegram} /></a>}
-        {user.linkedin && <a href={"https://linkedin.com/" + user.linkedin } target="_blank" style={{marginRight:"10px", color:"darkblue"}}><FontAwesomeIcon icon={faLinkedin} /></a>}
-        {user.github && <a href={"https://github.com/" + user.github } target="_blank" style={{marginRight:"10px"}}><FontAwesomeIcon icon={faGithub} /></a>}
-        {user.patreon && <a href={"https://patreon.com/" + user.patreon } target="_blank" style={{marginRight:"10px", color:"black"}}><FontAwesomeIcon icon={faPatreon} /></a>}
-        {user.substack && <a href={"https://substack.com/" + user.substack } target="_blank" style={{display:"inline-block"}}><img src="/substack.png" width={16}/></a>}
-        {displayEmail && <a href={`mailto:${user.email}`}><FontAwesomeIcon icon={faEnvelope} color="grey" /></a>}
+        <div style={{ fontFamily: font || 'inherit' }}>
+          {user.instagram && <a href={"https://instagram.com/" + user.instagram } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faInstagram} /></a>}
+          {user.tiktok && <a href={"https://tiktok.com/@" + user.tiktok } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faTiktok} /></a>}
+          {user.twitter && <a href={"https://twitter.com/" + user.twitter } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTwitter} /></a>}
+          {user.facebook && <a href={user.facebook } target="_blank" style={{marginRight:"10px", color:"blue"}}><FontAwesomeIcon icon={faFacebook} /></a>}
+          {user.youtube && <a href={"https://youtube.com/@" + user.youtube } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faYoutube} /></a>}
+          {user.telegram && <a href={"https://t.me/" + user.telegram } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTelegram} /></a>}
+          {user.linkedin && <a href={"https://linkedin.com/" + user.linkedin } target="_blank" style={{marginRight:"10px", color:"darkblue"}}><FontAwesomeIcon icon={faLinkedin} /></a>}
+          {user.github && <a href={"https://github.com/" + user.github } target="_blank" style={{marginRight:"10px"}}><FontAwesomeIcon icon={faGithub} /></a>}
+          {user.patreon && <a href={"https://patreon.com/" + user.patreon } target="_blank" style={{marginRight:"10px", color:"black"}}><FontAwesomeIcon icon={faPatreon} /></a>}
+          {user.substack && <a href={"https://substack.com/" + user.substack } target="_blank" style={{display:"inline-block"}}><img src="/substack.png" width={16}/></a>}
+          {displayEmail && <a href={`mailto:${user.email}`}><FontAwesomeIcon icon={faEnvelope} color="grey" /></a>}
+        </div>
 
         {/* Music platforms */}
-        {user.spotify && <h3 className="mt-5">Listen</h3>}
-        {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{marginRight:"10px", color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
-        {user.appleMusic && <a href={"https://music.apple.com/" + user.appleMusic } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
-        {user.tidal && <a href={"https://tidal.com/" + user.tidal } target="_blank" style={{marginRight:"10px", color:"black", display:"inline-block"}}><img src="/tidal.png" width={16}/></a>}
-        {user.youtubeMusic && <a href={"https://music.youtube.com/channel/" + user.youtubeMusic } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faSquareYoutube} /></a>}
-        {user.amazonMusic && <a href={"https://music.amazon.com/" + user.amazonMusic } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faAmazon} /></a>}
-        {user.soundcloud && <a href={"https://soundcloud.com/" + user.soundcloud } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faSoundcloud} /></a>}
-        {user.deezer && <a href={"https://deezer.com/" + user.deezer } target="_blank" style={{marginRight:"10px", color:"purple"}}><FontAwesomeIcon icon={faDeezer} /></a>}
-        {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{marginRight:"10px", color:"darkblue", display:"inline-block"}}><img src="/pandora.png" width={16}/></a>}
-        {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
-        {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
+        {user.spotify && <h3 className="mt-5" style={{ fontFamily: font || 'inherit' }}>Listen</h3>}
+        <div style={{ fontFamily: font || 'inherit' }}>
+          {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{marginRight:"10px", color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
+          {user.appleMusic && <a href={"https://music.apple.com/" + user.appleMusic } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
+          {user.tidal && <a href={"https://tidal.com/" + user.tidal } target="_blank" style={{marginRight:"10px", color:"black", display:"inline-block"}}><img src="/tidal.png" width={16}/></a>}
+          {user.youtubeMusic && <a href={"https://music.youtube.com/channel/" + user.youtubeMusic } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faSquareYoutube} /></a>}
+          {user.amazonMusic && <a href={"https://music.amazon.com/" + user.amazonMusic } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faAmazon} /></a>}
+          {user.soundcloud && <a href={"https://soundcloud.com/" + user.soundcloud } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faSoundcloud} /></a>}
+          {user.deezer && <a href={"https://deezer.com/" + user.deezer } target="_blank" style={{marginRight:"10px", color:"purple"}}><FontAwesomeIcon icon={faDeezer} /></a>}
+          {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{marginRight:"10px", color:"darkblue", display:"inline-block"}}><img src="/pandora.png" width={16}/></a>}
+          {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
+          {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
+        </div>
          
         <hr style={{margin: "5% 0"}}></hr>
 
         {/* Custom links */}
         {links.map((link, index) => 
           link.url && (
-            <div key={index} className="p-2 border rounded-lg mb-2" style={{borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+            <div 
+              key={index} 
+              className="p-2 border rounded-lg mb-2" 
+              style={{
+                borderRadius: '12px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                backgroundColor: cardBgColor || 'transparent', // Apply card background to links
+                fontFamily: font || 'inherit'
+              }}
+            >
               {isYouTubeLinkCheck(link.url) && link.displayVideo ? (
                 <iframe
                     width="100%"
@@ -191,13 +258,23 @@ return (
             ) : (
               <>
                 {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
-                <a href={link.url} target="_blank" rel="noopener noreferrer" style={{color: linksColor}}>{link.name}</a>
+                <a 
+                  href={link.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  style={{
+                    color: linksColor,
+                    fontFamily: font || 'inherit'
+                  }}
+                >
+                  {link.name}
+                </a>
               </>
             )}
             </div>
           )
         )}
-        {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
+        {alert && <div className="alert mt-10 w-1/2 m-auto" style={{ fontFamily: font || 'inherit' }}>{alert}</div>}
         <br></br>
       </div>
     </div>

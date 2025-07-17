@@ -28,6 +28,9 @@ export async function POST(req: NextRequest) {
       ...(body.bgColor && { bgColor: body.bgColor }), // Map bgColor to backgroundColor
       ...(body.textColor && { textColor: body.textColor }), // Map textColor to textColor
       ...(body.linksColor && { linksColor: body.linksColor }), // Map linksColor to linksColor
+      ...(body.cardBgColor && { cardBgColor: body.cardBgColor }), // Map cardBgColor to cardBgColor
+      ...(body.font && { font: body.font }), // Map font to font
+      ...(body.bgImage && { bgImage: body.bgImage }), // Map bgImage to bgImage
     };
 
     // Check if 'links' is an array and add it to the updatePayload
@@ -47,7 +50,10 @@ export async function POST(req: NextRequest) {
       newLinkInBio.textColor = body.textColor;
       newLinkInBio.linksColor = body.linksColor;
       newLinkInBio.links = body.links;
-    
+      newLinkInBio.cardBgColor = body.cardBgColor;
+      newLinkInBio.font = body.font;
+      newLinkInBio.bgImage = body.bgImage;
+
       await newLinkInBio.save();
     } else {
       // Create a new document if none exists
@@ -57,6 +63,9 @@ export async function POST(req: NextRequest) {
         textColor: body.textColor,
         linksColor: body.linksColor,
         links: body.links,
+        cardBgColor: body.cardBgColor,
+        font: body.font,
+        bgImage: body.bgImage,
       });
     
       await newLinkInBio.save();

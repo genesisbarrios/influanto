@@ -18,6 +18,16 @@ const linkInBioSchema = new mongoose.Schema(
     linksColor: {
       type: String,
     },
+    cardBgColor: {
+      type: String,
+    },
+    font: {
+      type: String,
+      default: "Inter, sans-serif",
+    },
+    bgImage: {
+      type: String,
+    },
     links: [
       {
         url: {
