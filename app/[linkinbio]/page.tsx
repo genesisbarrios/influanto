@@ -185,10 +185,6 @@ const LinkInBioPage =  () => {
     transform: "translateX(-50%)",
     textAlign: "center",
     zIndex: 1000,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: "50%",
-    padding: "8px",
-    boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)"
   }}>
     <a href="https://influanto.com" target="_blank" rel="noopener noreferrer">
       <img 
