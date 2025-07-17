@@ -177,13 +177,33 @@ const LinkInBioPage =  () => {
             <br></br>
           </div>
         </div>
-      {!user.hasAccess && (
-        <div style={{ textAlign: "center", marginTop: "32px", marginBottom: "32px" }}>
-          <a href="https://influanto.com" target="_blank" rel="noopener noreferrer">
-            <img src="/icon.png" alt="Influanto" style={{ width: "40px", height: "40px", display: "inline-block" }} />
-          </a>
-        </div>
-      )}
+  {!user.hasAccess && (
+  <div style={{ 
+    position: "fixed",
+    bottom: "20px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    textAlign: "center",
+    zIndex: 1000,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    borderRadius: "50%",
+    padding: "8px",
+    boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)"
+  }}>
+    <a href="https://influanto.com" target="_blank" rel="noopener noreferrer">
+      <img 
+        src="/icon.png" 
+        alt="Influanto" 
+        style={{ 
+          width: "32px", 
+          height: "32px", 
+          display: "inline-block",
+          borderRadius: "50%" 
+        }} 
+      />
+    </a>
+  </div>
+)}
     </>
     );
   }
