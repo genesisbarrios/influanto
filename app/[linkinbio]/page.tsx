@@ -100,6 +100,8 @@ const LinkInBioPage =  () => {
     return <div className="m-5 text-center">Loading...</div>;
   }else if (user){
     // ...existing code...
+// ...existing code...
+// ...existing code...
 
 return (
  <>
@@ -124,15 +126,13 @@ return (
     justifyContent: "flex-start"
   }}>
     <div 
-      className="p-6 bg-white shadow w-3/4 md:w-1/2 rounded-lg" 
+      className="p-6 bg-white shadow rounded-lg w-[90%] max-w-[90%] md:w-[50%] md:max-w-[50%] lg:w-[40%] lg:max-w-[40%]" 
       style={{
         margin: "0 auto", 
         textAlign: "center", 
         marginTop: "5%", 
         marginBottom: "5%", 
-        color: "#333333",
-        maxWidth: "90%", // Better mobile width
-        width: "90%", // Mobile-first approach
+        color: "#333333"
       }}
     > 
       <div style={{margin:"0 auto", textAlign:"center", color:textColor}}>
@@ -212,6 +212,11 @@ return (
       transform: "translateX(-50%)",
       textAlign: "center",
       zIndex: 1000,
+      backgroundColor: "rgba(255, 255, 255, 0.95)",
+      borderRadius: "50%",
+      padding: "8px",
+      boxShadow: "0 2px 15px rgba(0, 0, 0, 0.2)",
+      border: "1px solid rgba(0, 0, 0, 0.1)"
     }}>
       <a href="https://influanto.com" target="_blank" rel="noopener noreferrer">
         <img 
@@ -230,6 +235,6 @@ return (
 </>
 );
   }
-};
+}
 
 export default LinkInBioPage;
