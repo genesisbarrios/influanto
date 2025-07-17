@@ -524,6 +524,8 @@ const Profile =  () => {
             {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
             
             <br></br>
+
+            {/* Premium Sign Up */}
             {/* {!user.priceId || !user.hasAccess &&
             <section className="mt-4 w-3/4 mx-auto space-y-8 mb-4">
               <hr></hr>

@@ -26,6 +26,12 @@ const QRCodeGenerator = () => {
   const [alert, setAlert] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setEditing] = useState(false);
+  const [userData, setUserData] = useState<any>(null); //state for user data
+
+  // Get the maximum allowed pages based on user status
+  const getMaxCodes = () => {
+    return user?.hasAccess ? 30 : 10;  // Premium users get 30, free users get 10
+  };
 
   // Ref to capture the canvas element
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -117,6 +123,15 @@ const QRCodeGenerator = () => {
 
   const addQRCode = async () => {
     try {
+      const maxCodes = getMaxCodes();
+      
+      // Check if user has reached the limit
+      if (qrCodes && qrCodes.length >= maxCodes) {
+        const userType = user?.hasAccess ? "premium" : "free";
+        setAlert(`You can only create up to ${maxCodes} QR codes on the ${userType} plan.`);
+        return;
+      }
+
       const { data } = await apiClient.post("/codes", {
         link: newLink,
         name: newName,
@@ -155,13 +170,23 @@ const QRCodeGenerator = () => {
     <div className="p-4 bg-white shadow rounded-md text-black">
       <div className="flex justify-between items-center">
       <h2 className="text-xl font-bold mb-2">QR Codes</h2>
-        {!showCreateView && qrCodes?.length < 10 && (
+      {!showCreateView && qrCodes?.length < getMaxCodes() && (
           <button
             onClick={() => setShowCreateView(true)}
             className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             Create
           </button>
+        )}
+      </div>
+
+      {/* Optional: Show current usage */}
+      <div className="mb-4 text-sm text-gray-600">
+        {qrCodes?.length || 0} of {getMaxCodes()} QR codes used
+        {!user?.hasAccess && (
+          <span className="ml-2 text-blue-600">
+            (Upgrade to Premium for up to 30 QR codes)
+          </span>
         )}
       </div>
 

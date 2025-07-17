@@ -17,40 +17,13 @@ import { getSEOTags } from "@/libs/seo";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import { useRouter } from 'next/navigation'; 
 import { usePathname, useSearchParams } from 'next/navigation'
-import { Head } from "next/document";
+import Head from "next/head";
 
 const LinkInBioPage =  () => {
   const router = useRouter();
   const [user, setUser] = useState<any>();
   const [userName, setUserName] = useState("");
-  const [formName, setFormName] = useState("");
-  const [formEmail, setFormEmail] = useState("");
   const [displayEmail, setDisplayEmail] = useState<Boolean>();
-  const [avatarImage, setAvatarImage] = useState(null);
-  const [location, setLocation] = useState("");
-  const [instagram, setInstagram] = useState("");
-  const [twitter, setTwitter] = useState("");
-  const [facebook, setFacebook] = useState("");
-  const [linkedin, setLinkedIn] = useState("");
-  const [youtube, setYouTube] = useState("");
-  const [tiktok, setTikTok] = useState("");
-  const [github, setGithub] = useState("");
-  const [patreon, setPatreon] = useState("");
-  const [substack, setSubstack] = useState("");
-  const [telegram, setTelegram] = useState("");
-  const [etsy, setEtsy] = useState("");
-  const [website, setWebsite] = useState("");
-  const [bio, setBio] = useState("");
-  const [spotify, setSpotify] = useState("");
-  const [appleMusic, setAppleMusic] = useState("");
-  const [tidal, setTidal] = useState("");
-  const [amazonMusic, setAmazonMusic] = useState("");
-  const [soundcloud, setSoundCloud] = useState("");
-  const [deezer, setDeezer] = useState("");
-  const [pandora, setPandora] = useState("");
-  const [youtubeMusic, setYouTubeMusic] = useState("");
-  const [bandcamp, setBandcamp] = useState("");
-  const [soundxyz, setSoundxyz] = useState("");
   const [bgColor, setBgColor] = useState("");
   const [textColor, setTextColor]  = useState("");
   const [linksColor, setLinksColor] = useState("");
@@ -75,34 +48,6 @@ const LinkInBioPage =  () => {
         const data = response.data;
 
         console.log(data);
-        setAvatarImage(data.user.image);
-        setFormName(data.user.name);
-        setFormEmail(data.user.email);
-        setDisplayEmail(data.user.displayEmail);
-        setLocation(data.user.location);
-        setWebsite(data.user.website);
-        setBio(data.user.bio);
-        setInstagram(data.user.instagram);
-        setTwitter(data.user.twitter);
-        setFacebook(data.user.facebook);
-        setLinkedIn(data.user.linkedin);
-        setYouTube(data.user.youtube);
-        setTikTok(data.user.tiktok);
-        setGithub(data.user.github);
-        setPatreon(data.user.patreon);
-        setSubstack(data.user.substack);
-        setTelegram(data.user.telegram);
-        setEtsy(data.user.etsy);
-        setSpotify(data.user.spotify);
-        setAppleMusic(data.user.appleMusic);
-        setTidal(data.user.tidal);
-        setAmazonMusic(data.user.amazonMusic);
-        setSoundCloud(data.user.soundcloud);
-        setDeezer(data.user.deezer);
-        setPandora(data.user.pandora);
-        setYouTubeMusic(data.user.youtubeMusic);
-        setBandcamp(data.user.bandcamp);
-        setSoundxyz(data.user.soundxyz);
         setUser(data.user);
         setBgColor(data.linkInBio?.backgroundColor);
         setTextColor(data.linkInBio?.textColor);
@@ -232,12 +177,13 @@ const LinkInBioPage =  () => {
             <br></br>
           </div>
         </div>
-      {/* Move the Influanto icon inside the main container for correct relative path resolution */}
-      <div style={{ textAlign: "center", marginTop: "32px", marginBottom: "32px" }}>
-        <a href="https://influanto.com" target="_blank" rel="noopener noreferrer">
-          <img src="/icon.png" alt="Influanto" style={{ width: "40px", height: "40px", display: "inline-block" }} />
-        </a>
-      </div>
+      {!user.hasAccess && (
+        <div style={{ textAlign: "center", marginTop: "32px", marginBottom: "32px" }}>
+          <a href="https://influanto.com" target="_blank" rel="noopener noreferrer">
+            <img src="/icon.png" alt="Influanto" style={{ width: "40px", height: "40px", display: "inline-block" }} />
+          </a>
+        </div>
+      )}
     </>
     );
   }

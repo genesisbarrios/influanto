@@ -12,7 +12,6 @@ import ReleasePage from './ReleasePage';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/next-auth";
 import User from "@/models/User";
-import ButtonAccount from '@/components/ButtonAccount';
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');

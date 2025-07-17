@@ -60,7 +60,7 @@ const config = {
           { name: "Extra Styling Features" },
           { name: "Playlist Pitching" },
           { name: "Advanced QR Code Generator" },
-          { name: "Bulk Comments and DMs" },
+          // { name: "Bulk Comments and DMs" },
         ],
       },
     ],

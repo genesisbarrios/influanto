@@ -14,12 +14,30 @@ const ReleasePages = () => {
   const [releasePages, setReleasePages] = useState<any[]>([]);
   const [alert, setAlert] = useState("");
   const [editingPage, setEditingPage] = useState<any | null>(null);
+  const [userData, setUserData] = useState<any>(null); // Add state for user data
   const [createPage, setCreatePage] = useState(false);
   const [isNameUnique, setIsNameUnique] = useState(true);
   const [bgColor, setBgColor] = useState("#ffffff");
   const [textColor, setTextColor] = useState("#000000");
   const [linksColor, setLinksColor] = useState("#0000ff");
 
+  // Function to get user data from API
+  const getUserData = async (userId: string) => {
+    try {
+     const { data } = await apiClient.get("/get-user");
+      setUserData(data);
+      return data;
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      return null;
+    }
+  };
+
+  // Get the maximum allowed pages based on user status
+  const getMaxPages = () => {
+    return userData?.hasAccess ? 10 : 3;
+  };
+  
   const predefinedLinks = [
     { name: "Spotify", url: "" },
     { name: "Apple Music", url: "" },
@@ -46,6 +64,7 @@ const ReleasePages = () => {
   useEffect(() => {
     if (data?.user?.id) {
       getReleasePages(data?.user?.id);
+      getUserData(data?.user?.id);
     }
   }, [data]);
 
@@ -62,11 +81,14 @@ const ReleasePages = () => {
     setLinksColor(page.linksColor || "#0000ff");
   };
 
-  const handleSave = async () => {
+   const handleSave = async () => {
     try {
+      const maxPages = getMaxPages();
+      
       // Check if we're creating a new page and already have the maximum allowed
-      if (!editingPage?._id && releasePages.length >= 3) {
-        setAlert("You can only create up to 3 release pages.");
+      if (!editingPage?._id && releasePages.length >= maxPages) {
+        const userType = userData?.hasAccess ? "premium" : "free";
+        setAlert(`You can only create up to ${maxPages} release pages on the ${userType} plan.`);
         return;
       }
 
@@ -87,6 +109,7 @@ const ReleasePages = () => {
       setAlert(e?.message);
     }
   };
+
 
   const handleImageUpload = (result: any) => {
     console.log(result);
@@ -230,6 +253,16 @@ const ReleasePages = () => {
             </button>
           )}
         </div> 
+          {/* Optional: Show current usage */}
+        <div className="mb-4 text-sm text-gray-600">
+          {releasePages.length} of {getMaxPages()} pages used
+          {!userData?.hasAccess && (
+            <span className="ml-2 text-blue-600">
+              (Upgrade to Premium for up to 10 pages)
+            </span>
+          )}
+        </div>
+        
         {createPage ? (
           <div className="p-4 bg-gray-100 rounded-md">
             <h3 className="text-xl font-bold mb-4">Create Release Page</h3>
