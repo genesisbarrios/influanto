@@ -560,6 +560,7 @@ useEffect(() => {
                         "https://www.pexels.com/photo/vibrant-abstract-light-waves-in-motion-33049100/",
                         "https://www.pexels.com/photo/gray-concrete-wall-surface-7911699/",
                         "https://www.pexels.com/photo/close-up-shot-of-a-concrete-wall-6788341/",
+                        "https://images.pexels.com/photos/6788581/pexels-photo-6788581.jpeg"
 
                       ].map((img, idx) => (
                         <button
