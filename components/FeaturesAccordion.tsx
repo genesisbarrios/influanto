@@ -29,7 +29,7 @@ const features = [
     title: "Link in Bio",
     description: "Create a Link in Bio Page and Promotional Pages for your Releases",
     type: "image",
-    path: { link },
+    path: link,
     alt: "computer picture",
     svg: (
       <svg
@@ -50,7 +50,7 @@ const features = [
     title: "Playlist Curator Search Tool",
     description: "Use our Curator Search Tool to find and contact Playlist Curators!",
     type: "image",
-    path: { playlist },
+    path: playlist,
     alt: "A computer",
     svg: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -63,7 +63,7 @@ const features = [
     title: "QR Code Generator",
     description: "Create FREE Static QR Codes!",
     type: "image",
-    path: { image },
+    path: image,
     alt: "influanto qr code",
     svg: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
