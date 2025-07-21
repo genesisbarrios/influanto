@@ -553,13 +553,6 @@ useEffect(() => {
                       {[
                         "https://images.pexels.com/photos/7598077/pexels-photo-7598077.jpeg",
                         "https://images.pexels.com/photos/7630061/pexels-photo-7630061.jpeg",
-                        "https://images.pexels.com/photos/355465/pexels-photo-355465.jpeg",
-                        "https://www.pexels.com/photo/spiral-solid-construction-with-vertical-lines-1198828/",
-                        "https://www.pexels.com/photo/abstract-blue-and-brown-light-patterns-in-motion-33049082/",
-                        "https://www.pexels.com/photo/abstract-green-swirls-with-dynamic-curves-33049088/",
-                        "https://www.pexels.com/photo/vibrant-abstract-light-waves-in-motion-33049100/",
-                        "https://www.pexels.com/photo/gray-concrete-wall-surface-7911699/",
-                        "https://www.pexels.com/photo/close-up-shot-of-a-concrete-wall-6788341/",
                         "https://images.pexels.com/photos/6788581/pexels-photo-6788581.jpeg"
 
                       ].map((img, idx) => (

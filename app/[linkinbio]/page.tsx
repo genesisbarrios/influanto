@@ -166,7 +166,7 @@ return (
         textAlign: "center", 
         marginTop: "5%", 
         marginBottom: "5%", 
-        color: "#333333",
+        color: textColor || "#333333",
         backgroundColor: cardBgColor || 'white', // Apply card background color
         fontFamily: font || 'inherit' // Apply font to the card
       }}
@@ -174,7 +174,7 @@ return (
       <div style={{
         margin:"0 auto", 
         textAlign:"center", 
-        color: textColor,
+        color: textColor || "#333333",
         fontFamily: font || 'inherit'
       }}>
         <img 
@@ -190,16 +190,16 @@ return (
           alt="Avatar" 
         />
                 
-        <p style={{ fontFamily: font || 'inherit' }}>{user.name}</p>
-        <p style={{ fontFamily: font || 'inherit' }}>
+        <p style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>{user.name}</p>
+        <p style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>
           {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} color="darkred" />{user.location}</span>}
-          {user.website && <a href={ user.website } target="_blank"><FontAwesomeIcon icon={faGlobe} color="lightblue" /> Website</a>}
+          {user.website && <a href={ user.website } target="_blank" style={{ color: textColor || "#333333" }}><FontAwesomeIcon icon={faGlobe} color="lightblue" /> Website</a>}
         </p>
       
-        <p style={{marginBottom:"2%", fontFamily: font || 'inherit'}}>{user.bio}</p>
+        <p style={{marginBottom:"2%", fontFamily: font || 'inherit', color: textColor || "#333333"}}>{user.bio}</p>
 
         {/* Social media links */}
-        <div style={{ fontFamily: font || 'inherit' }}>
+        <div style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>
           {user.instagram && <a href={"https://instagram.com/" + user.instagram } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faInstagram} /></a>}
           {user.tiktok && <a href={"https://tiktok.com/@" + user.tiktok } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faTiktok} /></a>}
           {user.twitter && <a href={"https://twitter.com/" + user.twitter } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTwitter} /></a>}
@@ -210,12 +210,12 @@ return (
           {user.github && <a href={"https://github.com/" + user.github } target="_blank" style={{marginRight:"10px"}}><FontAwesomeIcon icon={faGithub} /></a>}
           {user.patreon && <a href={"https://patreon.com/" + user.patreon } target="_blank" style={{marginRight:"10px", color:"black"}}><FontAwesomeIcon icon={faPatreon} /></a>}
           {user.substack && <a href={"https://substack.com/" + user.substack } target="_blank" style={{display:"inline-block"}}><img src="/substack.png" width={16}/></a>}
-          {displayEmail && <a href={`mailto:${user.email}`}><FontAwesomeIcon icon={faEnvelope} color="grey" /></a>}
+          {displayEmail && <a href={`mailto:${user.email}`} style={{ color: textColor || "#333333" }}><FontAwesomeIcon icon={faEnvelope} color="grey" /></a>}
         </div>
 
         {/* Music platforms */}
-        {user.spotify && <h3 className="mt-5" style={{ fontFamily: font || 'inherit' }}>Listen</h3>}
-        <div style={{ fontFamily: font || 'inherit' }}>
+        {user.spotify && <h3 className="mt-5" style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>Listen</h3>}
+        <div style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>
           {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{marginRight:"10px", color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
           {user.appleMusic && <a href={"https://music.apple.com/" + user.appleMusic } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
           {user.tidal && <a href={"https://tidal.com/" + user.tidal } target="_blank" style={{marginRight:"10px", color:"black", display:"inline-block"}}><img src="/tidal.png" width={16}/></a>}
@@ -227,7 +227,6 @@ return (
           {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
           {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
         </div>
-         
         <hr style={{margin: "5% 0"}}></hr>
 
         {/* Custom links */}

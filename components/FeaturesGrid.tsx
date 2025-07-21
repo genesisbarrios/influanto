@@ -15,7 +15,7 @@ const features = [
           </p>
           <div className="relative textarea py-4 h-full mr-12 bg-base-200 group-hover:bg-base-100 group-hover:border-base-content/10 text-base-content">
             <div className="absolute left-4 top-4 group-hover:hidden flex items-center ">
-              <span>Notifica</span>
+              <span>Notification</span>
               <span className="w-[2px] h-6 bg-primary animate-pulse"></span>
             </div>
             <div className="opacity-0 group-hover:opacity-100 duration-500">

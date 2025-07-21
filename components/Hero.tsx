@@ -1,7 +1,7 @@
 import Image from "next/image";
 import TestimonialsAvatars from "./TestimonialsAvatars";
 import config from "@/config";
-import image from "@/app/homepage.jpg";
+import image from "@/app/homepage.png";
 import ButtonGetInfluanto from "./ButtonGetInfluanto";
 
 const Hero = () => {
