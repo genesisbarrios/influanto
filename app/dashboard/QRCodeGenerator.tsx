@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import apiClient from "@/libs/api";
 import Head from 'next/head';
-import { cornerDotTypes } from 'qr-code-styling';
+import ButtonCheckout from "@/components/ButtonCheckout";
+import config from "@/config";
 
 // Define a TypeScript interface for the user prop to ensure type safety
 interface User {
@@ -585,9 +586,10 @@ const QRCodeGenerator = () => {
                 • Advanced styling options (6 dot styles, 3 corner styles)<br/>
                 • 30 QR codes limit<br/>
               </div>
-              <button className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">
-                Upgrade Now
-              </button>
+             <ButtonCheckout
+                mode="subscription"
+                priceId={config.stripe.plans[1].priceId} 
+              />
             </div>
           )}
           
