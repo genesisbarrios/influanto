@@ -584,7 +584,6 @@ const QRCodeGenerator = () => {
                 • Individual color controls for dots, corners, and squares (🎯📍🔸)<br/>
                 • Advanced styling options (6 dot styles, 3 corner styles)<br/>
                 • 30 QR codes limit<br/>
-                • Priority support
               </div>
               <button className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">
                 Upgrade Now
