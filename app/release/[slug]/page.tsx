@@ -107,7 +107,7 @@ const ReleasePageView =  () => {
         setWebsite(data.user.website);
         setBio(data.user.bio);
         setUser(data.user);
-        setBgColor(data.releasePage?.backgroundColor);
+        setBgColor(data.releasePage?.bgColor);
         setTextColor(data.releasePage?.textColor);
         setLinksColor(data.releasePage?.linksColor);
         setReleasePage(data.releasePage);
