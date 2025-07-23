@@ -29,7 +29,7 @@ const links: {
   },
   {
     href: "/tools",
-    label: "Free Tools",
+    label: "Music Tools",
   },
   
   {

@@ -535,6 +535,7 @@ const Profile =  () => {
                 • Advanced Styling Features<br/>
                 • Advanced QR Code Generator<br/>
                 • More Release Pages + 30 QR codes limit<br/>
+                • Connect to Printify and link your Merch<br/>
               </div>
              <ButtonCheckout
                 mode="subscription"
