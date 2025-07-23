@@ -526,18 +526,21 @@ const Profile =  () => {
             <br></br>
 
             {/* Premium Sign Up */}
-            {/* {!user.priceId || !user.hasAccess &&
-            <section className="mt-4 w-3/4 mx-auto space-y-8 mb-4">
-              <hr></hr>
-              <h3 className="text-xl md:text-2xl font-extrabold mb-0" style={{color:"turquoise"}}>
-                Subscribe to get Premium:
-              </h3>
-
-              <ButtonCheckout
+            {/* {!user.hasAccess &&
+            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
+              <div className="text-sm font-medium text-blue-800 mb-2">
+                🚀 Unlock Premium Features
+              </div>
+              <div className="text-xs text-blue-600 mb-3">
+                • Advanced Styling Features<br/>
+                • Advanced QR Code Generator<br/>
+                • More Release Pages + 30 QR codes limit<br/>
+              </div>
+             <ButtonCheckout
                 mode="subscription"
                 priceId={config.stripe.plans[1].priceId} 
               />
-            </section>
+            </div>
             } */}
           </div>
         </div>

@@ -76,6 +76,7 @@ const QRCodeGenerator = () => {
     if (QRCodeStyling && qrCodes) {
       qrCodes.forEach((code: any) => {
         createQRCodeForDisplay(code);
+        console.log(code);
       });
     }
   }, [QRCodeStyling, qrCodes]);
@@ -133,18 +134,18 @@ const QRCodeGenerator = () => {
         type: "svg" as const,
         data: code.url,
         dotsOptions: {
-          color: code.dotsColor || code.color || "#000000", // Use individual colors if available
-          type: (code.dotType || "rounded") as any
+          color: code.color || "#000000", // Use individual colors if available
+          type: (code.dotStyle || "rounded") as any
         },
         backgroundOptions: {
           color: code.transparentBg ? "transparent" : (code.bgColor || "#ffffff"),
         },
         cornersSquareOptions: {
-          type: (code.cornerType || "extra-rounded") as any,
+          type: (code.cornerSquareStyle || "square") as any,
           color: code.cornerSquareColor || code.color || "#000000" // Use individual colors if available
         },
         cornersDotOptions: {
-          type: (code.cornerDotType || "dot") as any,
+          type: (code.cornerDotStyle || "square") as any,
           color: code.cornerDotColor || code.color || "#000000" // Use individual colors if available
         }
       };
@@ -169,18 +170,18 @@ const QRCodeGenerator = () => {
         type: "svg" as const,
         data: code.url,
         dotsOptions: {
-          color: code.dotsColor || code.color || "#000000", // Use individual colors if available
-          type: (code.dotType || "rounded") as any
+          color: code.color || "#000000", // Use individual colors if available
+          type: (code.dotStyle || "rounded") as any
         },
         backgroundOptions: {
           color: code.transparentBg ? "transparent" : (code.bgColor || "#ffffff"),
         },
         cornersSquareOptions: {
-          type: (code.cornerType || "extra-rounded") as any,
+          type: (code.cornerSquareStyle || "extra-rounded") as any,
           color: code.cornerSquareColor || code.color || "#000000" // Use individual colors if available
         },
         cornersDotOptions: {
-          type: "dot" as const,
+          type:  (code.cornerDotStyle || "dot") as any,
           color: code.cornerDotColor || code.color || "#000000" // Use individual colors if available
         }
       };
@@ -254,11 +255,9 @@ const QRCodeGenerator = () => {
       const { data } = await apiClient.post("/codes", {
         link: newLink,
         name: newName,
-        color: newColor,
         bgColor: newBgColor,
         transparentBg: transparentBg,
-        // Add premium color options
-        dotsColor: user?.hasAccess ? dotsColor : undefined,
+        color: user?.hasAccess ? dotsColor : newColor,
         cornerDotColor: user?.hasAccess ? cornerDotColor : undefined,
         cornerSquareColor: user?.hasAccess ? cornerSquareColor : undefined,
         size: newSize,
@@ -385,7 +384,7 @@ const QRCodeGenerator = () => {
 
               {/* Basic Colors for Free Users Only */}
               {!user?.hasAccess && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="block mb-2 font-medium">Foreground Color</label>
                     <input
@@ -393,16 +392,6 @@ const QRCodeGenerator = () => {
                       value={newColor}
                       onChange={(e) => setNewColor(e.target.value)}
                       className="w-full h-12 border border-gray-300 rounded cursor-pointer"
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-2 font-medium">Background Color</label>
-                    <input
-                      type="color"
-                      value={newBgColor}
-                      onChange={(e) => setNewBgColor(e.target.value)}
-                      disabled={transparentBg}
-                      className={`w-full h-12 border border-gray-300 rounded cursor-pointer ${transparentBg ? 'opacity-50 cursor-not-allowed' : ''}`}
                     />
                   </div>
                 </div>
@@ -449,34 +438,36 @@ const QRCodeGenerator = () => {
           </div>
 
 
-              {/* Transparent Background Option */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block mb-2 font-medium">Background Color</label>
-                  <input
-                  type="color"
-                  value={newBgColor}
-                  onChange={(e) => setNewBgColor(e.target.value)}
-                  disabled={transparentBg}
-                  className={`w-full h-12 border border-gray-300 rounded cursor-pointer ${transparentBg ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  />
-                </div>
-                <div className="flex items-center mt-6">
-                  <input
-                  type="checkbox"
-                  id="transparentBg"
-                  checked={transparentBg}
-                  onChange={(e) => setTransparentBg(e.target.checked)}
-                  className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="transparentBg" className="font-medium text-gray-700">
-                  Transparent Background
-                  </label>
-                  <span className="ml-2 text-sm text-gray-500">
-                  (Perfect for overlaying on images)
-                  </span>
-                </div>
-                </div>
+          {/* Transparent Background Option */}
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-2 font-medium">Background Color</label>
+                <input
+                type="color"
+                value={newBgColor}
+                onChange={(e) => setNewBgColor(e.target.value)}
+                disabled={transparentBg}
+                className={`w-full h-12 border border-gray-300 rounded cursor-pointer ${transparentBg ? 'opacity-50 cursor-not-allowed' : ''}`}
+                />
+              </div>
+
+            <div className="flex items-center mt-6">
+              <input
+              type="checkbox"
+              id="transparentBg"
+              checked={transparentBg}
+              onChange={(e) => setTransparentBg(e.target.checked)}
+              className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="transparentBg" className="font-medium text-gray-700">
+              Transparent Background
+              </label>
+              <span className="ml-2 text-sm text-gray-500">
+              (Perfect for overlaying on images)
+              </span>
+            </div>
+            </div>
           
 
           {/* Premium Styling Options - Full Width Row */}
@@ -492,7 +483,7 @@ const QRCodeGenerator = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block mb-2 text-sm font-medium">
-                      🎯 Dots Color
+                     🌐 Dots Color
                     </label>
                     <input
                       type="color"
@@ -503,7 +494,7 @@ const QRCodeGenerator = () => {
                   </div>
                   <div>
                     <label className="block mb-2 text-sm font-medium">
-                      📍 Square Color
+                     💠 Square Color
                     </label>
                     <input
                       type="color"
@@ -514,7 +505,7 @@ const QRCodeGenerator = () => {
                   </div>
                   <div>
                     <label className="block mb-2 text-sm font-medium">
-                      🔸 Corner Dot Color
+                      ⚫ Corner Dot Color
                     </label>
                     <input
                       type="color"
@@ -582,7 +573,7 @@ const QRCodeGenerator = () => {
                 🚀 Unlock Premium Features
               </div>
               <div className="text-xs text-blue-600 mb-3">
-                • Individual color controls for dots, corners, and squares (🎯📍🔸)<br/>
+                • Individual color controls for dots, corners, and squares (🌐💠⚫)<br/>
                 • Advanced styling options (6 dot styles, 3 corner styles)<br/>
                 • 30 QR codes limit<br/>
               </div>
@@ -683,9 +674,9 @@ const QRCodeGenerator = () => {
                 {code.dotsColor || code.cornerDotColor || code.cornerSquareColor ? (
                   <div>
                     Colors: 
-                    <span className="ml-1">🎯 {code.dotsColor || code.color}</span>
-                    <span className="ml-1">📍 {code.cornerSquareColor || code.color}</span>
-                    <span className="ml-1">🔸 {code.cornerDotColor || code.color}</span>
+                    <span className="ml-1">🌐 {code.color}</span> <br></br>
+                    <span className="ml-1">💠 {code.cornerSquareColor || code.color}</span>
+                    <span className="ml-1">⚫ {code.cornerDotColor || code.color}</span>
                   </div>
                 ) : (
                   <div>Colors: {code.color || '#000000'} / {code.transparentBg ? 'transparent' : (code.bgColor || '#ffffff')}</div>
