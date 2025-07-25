@@ -132,6 +132,18 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    printifyShopId: {
+      type: String,
+      default: null,
+    },
+    printifyConnected: {
+      type: Boolean,
+      default: false,
+    },
+    printifyStoreUrl: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

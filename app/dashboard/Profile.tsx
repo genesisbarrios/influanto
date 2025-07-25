@@ -14,6 +14,7 @@ import { faGlobe, faLocation, faEnvelope } from "@fortawesome/free-solid-svg-ico
 import { set } from "mongoose";
 import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
+import PrintifyIntegration from "@/components/PrintifyIntegration";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
 const Profile =  () => {
@@ -53,8 +54,28 @@ const Profile =  () => {
   const [displayEmail, setDisplayEmail] = useState(Boolean);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [alert, setAlertt] = useState("");
+  const [alertMsg, setAlertt] = useState("");
   
+// In Profile.tsx, add this function before the return statement
+
+const disconnectPrintify = async () => {
+  if (confirm('Are you sure you want to disconnect your Printify store?')) {
+    try {
+      await fetch('/api/printify/disconnect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
+      });
+      
+      alert('✅ Printify disconnected successfully!');
+      // Refresh to update the UI
+      window.location.reload();
+    } catch (error) {
+      alert('❌ Failed to disconnect Printify');
+    }
+  }
+};
+
   const validateUsername = (value: string) => {
     // Remove spaces and convert to lowercase
     const cleanValue = value.replace(/\s+/g, '').toLowerCase();
@@ -521,10 +542,40 @@ const Profile =  () => {
             {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
             
             <br></br>
-            {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
+            {alertMsg && <div className="alert mt-10 w-1/2 m-auto">{alertMsg}</div>}
             
             <br></br>
 
+            {user?.hasAccess && (
+              <>
+                <h3 className="mt-5">Merchandise</h3>
+                
+                {/* Show connection status if connected */}
+                {user?.printifyShopId && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-medium text-green-800">
+                          ✅ Printify Store Connected
+                        </div>
+                        <div className="text-xs text-green-600 mt-1">
+                          Store: {user.printifyStoreName || 'Connected Store'}<br/>
+                          Shop ID: {user.printifyShopId}
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => disconnectPrintify()}
+                        className="text-xs text-red-600 hover:text-red-800 underline"
+                      >
+                        Disconnect
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                <PrintifyIntegration user={user} />
+              </>
+            )}
             {/* Premium Sign Up */}
             {/* {!user.hasAccess &&
             <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
@@ -676,7 +727,7 @@ const Profile =  () => {
               <br />
             </div>
           </div>}
-          {alert && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alert}</div>}
+          {alertMsg && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alertMsg}</div>}
           <button 
             className="btn btn-primary btn-block btn-sm btn-narrow"
             style={{width:"35%", display:"inline", margin:"8% 0 0"}}

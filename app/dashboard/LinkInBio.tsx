@@ -12,6 +12,8 @@ const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-3
 import Head from 'next/head';
 import { text } from "stream/consumers";
 import { CldUploadWidget } from 'next-cloudinary';
+import PrintifyProducts from '@/components/PrintifyProducts';
+
 
 const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
@@ -31,6 +33,7 @@ const LinkInBio =  () => {
   const [headerImage, setHeaderImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
+  const [showProducts, setShowProducts] = useState(false);
 
   const getUser = async () => {
     try {
@@ -335,9 +338,9 @@ useEffect(() => {
       </div>
       {alert && <div className="alert mt-5 w-full">{alert}</div>}
     </div>
+    
 </>
-  );
-}else{
+)}else{
   return (
     <div 
       className="p-4 shadow rounded-md" 
