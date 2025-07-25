@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
     await User.findByIdAndUpdate(userId, {
       printifyShopId: shopId,
       printifyStoreName: shopName,
+      printifyStoreUrl: storeUrl,
       printifyConnected: true
     });
 

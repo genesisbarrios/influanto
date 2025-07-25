@@ -18,6 +18,7 @@ interface PrintifyProduct {
 interface PrintifyProductsProps {
   userId: string;
   shopId: string;
+  selectedProductIds?: string[];
   textColor?: string;
   linksColor?: string;
   cardBgColor?: string;
@@ -27,6 +28,7 @@ interface PrintifyProductsProps {
 const PrintifyProducts = ({ 
   userId, 
   shopId, 
+  selectedProductIds = [],
   textColor = '#000000', 
   linksColor = '#0066cc',
   cardBgColor = 'transparent',

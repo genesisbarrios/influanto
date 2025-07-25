@@ -64,6 +64,10 @@ const Footer = () => {
                 <Link href="/how-to-start" className="link link-hover">
                   How To Start Guide
                 </Link>
+
+                 <Link href="/how-to-setup-your-store" className="link link-hover">
+                  How To Setup Your Store 
+                </Link>
               </div>
             </div>
 

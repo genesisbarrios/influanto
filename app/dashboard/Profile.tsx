@@ -204,25 +204,31 @@ const disconnectPrintify = async () => {
    }
   }, [user]);
   
-  // Assuming avatarImage is a File object
-  const convertToBase64 = (avatarImage:any) => {
-    if (avatarImage && avatarImage instanceof File) {
-      const reader = new FileReader();
+    // In your component where the disconnect button is
+  const handleDisconnect = async () => {
+    try {
+      console.log('🔄 Starting disconnect...');
+      
+      const response = await fetch('/api/printify-disconnect', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      reader.onload = function(event) {
-        // Set the Base64 string to the state
-        if (event.target && typeof event.target.result === 'string') {
-          setAvatarImage(event.target.result);
-        }
-      };
-
-      reader.onerror = function(error) {
-        console.log('Error: ', error);
-      };
-
-      reader.readAsDataURL(avatarImage);
-    } else {
-      console.log('avatarImage is not a file');
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Disconnect successful:', data);
+        
+        // Refresh the page or update state to reflect changes
+        window.location.reload(); // or use your state management
+        
+      } else {
+        const error = await response.json();
+        console.error('❌ Disconnect failed:', error);
+      }
+    } catch (error) {
+      console.error('❌ Disconnect error:', error);
     }
   };
 
@@ -564,7 +570,7 @@ const disconnectPrintify = async () => {
                         </div>
                       </div>
                       <button 
-                        onClick={() => disconnectPrintify()}
+                        onClick={() => handleDisconnect()}
                         className="text-xs text-red-600 hover:text-red-800 underline"
                       >
                         Disconnect

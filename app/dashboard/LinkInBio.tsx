@@ -14,7 +14,6 @@ import { text } from "stream/consumers";
 import { CldUploadWidget } from 'next-cloudinary';
 import PrintifyProducts from '@/components/PrintifyProducts';
 
-
 const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
 const LinkInBio =  () => {
@@ -34,6 +33,68 @@ const LinkInBio =  () => {
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
   const [showProducts, setShowProducts] = useState(false);
+  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+
+  // Add this useEffect to fetch products when editing
+  useEffect(() => {
+    if (isEditing && user?.printifyShopId) {
+      fetchAvailableProducts();
+    }
+  }, [isEditing, user?.printifyShopId]);
+
+  // Add this useEffect to load selected products when user data loads
+  useEffect(() => {
+    if (user?.selectedProducts) {
+      setSelectedProductIds(user.selectedProducts);
+    }
+  }, [user]);
+
+  // Add these functions before the return statement
+  const fetchAvailableProducts = async () => {
+    setIsLoadingProducts(true);
+    try {
+     const response = await fetch(`/api/products/${user.id}`);
+    
+      if (response.ok) {
+        const products = await response.json();
+        setAvailableProducts(products);
+      }
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  };
+
+  const toggleProductSelection = (productId: string) => {
+    setSelectedProductIds(prev => {
+      if (prev.includes(productId)) {
+        // Remove product
+        return prev.filter(id => id !== productId);
+      } else if (prev.length < 6) {
+        // Add product (max 6)
+        return [...prev, productId];
+      } else {
+        // Show alert when trying to select more than 6
+        setAlertt('Maximum 6 products can be selected');
+        setTimeout(() => setAlertt(''), 3000);
+        return prev;
+      }
+    });
+  };
+
+  const saveSelectedProducts = async () => {
+    try {
+      await apiClient.post('/save-selected-products', {
+        selectedProducts: selectedProductIds
+      });
+      setAlertt('Selected products saved successfully!');
+    } catch (error) {
+      setAlertt('Failed to save selected products');
+    }
+  };
 
   const getUser = async () => {
     try {
@@ -265,7 +326,6 @@ useEffect(() => {
         style={{
           ...containerStyle,
           backgroundColor: linkInBio?.cardBgColor || 'white',
-          // Remove background styles from container since they're applied to body
         }}
       >
        <div className="w-full flex justify-between items-center">
@@ -333,6 +393,29 @@ useEffect(() => {
               >
                   Visit
               </a>
+
+              {/* DISPLAY SELECTED PRODUCTS ONLY */}
+              {user?.hasAccess && user?.printifyShopId && user?.selectedProducts?.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-4 text-center" style={{
+                    color: textColor,
+                    fontFamily: linkInBio?.font || 'inherit'
+                  }}>
+                    🛍️ Shop Our Products
+                  </h3>
+                  
+                  <PrintifyProducts 
+                    userId={user.id} 
+                    shopId={user.printifyShopId}
+                    selectedProductIds={user.selectedProducts}
+                    textColor={textColor}
+                    linksColor={linksColor}
+                    cardBgColor={linkInBio?.cardBgColor}
+                    font={linkInBio?.font}
+                  />
+                </div>
+              )}
+
           </div>
       )}
       </div>
@@ -347,7 +430,6 @@ useEffect(() => {
       style={{
         ...containerStyle,
         backgroundColor: linkInBio?.cardBgColor || 'white',
-        // Background applied to body, not container
         fontFamily: linkInBio?.font || 'inherit'
       }}
     >
@@ -369,18 +451,19 @@ useEffect(() => {
                     fontFamily: linkInBio?.font || 'inherit'
                   }}>
                     Link {index + 1}
-                    {isYouTubeLinkCheck(link.url) && (
-                      <div>
-                          <iframe
-                              width="100%"
-                              height="200"
-                              style={{maxWidth: "400px"}}
-                              src={`https://www.youtube.com/embed/` +  getYouTubeVideoId(link.url)}
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                          ></iframe>
-                      </div>
-                  )}
+                  {isYouTubeLink(index, link.url) && (
+                  <div>
+                    <label style={{ fontFamily: linkInBio?.font || 'inherit' }}>
+                      Display Video:
+                      <input
+                        type="checkbox" 
+                        className="mr-2"
+                        checked={link.displayVideo || false}
+                        onChange={(e) => updateYouTubeLinkOptions(index, e.target.checked)}
+                      />
+                    </label>
+                  </div>
+                )}
                     {link.image && (
                       <img src={link.image} alt={`Link ${index + 1} thumbnail`} style={{ width: "30px", height: "30px", borderRadius: "50%", marginLeft: "10px" }} />
                     )}
@@ -408,7 +491,6 @@ useEffect(() => {
                             Display Video:
                             <input
                                 type="checkbox" className="mr-2"
-                                defaultChecked={link.displayVideo || false}
                                 checked={link.displayVideo || false}
                                 onChange={(e) => updateYouTubeLinkOptions(index, e.target.checked)}
                             />
@@ -610,6 +692,178 @@ useEffect(() => {
         onClick={() => setEditing(false)}>
         Cancel
       </button>
+
+      {/* PRODUCT SELECTION SECTION - ONLY IN EDITING VIEW */}
+      {user?.hasAccess && user?.printifyShopId && (
+        <div className="mt-8 w-full border-t pt-6">
+          <h2 className="text-lg font-semibold mb-4" style={{
+            fontFamily: linkInBio?.font || 'inherit'
+          }}>
+            🛍️ Select Products for Link in Bio (Max 6)
+          </h2>
+          
+          {isLoadingProducts ? (
+            <div className="text-center py-8" style={{
+              fontFamily: linkInBio?.font || 'inherit'
+            }}>
+              <div className="animate-pulse">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
+                  ))}
+                </div>
+              </div>
+              <p className="mt-4 text-gray-600">Loading your products...</p>
+            </div>
+          ) : availableProducts.length > 0 ? (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+                {availableProducts.map((product: any) => (
+                  <div 
+                    key={product.id}
+                    className={`relative border rounded-lg overflow-hidden cursor-pointer transition-all hover:shadow-md ${
+                      selectedProductIds.includes(product.id) 
+                        ? 'border-blue-500 ring-2 ring-blue-200' 
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                    onClick={() => toggleProductSelection(product.id)}
+                    style={{
+                      backgroundColor: linkInBio?.cardBgColor || 'white'
+                    }}
+                  >
+                    {/* Selection Toggle Overlay */}
+                    <div className={`absolute top-2 right-2 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                      selectedProductIds.includes(product.id)
+                        ? 'bg-blue-500 border-blue-500'
+                        : 'bg-white border-gray-300'
+                    }`}>
+                      {selectedProductIds.includes(product.id) && (
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                        </svg>
+                      )}
+                    </div>
+
+                    {/* Product Image */}
+                    <div className="aspect-square bg-gray-100">
+                      {product.images && product.images[0] ? (
+                        <img
+                          src={product.images[0]}
+                          alt={product.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-gray-400 text-2xl mb-1">📦</div>
+                            <span className="text-xs text-gray-500" style={{
+                              fontFamily: linkInBio?.font || 'inherit'
+                            }}>
+                              No Image
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Product Info */}
+                    <div className="p-3">
+                      <h4 className="text-sm font-medium truncate mb-1" style={{
+                        fontFamily: linkInBio?.font || 'inherit'
+                      }}>
+                        {product.title}
+                      </h4>
+                      
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm font-semibold text-green-600" style={{
+                          fontFamily: linkInBio?.font || 'inherit'
+                        }}>
+                          ${product.variants?.[0]?.price || 'N/A'}
+                        </p>
+                        
+                        {product.variants && product.variants.length > 1 && (
+                          <span className="text-xs text-gray-500" style={{
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            {product.variants.length} variants
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Selected Badge */}
+                    {selectedProductIds.includes(product.id) && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-blue-500 text-white text-center py-1">
+                        <span className="text-xs font-semibold" style={{
+                          fontFamily: linkInBio?.font || 'inherit'
+                        }}>
+                          ✓ SELECTED
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Selection Summary and Actions */}
+              <div className="bg-gray-50 rounded-lg p-4 flex justify-between items-center">
+                <div>
+                  <span className="text-sm font-medium text-gray-700" style={{
+                    fontFamily: linkInBio?.font || 'inherit'
+                  }}>
+                    {selectedProductIds.length}/5 products selected
+                  </span>
+                  {selectedProductIds.length === 5 && (
+                    <p className="text-xs text-orange-600 mt-1" style={{
+                      fontFamily: linkInBio?.font || 'inherit'
+                    }}>
+                      Maximum selection reached
+                    </p>
+                  )}
+                </div>
+                
+                <div className="flex gap-2">
+                  {selectedProductIds.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProductIds([])}
+                      className="btn btn-alert btn-sm"
+                      style={{
+                        fontFamily: linkInBio?.font || 'inherit'
+                      }}
+                    >
+                      Clear All
+                    </button>
+                  )}
+                  
+                  <button
+                    type="button"
+                    onClick={saveSelectedProducts}
+                    className="btn btn-primary btn-sm"
+                    disabled={selectedProductIds.length === 0}
+                    style={{
+                      fontFamily: linkInBio?.font || 'inherit'
+                    }}
+                  >
+                    Save Selection ({selectedProductIds.length})
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg" style={{
+              fontFamily: linkInBio?.font || 'inherit'
+            }}>
+              <div className="text-4xl text-gray-400 mb-2">🏪</div>
+              <h3 className="text-lg font-medium text-gray-700 mb-1">No Products Found</h3>
+              <p className="text-sm text-gray-500">
+                Make sure your Printify store has published products.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       </form>
       </div>
     </div>

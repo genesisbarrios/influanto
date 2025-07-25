@@ -132,18 +132,32 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    //printify related fields
     printifyShopId: {
       type: String,
       default: null,
+       required: false,
     },
     printifyConnected: {
       type: Boolean,
       default: false,
+       required: false,
     },
     printifyStoreUrl: {
       type: String,
       default: null,
+       required: false,
     },
+    printifyStoreName: {
+      type: String,
+      default: null,
+       required: false,
+    },
+    selectedProducts: [{
+      type: String,
+      maxlength: 6, // Limit to 6 products
+      required: false,
+    }],
   },
   {
     timestamps: true,

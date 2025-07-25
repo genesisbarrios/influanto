@@ -1,24 +1,56 @@
-// pages/api/printify/disconnect.ts
-import { NextApiRequest, NextApiResponse } from 'next';
-import User from '@/models/User'; // Adjust the import based on your project structure
+// app/api/printify-disconnect/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/libs/next-auth";
+import connectMongo from "@/libs/mongoose";
+import User from "@/models/User";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const { userId } = req.body;
-
+export async function POST(request: NextRequest) {
   try {
-    // Remove Printify connection from user
-    await User.findByIdAndUpdate(userId, {
-      $unset: { printifyShopId: 1, printifyConnected: 1 }
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    await connectMongo();
+
+    // Get user from session
+    const user = await User.findOne({ email: session.user.email });
+    
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    console.log('🔍 Before disconnect - User data:', {
+      printifyShopId: user.printifyShopId,
+      printifyConnected: user.printifyConnected,
+      selectedProducts: user.selectedProducts
     });
 
-    console.log(`User ${userId} disconnected from Printify`);
+  // Direct assignment
+  user.printifyShopId = null;
+  user.printifyConnected = false;
+  user.printifyStoreUrl = null;
+  user.printifyProducts = null;
+  user.printifyOrders = null;
+  user.selectedProducts = [];
+  user.printifyStoreName = null;
 
-    res.status(200).json({ success: true });
+  // Save the changes
+  await user.save();
+
+console.log(`✅ User ${user._id} disconnected from Printify`);
+
+    return NextResponse.json({ 
+      success: true,
+      message: 'Successfully disconnected from Printify'
+    });
+
   } catch (error) {
-    res.status(500).json({ error: 'Failed to disconnect' });
+    console.error('❌ Disconnect error:', error);
+    return NextResponse.json({ 
+      error: 'Failed to disconnect from Printify' 
+    }, { status: 500 });
   }
 }
