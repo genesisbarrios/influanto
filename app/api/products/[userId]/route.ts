@@ -1,9 +1,7 @@
-// app/api/printify/products/[userId]/route.ts
+// Replace your entire route.ts file with this fixed version:
 import { NextRequest, NextResponse } from 'next/server';
 import connectMongo from "@/libs/mongoose";
 import User from "@/models/User";
-
-const PRINTIFY_API_KEY = process.env.PRINTIFY_API_KEY;
 
 export async function GET(
   request: NextRequest,
@@ -18,123 +16,321 @@ export async function GET(
       return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
     }
 
-    if (!PRINTIFY_API_KEY) {
-      console.error('❌ PRINTIFY_API_KEY not configured');
-      return NextResponse.json({ error: 'Printify API not configured' }, { status: 500 });
-    }
-
-    // First, get all available shops
-    console.log('🔍 Fetching available shops...');
-    const shopsResponse = await fetch('https://api.printify.com/v1/shops.json', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${PRINTIFY_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!shopsResponse.ok) {
-      console.error('❌ Shops API error:', shopsResponse.status, await shopsResponse.text());
-      return NextResponse.json({ error: 'Failed to fetch shops' }, { status: 500 });
-    }
-
-    const shopsData = await shopsResponse.json();
-    console.log('✅ Available shops:', shopsData);
-
-    // Use the shop ID stored in the user document, or fallback to the first shop if not set
-    if (!shopsData || shopsData.length === 0) {
-      return NextResponse.json({ error: 'No Printify shops found' }, { status: 404 });
-    }
-
     await connectMongo();
     const user = await User.findById(userId);
+    
+    if (!user?.printifyStoreUrl) {
+      return NextResponse.json({ error: 'No store URL found for user' }, { status: 404 });
+    }
 
-    let shopId: string;
-    let shop: any;
+    console.log('🔍 Scraping user store:', user.printifyStoreUrl);
 
-    if (user && user.printifyShopId) {
-      shopId = user.printifyShopId;
-      shop = shopsData.find((s: any) => s.id.toString() === shopId);
-      if (!shop) {
-        return NextResponse.json({ error: 'Shop ID not found in Printify shops' }, { status: 404 });
+    // Helper function to fix image URLs
+    const fixImageUrl = (imageSrc: string | undefined, storeUrl: string): string => {
+      if (!imageSrc) {
+        return 'https://via.placeholder.com/300x300/4ecdc4/ffffff?text=No+Image';
       }
-    } else {
-      shop = shopsData[0];
-      shopId = shop.id.toString();
-      // Optionally update the user with the shopId if not set
-      if (user) {
-        await User.findByIdAndUpdate(userId, { printifyShopId: shopId });
+
+      // If already a full URL, return as is
+      if (imageSrc.startsWith('http://') || imageSrc.startsWith('https://')) {
+        return imageSrc;
+      }
+
+      // Handle protocol-relative URLs
+      if (imageSrc.startsWith('//')) {
+        return 'https:' + imageSrc;
+      }
+
+      // Handle relative URLs
+      if (imageSrc.startsWith('/')) {
+        try {
+          const baseUrl = new URL(storeUrl);
+          return baseUrl.origin + imageSrc;
+        } catch (error) {
+          console.error('Error parsing base URL:', error);
+          return 'https://via.placeholder.com/300x300/4ecdc4/ffffff?text=Invalid+URL';
+        }
+      }
+
+      // If it's just a filename or relative path
+      try {
+        const baseUrl = new URL(storeUrl);
+        return baseUrl.origin + '/' + imageSrc;
+      } catch (error) {
+        return 'https://via.placeholder.com/300x300/4ecdc4/ffffff?text=Invalid+Image';
+      }
+    };
+
+    // Fetch the public storefront
+    const storeResponse = await fetch(user.printifyStoreUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    
+    if (!storeResponse.ok) {
+      console.error('❌ Failed to fetch store:', storeResponse.status);
+      return NextResponse.json({ error: 'Failed to fetch store' }, { status: 500 });
+    }
+
+    const html = await storeResponse.text();
+    console.log('✅ Store HTML fetched, length:', html.length);
+
+    // Method 1: Try to extract from window.__INITIAL_STATE__
+    const initialStateMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*({.*?});/s);
+    
+    if (initialStateMatch) {
+      try {
+        const storeData = JSON.parse(initialStateMatch[1]);
+        console.log('✅ Found __INITIAL_STATE__');
+        
+        const products = storeData.products?.items || storeData.store?.products || [];
+        
+        if (products.length > 0) {
+          const transformedProducts = products.map((product: any) => {
+            // Fix images array
+            let productImages: string[] = [];
+            
+            if (product.images && Array.isArray(product.images)) {
+              productImages = product.images
+                .map((img: any) => {
+                  if (typeof img === 'string') {
+                    return fixImageUrl(img, user.printifyStoreUrl);
+                  } else if (img?.src) {
+                    return fixImageUrl(img.src, user.printifyStoreUrl);
+                  } else if (img?.url) {
+                    return fixImageUrl(img.url, user.printifyStoreUrl);
+                  }
+                  return null;
+                })
+                .filter(Boolean);
+            } else if (product.image) {
+              productImages = [fixImageUrl(product.image, user.printifyStoreUrl)];
+            }
+
+            // If no images found, use placeholder
+            if (productImages.length === 0) {
+              productImages = ['https://via.placeholder.com/300x300/ff6b6b/ffffff?text=' + encodeURIComponent(product.title || 'Product')];
+            }
+
+            return {
+              id: product.id?.toString() || Math.random().toString(),
+              title: product.title || product.name || 'Untitled Product',
+              description: product.description || '',
+              images: productImages,
+              variants: product.variants?.map((variant: any) => ({
+                id: variant.id?.toString() || Math.random().toString(),
+                price: variant.price ? (variant.price / 100).toFixed(2) : '25.99',
+                title: variant.title || 'Default',
+                sku: variant.sku || '',
+                available: variant.available !== false,
+              })) || [{
+                id: '1',
+                price: '25.99',
+                title: 'Default',
+                sku: 'DEFAULT',
+                available: true,
+              }],
+              tags: product.tags || [],
+              visible: true,
+              created_at: product.created_at || new Date().toISOString(),
+              updated_at: product.updated_at || new Date().toISOString(),
+            };
+          });
+
+          console.log('✅ Scraped products from __INITIAL_STATE__:', transformedProducts.length);
+          return NextResponse.json(transformedProducts);
+        }
+      } catch (parseError) {
+        console.error('❌ Failed to parse __INITIAL_STATE__:', parseError);
       }
     }
 
-    console.log('🏪 Using shop ID:', shopId, 'Title:', shop.title);
-
-    // Now try to fetch products
-    console.log('📦 Fetching products...');
-    const printifyResponse = await fetch(
-      `https://api.printify.com/v1/shops/${shopId}/products.json`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${PRINTIFY_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!printifyResponse.ok) {
-      console.error('❌ Printify products API error:', printifyResponse.status, printifyResponse.statusText);
-      const errorText = await printifyResponse.text();
-      console.error('❌ Error details:', errorText);
+    // Method 2: Try to extract from script tags with JSON data
+    const scriptMatches = html.match(/<script[^>]*>(.*?)<\/script>/gs) || [];
+    
+    for (const scriptMatch of scriptMatches) {
+      const scriptContent = scriptMatch.replace(/<\/?script[^>]*>/g, '');
       
-      // If no products found, return empty array instead of error
-      if (printifyResponse.status === 404) {
-        console.log('📦 No products found in shop, returning empty array');
-        return NextResponse.json([]);
-      }
+      // Look for product data patterns
+      const productDataMatch = scriptContent.match(/products["\']?\s*:\s*(\[.*?\])/s) ||
+                              scriptContent.match(/"products":\s*(\[.*?\])/s) ||
+                              scriptContent.match(/window\.products\s*=\s*(\[.*?\])/s);
       
-      return NextResponse.json({ 
-        error: `Printify API error: ${printifyResponse.status}` 
-      }, { status: printifyResponse.status });
+      if (productDataMatch) {
+        try {
+          const products = JSON.parse(productDataMatch[1]);
+          
+          if (products.length > 0) {
+            const transformedProducts = products.map((product: any, index: number) => {
+              // Fix images for script method
+              let productImages: string[] = [];
+              
+              if (product.images && Array.isArray(product.images)) {
+                productImages = product.images
+                  .map((img: any) => fixImageUrl(typeof img === 'string' ? img : img?.src || img?.url, user.printifyStoreUrl))
+                  .filter(Boolean);
+              } else if (product.image) {
+                productImages = [fixImageUrl(product.image, user.printifyStoreUrl)];
+              }
+
+              // If no images found, use placeholder with product title
+              if (productImages.length === 0) {
+                const title = product.title || product.name || `Item ${index + 1}`;
+                productImages = [`https://via.placeholder.com/300x300/4ecdc4/ffffff?text=${encodeURIComponent(title)}`];
+              }
+
+              return {
+                id: product.id?.toString() || (index + 1).toString(),
+                title: product.title || product.name || '',
+                description: product.description || '',
+                images: productImages,
+                variants: [{
+                  id: '1',
+                  price: product.price ? (product.price / 100).toFixed(2) : '25.99',
+                  title: 'Default',
+                  sku: product.sku || `PROD-${index + 1}`,
+                  available: true,
+                }],
+                tags: product.tags || ['scraped'],
+                visible: true,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              };
+            })
+            .filter((product: any) => product.title && product.title.trim().length > 0);
+
+            console.log('✅ Scraped products from script tags:', transformedProducts.length);
+            
+            if (transformedProducts.length > 0) {
+              return NextResponse.json(transformedProducts);
+            }
+          }
+        } catch (parseError) {
+          console.error('❌ Failed to parse script products:', parseError);
+        }
+      }
     }
 
-    const printifyData = await printifyResponse.json();
-    console.log('📦 Raw Printify response:', printifyData);
+    // Method 3: Basic HTML parsing
+    const parseProductsFromHTML = () => {
+      const products: any[] = [];
+      
+      // Look for product containers with more specific patterns
+      const productPatterns = [
+        /<div[^>]*class="[^"]*product[^"]*"[^>]*>(.*?)<\/div>/gis,
+        /<article[^>]*class="[^"]*product[^"]*"[^>]*>(.*?)<\/article>/gis,
+        /<li[^>]*class="[^"]*product[^"]*"[^>]*>(.*?)<\/li>/gis
+      ];
+      
+      let allMatches: RegExpMatchArray[] = [];
+      
+      productPatterns.forEach(pattern => {
+        const matches = Array.from(html.matchAll(pattern));
+        allMatches = allMatches.concat(matches);
+      });
+      
+      allMatches.forEach((match, index) => {
+        const productHtml = match[1];
+        
+        // Extract title with better patterns
+        const titlePatterns = [
+          /<h[1-6][^>]*>(.*?)<\/h[1-6]>/i,
+          /class="[^"]*title[^"]*"[^>]*>(.*?)<\/[^>]+>/i,
+          /class="[^"]*name[^"]*"[^>]*>(.*?)<\/[^>]+>/i,
+          /<a[^>]*title="([^"]*)"[^>]*>/i
+        ];
+        
+        let title = '';
+        for (const pattern of titlePatterns) {
+          const titleMatch = productHtml.match(pattern);
+          if (titleMatch) {
+            title = titleMatch[1].replace(/<[^>]+>/g, '').trim();
+            if (title && title.length > 2 && !title.toLowerCase().includes('product')) {
+              break;
+            }
+            title = '';
+          }
+        }
+        
+        // Skip if no real title found
+        if (!title || title.length < 3) {
+          return;
+        }
+        
+        // Extract price with better patterns
+        const pricePatterns = [
+          /\$(\d+\.?\d*)/,
+          /price[^>]*>.*?\$(\d+\.?\d*)/i,
+          /(\d+\.?\d*)\s*USD/i
+        ];
+        
+        let price = '25.99';
+        for (const pattern of pricePatterns) {
+          const priceMatch = productHtml.match(pattern);
+          if (priceMatch) {
+            price = priceMatch[1];
+            break;
+          }
+        }
+        
+        // Extract image with multiple patterns
+        const imagePatterns = [
+          /<img[^>]*src=["']([^"']+)["'][^>]*>/i,
+          /<img[^>]*data-src=["']([^"']+)["'][^>]*>/i,
+          /background-image:\s*url\(['"]?([^'"]+)['"]?\)/i
+        ];
+        
+        let imageSrc = '';
+        for (const pattern of imagePatterns) {
+          const imageMatch = productHtml.match(pattern);
+          if (imageMatch && imageMatch[1]) {
+            imageSrc = imageMatch[1];
+            break;
+          }
+        }
+        
+        const image = imageSrc ? 
+          fixImageUrl(imageSrc, user.printifyStoreUrl) : 
+          `https://via.placeholder.com/300x300/45b7d1/ffffff?text=${encodeURIComponent(title)}`;
+        
+        products.push({
+          id: (index + 1).toString(),
+          title: title,
+          description: `Product from ${user.printifyStoreUrl}`,
+          images: [image],
+          variants: [{
+            id: '1',
+            price: price,
+            title: 'Default',
+            sku: `HTML-${index + 1}`,
+            available: true,
+          }],
+          tags: ['html-scraped'],
+          visible: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      });
+      
+      return products.slice(0, 10); // Limit to first 10 products
+    };
 
-    // Check if there's data
-    if (!printifyData.data || printifyData.data.length === 0) {
-      console.log('📦 No products in shop');
-      return NextResponse.json([]);
+    const htmlProducts = parseProductsFromHTML();
+    if (htmlProducts.length > 0) {
+      console.log('✅ Scraped products from HTML patterns:', htmlProducts.length);
+      return NextResponse.json(htmlProducts);
     }
 
-    // Transform Printify data to our format
-    const products = printifyData.data.map((product: any) => ({
-      id: product.id.toString(),
-      title: product.title,
-      description: product.description || '',
-      images: product.images ? product.images.map((img: any) => img.src) : [],
-      variants: product.variants ? product.variants.map((variant: any) => ({
-        id: variant.id.toString(),
-        price: variant.price ? (variant.price / 100).toFixed(2) : '0.00',
-        title: variant.title || '',
-        sku: variant.sku || '',
-        available: variant.available || false,
-      })) : [],
-      tags: product.tags || [],
-      visible: product.visible || false,
-      created_at: product.created_at,
-      updated_at: product.updated_at,
-    }));
-
-    console.log('✅ Transformed products:', products.length);
-    console.log('📋 Sample product:', products[0]);
-
-    return NextResponse.json(products);
+    // If still no products found, return empty array
+    console.log('📦 No products found via scraping');
+    return NextResponse.json([]);
 
   } catch (error) {
-    console.error('❌ Products API error:', error);
+    console.error('❌ Store scraping error:', error);
     return NextResponse.json({ 
-      error: 'Failed to fetch products from Printify' 
+      error: 'Failed to scrape store products',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }

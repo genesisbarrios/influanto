@@ -51,22 +51,35 @@ const LinkInBio =  () => {
     }
   }, [user]);
 
-  // Add these functions before the return statement
-  const fetchAvailableProducts = async () => {
-    setIsLoadingProducts(true);
-    try {
-     const response = await fetch(`/api/products/${user.id}`);
+const fetchAvailableProducts = async () => {
+  console.log('🔍 Starting fetch...');
+  console.log('🔍 User ID:', user?.id);
+  console.log('🔍 Full URL:', `/api/products/${user.id}`);
+  
+  setIsLoadingProducts(true);
+  try {
+    const url = `/api/products/${user.id}`;
+    console.log('📞 Fetching:', url);
     
-      if (response.ok) {
-        const products = await response.json();
-        setAvailableProducts(products);
-      }
-    } catch (error) {
-      console.error('Failed to fetch products:', error);
-    } finally {
-      setIsLoadingProducts(false);
+    const response = await fetch(url);
+    
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response ok:', response.ok);
+    
+    if (response.ok) {
+      const products = await response.json();
+      console.log('✅ Products received:', products);
+      setAvailableProducts(products);
+    } else {
+      const errorText = await response.text();
+      console.error('❌ Error response:', errorText);
     }
-  };
+  } catch (error) {
+    console.error('❌ Network error:', error);
+  } finally {
+    setIsLoadingProducts(false);
+  }
+};
 
   const toggleProductSelection = (productId: string) => {
     setSelectedProductIds(prev => {

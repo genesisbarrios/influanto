@@ -14,7 +14,7 @@ const calcDelayMs = (bpm: number, note: number) => {
 const tools = [
   {
     title: "Delay & Reverb Time Calculator",
-    description: "Calculate musical delay and reverb times for your BPM.",
+    description: "Calculate delay and reverb times for your song.",
     href: "/Reverb-and-Delay-Calculator",
     icon: "⏱️",
   },
