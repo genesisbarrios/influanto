@@ -86,12 +86,12 @@ const fetchAvailableProducts = async () => {
       if (prev.includes(productId)) {
         // Remove product
         return prev.filter(id => id !== productId);
-      } else if (prev.length < 6) {
-        // Add product (max 6)
+      } else if (prev.length < 10) {
+        // Add product (max 10)
         return [...prev, productId];
       } else {
-        // Show alert when trying to select more than 6
-        setAlertt('Maximum 6 products can be selected');
+        // Show alert when trying to select more than 10
+        setAlertt('Maximum 10 products can be selected');
         setTimeout(() => setAlertt(''), 3000);
         return prev;
       }
@@ -626,53 +626,71 @@ useEffect(() => {
                     />
                   </div>
                   
-                 {/* Background Image Selector */}
-                  <div className="mb-3">
-                    <label className="mr-2" style={{
-                      fontFamily: linkInBio?.font || 'inherit'
-                    }}>Background Image:</label>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        className={`border rounded-lg p-1 ${!linkInBio?.bgImage ? "border-blue-500" : "border-gray-300"}`}
-                        onClick={() => {
-                          setLinkInBio({ ...linkInBio, bgImage: null });
-                          // Immediately clear background
-                          document.body.style.backgroundImage = 'none';
-                        }}
-                        style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                      >
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <div style={{ width: 40, height: 40, backgroundColor: '#f0f0f0', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', marginBottom: 4 }}>
-                            None
-                            </div>
+                {/* Background Image Selector */}
+                <div className="mb-3">
+                  <label className="mr-2" style={{
+                    fontFamily: linkInBio?.font || 'inherit'
+                  }}>Background Image:</label>
+                  <div className="flex gap-3 flex-wrap">
+                    <button
+                      type="button"
+                      className={`border rounded-lg p-2 ${!linkInBio?.bgImage ? "border-blue-500" : "border-gray-300"}`}
+                      onClick={() => {
+                        setLinkInBio({ ...linkInBio, bgImage: null });
+                        // Immediately clear background
+                        document.body.style.backgroundImage = 'none';
+                      }}
+                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div style={{ 
+                          width: 80, 
+                          height: 80, 
+                          backgroundColor: '#f0f0f0', 
+                          borderRadius: 8, 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          fontSize: '12px', 
+                          marginBottom: 4 
+                        }}>
+                          None
                         </div>
+                      </div>
+                    </button>
+                    {[
+                      "https://images.pexels.com/photos/7598077/pexels-photo-7598077.jpeg",
+                      "https://images.pexels.com/photos/7630061/pexels-photo-7630061.jpeg",
+                      "https://images.pexels.com/photos/6788581/pexels-photo-6788581.jpeg"
+                    ].map((img, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className={`border rounded-lg p-2 ${linkInBio?.bgImage === img ? "border-blue-500 border-2" : "border-gray-300"}`}
+                        onClick={() => {
+                          setLinkInBio({ ...linkInBio, bgImage: img });
+                          // Immediately apply background
+                          document.body.style.backgroundImage = `url(${img})`;
+                          document.body.style.backgroundSize = 'cover';
+                          document.body.style.backgroundPosition = 'center';
+                          document.body.style.backgroundRepeat = 'no-repeat';
+                          document.body.style.backgroundAttachment = 'fixed';
+                        }}
+                      >
+                        <img 
+                          src={img} 
+                          alt={`bg-${idx}`} 
+                          style={{ 
+                            width: 80, 
+                            height: 80, 
+                            objectFit: "cover", 
+                            borderRadius: 8 
+                          }} 
+                        />
                       </button>
-                      {[
-                        "https://images.pexels.com/photos/7598077/pexels-photo-7598077.jpeg",
-                        "https://images.pexels.com/photos/7630061/pexels-photo-7630061.jpeg",
-                        "https://images.pexels.com/photos/6788581/pexels-photo-6788581.jpeg"
-
-                      ].map((img, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          className={`border rounded-lg p-1 ${linkInBio?.bgImage === img ? "border-blue-500" : "border-gray-300"}`}
-                          onClick={() => {
-                            setLinkInBio({ ...linkInBio, bgImage: img });
-                            // Immediately apply background
-                            document.body.style.backgroundImage = `url(${img})`;
-                            document.body.style.backgroundSize = 'cover';
-                            document.body.style.backgroundPosition = 'center';
-                            document.body.style.backgroundRepeat = 'no-repeat';
-                            document.body.style.backgroundAttachment = 'fixed';
-                          }}
-                        >
-                          <img src={img} alt={`bg-${idx}`} style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 6 }} />
-                        </button>
-                      ))}
-                    </div>
+                    ))}
                   </div>
+                </div>
  </div>
               </>
              )}
@@ -706,176 +724,193 @@ useEffect(() => {
         Cancel
       </button>
 
-      {/* PRODUCT SELECTION SECTION - ONLY IN EDITING VIEW */}
-      {user?.hasAccess && user?.printifyShopId && (
-        <div className="mt-8 w-full border-t pt-6">
-          <h2 className="text-lg font-semibold mb-4" style={{
+     {/* PRODUCT SELECTION SECTION - ONLY IN EDITING VIEW */}
+    {user?.hasAccess && user?.printifyShopId && (
+      <div className="mt-8 w-full border-t pt-6">
+        <h2 className="text-lg font-semibold mb-4" style={{
+          fontFamily: linkInBio?.font || 'inherit'
+        }}>
+          🛍️ Select Products from Printify (Max 10)
+        </h2>
+        
+        {isLoadingProducts ? (
+          <div className="text-center py-8" style={{
             fontFamily: linkInBio?.font || 'inherit'
           }}>
-            🛍️ Select Products for Link in Bio (Max 6)
-          </h2>
-          
-          {isLoadingProducts ? (
-            <div className="text-center py-8" style={{
-              fontFamily: linkInBio?.font || 'inherit'
-            }}>
-              <div className="animate-pulse">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {[...Array(8)].map((_, i) => (
-                    <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
-                  ))}
-                </div>
-              </div>
-              <p className="mt-4 text-gray-600">Loading your products...</p>
+            <div className="animate-pulse">
+              <div className="h-64 bg-gray-200 rounded-lg"></div>
             </div>
-          ) : availableProducts.length > 0 ? (
-            <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-                {availableProducts.map((product: any) => (
-                  <div 
-                    key={product.id}
-                    className={`relative border rounded-lg overflow-hidden cursor-pointer transition-all hover:shadow-md ${
-                      selectedProductIds.includes(product.id) 
-                        ? 'border-blue-500 ring-2 ring-blue-200' 
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
-                    onClick={() => toggleProductSelection(product.id)}
-                    style={{
-                      backgroundColor: linkInBio?.cardBgColor || 'white'
-                    }}
-                  >
-                    {/* Selection Toggle Overlay */}
-                    <div className={`absolute top-2 right-2 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                      selectedProductIds.includes(product.id)
-                        ? 'bg-blue-500 border-blue-500'
-                        : 'bg-white border-gray-300'
-                    }`}>
-                      {selectedProductIds.includes(product.id) && (
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
-                        </svg>
-                      )}
-                    </div>
-
-                    {/* Product Image */}
-                    <div className="aspect-square bg-gray-100">
-                      {product.images && product.images[0] ? (
-                        <img
-                          src={product.images[0]}
-                          alt={product.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="text-center">
-                            <div className="text-gray-400 text-2xl mb-1">📦</div>
-                            <span className="text-xs text-gray-500" style={{
-                              fontFamily: linkInBio?.font || 'inherit'
-                            }}>
-                              No Image
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Product Info */}
-                    <div className="p-3">
-                      <h4 className="text-sm font-medium truncate mb-1" style={{
-                        fontFamily: linkInBio?.font || 'inherit'
-                      }}>
-                        {product.title}
-                      </h4>
-                      
-                      <div className="flex justify-between items-center">
-                        <p className="text-sm font-semibold text-green-600" style={{
-                          fontFamily: linkInBio?.font || 'inherit'
-                        }}>
-                          ${product.variants?.[0]?.price || 'N/A'}
-                        </p>
-                        
-                        {product.variants && product.variants.length > 1 && (
-                          <span className="text-xs text-gray-500" style={{
-                            fontFamily: linkInBio?.font || 'inherit'
-                          }}>
-                            {product.variants.length} variants
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Selected Badge */}
-                    {selectedProductIds.includes(product.id) && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-blue-500 text-white text-center py-1">
-                        <span className="text-xs font-semibold" style={{
-                          fontFamily: linkInBio?.font || 'inherit'
-                        }}>
-                          ✓ SELECTED
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              {/* Selection Summary and Actions */}
-              <div className="bg-gray-50 rounded-lg p-4 flex justify-between items-center">
-                <div>
-                  <span className="text-sm font-medium text-gray-700" style={{
+            <p className="mt-4 text-gray-600">Loading your products...</p>
+          </div>
+        ) : availableProducts.length > 0 ? (
+          <>
+            {/* Selection Summary */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-4 flex justify-between items-center">
+              <div>
+                <span className="text-sm font-medium text-gray-700" style={{
+                  fontFamily: linkInBio?.font || 'inherit'
+                }}>
+                  {selectedProductIds.length}/10 products selected
+                </span>
+                {selectedProductIds.length === 10 && (
+                  <p className="text-xs text-orange-600 mt-1" style={{
                     fontFamily: linkInBio?.font || 'inherit'
                   }}>
-                    {selectedProductIds.length}/5 products selected
-                  </span>
-                  {selectedProductIds.length === 5 && (
-                    <p className="text-xs text-orange-600 mt-1" style={{
-                      fontFamily: linkInBio?.font || 'inherit'
-                    }}>
-                      Maximum selection reached
-                    </p>
-                  )}
-                </div>
-                
-                <div className="flex gap-2">
-                  {selectedProductIds.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedProductIds([])}
-                      className="btn btn-alert btn-sm"
-                      style={{
-                        fontFamily: linkInBio?.font || 'inherit'
-                      }}
-                    >
-                      Clear All
-                    </button>
-                  )}
-                  
+                    Maximum selection reached
+                  </p>
+                )}
+              </div>
+              
+              <div className="flex gap-2">
+                {selectedProductIds.length > 0 && (
                   <button
                     type="button"
-                    onClick={saveSelectedProducts}
-                    className="btn btn-primary btn-sm"
-                    disabled={selectedProductIds.length === 0}
+                    onClick={() => setSelectedProductIds([])}
+                    className="btn btn-alert btn-sm"
                     style={{
                       fontFamily: linkInBio?.font || 'inherit'
                     }}
                   >
-                    Save Selection ({selectedProductIds.length})
+                    Clear All
                   </button>
-                </div>
+                )}
+                
+                <button
+                  type="button"
+                  onClick={saveSelectedProducts}
+                  className="btn btn-primary btn-sm"
+                  disabled={selectedProductIds.length === 0}
+                  style={{
+                    fontFamily: linkInBio?.font || 'inherit'
+                  }}
+                >
+                  Save Selection ({selectedProductIds.length})
+                </button>
               </div>
-            </>
-          ) : (
-            <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg" style={{
-              fontFamily: linkInBio?.font || 'inherit'
-            }}>
-              <div className="text-4xl text-gray-400 mb-2">🏪</div>
-              <h3 className="text-lg font-medium text-gray-700 mb-1">No Products Found</h3>
-              <p className="text-sm text-gray-500">
-                Make sure your Printify store has published products.
-              </p>
             </div>
-          )}
+
+         {/* Scrollable Products Table */}
+        <div className="border border-gray-300 rounded-lg overflow-hidden">
+          <div className="max-h-96 overflow-y-auto overflow-x-auto">
+            <table className="w-full min-w-full">
+              <thead className="bg-gray-50 sticky top-0 z-10">
+                <tr>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+                    ✓
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                    Img
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Product
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                    Price
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {availableProducts.map((product: any, index: number) => (
+                  <tr 
+                    key={product.id}
+                    className={`cursor-pointer transition-colors hover:bg-gray-50 ${
+                      selectedProductIds.includes(product.id) 
+                        ? 'bg-blue-50 border-l-4 border-blue-500' 
+                        : ''
+                    }`}
+                    onClick={() => toggleProductSelection(product.id)}
+                  >
+                    {/* Selection Checkbox */}
+                    <td className="px-2 py-2">
+                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                        selectedProductIds.includes(product.id)
+                          ? 'bg-blue-500 border-blue-500'
+                          : 'bg-white border-gray-300'
+                      }`}>
+                        {selectedProductIds.includes(product.id) && (
+                          <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                          </svg>
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Product Image */}
+                    <td className="px-2 py-2">
+                      <div className="w-10 h-10 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                        {product.images && product.images.length > 0 && product.images[0] ? (
+                          <img
+                            src={product.images[0]}
+                            alt={product.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              console.error('Image failed to load:', product.images[0]);
+                              e.currentTarget.src = `https://via.placeholder.com/40x40/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                            <span className="text-gray-400 text-xs">📦</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Product Name */}
+                    <td className="px-2 py-3">
+                      <div className="text-sm font-medium text-gray-900 max-w-[250px]" style={{
+                        fontFamily: linkInBio?.font || 'inherit',
+                        lineHeight: '1.3',
+                        wordWrap: 'break-word',
+                        whiteSpace: 'normal'
+                      }}>
+                        {product.title && product.title.length > 60 
+                          ? `${product.title.substring(0, 60)}...` 
+                          : product.title || 'Untitled Product'
+                        }
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1" style={{
+                        fontFamily: linkInBio?.font || 'inherit'
+                      }}>
+                        {product.variants?.length || 1} variant{(product.variants?.length || 1) > 1 ? 's' : ''}
+                      </div>
+                    </td>
+
+                    {/* Price */}
+                    <td className="px-2 py-2">
+                      <div className="text-sm font-semibold text-green-600" style={{
+                        fontFamily: linkInBio?.font || 'inherit'
+                      }}>
+                        ${product.variants?.[0]?.price || 'N/A'}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      )}
+
+          {/* Footer with product count */}
+          <div className="text-xs text-gray-500 mt-2 text-center" style={{
+            fontFamily: linkInBio?.font || 'inherit'
+          }}>
+            Showing {availableProducts.length} products • Scroll to see more
+          </div>
+          </>
+        ) : (
+          <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg" style={{
+            fontFamily: linkInBio?.font || 'inherit'
+          }}>
+            <div className="text-4xl text-gray-400 mb-2">🏪</div>
+            <h3 className="text-lg font-medium text-gray-700 mb-1">No Products Found</h3>
+            <p className="text-sm text-gray-500">
+              Make sure your Printify store has published products.
+            </p>
+          </div>
+        )}
+      </div>
+    )}
 
       </form>
       </div>

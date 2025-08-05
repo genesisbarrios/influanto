@@ -1,4 +1,3 @@
-// Replace your entire route.ts file with this fixed version:
 import { NextRequest, NextResponse } from 'next/server';
 import connectMongo from "@/libs/mongoose";
 import User from "@/models/User";
@@ -27,37 +26,48 @@ export async function GET(
 
     // Helper function to fix image URLs
     const fixImageUrl = (imageSrc: string | undefined, storeUrl: string): string => {
+      console.log(`🔧 fixImageUrl called with: "${imageSrc}"`);
+      
       if (!imageSrc) {
-        return 'https://via.placeholder.com/300x300/4ecdc4/ffffff?text=No+Image';
+        console.log(`❌ No image source provided, using fallback`);
+        return 'https://images.pexels.com/photos/3807781/pexels-photo-3807781.jpeg';
       }
 
       // If already a full URL, return as is
       if (imageSrc.startsWith('http://') || imageSrc.startsWith('https://')) {
+        console.log(`✅ Already full URL: ${imageSrc}`);
         return imageSrc;
       }
 
       // Handle protocol-relative URLs
       if (imageSrc.startsWith('//')) {
-        return 'https:' + imageSrc;
+        const result = 'https:' + imageSrc;
+        console.log(`🔧 Protocol-relative URL: ${imageSrc} -> ${result}`);
+        return result;
       }
 
       // Handle relative URLs
       if (imageSrc.startsWith('/')) {
         try {
           const baseUrl = new URL(storeUrl);
-          return baseUrl.origin + imageSrc;
+          const result = baseUrl.origin + imageSrc;
+          console.log(`🔧 Relative URL: ${imageSrc} -> ${result}`);
+          return result;
         } catch (error) {
-          console.error('Error parsing base URL:', error);
-          return 'https://via.placeholder.com/300x300/4ecdc4/ffffff?text=Invalid+URL';
+          console.error('❌ Error parsing base URL:', error);
+          return 'https://images.pexels.com/photos/3807781/pexels-photo-3807781.jpeg';
         }
       }
 
       // If it's just a filename or relative path
       try {
         const baseUrl = new URL(storeUrl);
-        return baseUrl.origin + '/' + imageSrc;
+        const result = baseUrl.origin + '/' + imageSrc;
+        console.log(`🔧 Filename URL: ${imageSrc} -> ${result}`);
+        return result;
       } catch (error) {
-        return 'https://via.placeholder.com/300x300/4ecdc4/ffffff?text=Invalid+Image';
+        console.error('❌ Error creating URL:', error);
+        return 'https://images.pexels.com/photos/3807781/pexels-photo-3807781.jpeg';
       }
     };
 
@@ -76,254 +86,212 @@ export async function GET(
     const html = await storeResponse.text();
     console.log('✅ Store HTML fetched, length:', html.length);
 
-    // Method 1: Try to extract from window.__INITIAL_STATE__
-    const initialStateMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*({.*?});/s);
-    
-    if (initialStateMatch) {
-      try {
-        const storeData = JSON.parse(initialStateMatch[1]);
-        console.log('✅ Found __INITIAL_STATE__');
-        
-        const products = storeData.products?.items || storeData.store?.products || [];
-        
-        if (products.length > 0) {
-          const transformedProducts = products.map((product: any) => {
-            // Fix images array
-            let productImages: string[] = [];
-            
-            if (product.images && Array.isArray(product.images)) {
-              productImages = product.images
-                .map((img: any) => {
-                  if (typeof img === 'string') {
-                    return fixImageUrl(img, user.printifyStoreUrl);
-                  } else if (img?.src) {
-                    return fixImageUrl(img.src, user.printifyStoreUrl);
-                  } else if (img?.url) {
-                    return fixImageUrl(img.url, user.printifyStoreUrl);
-                  }
-                  return null;
-                })
-                .filter(Boolean);
-            } else if (product.image) {
-              productImages = [fixImageUrl(product.image, user.printifyStoreUrl)];
-            }
+    // DEBUG: Let's see what we're working with
+    console.log('🔍 DEBUG: Searching for any img tags in entire HTML...');
+    const allImgsInHtml = html.match(/<img[^>]*>/gi) || [];
+    console.log(`🖼️ Total img tags found in entire HTML: ${allImgsInHtml.length}`);
 
-            // If no images found, use placeholder
-            if (productImages.length === 0) {
-              productImages = ['https://via.placeholder.com/300x300/ff6b6b/ffffff?text=' + encodeURIComponent(product.title || 'Product')];
-            }
-
-            return {
-              id: product.id?.toString() || Math.random().toString(),
-              title: product.title || product.name || 'Untitled Product',
-              description: product.description || '',
-              images: productImages,
-              variants: product.variants?.map((variant: any) => ({
-                id: variant.id?.toString() || Math.random().toString(),
-                price: variant.price ? (variant.price / 100).toFixed(2) : '25.99',
-                title: variant.title || 'Default',
-                sku: variant.sku || '',
-                available: variant.available !== false,
-              })) || [{
-                id: '1',
-                price: '25.99',
-                title: 'Default',
-                sku: 'DEFAULT',
-                available: true,
-              }],
-              tags: product.tags || [],
-              visible: true,
-              created_at: product.created_at || new Date().toISOString(),
-              updated_at: product.updated_at || new Date().toISOString(),
-            };
-          });
-
-          console.log('✅ Scraped products from __INITIAL_STATE__:', transformedProducts.length);
-          return NextResponse.json(transformedProducts);
-        }
-      } catch (parseError) {
-        console.error('❌ Failed to parse __INITIAL_STATE__:', parseError);
-      }
+    if (allImgsInHtml.length > 0) {
+      console.log('🔍 First 3 img tags from entire HTML:');
+      allImgsInHtml.slice(0, 3).forEach((img, idx) => {
+        // Decode HTML entities for easier reading
+        const decoded = img
+          .replace(/&amp;/g, '&')
+          .replace(/&quot;/g, '"')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>');
+        console.log(`  ${idx + 1}. ${decoded}`);
+      });
     }
 
-    // Method 2: Try to extract from script tags with JSON data
-    const scriptMatches = html.match(/<script[^>]*>(.*?)<\/script>/gs) || [];
-    
-    for (const scriptMatch of scriptMatches) {
-      const scriptContent = scriptMatch.replace(/<\/?script[^>]*>/g, '');
-      
-      // Look for product data patterns
-      const productDataMatch = scriptContent.match(/products["\']?\s*:\s*(\[.*?\])/s) ||
-                              scriptContent.match(/"products":\s*(\[.*?\])/s) ||
-                              scriptContent.match(/window\.products\s*=\s*(\[.*?\])/s);
-      
-      if (productDataMatch) {
-        try {
-          const products = JSON.parse(productDataMatch[1]);
-          
-          if (products.length > 0) {
-            const transformedProducts = products.map((product: any, index: number) => {
-              // Fix images for script method
-              let productImages: string[] = [];
-              
-              if (product.images && Array.isArray(product.images)) {
-                productImages = product.images
-                  .map((img: any) => fixImageUrl(typeof img === 'string' ? img : img?.src || img?.url, user.printifyStoreUrl))
-                  .filter(Boolean);
-              } else if (product.image) {
-                productImages = [fixImageUrl(product.image, user.printifyStoreUrl)];
-              }
-
-              // If no images found, use placeholder with product title
-              if (productImages.length === 0) {
-                const title = product.title || product.name || `Item ${index + 1}`;
-                productImages = [`https://via.placeholder.com/300x300/4ecdc4/ffffff?text=${encodeURIComponent(title)}`];
-              }
-
-              return {
-                id: product.id?.toString() || (index + 1).toString(),
-                title: product.title || product.name || '',
-                description: product.description || '',
-                images: productImages,
-                variants: [{
-                  id: '1',
-                  price: product.price ? (product.price / 100).toFixed(2) : '25.99',
-                  title: 'Default',
-                  sku: product.sku || `PROD-${index + 1}`,
-                  available: true,
-                }],
-                tags: product.tags || ['scraped'],
-                visible: true,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              };
-            })
-            .filter((product: any) => product.title && product.title.trim().length > 0);
-
-            console.log('✅ Scraped products from script tags:', transformedProducts.length);
-            
-            if (transformedProducts.length > 0) {
-              return NextResponse.json(transformedProducts);
-            }
-          }
-        } catch (parseError) {
-          console.error('❌ Failed to parse script products:', parseError);
-        }
-      }
+    // DEBUG: Let's also look for Printify CDN URLs directly in the HTML
+    console.log('🔍 DEBUG: Looking for Printify CDN URLs in entire HTML...');
+    const printifyImages = [...html.matchAll(/(https:\/\/images-api\.printify\.com\/[^\s"'<>]+\.(?:jpg|jpeg|png|gif|webp)(?:\?[^\s"'<>]*)?)/gi)];
+    console.log(`🖼️ Found ${printifyImages.length} Printify CDN URLs in HTML`);
+    if (printifyImages.length > 0) {
+      console.log('First few Printify URLs:');
+      printifyImages.slice(0, 3).forEach((match, idx) => {
+        console.log(`  ${idx + 1}. ${match[1]}`);
+      });
     }
 
-    // Method 3: Basic HTML parsing
+    // Simplified approach - find images first, then build products
     const parseProductsFromHTML = () => {
       const products: any[] = [];
       
-      // Look for product containers with more specific patterns
-      const productPatterns = [
-        /<div[^>]*class="[^"]*product[^"]*"[^>]*>(.*?)<\/div>/gis,
-        /<article[^>]*class="[^"]*product[^"]*"[^>]*>(.*?)<\/article>/gis,
-        /<li[^>]*class="[^"]*product[^"]*"[^>]*>(.*?)<\/li>/gis
-      ];
+      console.log('🔍 Starting simplified image-first approach...');
       
-      let allMatches: RegExpMatchArray[] = [];
+      // First, let's find ALL Printify CDN images in the entire HTML
+      console.log('🔍 Searching for Printify CDN images in entire HTML...');
       
-      productPatterns.forEach(pattern => {
-        const matches = Array.from(html.matchAll(pattern));
-        allMatches = allMatches.concat(matches);
-      });
+      // Decode HTML entities in the entire HTML first
+      const decodedHtml = html
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'");
       
-      allMatches.forEach((match, index) => {
-        const productHtml = match[1];
+      // Look for Printify CDN URLs
+      const printifyImagePattern = /(https:\/\/images-api\.printify\.com\/[^\s"'<>(){}[\]]+\.(?:jpg|jpeg|png|gif|webp|svg)(?:\?[^\s"'<>(){}[\]]*)?)/gi;
+      const allPrintifyImages = [...decodedHtml.matchAll(printifyImagePattern)];
+      
+      console.log(`🖼️ Found ${allPrintifyImages.length} Printify CDN images in entire HTML`);
+      
+      if (allPrintifyImages.length === 0) {
+        console.log('❌ No Printify CDN images found, trying any image URLs...');
         
-        // Extract title with better patterns
+        // Fallback: look for ANY image URLs
+        const anyImagePattern = /(https?:\/\/[^\s"'<>(){}[\]]+\.(?:jpg|jpeg|png|gif|webp|svg)(?:\?[^\s"'<>(){}[\]]*)?)/gi;
+        const allImages = [...decodedHtml.matchAll(anyImagePattern)];
+        console.log(`🖼️ Found ${allImages.length} total image URLs in HTML`);
+        
+        if (allImages.length === 0) {
+          console.log('❌ No images found at all in HTML');
+          return [];
+        }
+        
+        // Use the first few non-logo images
+        const validImages = allImages
+          .map(match => match[1])
+          .filter(url => 
+            !url.includes('logo') && 
+            !url.includes('icon') && 
+            !url.includes('favicon') &&
+            url.length > 20
+          )
+          .slice(0, 50);
+        
+        console.log(`🖼️ Using ${validImages.length} valid images:`, validImages);
+        
+        validImages.forEach((imageUrl, index) => {
+          const product = {
+            id: (index + 1).toString(),
+            title: `Product ${index + 1}`,
+            description: `Product from ${user.printifyStoreUrl}`,
+            images: [imageUrl],
+            variants: [{
+              id: '1',
+              price: '25.99',
+              title: 'Default',
+              sku: `IMG-${index + 1}`,
+              available: true,
+            }],
+            tags: ['image-scraped'],
+            visible: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          
+          console.log(`➕ Adding product: "${product.title}" with image: ${imageUrl}`);
+          products.push(product);
+        });
+        
+        return products;
+      }
+      
+      // Process each Printify image
+      allPrintifyImages.forEach((imageMatch, index) => {
+        const imageUrl = imageMatch[1];
+        const imageIndex = imageMatch.index || 0;
+        
+        console.log(`🔍 Processing Printify image ${index + 1}: ${imageUrl}`);
+        
+        // Get context around this image to find title/price
+        const contextStart = Math.max(0, imageIndex - 1000);
+        const contextEnd = Math.min(decodedHtml.length, imageIndex + 1000);
+        const context = decodedHtml.slice(contextStart, contextEnd);
+        
+        // Try to find a product title in this context
         const titlePatterns = [
-          /<h[1-6][^>]*>(.*?)<\/h[1-6]>/i,
-          /class="[^"]*title[^"]*"[^>]*>(.*?)<\/[^>]+>/i,
-          /class="[^"]*name[^"]*"[^>]*>(.*?)<\/[^>]+>/i,
-          /<a[^>]*title="([^"]*)"[^>]*>/i
+          /title="([^"]{5,80})"/i,
+          /alt="([^"]{5,80})"/i,
+          /<h[1-6][^>]*>([^<]{5,80})<\/h[1-6]>/i,
+          /class="[^"]*title[^"]*"[^>]*>([^<]{5,80})</i,
+          /class="[^"]*name[^"]*"[^>]*>([^<]{5,80})</i
         ];
         
         let title = '';
         for (const pattern of titlePatterns) {
-          const titleMatch = productHtml.match(pattern);
-          if (titleMatch) {
-            title = titleMatch[1].replace(/<[^>]+>/g, '').trim();
-            if (title && title.length > 2 && !title.toLowerCase().includes('product')) {
+          const titleMatch = context.match(pattern);
+          if (titleMatch && titleMatch[1]) {
+            const potentialTitle = titleMatch[1].trim();
+            // Filter out generic text
+            if (!potentialTitle.toLowerCase().includes('image') &&
+                !potentialTitle.toLowerCase().includes('loading') &&
+                !potentialTitle.toLowerCase().includes('error') &&
+                potentialTitle.length > 5 && 
+                potentialTitle.length < 80) {
+              title = potentialTitle;
               break;
             }
-            title = '';
           }
         }
         
-        // Skip if no real title found
-        if (!title || title.length < 3) {
-          return;
+        // If no good title found, extract from image URL
+        if (!title) {
+          const urlParts = imageUrl.split('/');
+          const filename = urlParts[urlParts.length - 1];
+          title = filename
+            .replace(/\.(jpg|jpeg|png|gif|webp|svg).*$/i, '')
+            .replace(/[-_]/g, ' ')
+            .replace(/\b\w/g, l => l.toUpperCase())
+            .substring(0, 50) || `Product ${index + 1}`;
         }
         
-        // Extract price with better patterns
-        const pricePatterns = [
-          /\$(\d+\.?\d*)/,
-          /price[^>]*>.*?\$(\d+\.?\d*)/i,
-          /(\d+\.?\d*)\s*USD/i
-        ];
-        
+        // Try to find price in context
         let price = '25.99';
-        for (const pattern of pricePatterns) {
-          const priceMatch = productHtml.match(pattern);
-          if (priceMatch) {
-            price = priceMatch[1];
-            break;
-          }
-        }
-        
-        // Extract image with multiple patterns
-        const imagePatterns = [
-          /<img[^>]*src=["']([^"']+)["'][^>]*>/i,
-          /<img[^>]*data-src=["']([^"']+)["'][^>]*>/i,
-          /background-image:\s*url\(['"]?([^'"]+)['"]?\)/i
+        const pricePatterns = [
+          /\$(\d+\.?\d{0,2})/,
+          /(\d+\.?\d{0,2})\s*USD/i,
+          /price[^>]*>.*?\$(\d+\.?\d{0,2})/i
         ];
         
-        let imageSrc = '';
-        for (const pattern of imagePatterns) {
-          const imageMatch = productHtml.match(pattern);
-          if (imageMatch && imageMatch[1]) {
-            imageSrc = imageMatch[1];
-            break;
+        for (const pattern of pricePatterns) {
+          const priceMatch = context.match(pattern);
+          if (priceMatch && priceMatch[1]) {
+            const foundPrice = parseFloat(priceMatch[1]);
+            if (foundPrice > 0 && foundPrice < 1000) {
+              price = foundPrice.toFixed(2);
+              break;
+            }
           }
         }
         
-        const image = imageSrc ? 
-          fixImageUrl(imageSrc, user.printifyStoreUrl) : 
-          `https://via.placeholder.com/300x300/45b7d1/ffffff?text=${encodeURIComponent(title)}`;
-        
-        products.push({
+        const product = {
           id: (index + 1).toString(),
           title: title,
           description: `Product from ${user.printifyStoreUrl}`,
-          images: [image],
+          images: [imageUrl],
           variants: [{
             id: '1',
             price: price,
             title: 'Default',
-            sku: `HTML-${index + 1}`,
+            sku: `PRINTIFY-${index + 1}`,
             available: true,
           }],
-          tags: ['html-scraped'],
+          tags: ['printify-scraped'],
           visible: true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        });
+        };
+        
+        console.log(`➕ Adding product: "${title}" with image: ${imageUrl}`);
+        products.push(product);
       });
       
-      return products.slice(0, 10); // Limit to first 10 products
+      console.log(`📦 Total products created from images: ${products.length}`);
+      return products.slice(0, 50); // Limit to 50 products
     };
 
     const htmlProducts = parseProductsFromHTML();
     if (htmlProducts.length > 0) {
-      console.log('✅ Scraped products from HTML patterns:', htmlProducts.length);
+      console.log('✅ Scraped products from image-first approach:', htmlProducts.length);
       return NextResponse.json(htmlProducts);
     }
 
     // If still no products found, return empty array
-    console.log('📦 No products found via scraping');
+    console.log('📦 No products found via image-first scraping');
     return NextResponse.json([]);
 
   } catch (error) {
