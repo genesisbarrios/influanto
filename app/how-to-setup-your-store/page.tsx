@@ -63,7 +63,7 @@ const TOS = () => {
               />
             </li>
             <li>
-              To create your store, login to Printify and on the Dashboard Click on the menu (usually top-left) and select "Add a new store". 
+              To create your store, login to Printify and on the Dashboard Click on the menu (usually top-left) and select &quot;Add a new store&quot;. 
               <img
                 src="/printify-add-store.png"
                 alt="Create Store Printify"
@@ -71,7 +71,7 @@ const TOS = () => {
               />
             </li>
             <li>
-              Choose Sales Channel: Select the desired sales channel from the available options, and choose "API" for direct integration with Influanto. 
+              Choose Sales Channel: Select the desired sales channel from the available options, and choose &quot;API&quot; for direct integration with Influanto. 
               <img
                 src="/printify-sales-channel.png"
                 alt="Sales Channel Printify"
@@ -98,7 +98,7 @@ const TOS = () => {
           <p style={{marginTop:"10%"}}>Thank you for using influanto!</p>
           <div style={{textAlign:"center", margin:"10% 0" }}><ButtonGetInfluanto /></div>
           <p>
-            For any questions or concerns, please contact us at{" "}
+            For any questions or concerns, please contact us at 
             <a href="mailto:info@influanto.com" className="text-blue-500">
               info@influanto.com
             </a>.

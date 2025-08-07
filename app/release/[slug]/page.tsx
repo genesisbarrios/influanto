@@ -10,7 +10,7 @@ import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGlobe, faLocation, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { faGlobe, faLocation, faEnvelope, faShoppingBag } from "@fortawesome/free-solid-svg-icons";
 import { set } from "mongoose";
 import config from "@/config";
 import { getSEOTags } from "@/libs/seo";
@@ -57,6 +57,10 @@ const ReleasePageView =  () => {
   const [releasePage, setReleasePage] = useState<any>();
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
+
+  // Add merch-related states
+  const [merchProducts, setMerchProducts] = useState<any[]>([]);
+  const [isLoadingMerch, setIsLoadingMerch] = useState(false);
   
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -68,54 +72,117 @@ const ReleasePageView =  () => {
     console.log(slug);
   }, [pathname, searchParams, userName])
 
-  const getReleasePage = async () => {
-    if (slug) {
-      try {
-        const response = await apiClient.get(`/release/${slug}`);
-        const data = response.data;
+// Function to fetch merch products
+const fetchMerchProducts = async (userId: string, selectedProductIds: string[]) => {
+  if (!selectedProductIds || selectedProductIds.length === 0) {
+    console.log('🚫 No selected products to fetch');
+    setMerchProducts([]);
+    return;
+  }
+
+  console.log('🛍️ Fetching merch products for release page...');
+  console.log('👤 User ID:', userId);
+  console.log('🆔 Selected Product IDs:', selectedProductIds);
+  setIsLoadingMerch(true);
   
-        console.log(data);
+  try {
+    const url = `/api/products/${userId}`;
+    console.log('📞 Fetching products from:', url);
+    
+    const response = await fetch(url);
+    
+    if (response.ok) {
+      const allProducts = await response.json();
+      console.log('✅ All products received:', allProducts);
+      console.log('📊 Total products count:', allProducts.length);
+      
+      // Filter products based on selectedProductIds
+      const filteredProducts = allProducts.filter((product: any) => {
+        const isSelected = selectedProductIds.includes(product.id);
+        console.log(`🔍 Product ${product.id} (${product.title}): ${isSelected ? 'SELECTED' : 'not selected'}`);
+        return isSelected;
+      });
+      
+      console.log('✅ Filtered merch products:', filteredProducts);
+      console.log('📊 Filtered products count:', filteredProducts.length);
+      setMerchProducts(filteredProducts);
+    } else {
+      const errorText = await response.text();
+      console.error('❌ Error response:', response.status, errorText);
+      setMerchProducts([]);
+    }
+  } catch (error) {
+    console.error('❌ Network error:', error);
+    setMerchProducts([]);
+  } finally {
+    setIsLoadingMerch(false);
+  }
+};
 
-        // Ensure all properties are being set
-        setInstagram(data.user.instagram || "");
-        setTwitter(data.user.twitter || "");
-        setFacebook(data.user.facebook || "");
-        setLinkedIn(data.user.linkedin || "");
-        setYouTube(data.user.youtube || "");
-        setTikTok(data.user.tiktok || "");
-        setGithub(data.user.github || "");
-        setPatreon(data.user.patreon || "");
-        setSubstack(data.user.substack || "");
-        setTelegram(data.user.telegram || "");
-        setEtsy(data.user.etsy || "");
-        setSpotify(data.user.spotify || "");
-        setAppleMusic(data.user.appleMusic || "");
-        setTidal(data.user.tidal || "");
-        setAmazonMusic(data.user.amazonMusic || "");
-        setSoundCloud(data.user.soundcloud || "");
-        setDeezer(data.user.deezer || "");
-        setPandora(data.user.pandora || "");
-        setYouTubeMusic(data.user.youtubeMusic || "");
-        setBandcamp(data.user.bandcamp || "");
-        setSoundxyz(data.user.soundxyz || "");
+  // Replace the getReleasePage function with this enhanced version:
 
-        setAvatarImage(data.user.image);
-        setFormName(data.user.name);
-        setFormEmail(data.user.email);
-        setDisplayEmail(data.user.displayEmail);
-        setLocation(data.user.location);
-        setWebsite(data.user.website);
-        setBio(data.user.bio);
-        setUser(data.user);
-        setBgColor(data.releasePage?.bgColor);
-        setTextColor(data.releasePage?.textColor);
-        setLinksColor(data.releasePage?.linksColor);
-        setReleasePage(data.releasePage);
-      } catch (e) {
-        setAlertt(e?.message);
+const getReleasePage = async () => {
+  if (slug) {
+    try {
+      const response = await apiClient.get(`/release/${slug}`);
+      const data = response.data;
+
+      // Ensure all properties are being set
+      setInstagram(data.user.instagram || "");
+      setTwitter(data.user.twitter || "");
+      setFacebook(data.user.facebook || "");
+      setLinkedIn(data.user.linkedin || "");
+      setYouTube(data.user.youtube || "");
+      setTikTok(data.user.tiktok || "");
+      setGithub(data.user.github || "");
+      setPatreon(data.user.patreon || "");
+      setSubstack(data.user.substack || "");
+      setTelegram(data.user.telegram || "");
+      setEtsy(data.user.etsy || "");
+      setSpotify(data.user.spotify || "");
+      setAppleMusic(data.user.appleMusic || "");
+      setTidal(data.user.tidal || "");
+      setAmazonMusic(data.user.amazonMusic || "");
+      setSoundCloud(data.user.soundcloud || "");
+      setDeezer(data.user.deezer || "");
+      setPandora(data.user.pandora || "");
+      setYouTubeMusic(data.user.youtubeMusic || "");
+      setBandcamp(data.user.bandcamp || "");
+      setSoundxyz(data.user.soundxyz || "");
+
+      setAvatarImage(data.user.image);
+      setFormName(data.user.name);
+      setFormEmail(data.user.email);
+      setDisplayEmail(data.user.displayEmail);
+      setLocation(data.user.location);
+      setWebsite(data.user.website);
+      setBio(data.user.bio);
+      setUser(data.user);
+      setBgColor(data.releasePage?.bgColor);
+      setTextColor(data.releasePage?.textColor);
+      setLinksColor(data.releasePage?.linksColor);
+      setReleasePage(data.releasePage);
+
+      // Fetch merch products if there are selectedProducts
+      if (data.releasePage?.selectedProducts && data.releasePage.selectedProducts.length > 0) {
+        console.log('🛍️ Release page has selected products:', data.releasePage.selectedProducts);
+        
+        // Check if we have a valid user ID
+        if (data.user?.id) {
+          console.log('✅ Valid user ID found, fetching products...');
+          await fetchMerchProducts(data.user.id, data.releasePage.selectedProducts);
+        } else {
+          console.error('❌ No valid user ID found:', user);
+        }
+      } else {
+        console.log('🚫 No selected products found');
       }
+    } catch (e) {
+      console.error('❌ Error in getReleasePage:', e);
+      setAlertt(e?.message);
     }
   }
+}
 
   function isYouTubeLinkCheck(url: string): boolean {
     const youtubeRegex = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$/;
@@ -188,6 +255,126 @@ const ReleasePageView =  () => {
     }
   }
 
+  // Render merch section
+  const renderMerchSection = () => {
+    if (!releasePage?.selectedProducts || releasePage.selectedProducts.length === 0) {
+      return null;
+    }
+
+    return (
+      <div style={{ 
+        marginTop: "40px", 
+        marginBottom: "40px",
+        width: "100%",
+        maxWidth: window.innerWidth <= 768 ? "80%" : "60%",
+        margin: "40px auto"
+      }}>
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center", 
+          marginBottom: "20px" 
+        }}>
+          <h3 style={{ 
+            color: textColor || "white", 
+            margin: 0, 
+            fontSize: "18px", 
+            fontWeight: "bold" 
+          }}>
+            Merch
+          </h3>
+        </div>
+
+        {isLoadingMerch ? (
+          <div style={{ 
+            textAlign: "center", 
+            color: textColor || "white", 
+            padding: "20px" 
+          }}>
+            Loading merch...
+          </div>
+        ) : merchProducts.length === 0 ? (
+          <div style={{ 
+            textAlign: "center", 
+            color: textColor || "white", 
+            padding: "20px" 
+          }}>
+            No merch available
+          </div>
+        ) : (
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: window.innerWidth <= 768 ? "1fr 1fr" : "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: "20px",
+            padding: "0 20px"
+          }}>
+            {merchProducts.map((product: any) => (
+              <div
+                key={product.id}
+                style={{
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  borderRadius: "10px",
+                  padding: "15px",
+                  textAlign: "center",
+                  border: `1px solid ${linksColor || "white"}20`,
+                  transition: "transform 0.2s ease",
+                  cursor: "pointer"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.05)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                }}
+                onClick={() => {
+                  if (product.url) {
+                    window.open(product.url, '_blank');
+                  }
+                }}
+              >
+                {product.images && product.images[0] && (
+                  <img
+                    src={product.images[0]}
+                    alt={product.title}
+                    style={{
+                      width: "100%",
+                      height: "150px",
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                      marginBottom: "10px"
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://via.placeholder.com/150x150/4ecdc4/ffffff?text=Merch';
+                    }}
+                  />
+                )}
+                
+                <div style={{
+                  color: textColor || "white",
+                  fontSize: "14px",
+                  fontWeight: "bold",
+                  marginBottom: "5px",
+                  lineHeight: "1.2"
+                }}>
+                  {product.title || 'Untitled Product'}
+                </div>
+                
+                <div style={{
+                  color: linksColor || "white",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  marginBottom: "10px"
+                }}>
+                  ${product.variants?.[0]?.price || product.price || 'N/A'}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   useEffect(() => {
     getReleasePage();
   }, []);
@@ -244,8 +431,8 @@ const ReleasePageView =  () => {
             onError={(e) => (e.currentTarget.src = fallbackImageUrl)}
             style={{
               borderRadius: "15px",
-              width: "100px",
-              height: "100px",
+              width: "200px",
+              height: "auto",
               display: "inline",
               marginBottom: "2%",
             }}
@@ -337,6 +524,9 @@ const ReleasePageView =  () => {
                 );
               })}
           </div>
+
+          {/* Merch Section */}
+          {renderMerchSection()}
 
           {/* User Social Icons */}
           <div

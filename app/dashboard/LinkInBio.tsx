@@ -773,7 +773,7 @@ useEffect(() => {
           </div>
         </div>
 
-         {/* PRODUCT SELECTION SECTION - ONLY IN EDITING VIEW */}
+    {/* PRODUCT SELECTION SECTION - ONLY IN EDITING VIEW */}
     {user?.hasAccess && user?.printifyShopId && (
       <div className="mt-8 w-full border-t pt-6">
         <h2 className="text-lg font-semibold mb-4" style={{
@@ -830,22 +830,6 @@ useEffect(() => {
         <div className="border border-gray-300 rounded-lg overflow-hidden">
           <div className="max-h-96 overflow-y-auto overflow-x-auto">
             <table className="w-full min-w-full">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
-                    ✓
-                  </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                    Img
-                  </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                    Price
-                  </th>
-                </tr>
-              </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {availableProducts.map((product: any, index: number) => (
                   <tr 

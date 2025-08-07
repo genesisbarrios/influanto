@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { userId } = params;
 
-    console.log('🔍 Products API called for userId:', userId);
+    //console.log('🔍 Products API called for userId:', userId);
 
     if (!userId) {
       return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
@@ -24,7 +24,7 @@ export async function GET(
 
     // First, try to get products from Printify API if user has access
     if (user.printifyAccessToken && user.printifyShopId) {
-      console.log('🔍 Fetching products from Printify API...');
+      //console.log('🔍 Fetching products from Printify API...');
       try {
         const printifyResponse = await fetch(`https://api.printify.com/v1/shops/${user.printifyShopId}/products.json`, {
           headers: {
@@ -35,7 +35,7 @@ export async function GET(
 
         if (printifyResponse.ok) {
           const printifyData = await printifyResponse.json();
-          console.log('✅ Printify API products fetched:', printifyData.data?.length || 0);
+          //console.log('✅ Printify API products fetched:', printifyData.data?.length || 0);
 
           // Transform the data to include the actual URLs
           const productsWithUrls = printifyData.data?.map((product: any) => {
@@ -72,7 +72,7 @@ export async function GET(
           }) || [];
 
           if (productsWithUrls.length > 0) {
-            console.log('✅ Returning Printify API products with URLs');
+           // console.log('✅ Returning Printify API products with URLs');
             return NextResponse.json(productsWithUrls);
           }
         } else {
@@ -88,27 +88,27 @@ export async function GET(
       return NextResponse.json({ error: 'No store URL found for user' }, { status: 404 });
     }
 
-    console.log('🔍 Falling back to scraping user store:', user.printifyStoreUrl);
+    //console.log('🔍 Falling back to scraping user store:', user.printifyStoreUrl);
 
     // Helper function to fix image URLs
     const fixImageUrl = (imageSrc: string | undefined, storeUrl: string): string => {
-      console.log(`🔧 fixImageUrl called with: "${imageSrc}"`);
+      //console.log(`🔧 fixImageUrl called with: "${imageSrc}"`);
       
       if (!imageSrc) {
-        console.log(`❌ No image source provided, using fallback`);
+        //console.log(`❌ No image source provided, using fallback`);
         return 'https://images.pexels.com/photos/3807781/pexels-photo-3807781.jpeg';
       }
 
       // If already a full URL, return as is
       if (imageSrc.startsWith('http://') || imageSrc.startsWith('https://')) {
-        console.log(`✅ Already full URL: ${imageSrc}`);
+        //console.log(`✅ Already full URL: ${imageSrc}`);
         return imageSrc;
       }
 
       // Handle protocol-relative URLs
       if (imageSrc.startsWith('//')) {
         const result = 'https:' + imageSrc;
-        console.log(`🔧 Protocol-relative URL: ${imageSrc} -> ${result}`);
+        //console.log(`🔧 Protocol-relative URL: ${imageSrc} -> ${result}`);
         return result;
       }
 
@@ -117,7 +117,7 @@ export async function GET(
         try {
           const baseUrl = new URL(storeUrl);
           const result = baseUrl.origin + imageSrc;
-          console.log(`🔧 Relative URL: ${imageSrc} -> ${result}`);
+          //console.log(`🔧 Relative URL: ${imageSrc} -> ${result}`);
           return result;
         } catch (error) {
           console.error('❌ Error parsing base URL:', error);
@@ -129,7 +129,7 @@ export async function GET(
       try {
         const baseUrl = new URL(storeUrl);
         const result = baseUrl.origin + '/' + imageSrc;
-        console.log(`🔧 Filename URL: ${imageSrc} -> ${result}`);
+        //console.log(`🔧 Filename URL: ${imageSrc} -> ${result}`);
         return result;
       } catch (error) {
         console.error('❌ Error creating URL:', error);
@@ -145,12 +145,12 @@ export async function GET(
     });
     
     if (!storeResponse.ok) {
-      console.error('❌ Failed to fetch store:', storeResponse.status);
+      //console.error('❌ Failed to fetch store:', storeResponse.status);
       return NextResponse.json({ error: 'Failed to fetch store' }, { status: 500 });
     }
 
     const html = await storeResponse.text();
-    console.log('✅ Store HTML fetched, length:', html.length);
+    //console.log('✅ Store HTML fetched, length:', html.length);
 
     // Simplified approach - find images first, then build products
     // Replace the parseProductsFromHTML function with this updated version:
@@ -158,7 +158,7 @@ export async function GET(
   const parseProductsFromHTML = () => {
     const products: any[] = [];
     
-    console.log('🔍 Starting URL extraction approach...');
+    //console.log('🔍 Starting URL extraction approach...');
     
     // Decode HTML entities in the entire HTML first
     const decodedHtml = html
@@ -210,10 +210,10 @@ export async function GET(
       });
     });
     
-    console.log(`🔗 Found ${allProductLinks.size} potential product URLs`);
+   // console.log(`🔗 Found ${allProductLinks.size} potential product URLs`);
     
     if (allProductLinks.size === 0) {
-      console.log('❌ No product URLs found, trying to find product sections...');
+     // console.log('❌ No product URLs found, trying to find product sections...');
       
       // Fallback: Look for sections that might contain products
       const productSectionPatterns = [
@@ -247,13 +247,13 @@ export async function GET(
       });
     }
     
-    console.log(`🔗 Total unique product URLs after fallback: ${allProductLinks.size}`);
+    //console.log(`🔗 Total unique product URLs after fallback: ${allProductLinks.size}`);
     
     // Now find images and match them with URLs
     const printifyImagePattern = /(https:\/\/images-api\.printify\.com\/[^\s"'<>(){}[\]]+\.(?:jpg|jpeg|png|gif|webp|svg)(?:\?[^\s"'<>(){}[\]]*)?)/gi;
     const allPrintifyImages = [...decodedHtml.matchAll(printifyImagePattern)];
     
-    console.log(`🖼️ Found ${allPrintifyImages.length} Printify CDN images`);
+    //console.log(`🖼️ Found ${allPrintifyImages.length} Printify CDN images`);
     
     // Convert URLs to array for easier processing
     const productUrlsArray = Array.from(allProductLinks);
@@ -264,7 +264,7 @@ export async function GET(
         const imageUrl = imageMatch[1];
         const imageIndex = imageMatch.index || 0;
         
-        console.log(`🔍 Processing Printify image ${index + 1}: ${imageUrl.substring(0, 100)}...`);
+        //console.log(`🔍 Processing Printify image ${index + 1}: ${imageUrl.substring(0, 100)}...`);
         
         // Get context around this image to find the associated link
         const contextStart = Math.max(0, imageIndex - 2000);
@@ -375,12 +375,12 @@ export async function GET(
           updated_at: new Date().toISOString(),
         };
         
-        console.log(`➕ Adding product: "${title}" with URL: ${productUrl || 'fallback URL'}`);
+        //console.log(`➕ Adding product: "${title}" with URL: ${productUrl || 'fallback URL'}`);
         products.push(product);
       });
     } else {
       // No Printify images, just create products from URLs
-      console.log('❌ No Printify images found, creating products from URLs only');
+      //console.log('❌ No Printify images found, creating products from URLs only');
       
       productUrlsArray.slice(0, 20).forEach((url, index) => {
         const product = {
@@ -402,27 +402,27 @@ export async function GET(
           updated_at: new Date().toISOString(),
         };
         
-        console.log(`➕ Adding URL-only product: "${product.title}" with URL: ${url}`);
+        //console.log(`➕ Adding URL-only product: "${product.title}" with URL: ${url}`);
         products.push(product);
       });
     }
-    
-    console.log(`📦 Total products created: ${products.length}`);
+
+    //console.log(`📦 Total products created: ${products.length}`);
     return products.slice(0, 50); // Limit to 50 products
   };
 
     const htmlProducts = parseProductsFromHTML();
     if (htmlProducts.length > 0) {
-      console.log('✅ Scraped products from image-first approach:', htmlProducts.length);
+      //console.log('✅ Scraped products from image-first approach:', htmlProducts.length);
       return NextResponse.json(htmlProducts);
     }
 
     // If still no products found, return empty array
-    console.log('📦 No products found via scraping');
+    //console.log('📦 No products found via scraping');
     return NextResponse.json([]);
 
   } catch (error) {
-    console.error('❌ Store scraping error:', error);
+    //console.error('❌ Store scraping error:', error);
     return NextResponse.json({ 
       error: 'Failed to fetch products',
       details: error instanceof Error ? error.message : 'Unknown error'
