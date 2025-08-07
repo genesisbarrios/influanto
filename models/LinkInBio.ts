@@ -28,6 +28,16 @@ const linkInBioSchema = new mongoose.Schema(
     bgImage: {
       type: String,
     },
+    selectedProducts: {
+      type: [String], // Fixed: Changed from [{ type: number }] to [String]
+      default: [],
+      validate: {
+        validator: function(v:any) {
+          return v.length <= 10; // Limit to 10 products
+        },
+        message: 'Cannot select more than 10 products'
+      }
+    },
     links: [
       {
         url: {

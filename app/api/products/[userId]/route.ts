@@ -18,11 +18,77 @@ export async function GET(
     await connectMongo();
     const user = await User.findById(userId);
     
-    if (!user?.printifyStoreUrl) {
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // First, try to get products from Printify API if user has access
+    if (user.printifyAccessToken && user.printifyShopId) {
+      console.log('🔍 Fetching products from Printify API...');
+      try {
+        const printifyResponse = await fetch(`https://api.printify.com/v1/shops/${user.printifyShopId}/products.json`, {
+          headers: {
+            'Authorization': `Bearer ${user.printifyAccessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (printifyResponse.ok) {
+          const printifyData = await printifyResponse.json();
+          console.log('✅ Printify API products fetched:', printifyData.data?.length || 0);
+
+          // Transform the data to include the actual URLs
+          const productsWithUrls = printifyData.data?.map((product: any) => {
+            // Construct the actual Printify shop URL
+            let productUrl = '#';
+            
+            if (user.printifyShopUrl) {
+              // If user has custom shop URL
+              productUrl = `${user.printifyShopUrl}/products/${product.id}`;
+            } else if (user.printifyStoreUrl) {
+              // If user has store URL, use that
+              productUrl = `${user.printifyStoreUrl}/products/${product.id}`;
+            } else {
+              // Default Printify shop URL pattern
+              productUrl = `https://${user.printifyShopId}.printify.me/products/${product.id}`;
+            }
+
+            return {
+              id: product.id,
+              title: product.title,
+              description: product.description,
+              images: product.images?.map((img: any) => img.src) || [],
+              variants: product.variants?.map((variant: any) => ({
+                id: variant.id,
+                price: (variant.price / 100).toFixed(2), // Convert cents to dollars
+                title: variant.title
+              })) || [],
+              url: productUrl, // The actual shop URL
+              printifyId: product.id,
+              tags: product.tags || [],
+              visible: product.visible,
+              created_at: product.created_at
+            };
+          }) || [];
+
+          if (productsWithUrls.length > 0) {
+            console.log('✅ Returning Printify API products with URLs');
+            return NextResponse.json(productsWithUrls);
+          }
+        } else {
+          console.log('❌ Printify API failed, falling back to scraping...');
+        }
+      } catch (printifyError) {
+        console.error('❌ Printify API error, falling back to scraping:', printifyError);
+      }
+    }
+
+    // Fallback to scraping if no Printify API access or if it failed
+    if (!user.printifyStoreUrl) {
       return NextResponse.json({ error: 'No store URL found for user' }, { status: 404 });
     }
 
-    console.log('🔍 Scraping user store:', user.printifyStoreUrl);
+    console.log('🔍 Falling back to scraping user store:', user.printifyStoreUrl);
 
     // Helper function to fix image URLs
     const fixImageUrl = (imageSrc: string | undefined, storeUrl: string): string => {
@@ -86,129 +152,161 @@ export async function GET(
     const html = await storeResponse.text();
     console.log('✅ Store HTML fetched, length:', html.length);
 
-    // DEBUG: Let's see what we're working with
-    console.log('🔍 DEBUG: Searching for any img tags in entire HTML...');
-    const allImgsInHtml = html.match(/<img[^>]*>/gi) || [];
-    console.log(`🖼️ Total img tags found in entire HTML: ${allImgsInHtml.length}`);
-
-    if (allImgsInHtml.length > 0) {
-      console.log('🔍 First 3 img tags from entire HTML:');
-      allImgsInHtml.slice(0, 3).forEach((img, idx) => {
-        // Decode HTML entities for easier reading
-        const decoded = img
-          .replace(/&amp;/g, '&')
-          .replace(/&quot;/g, '"')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>');
-        console.log(`  ${idx + 1}. ${decoded}`);
-      });
-    }
-
-    // DEBUG: Let's also look for Printify CDN URLs directly in the HTML
-    console.log('🔍 DEBUG: Looking for Printify CDN URLs in entire HTML...');
-    const printifyImages = [...html.matchAll(/(https:\/\/images-api\.printify\.com\/[^\s"'<>]+\.(?:jpg|jpeg|png|gif|webp)(?:\?[^\s"'<>]*)?)/gi)];
-    console.log(`🖼️ Found ${printifyImages.length} Printify CDN URLs in HTML`);
-    if (printifyImages.length > 0) {
-      console.log('First few Printify URLs:');
-      printifyImages.slice(0, 3).forEach((match, idx) => {
-        console.log(`  ${idx + 1}. ${match[1]}`);
-      });
-    }
-
     // Simplified approach - find images first, then build products
-    const parseProductsFromHTML = () => {
-      const products: any[] = [];
-      
-      console.log('🔍 Starting simplified image-first approach...');
-      
-      // First, let's find ALL Printify CDN images in the entire HTML
-      console.log('🔍 Searching for Printify CDN images in entire HTML...');
-      
-      // Decode HTML entities in the entire HTML first
-      const decodedHtml = html
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'");
-      
-      // Look for Printify CDN URLs
-      const printifyImagePattern = /(https:\/\/images-api\.printify\.com\/[^\s"'<>(){}[\]]+\.(?:jpg|jpeg|png|gif|webp|svg)(?:\?[^\s"'<>(){}[\]]*)?)/gi;
-      const allPrintifyImages = [...decodedHtml.matchAll(printifyImagePattern)];
-      
-      console.log(`🖼️ Found ${allPrintifyImages.length} Printify CDN images in entire HTML`);
-      
-      if (allPrintifyImages.length === 0) {
-        console.log('❌ No Printify CDN images found, trying any image URLs...');
+    // Replace the parseProductsFromHTML function with this updated version:
+
+  const parseProductsFromHTML = () => {
+    const products: any[] = [];
+    
+    console.log('🔍 Starting URL extraction approach...');
+    
+    // Decode HTML entities in the entire HTML first
+    const decodedHtml = html
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+    
+    // Look for product links first - these are the actual URLs we need
+    const productLinkPatterns = [
+      // Common product link patterns for Printify stores
+      /href="([^"]*\/products\/[^"]+)"/gi,
+      /href="([^"]*\/product\/[^"]+)"/gi,
+      /href="([^"]*\/p\/[^"]+)"/gi,
+      /href="([^"]*\/shop\/[^"]+)"/gi,
+      // More general product page patterns
+      /href="([^"]*product[^"]*\d+[^"]*)"/gi,
+      /href="([^"]*item[^"]*\d+[^"]*)"/gi,
+    ];
+    
+    const allProductLinks = new Set<string>();
+    
+    // Extract all potential product URLs
+    productLinkPatterns.forEach(pattern => {
+      const matches = [...decodedHtml.matchAll(pattern)];
+      matches.forEach(match => {
+        let url = match[1];
         
-        // Fallback: look for ANY image URLs
-        const anyImagePattern = /(https?:\/\/[^\s"'<>(){}[\]]+\.(?:jpg|jpeg|png|gif|webp|svg)(?:\?[^\s"'<>(){}[\]]*)?)/gi;
-        const allImages = [...decodedHtml.matchAll(anyImagePattern)];
-        console.log(`🖼️ Found ${allImages.length} total image URLs in HTML`);
-        
-        if (allImages.length === 0) {
-          console.log('❌ No images found at all in HTML');
-          return [];
+        // Convert relative URLs to absolute
+        if (url.startsWith('/')) {
+          const baseUrl = new URL(user.printifyStoreUrl);
+          url = baseUrl.origin + url;
+        } else if (!url.startsWith('http')) {
+          url = user.printifyStoreUrl + '/' + url;
         }
         
-        // Use the first few non-logo images
-        const validImages = allImages
-          .map(match => match[1])
-          .filter(url => 
-            !url.includes('logo') && 
-            !url.includes('icon') && 
-            !url.includes('favicon') &&
-            url.length > 20
-          )
-          .slice(0, 50);
-        
-        console.log(`🖼️ Using ${validImages.length} valid images:`, validImages);
-        
-        validImages.forEach((imageUrl, index) => {
-          const product = {
-            id: (index + 1).toString(),
-            title: `Product ${index + 1}`,
-            description: `Product from ${user.printifyStoreUrl}`,
-            images: [imageUrl],
-            variants: [{
-              id: '1',
-              price: '25.99',
-              title: 'Default',
-              sku: `IMG-${index + 1}`,
-              available: true,
-            }],
-            tags: ['image-scraped'],
-            visible: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-          
-          console.log(`➕ Adding product: "${product.title}" with image: ${imageUrl}`);
-          products.push(product);
-        });
-        
-        return products;
-      }
+        // Filter out obviously non-product URLs
+        if (!url.includes('cart') && 
+            !url.includes('login') && 
+            !url.includes('account') &&
+            !url.includes('contact') &&
+            !url.includes('about') &&
+            !url.includes('policy') &&
+            !url.includes('#') &&
+            url.length > 10) {
+          allProductLinks.add(url);
+        }
+      });
+    });
+    
+    console.log(`🔗 Found ${allProductLinks.size} potential product URLs`);
+    
+    if (allProductLinks.size === 0) {
+      console.log('❌ No product URLs found, trying to find product sections...');
       
-      // Process each Printify image
+      // Fallback: Look for sections that might contain products
+      const productSectionPatterns = [
+        /<div[^>]*class="[^"]*product[^"]*"[^>]*>(.*?)<\/div>/gis,
+        /<article[^>]*class="[^"]*product[^"]*"[^>]*>(.*?)<\/article>/gis,
+        /<section[^>]*class="[^"]*product[^"]*"[^>]*>(.*?)<\/section>/gis,
+      ];
+      
+      productSectionPatterns.forEach(pattern => {
+        const matches = [...decodedHtml.matchAll(pattern)];
+        matches.forEach((match, index) => {
+          const sectionHtml = match[1];
+          
+          // Look for links within this product section
+          const linkMatches = [...sectionHtml.matchAll(/href="([^"]+)"/gi)];
+          linkMatches.forEach(linkMatch => {
+            let url = linkMatch[1];
+            
+            if (url.startsWith('/')) {
+              const baseUrl = new URL(user.printifyStoreUrl);
+              url = baseUrl.origin + url;
+            } else if (!url.startsWith('http')) {
+              url = user.printifyStoreUrl + '/' + url;
+            }
+            
+            if (url.length > 10 && !url.includes('#')) {
+              allProductLinks.add(url);
+            }
+          });
+        });
+      });
+    }
+    
+    console.log(`🔗 Total unique product URLs after fallback: ${allProductLinks.size}`);
+    
+    // Now find images and match them with URLs
+    const printifyImagePattern = /(https:\/\/images-api\.printify\.com\/[^\s"'<>(){}[\]]+\.(?:jpg|jpeg|png|gif|webp|svg)(?:\?[^\s"'<>(){}[\]]*)?)/gi;
+    const allPrintifyImages = [...decodedHtml.matchAll(printifyImagePattern)];
+    
+    console.log(`🖼️ Found ${allPrintifyImages.length} Printify CDN images`);
+    
+    // Convert URLs to array for easier processing
+    const productUrlsArray = Array.from(allProductLinks);
+    
+    if (allPrintifyImages.length > 0) {
+      // Process Printify images and try to match them with URLs
       allPrintifyImages.forEach((imageMatch, index) => {
         const imageUrl = imageMatch[1];
         const imageIndex = imageMatch.index || 0;
         
-        console.log(`🔍 Processing Printify image ${index + 1}: ${imageUrl}`);
+        console.log(`🔍 Processing Printify image ${index + 1}: ${imageUrl.substring(0, 100)}...`);
         
-        // Get context around this image to find title/price
-        const contextStart = Math.max(0, imageIndex - 1000);
-        const contextEnd = Math.min(decodedHtml.length, imageIndex + 1000);
+        // Get context around this image to find the associated link
+        const contextStart = Math.max(0, imageIndex - 2000);
+        const contextEnd = Math.min(decodedHtml.length, imageIndex + 2000);
         const context = decodedHtml.slice(contextStart, contextEnd);
         
-        // Try to find a product title in this context
+        // Look for the closest product URL in the context
+        let productUrl = '';
+        const contextLinks = [...context.matchAll(/href="([^"]+)"/gi)];
+        
+        for (const linkMatch of contextLinks) {
+          let url = linkMatch[1];
+          
+          if (url.startsWith('/')) {
+            const baseUrl = new URL(user.printifyStoreUrl);
+            url = baseUrl.origin + url;
+          } else if (!url.startsWith('http')) {
+            url = user.printifyStoreUrl + '/' + url;
+          }
+          
+          // Check if this URL looks like a product URL
+          if ((url.includes('/product') || url.includes('/p/') || url.includes('/item')) &&
+              !url.includes('cart') && !url.includes('login')) {
+            productUrl = url;
+            break;
+          }
+        }
+        
+        // If no specific product URL found in context, use from our collected URLs
+        if (!productUrl && productUrlsArray.length > index) {
+          productUrl = productUrlsArray[index];
+        }
+        
+        // Extract title from context
         const titlePatterns = [
           /title="([^"]{5,80})"/i,
           /alt="([^"]{5,80})"/i,
           /<h[1-6][^>]*>([^<]{5,80})<\/h[1-6]>/i,
           /class="[^"]*title[^"]*"[^>]*>([^<]{5,80})</i,
-          /class="[^"]*name[^"]*"[^>]*>([^<]{5,80})</i
+          /class="[^"]*name[^"]*"[^>]*>([^<]{5,80})</i,
+          /"title":"([^"]{5,80})"/i,
+          /"name":"([^"]{5,80})"/i
         ];
         
         let title = '';
@@ -216,7 +314,6 @@ export async function GET(
           const titleMatch = context.match(pattern);
           if (titleMatch && titleMatch[1]) {
             const potentialTitle = titleMatch[1].trim();
-            // Filter out generic text
             if (!potentialTitle.toLowerCase().includes('image') &&
                 !potentialTitle.toLowerCase().includes('loading') &&
                 !potentialTitle.toLowerCase().includes('error') &&
@@ -228,7 +325,6 @@ export async function GET(
           }
         }
         
-        // If no good title found, extract from image URL
         if (!title) {
           const urlParts = imageUrl.split('/');
           const filename = urlParts[urlParts.length - 1];
@@ -239,12 +335,14 @@ export async function GET(
             .substring(0, 50) || `Product ${index + 1}`;
         }
         
-        // Try to find price in context
+        // Extract price
         let price = '25.99';
         const pricePatterns = [
           /\$(\d+\.?\d{0,2})/,
           /(\d+\.?\d{0,2})\s*USD/i,
-          /price[^>]*>.*?\$(\d+\.?\d{0,2})/i
+          /price[^>]*>.*?\$(\d+\.?\d{0,2})/i,
+          /"price":"?\$?(\d+\.?\d{0,2})"?/i,
+          /"amount":"?(\d+\.?\d{0,2})"?/i
         ];
         
         for (const pattern of pricePatterns) {
@@ -270,19 +368,48 @@ export async function GET(
             sku: `PRINTIFY-${index + 1}`,
             available: true,
           }],
+          url: productUrl || user.printifyStoreUrl, // Use the actual extracted URL
           tags: ['printify-scraped'],
           visible: true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
         
-        console.log(`➕ Adding product: "${title}" with image: ${imageUrl}`);
+        console.log(`➕ Adding product: "${title}" with URL: ${productUrl || 'fallback URL'}`);
         products.push(product);
       });
+    } else {
+      // No Printify images, just create products from URLs
+      console.log('❌ No Printify images found, creating products from URLs only');
       
-      console.log(`📦 Total products created from images: ${products.length}`);
-      return products.slice(0, 50); // Limit to 50 products
-    };
+      productUrlsArray.slice(0, 20).forEach((url, index) => {
+        const product = {
+          id: (index + 1).toString(),
+          title: `Product ${index + 1}`,
+          description: `Product from ${user.printifyStoreUrl}`,
+          images: ['https://via.placeholder.com/300x300/4ecdc4/ffffff?text=Product'],
+          variants: [{
+            id: '1',
+            price: '25.99',
+            title: 'Default',
+            sku: `URL-${index + 1}`,
+            available: true,
+          }],
+          url: url, // Use the actual extracted URL
+          tags: ['url-only'],
+          visible: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        
+        console.log(`➕ Adding URL-only product: "${product.title}" with URL: ${url}`);
+        products.push(product);
+      });
+    }
+    
+    console.log(`📦 Total products created: ${products.length}`);
+    return products.slice(0, 50); // Limit to 50 products
+  };
 
     const htmlProducts = parseProductsFromHTML();
     if (htmlProducts.length > 0) {
@@ -291,13 +418,13 @@ export async function GET(
     }
 
     // If still no products found, return empty array
-    console.log('📦 No products found via image-first scraping');
+    console.log('📦 No products found via scraping');
     return NextResponse.json([]);
 
   } catch (error) {
     console.error('❌ Store scraping error:', error);
     return NextResponse.json({ 
-      error: 'Failed to scrape store products',
+      error: 'Failed to fetch products',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

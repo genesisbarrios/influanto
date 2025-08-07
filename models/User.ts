@@ -153,11 +153,6 @@ const userSchema = new mongoose.Schema(
       default: null,
        required: false,
     },
-    selectedProducts: [{
-      type: String,
-      maxlength: 6, // Limit to 6 products
-      required: false,
-    }],
   },
   {
     timestamps: true,

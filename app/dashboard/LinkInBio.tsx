@@ -37,19 +37,25 @@ const LinkInBio =  () => {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
 
-  // Add this useEffect to fetch products when editing
-  useEffect(() => {
-    if (isEditing && user?.printifyShopId) {
-      fetchAvailableProducts();
-    }
-  }, [isEditing, user?.printifyShopId]);
+useEffect(() => {
+  if (isEditing && user?.printifyShopId) {
+    fetchAvailableProducts();
+  }
+}, [isEditing, user?.printifyShopId]);
 
-  // Add this useEffect to load selected products when user data loads
-  useEffect(() => {
-    if (user?.selectedProducts) {
-      setSelectedProductIds(user.selectedProducts);
-    }
-  }, [user]);
+// Add this useEffect to ensure products are loaded when editing and we have selected products
+useEffect(() => {
+  if (isEditing && user?.printifyShopId && selectedProductIds.length > 0 && availableProducts.length === 0) {
+    console.log('🔍 Fetching products because we have selected products but no available products');
+    fetchAvailableProducts();
+  }
+}, [isEditing, user?.printifyShopId, selectedProductIds.length, availableProducts.length]);
+
+useEffect(() => {
+  if (linkInBio?.selectedProducts) {
+    setSelectedProductIds(linkInBio.selectedProducts);
+  }
+}, [linkInBio?.selectedProducts]);
 
 const fetchAvailableProducts = async () => {
   console.log('🔍 Starting fetch...');
@@ -96,17 +102,6 @@ const fetchAvailableProducts = async () => {
         return prev;
       }
     });
-  };
-
-  const saveSelectedProducts = async () => {
-    try {
-      await apiClient.post('/save-selected-products', {
-        selectedProducts: selectedProductIds
-      });
-      setAlertt('Selected products saved successfully!');
-    } catch (error) {
-      setAlertt('Failed to save selected products');
-    }
   };
 
   const getUser = async () => {
@@ -211,20 +206,31 @@ const fetchAvailableProducts = async () => {
     
   }, [links]);
 
+  // Add this useEffect after your existing ones (around line 50)
+// Fetch products for display in non-editing view
+useEffect(() => {
+  if (!isEditing && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0) {
+    fetchAvailableProducts();
+  }
+}, [user?.printifyShopId, linkInBio?.selectedProducts, isEditing]);
 
   const getLinks = async () => {
-    try {
-      const { data } = await apiClient.get("/get-links");
-      setLinkInBio(data);
-      setBgColor(data.bgColor);
-      setTextColor(data.textColor);
-      setLinksColor(data.linksColor);
-      setLinks(data.links)
-    } catch (e) {
-      //console.error(e?.message);
-      setAlertt(e?.message);
-    } 
-  }
+  try {
+    const { data } = await apiClient.get("/get-links");
+    setLinkInBio(data);
+    setBgColor(data.bgColor);
+    setTextColor(data.textColor);
+    setLinksColor(data.linksColor);
+    setLinks(data.links);
+    // Fix: Make sure selectedProducts is loaded from the API response
+    if (data.selectedProducts && Array.isArray(data.selectedProducts)) {
+      setSelectedProductIds(data.selectedProducts);
+    }
+  } catch (e) {
+    //console.error(e?.message);
+    setAlertt(e?.message);
+  } 
+}
 
   useEffect(() => {
   if (linkInBio?.font) {
@@ -286,6 +292,7 @@ useEffect(() => {
   const handleEditLinkInBio = async (e:any) => {
     e.preventDefault();
     console.log('Edit Link In Bio');
+    console.log('Selected Product IDs being sent:', selectedProductIds);
     console.log(links);
 
     try {
@@ -296,7 +303,8 @@ useEffect(() => {
         links: links,
         font: linkInBio?.font,
         cardBgColor: linkInBio?.cardBgColor,
-        bgImage: linkInBio?.bgImage
+        bgImage: linkInBio?.bgImage,
+        selectedProducts: selectedProductIds
       });
 
       console.log(data);
@@ -394,6 +402,89 @@ useEffect(() => {
               </div>
                 )
               ))}
+
+           {/* MERCH SECTION */}
+          {user?.hasAccess && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
+            <div className="mt-6 mb-4">
+              <h3 className="text-lg font-semibold mb-3 text-center" style={{
+                color: textColor,
+                fontFamily: linkInBio?.font || 'inherit'
+              }}>
+                Merch
+              </h3>
+              
+              <div className="overflow-x-auto pb-2">
+                <div className="flex gap-3" style={{
+                  width: 'max-content',
+                  minWidth: '100%'
+                }}>
+                  {linkInBio.selectedProducts.map((productId: string) => {
+                    // Find the product from availableProducts by ID
+                    const product = availableProducts.find(p => p.id === productId);
+                    if (!product) return null;
+                    
+                    return (
+                      <div 
+                        key={productId} 
+                        className="flex-shrink-0 p-3 rounded-lg" 
+                        style={{
+                          width: '33.333%',
+                          minWidth: '200px',
+                          backgroundColor: linkInBio?.cardBgColor || 'rgba(255,255,255,0.1)',
+                          border: '1px solid rgba(255,255,255,0.2)'
+                        }}
+                      >
+                        {/* Product Image */}
+                        <div className="w-full h-32 rounded overflow-hidden bg-gray-100 mb-3">
+                          {product.images && product.images.length > 0 && product.images[0] ? (
+                            <img
+                              src={product.images[0]}
+                              alt={product.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = `https://via.placeholder.com/200x128/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                              <span className="text-gray-400 text-2xl">📦</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Product Info */}
+                        <div>
+                          <div className="text-sm font-medium mb-2" style={{
+                            color: textColor,
+                            fontFamily: linkInBio?.font || 'inherit',
+                            lineHeight: '1.3',
+                            wordWrap: 'break-word',
+                            minHeight: '2.6em', // Ensure consistent height
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                          }}>
+                            {product.title && product.title.length > 40 
+                              ? `${product.title.substring(0, 40)}...` 
+                              : product.title || 'Product'
+                            }
+                          </div>
+                          <div className="text-lg font-bold text-center" style={{
+                            color: linksColor,
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            ${product.variants?.[0]?.price || 'N/A'}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
               <br />
               <a
                   className="btn btn-primary btn-block btn-lg btn-narrow"
@@ -406,28 +497,6 @@ useEffect(() => {
               >
                   Visit
               </a>
-
-              {/* DISPLAY SELECTED PRODUCTS ONLY */}
-              {user?.hasAccess && user?.printifyShopId && user?.selectedProducts?.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold mb-4 text-center" style={{
-                    color: textColor,
-                    fontFamily: linkInBio?.font || 'inherit'
-                  }}>
-                    🛍️ Shop Our Products
-                  </h3>
-                  
-                  <PrintifyProducts 
-                    userId={user.id} 
-                    shopId={user.printifyShopId}
-                    selectedProductIds={user.selectedProducts}
-                    textColor={textColor}
-                    linksColor={linksColor}
-                    cardBgColor={linkInBio?.cardBgColor}
-                    font={linkInBio?.font}
-                  />
-                </div>
-              )}
 
           </div>
       )}
@@ -594,6 +663,19 @@ useEffect(() => {
                     fontFamily: linkInBio?.font || 'inherit'
                   }}>Premium Styles</h2>
                   
+                  {/* Card Background Color */}
+                  <div className="mb-3 flex items-center gap-2">
+                    <label className="mr-2" style={{
+                      fontFamily: linkInBio?.font || 'inherit'
+                    }}>Card BG:</label>
+                    <input
+                      type="color"
+                      value={linkInBio?.cardBgColor || "#ffffff"}
+                      onChange={e => setLinkInBio({ ...linkInBio, cardBgColor: e.target.value })}
+                      className="w-8 h-8 border border-gray-300 rounded-lg cursor-pointer"
+                    />
+                  </div>
+
                   {/* Font Picker */}
                   <div className="mb-3">
                     <label className="mr-2" style={{
@@ -612,19 +694,7 @@ useEffect(() => {
                       <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
                     </select>
                   </div>
-                  
-                  {/* Card Background Color */}
-                  <div className="mb-3 flex items-center gap-2">
-                    <label className="mr-2" style={{
-                      fontFamily: linkInBio?.font || 'inherit'
-                    }}>Card BG:</label>
-                    <input
-                      type="color"
-                      value={linkInBio?.cardBgColor || "#ffffff"}
-                      onChange={e => setLinkInBio({ ...linkInBio, cardBgColor: e.target.value })}
-                      className="w-8 h-8 border border-gray-300 rounded-lg cursor-pointer"
-                    />
-                  </div>
+                 
                   
                 {/* Background Image Selector */}
                 <div className="mb-3">
@@ -659,8 +729,12 @@ useEffect(() => {
                       </div>
                     </button>
                     {[
+                      "https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg",
+                      "https://images.pexels.com/photos/3308588/pexels-photo-3308588.jpeg",
+                      "https://images.pexels.com/photos/2832382/pexels-photo-2832382.jpeg",
                       "https://images.pexels.com/photos/7598077/pexels-photo-7598077.jpeg",
                       "https://images.pexels.com/photos/7630061/pexels-photo-7630061.jpeg",
+                      "https://images.pexels.com/photos/1292998/pexels-photo-1292998.jpeg",
                       "https://images.pexels.com/photos/6788581/pexels-photo-6788581.jpeg"
                     ].map((img, idx) => (
                       <button
@@ -699,32 +773,7 @@ useEffect(() => {
           </div>
         </div>
 
-        {alert && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alert}</div>}
-        <button 
-          className="btn btn-primary btn-block btn-sm btn-narrow"
-          style={{
-            width:"35%", 
-            display:"inline", 
-            margin:"8% 0 0",
-            fontFamily: linkInBio?.font || 'inherit'
-          }}
-          onClick={(e) => handleEditLinkInBio(e)} 
-          type="submit">
-          Submit
-      </button>
-      <button
-        className="btn btn-alert btn-block btn-sm btn-narrow"
-        style={{ 
-          width: "35%", 
-          display: "inline", 
-          margin: "2% 5%",
-          fontFamily: linkInBio?.font || 'inherit'
-        }}
-        onClick={() => setEditing(false)}>
-        Cancel
-      </button>
-
-     {/* PRODUCT SELECTION SECTION - ONLY IN EDITING VIEW */}
+         {/* PRODUCT SELECTION SECTION - ONLY IN EDITING VIEW */}
     {user?.hasAccess && user?.printifyShopId && (
       <div className="mt-8 w-full border-t pt-6">
         <h2 className="text-lg font-semibold mb-4" style={{
@@ -774,18 +823,6 @@ useEffect(() => {
                     Clear All
                   </button>
                 )}
-                
-                <button
-                  type="button"
-                  onClick={saveSelectedProducts}
-                  className="btn btn-primary btn-sm"
-                  disabled={selectedProductIds.length === 0}
-                  style={{
-                    fontFamily: linkInBio?.font || 'inherit'
-                  }}
-                >
-                  Save Selection ({selectedProductIds.length})
-                </button>
               </div>
             </div>
 
@@ -911,6 +948,33 @@ useEffect(() => {
         )}
       </div>
     )}
+
+  {alert && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alert}</div>}
+      <div style={{textAlign:"center"}}>
+      <button 
+          className="btn btn-primary btn-block btn-sm btn-narrow"
+          style={{
+            width:"35%", 
+            display:"inline", 
+            margin:"8% 0 0",
+            fontFamily: linkInBio?.font || 'inherit'
+          }}
+          onClick={(e) => handleEditLinkInBio(e)} 
+          type="submit">
+          Submit
+      </button>
+      <button
+        className="btn btn-alert btn-block btn-sm btn-narrow"
+        style={{ 
+          width: "35%", 
+          display: "inline", 
+          margin: "2% 5%",
+          fontFamily: linkInBio?.font || 'inherit'
+        }}
+        onClick={() => setEditing(false)}>
+        Cancel
+      </button>
+      </div>
 
       </form>
       </div>
