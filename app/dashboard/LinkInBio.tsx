@@ -237,49 +237,12 @@ useEffect(() => {
     document.documentElement.style.setProperty('--preview-font', linkInBio.font);
   }
   
-  // Apply background color to the page
-  if (bgColor) {
-    document.body.style.backgroundColor = bgColor;
-  }
-  
-  // Apply background image to the page if it exists
-  if (linkInBio?.bgImage) {
-    document.body.style.backgroundImage = `url(${linkInBio.bgImage})`;
-    document.body.style.backgroundSize = 'cover';
-    document.body.style.backgroundPosition = 'center';
-    document.body.style.backgroundRepeat = 'no-repeat';
-    document.body.style.backgroundAttachment = 'fixed';
-  } else {
-    document.body.style.backgroundImage = 'none';
-  }
-  
   return () => {
     // Cleanup on unmount
     document.documentElement.style.removeProperty('--preview-font');
     document.body.style.backgroundColor = '';
-    document.body.style.backgroundImage = '';
-    document.body.style.backgroundSize = '';
-    document.body.style.backgroundPosition = '';
-    document.body.style.backgroundRepeat = '';
-    document.body.style.backgroundAttachment = '';
   };
-}, [linkInBio?.font, bgColor, linkInBio?.bgImage]);
-
-
-// Add another useEffect specifically for real-time background image changes
-useEffect(() => {
-  // Apply background image to the page in real-time
-  if (linkInBio?.bgImage) {
-    document.body.style.backgroundImage = `url(${linkInBio.bgImage})`;
-    document.body.style.backgroundSize = 'cover';
-    document.body.style.backgroundPosition = 'center';
-    document.body.style.backgroundRepeat = 'no-repeat';
-    document.body.style.backgroundAttachment = 'fixed';
-  } else {
-    document.body.style.backgroundImage = 'none';
-  }
-}, [linkInBio?.bgImage]); // This will trigger whenever bgImage changes
-
+}, [linkInBio?.font, bgColor]);
 
 // Add another useEffect for real-time background color changes
 useEffect(() => {
@@ -303,7 +266,6 @@ useEffect(() => {
         links: links,
         font: linkInBio?.font,
         cardBgColor: linkInBio?.cardBgColor,
-        bgImage: linkInBio?.bgImage,
         selectedProducts: selectedProductIds
       });
 
@@ -348,7 +310,7 @@ const containerStyle = {
         className="p-2 sm:p-4 bg-white shadow rounded-md text-black"
         style={{
           ...containerStyle,
-          maxWidth: "100vw", // Prevent exceeding viewport width
+          maxWidth: "100%", // Prevent exceeding viewport width
           margin: "0 auto"
         }}
       >
@@ -416,71 +378,88 @@ const containerStyle = {
                 Merch
               </h3>
               
-              <div className="overflow-x-auto pb-2">
+              <div className="w-full" style={{ 
+                overflowX: "auto", 
+                paddingBottom: "8px",
+                WebkitOverflowScrolling: "touch"
+              }}>
                 <div className="flex gap-3" style={{
                   width: 'max-content',
-                  minWidth: '100%'
+                  minWidth: '100%',
+                  paddingLeft: "4px",
+                  paddingRight: "4px"
                 }}>
                   {linkInBio.selectedProducts.map((productId: string) => {
-                    // Find the product from availableProducts by ID
                     const product = availableProducts.find(p => p.id === productId);
-                    if (!product) return null;
+                    if (!product) {
+                      console.log('❌ Product not found for ID:', productId);
+                      return null;
+                    }
+                    
+                    const productUrl = product.url || '#';
                     
                     return (
-                      <div 
-                        key={productId} 
-                        className="flex-shrink-0 p-3 rounded-lg" 
+                      <a 
+                        key={productId}
+                        href={productUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-shrink-0 p-3 rounded-lg cursor-pointer transition-transform hover:scale-105 block"
                         style={{
-                          width: '33.333%',
-                          minWidth: '200px',
+                          width: '160px', // Fixed width for consistency
+                          minWidth: '160px', // Ensures consistent size
+                          maxWidth: '160px', // Prevents growing larger
                           backgroundColor: linkInBio?.cardBgColor || 'rgba(255,255,255,0.1)',
-                          border: '1px solid rgba(255,255,255,0.2)'
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          textDecoration: 'none',
+                          boxSizing: 'border-box'
                         }}
                       >
                         {/* Product Image */}
-                        <div className="w-full h-32 rounded overflow-hidden bg-gray-100 mb-3">
+                        <div className="w-full h-24 rounded overflow-hidden bg-gray-100 mb-2">
                           {product.images && product.images.length > 0 && product.images[0] ? (
                             <img
                               src={product.images[0]}
                               alt={product.title}
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                e.currentTarget.src = `https://via.placeholder.com/200x128/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
+                                console.log('❌ Image failed to load:', product.images[0]);
+                                e.currentTarget.src = `https://via.placeholder.com/160x96/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
                               }}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-                              <span className="text-gray-400 text-2xl">📦</span>
+                              <span className="text-gray-400 text-lg">📦</span>
                             </div>
                           )}
                         </div>
                         
                         {/* Product Info */}
                         <div>
-                          <div className="text-sm font-medium mb-2" style={{
+                          <div className="text-xs font-medium mb-1" style={{
                             color: textColor,
                             fontFamily: linkInBio?.font || 'inherit',
-                            lineHeight: '1.3',
+                            lineHeight: '1.2',
                             wordWrap: 'break-word',
-                            minHeight: '2.6em', // Ensure consistent height
+                            height: '2.4em', // Fixed height to maintain consistency
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
                             WebkitBoxOrient: 'vertical',
                             overflow: 'hidden'
                           }}>
-                            {product.title && product.title.length > 40 
-                              ? `${product.title.substring(0, 40)}...` 
+                            {product.title && product.title.length > 25 
+                              ? `${product.title.substring(0, 25)}...` 
                               : product.title || 'Product'
                             }
                           </div>
-                          <div className="text-lg font-bold text-center" style={{
+                          <div className="text-sm font-bold text-center" style={{
                             color: linksColor,
                             fontFamily: linkInBio?.font || 'inherit'
                           }}>
-                            ${product.variants?.[0]?.price || 'N/A'}
+                            ${product.variants?.[0]?.price || product.price || 'N/A'}
                           </div>
                         </div>
-                      </div>
+                      </a>
                     );
                   })}
                 </div>
@@ -697,77 +676,6 @@ const containerStyle = {
                       <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
                     </select>
                   </div>
-                 
-                  
-                {/* Background Image Selector */}
-                <div className="mb-3">
-                  <label className="mr-2" style={{
-                    fontFamily: linkInBio?.font || 'inherit'
-                  }}>Background Image:</label>
-                  <div className="flex gap-3 flex-wrap">
-                    <button
-                      type="button"
-                      className={`border rounded-lg p-2 ${!linkInBio?.bgImage ? "border-blue-500" : "border-gray-300"}`}
-                      onClick={() => {
-                        setLinkInBio({ ...linkInBio, bgImage: null });
-                        // Immediately clear background
-                        document.body.style.backgroundImage = 'none';
-                      }}
-                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                    >
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div style={{ 
-                          width: 80, 
-                          height: 80, 
-                          backgroundColor: '#f0f0f0', 
-                          borderRadius: 8, 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          fontSize: '12px', 
-                          marginBottom: 4 
-                        }}>
-                          None
-                        </div>
-                      </div>
-                    </button>
-                    {[
-                      "https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg",
-                      "https://images.pexels.com/photos/3308588/pexels-photo-3308588.jpeg",
-                      "https://images.pexels.com/photos/2832382/pexels-photo-2832382.jpeg",
-                      "https://images.pexels.com/photos/7598077/pexels-photo-7598077.jpeg",
-                      "https://images.pexels.com/photos/7630061/pexels-photo-7630061.jpeg",
-                      "https://images.pexels.com/photos/1292998/pexels-photo-1292998.jpeg",
-                      "https://images.pexels.com/photos/6788581/pexels-photo-6788581.jpeg"
-                    ].map((img, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        className={`border rounded-lg p-2 ${linkInBio?.bgImage === img ? "border-blue-500 border-2" : "border-gray-300"}`}
-                        onClick={() => {
-                          setLinkInBio({ ...linkInBio, bgImage: img });
-                          // Immediately apply background
-                          document.body.style.backgroundImage = `url(${img})`;
-                          document.body.style.backgroundSize = 'cover';
-                          document.body.style.backgroundPosition = 'center';
-                          document.body.style.backgroundRepeat = 'no-repeat';
-                          document.body.style.backgroundAttachment = 'fixed';
-                        }}
-                      >
-                        <img 
-                          src={img} 
-                          alt={`bg-${idx}`} 
-                          style={{ 
-                            width: 80, 
-                            height: 80, 
-                            objectFit: "cover", 
-                            borderRadius: 8 
-                          }} 
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
  </div>
               </>
              )}
