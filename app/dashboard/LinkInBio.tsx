@@ -318,13 +318,15 @@ useEffect(() => {
     }
   }
 
-  const containerStyle = {
-    width: "100%",
-    maxWidth: "100%", // Ensure it doesn't exceed container
-    margin: "0 auto",
-    fontFamily: linkInBio?.font || 'inherit', // Apply font to the container
-  };
-  
+const containerStyle = {
+  width: "100%",
+  maxWidth: "100vw",
+  margin: "0 auto",
+  fontFamily: linkInBio?.font || 'inherit',
+  backgroundColor: linkInBio?.cardBgColor || 'white',
+  boxSizing: "border-box" as const,
+  overflow: "hidden", // Prevent overflow
+};
 
    // Check if user data is not yet loaded
   if (!data) {
@@ -342,11 +344,12 @@ useEffect(() => {
       <meta name="twitter:title" content="Link In Bio Tool" />
       <meta name="twitter:description" content="Generate and manage your Link In Bio easily." />
     </Head>
-      <div 
-        className="p-4 bg-white shadow rounded-md text-black" 
+     <div 
+        className="p-2 sm:p-4 bg-white shadow rounded-md text-black"
         style={{
           ...containerStyle,
-          backgroundColor: linkInBio?.cardBgColor || 'white',
+          maxWidth: "100vw", // Prevent exceeding viewport width
+          margin: "0 auto"
         }}
       >
        <div className="w-full flex justify-between items-center">

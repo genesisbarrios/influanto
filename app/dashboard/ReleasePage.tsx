@@ -18,7 +18,7 @@ const ReleasePages = () => {
   const [bgColor, setBgColor] = useState("#ffffff");
   const [textColor, setTextColor] = useState("#000000");
   const [linksColor, setLinksColor] = useState("#0000ff");
-  const [font, setFont] = useState("");
+  const [font, setFont] = useState("sans-serif");
 
   // Add merch-related states
   const [availableProducts, setAvailableProducts] = useState<any[]>([]);
@@ -150,7 +150,7 @@ const ReleasePages = () => {
     setBgColor(page.bgColor || "#ffffff");
     setTextColor(page.textColor || "#000000");
     setLinksColor(page.linksColor || "#0000ff");
-    setFont(page.font || "");
+    setFont(page.font || "sans-serif");
     
     // Load selected products for this page
     if (page.selectedProducts && Array.isArray(page.selectedProducts)) {
@@ -313,8 +313,12 @@ const ReleasePages = () => {
     if (!userData?.hasAccess || !userData?.printifyShopId) {
       return (
         <div className="mb-4 p-4 bg-blue-50 rounded-md">
-          <h4 className="font-bold mb-2 text-blue-800">Merch Integration</h4>
-          <p className="text-blue-600 text-sm">
+          <h4 className="font-bold mb-2 text-blue-800" style={{
+            fontFamily: font || 'inherit'
+          }}>Merch Integration</h4>
+          <p className="text-blue-600 text-sm" style={{
+            fontFamily: font || 'inherit'
+          }}>
             {!userData?.hasAccess 
               ? "Upgrade to Premium to add merch to your release pages" 
               : "Connect your Printify store to add merch products"
@@ -325,32 +329,33 @@ const ReleasePages = () => {
     }
 
     return (
-      <div className="mb-4">
+      <div className="mb-4" style={{ fontFamily: font || 'inherit' }}>
         <div className="flex items-center justify-between mb-2">
-          <h4 className="font-bold">Merch Products</h4>
+          <h4 className="font-bold" style={{ fontFamily: font || 'inherit' }}>Merch Products</h4>
           <button
             type="button"
             className="btn btn-secondary btn-sm"
             onClick={() => setShowMerchSection(!showMerchSection)}
+            style={{ fontFamily: font || 'inherit' }}
           >
             {showMerchSection ? 'Hide Products' : 'Select Products'}
           </button>
         </div>
         
         {selectedProductIds.length > 0 && (
-          <div className="mb-2 text-sm text-gray-600">
+          <div className="mb-2 text-sm text-gray-600" style={{ fontFamily: font || 'inherit' }}>
             {selectedProductIds.length} product{selectedProductIds.length !== 1 ? 's' : ''} selected
           </div>
         )}
 
         {showMerchSection && (
-          <div className="border rounded-md p-4 bg-gray-50">
+          <div className="border rounded-md p-4 bg-gray-50" style={{ fontFamily: font || 'inherit' }}>
             {isLoadingProducts ? (
               <div className="text-center py-4">
-                <div className="animate-pulse">Loading products...</div>
+                <div className="animate-pulse" style={{ fontFamily: font || 'inherit' }}>Loading products...</div>
               </div>
             ) : availableProducts.length === 0 ? (
-              <div className="text-center py-4 text-gray-600">
+              <div className="text-center py-4 text-gray-600" style={{ fontFamily: font || 'inherit' }}>
                 No products found. Make sure your Printify store has products.
               </div>
             ) : (
@@ -365,6 +370,7 @@ const ReleasePages = () => {
                           : 'bg-white border-gray-200'
                       }`}
                       onClick={() => toggleProductSelection(product.id)}
+                      style={{ fontFamily: font || 'inherit' }}
                     >
                       <div className="flex items-center space-x-3">
                         <input
@@ -387,10 +393,10 @@ const ReleasePages = () => {
                         )}
                         
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate">
+                          <div className="font-medium text-sm truncate" style={{ fontFamily: font || 'inherit' }}>
                             {product.title || 'Untitled Product'}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-500" style={{ fontFamily: font || 'inherit' }}>
                             ${product.variants?.[0]?.price || product.price || 'N/A'}
                           </div>
                         </div>
@@ -412,20 +418,21 @@ const ReleasePages = () => {
         <title>Influanto | Release Pages</title>
         <meta name="description" content="Manage your Release Pages" />
       </Head>
-      <div className="p-4 bg-white shadow rounded-md text-black">
+      <div className="p-4 bg-white shadow rounded-md text-black" style={{ fontFamily: font || 'inherit' }}>
         <div className="w-full flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Release Pages</h2>
+          <h2 className="text-2xl font-bold" style={{ fontFamily: font || 'inherit' }}>Release Pages</h2>
           {Array.isArray(releasePages) && releasePages.length < getMaxPages() && !createPage && (
             <button
               className="btn btn-primary btn-sm"
               onClick={handleCreate}
+              style={{ fontFamily: font || 'inherit' }}
             >
               Create
             </button>
           )}
         </div> 
         
-        <div className="mb-4 text-sm text-gray-600">
+        <div className="mb-4 text-sm text-gray-600" style={{ fontFamily: font || 'inherit' }}>
           {releasePages.length} of {getMaxPages()} pages used
           {!userData?.hasAccess && (
             <span className="ml-2 text-blue-600">
@@ -435,10 +442,12 @@ const ReleasePages = () => {
         </div>
         
         {createPage ? (
-          <div className="p-4 bg-gray-100 rounded-md">
-            <h3 className="text-xl font-bold mb-4">Create Release Page</h3>
+          <div className="p-4 bg-gray-100 rounded-md" style={{
+              fontFamily: font || 'inherit'  // Apply font to entire create form
+            }}> 
+            <h3 className="text-xl font-bold mb-4" style={{ fontFamily: font || 'inherit' }}>Create Release Page</h3>
             <div className="mb-4">
-              <label className="block font-bold mb-2">Name</label>
+              <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Name</label>
               <input
                 type="text"
                 className={`input w-full ${!isNameUnique || editingPage?.nameError ? "border-red-500" : ""}`}
@@ -446,20 +455,21 @@ const ReleasePages = () => {
                 value={editingPage?.name || ""}
                 onChange={handleNameChange}
                 onBlur={handleNameBlur}
+                style={{ fontFamily: font || 'inherit' }}
               />
               {editingPage?.nameError && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-sm mt-1" style={{ fontFamily: font || 'inherit' }}>
                   {editingPage.nameError}
                 </p>
               )}
               {!isNameUnique && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-sm mt-1" style={{ fontFamily: font || 'inherit' }}>
                   This name is already taken. Please choose another.
                 </p>
               )}
             </div>
             <div className="mb-4">
-              <label className="block font-bold mb-2">Description</label>
+              <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Description</label>
               <textarea
                 className="input w-full"
                 placeholder="Enter release page description"
@@ -467,11 +477,12 @@ const ReleasePages = () => {
                 onChange={(e) =>
                   setEditingPage({ ...editingPage, description: e.target.value })
                 }
+                style={{ fontFamily: font || 'inherit' }}
               />
             </div>
             {editingPage?.name && (
               <div className="mb-4">
-                <label className="block font-bold mb-2">Image</label>
+                <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Image</label>
                 <CldUploadWidget
                   uploadPreset="ReleasePageImages"
                   options={{ publicId: `user_${data?.user?.id}_releasePage_thumbnail_${releasePages.length + 1}` }}
@@ -484,6 +495,7 @@ const ReleasePages = () => {
                       type="button"
                       onClick={() => open()}
                       className="btn btn-primary btn-sm"
+                      style={{ fontFamily: font || 'inherit' }}
                     >
                       Upload Image
                     </button>
@@ -500,7 +512,7 @@ const ReleasePages = () => {
               </div>
             )}
             <div className="mb-4">
-              <label className="block font-bold mb-2">YouTube Video Link</label>
+              <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>YouTube Video Link</label>
               <input
                 type="text"
                 className="input w-full"
@@ -509,6 +521,7 @@ const ReleasePages = () => {
                 onChange={(e) =>
                   setEditingPage({ ...editingPage, video: e.target.value })
                 }
+                style={{ fontFamily: font || 'inherit' }}
               />
               {editingPage?.video && getYouTubeVideoId(editingPage.video).videoId && (
                 <iframe
@@ -522,10 +535,10 @@ const ReleasePages = () => {
               )}
             </div>
             <div className="mb-4">
-              <h4 className="font-bold mb-2">Streaming Links</h4>
+              <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Streaming Links</h4>
               {predefinedLinks.map((link, index) => (
                 <div key={index} className="mb-2">
-                  <label className="block font-bold">{link.name}</label>
+                  <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>{link.name}</label>
                   <input
                     type="text"
                     className="input w-full"
@@ -549,35 +562,39 @@ const ReleasePages = () => {
                         });
                       }
                     }}
+                    style={{ fontFamily: font || 'inherit' }}
                   />
                 </div>
               ))}
             </div>
             <div className="mb-4">
-              <h4 className="font-bold mb-2">Custom Links</h4>
+              <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Custom Links</h4>
               {(editingPage?.links || [])
                 .filter((link: any) => !predefinedLinks.some((p) => p.name === link.name))
                 .map((link: any, index: number) => (
                   <div key={index} className="mb-2">
-                    <label className="block font-bold">Name</label>
+                    <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>Name</label>
                     <input
                       type="text"
                       className="input w-full mb-2"
                       placeholder="Enter link name"
                       value={link.name || ""}
                       onChange={(e) => handleLinkChange(index, "name", e.target.value)}
+                      style={{ fontFamily: font || 'inherit' }}
                     />
-                    <label className="block font-bold">URL</label>
+                    <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>URL</label>
                     <input
                       type="text"
                       className="input w-full"
                       placeholder="Enter link URL"
                       value={link.url || ""}
                       onChange={(e) => handleLinkChange(index, "url", e.target.value)}
+                      style={{ fontFamily: font || 'inherit' }}
                     />
                     <button
                       className="btn btn-alert btn-sm mt-2"
                       onClick={() => removeCustomLink(index)}
+                      style={{ fontFamily: font || 'inherit' }}
                     >
                       Remove
                     </button>
@@ -586,32 +603,34 @@ const ReleasePages = () => {
               <button
                 className="btn btn-primary btn-sm mt-2"
                 onClick={addCustomLink}
+                style={{ fontFamily: font || 'inherit' }}
               >
                 Add Custom Link
               </button>
             </div>
+            
 
             {/* Add merch section for create */}
             {renderMerchSection()}
 
             <div className="mb-4">
-              <h4 className="font-bold mb-2">Colors</h4>
+              <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Colors</h4>
               <div className="flex flex-wrap w-full">
-                <h2 style={{ display: "block" }} className="mr-2">BG</h2>
+                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-2">BG</h2>
                 <input
                   type="color"
                   value={bgColor}
                   onChange={(e) => setBgColor(e.target.value)}
                   className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
                 />
-                <h2 style={{ display: "block" }} className="ml-2 mr-2">Text</h2>
+                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Text</h2>
                 <input
                   type="color"
                   value={textColor}
                   onChange={(e) => setTextColor(e.target.value)}
                   className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
                 />
-                <h2 style={{ display: "block" }} className="ml-2 mr-2">Links</h2>
+                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
                 <input
                   type="color"
                   value={linksColor}
@@ -619,12 +638,11 @@ const ReleasePages = () => {
                   className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
                 />
               </div>
+            </div>
 
-              {/* Premium Styling Options */}
+             {/* Premium Styling Options */}
               <div className="mt-4 w-full">
-                <h2 className="text-md font-semibold mb-2" style={{
-                  fontFamily: font || 'inherit'
-                }}>Premium Styles</h2>
+               <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Premium Styles</h4>
 
                 {/* Font Picker */}
                 <div className="mb-3">
@@ -645,18 +663,22 @@ const ReleasePages = () => {
                   </select>
                 </div>
               </div>
-            </div>
             
             <div className="flex justify-end">
               <button
                 className="btn btn-primary btn-sm mr-2"
                 onClick={handleSave}
+                style={{ fontFamily: font || 'inherit' }}
               >
                 Save
               </button>
               <button
                 className="btn btn-alert btn-sm"
-                onClick={() => setCreatePage(false)}
+                 onClick={() => {
+                  setCreatePage(false);
+                  setFont("");
+                }}
+                style={{ fontFamily: font || 'inherit' }}
               >
                 Cancel
               </button>
@@ -673,26 +695,31 @@ const ReleasePages = () => {
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                   height: "200px",
+                  fontFamily: page.font || 'inherit'  // Apply the page's font to preview
                 }}
               >
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white">
-                  <h3 className="text-lg font-bold">{page.name}</h3>
+                  <h3 className="text-lg font-bold" style={{ fontFamily: page.font || 'inherit' }}>{page.name}</h3>
+                  <p className="text-sm" style={{ fontFamily: page.font || 'inherit' }}>{page.description}</p>
                   <div className="flex space-x-2 mt-2">
                     <button
                       className="btn btn-primary btn-sm"
                       onClick={() => handleEdit(page)}
+                      style={{ fontFamily: page.font || 'inherit' }}
                     >
                       Edit
                     </button>
                     <button
                       className="btn btn-secondary btn-sm"
                       onClick={() => window.location.href = `/release/${page.name}`}
+                      style={{ fontFamily: page.font || 'inherit' }}
                     >
                       Visit
                     </button>
                     <button
                       className="btn btn-alert btn-sm"
                       onClick={() => handleDelete(page.id || page._id)}
+                      style={{ fontFamily: page.font || 'inherit' }}
                     >
                       Delete
                     </button>
@@ -702,10 +729,10 @@ const ReleasePages = () => {
             ))}
           </div>
         ) : (
-          <div className="p-4 bg-gray-100 rounded-md">
-            <h3 className="text-xl font-bold mb-4">Edit Release Page</h3>
+          <div className="p-4 bg-gray-100 rounded-md" style={{ fontFamily: font || 'inherit' }}>
+            <h3 className="text-xl font-bold mb-4" style={{ fontFamily: font || 'inherit' }}>Edit Release Page</h3>
             <div className="mb-4">
-              <label className="block font-bold mb-2">Name</label>
+              <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Name</label>
               <input
                 type="text"
                 className="input w-full"
@@ -714,10 +741,11 @@ const ReleasePages = () => {
                 onChange={(e) =>
                   setEditingPage({ ...editingPage, name: e.target.value })
                 }
+                style={{ fontFamily: font || 'inherit' }}
               />
             </div>
             <div className="mb-4">
-              <label className="block font-bold mb-2">Description</label>
+              <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Description</label>
               <textarea
                 className="input w-full"
                 placeholder="Enter release page description"
@@ -725,10 +753,11 @@ const ReleasePages = () => {
                 onChange={(e) =>
                   setEditingPage({ ...editingPage, description: e.target.value })
                 }
+                style={{ fontFamily: font || 'inherit' }}
               />
             </div>
             <div className="mb-4">
-              <label className="block font-bold mb-2">Image</label>
+              <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Image</label>
               <CldUploadWidget
                 uploadPreset="ReleasePageImages"
                 options={{ publicId: `user_${data?.user?.id}_releasePage_thumbnail_${releasePages.length + 1}` }}
@@ -741,6 +770,7 @@ const ReleasePages = () => {
                     type="button"
                     onClick={() => open()}
                     className="btn btn-primary btn-sm"
+                    style={{ fontFamily: font || 'inherit' }}
                   >
                     Upload Image
                   </button>
@@ -756,7 +786,7 @@ const ReleasePages = () => {
               )}
             </div>
             <div className="mb-4">
-              <label className="block font-bold mb-2">YouTube Video Link</label>
+              <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>YouTube Video Link</label>
               <input
                 type="text"
                 className="input w-full"
@@ -765,6 +795,7 @@ const ReleasePages = () => {
                 onChange={(e) =>
                   setEditingPage({ ...editingPage, video: e.target.value })
                 }
+                style={{ fontFamily: font || 'inherit' }}
               />
               {editingPage?.video && getYouTubeVideoId(editingPage.video).videoId && (
                 <iframe
@@ -778,10 +809,10 @@ const ReleasePages = () => {
               )}
             </div>
             <div className="mb-4">
-              <h4 className="font-bold mb-2">Predefined Links</h4>
+              <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Predefined Links</h4>
               {predefinedLinks.map((link, index) => (
                 <div key={index} className="mb-2">
-                  <label className="block font-bold">{link.name}</label>
+                  <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>{link.name}</label>
                   <input
                     type="text"
                     className="input w-full"
@@ -805,35 +836,39 @@ const ReleasePages = () => {
                         });
                       }
                     }}
+                    style={{ fontFamily: font || 'inherit' }}
                   />
                 </div>
               ))}
             </div>
             <div className="mb-4">
-              <h4 className="font-bold mb-2">Custom Links</h4>
+              <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Custom Links</h4>
               {(editingPage?.links || [])
                 .filter((link: any) => !predefinedLinks.some((p) => p.name === link.name))
                 .map((link: any, index: number) => (
                   <div key={index} className="mb-2">
-                    <label className="block font-bold">Name</label>
+                    <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>Name</label>
                     <input
                       type="text"
                       className="input w-full mb-2"
                       placeholder="Enter link name"
                       value={link.name || ""}
                       onChange={(e) => handleLinkChange(index, "name", e.target.value)}
+                      style={{ fontFamily: font || 'inherit' }}
                     />
-                    <label className="block font-bold">URL</label>
+                    <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>URL</label>
                     <input
                       type="text"
                       className="input w-full"
                       placeholder="Enter link URL"
                       value={link.url || ""}
                       onChange={(e) => handleLinkChange(index, "url", e.target.value)}
+                      style={{ fontFamily: font || 'inherit' }}
                     />
                     <button
                       className="btn btn-alert btn-sm mt-2"
                       onClick={() => removeCustomLink(index)}
+                      style={{ fontFamily: font || 'inherit' }}
                     >
                       Remove
                     </button>
@@ -842,29 +877,30 @@ const ReleasePages = () => {
               <button
                 className="btn btn-primary btn-sm mt-2"
                 onClick={addCustomLink}
+                style={{ fontFamily: font || 'inherit' }}
               >
                 Add Custom Link
               </button>
             </div>
 
             <div className="mb-4">
-              <h4 className="font-bold mb-2">Colors</h4>
+              <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Colors</h4>
               <div className="flex flex-wrap w-full">
-                <h2 style={{ display: "block" }} className="mr-2">BG</h2>
+                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-2">BG</h2>
                 <input
                   type="color"
                   value={bgColor}
                   onChange={(e) => setBgColor(e.target.value)}
                   className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
                 />
-                <h2 style={{ display: "block" }} className="ml-2 mr-2">Text</h2>
+                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Text</h2>
                 <input
                   type="color"
                   value={textColor}
                   onChange={(e) => setTextColor(e.target.value)}
                   className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
                 />
-                <h2 style={{ display: "block" }} className="ml-2 mr-2">Links</h2>
+                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
                 <input
                   type="color"
                   value={linksColor}
@@ -874,18 +910,47 @@ const ReleasePages = () => {
               </div>
             </div>
 
+            {/* Premium Styles Section for Edit Form */}
+            <div className="mt-4 w-full">
+              <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Premium Styles</h4>
+
+              {/* Font Picker */}
+              <div className="mb-3">
+                <label className="mr-2" style={{
+                  fontFamily: font || 'inherit'
+                }}>Font:</label>
+                <select
+                  value={font || "sans-serif"}
+                  onChange={e => setFont(e.target.value)}
+                  className="input w-40"
+                  style={{ fontFamily: font || 'inherit' }}
+                >
+                  <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
+                  <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
+                  <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
+                  <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
+                  <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
+                </select>
+              </div>
+            </div>
+
             {renderMerchSection()}
 
             <div className="flex justify-end">
               <button
                 className="btn btn-primary btn-sm mr-2"
                 onClick={handleSave}
+                style={{ fontFamily: font || 'inherit' }}
               >
                 Save
               </button>
               <button
                 className="btn btn-alert btn-sm"
-                onClick={() => setEditingPage(null)}
+                onClick={() => {
+                  setEditingPage(null);
+                  setFont("");
+                }}
+                style={{ fontFamily: font || 'inherit' }}
               >
                 Cancel
               </button>
@@ -897,10 +962,11 @@ const ReleasePages = () => {
             <button
               className="btn btn-alert btn-sm float-right"
               onClick={() => setAlert("")}
+              style={{ fontFamily: font || 'inherit' }}
             >
               Close
             </button>
-            {alert}
+            <span style={{ fontFamily: font || 'inherit' }}>{alert}</span>
           </div>
         )}
       </div>

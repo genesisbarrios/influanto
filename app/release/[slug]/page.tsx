@@ -422,6 +422,7 @@ const getReleasePage = async () => {
           padding: "5% 0",
           color: textColor || "white",
           backgroundColor: bgColor || "black",
+          fontFamily: releasePage?.font || 'inherit',
         }}
       >
         <div>
