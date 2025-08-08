@@ -443,89 +443,117 @@ const getReleasePage = async () => {
           {/* Name and Description */}
           <p>{releasePage.name}</p>
           <p style={{ marginBottom: "2%" }}>{releasePage.description}</p>
+            
+        {/* Links */}
+        <div
+          style={{
+            margin: "0 auto",
+            width: "25%",
+            textAlign: "center",
+            marginTop: "2%",
+            fontFamily: releasePage?.font || 'inherit',
+            ...(window.innerWidth <= 768 ? { width: "80%" } : {}),
+          }}
+        >
+          {/* Display releasePage.video at the top if it exists */}
+          {releasePage.video && (
+            <div style={{ marginBottom: "30px" }}>
+              <h4 style={{ 
+                color: textColor || "white", 
+                fontFamily: releasePage?.font || 'inherit',
+                marginBottom: "15px",
+                fontSize: "18px",
+                fontWeight: "bold"
+              }}>
+                Featured Video
+              </h4>
+              <iframe
+                width="100%"
+                height="315"
+                style={{ 
+                  maxWidth: "100%", 
+                  borderRadius: "12px", 
+                  marginBottom: "20px" 
+                }}
+                src={getYouTubeEmbedUrl(releasePage.video)}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="Featured Video"
+              />
+            </div>
+          )}
 
-          {/* Links */}
-          <div
-            style={{
-              margin: "0 auto",
-              width: "25%",
-              textAlign: "center",
-              marginTop: "2%",
-              ...(window.innerWidth <= 768 ? { width: "80%" } : {}), // Adjust width for mobile
-            }}
-          >
-            {/* Render YouTube video at the top */}
-            {releasePage.links
-              .filter((link: { url: string; displayVideo: boolean }) => isYouTubeLinkCheck(link.url))
-              .map((link: { url: string; displayVideo: boolean }, index: number) => (
-                <iframe
-                  key={`youtube-${index}`}
-                  width="100%"
-                  height="315"
-                  style={{ maxWidth: "100%", borderRadius: "12px", marginBottom: "20px" }}
-                  src={getYouTubeEmbedUrl(link.url)}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
-              ))}
+          {/* Render ALL links (including YouTube) as regular links */}
+          {releasePage.links?.map((link: { url: string; name: string }, index: number) => {
+            if (!link.url) return null;
+            
+            const platformName = getPlatformName(link.url);
+            const platformIcon = getPlatformIcon(platformName);
+            const buttonText = ["Amazon Music", "Bandcamp", "Sound.xyz"].includes(platformName)
+              ? "Buy / Stream"
+              : "Stream";
 
-            {/* Render other links */}
-            {releasePage.links
-              .filter((link: { url: string; displayVideo: boolean }) => !isYouTubeLinkCheck(link.url))
-              .map((link: { url: string; displayVideo: boolean }, index: number) => {
-                const platformName = getPlatformName(link.url);
-                const platformIcon = getPlatformIcon(platformName); // Function to get the platform icon
-                const buttonText = ["Amazon Music", "Bandcamp", "Sound.xyz"].includes(platformName)
-                  ? "Buy / Stream"
-                  : "Stream"; // Conditional button text
-
-                return (
-                  <div
-                    key={index}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center", // Center the links
-                      margin: "0 auto", // Center the container
-                      ...(window.innerWidth <= 768 ? { width: "80%" } : {}), // Adjust width for mobile
-                    }}
-                  >
-                    <div style={{  marginBottom: "20px", display: "flex", alignItems: "center", flex: 1 }}>
-                      {platformIcon && (
-                        <FontAwesomeIcon
-                          icon={platformIcon}
-                          style={{
-                            marginRight: "10px",
-                            fontSize: "20px",
-                            color: linksColor || "white",
-                          }}
-                        />
-                      )}
-                      <p style={{ margin: 0, fontWeight: "bold", color: linksColor || "white" }}>
-                        {platformName}
-                      </p>
-                    </div>
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+            return (
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto",
+                  fontFamily: releasePage?.font || 'inherit',
+                  ...(window.innerWidth <= 768 ? { width: "80%" } : {}),
+                }}
+              >
+                <div style={{  
+                  marginBottom: "20px", 
+                  display: "flex", 
+                  alignItems: "center", 
+                  flex: 1,
+                  fontFamily: releasePage?.font || 'inherit'
+                }}>
+                  {platformIcon && (
+                    <FontAwesomeIcon
+                      icon={platformIcon}
                       style={{
-                        display: "inline-block",  marginBottom: "20px",
-                        padding: "5px 10px", fontSize: "13px",
-                        backgroundColor: releasePage.linksColor,
-                        color: "white",
-                        borderRadius: "5px",
-                        textDecoration: "none",
+                        marginRight: "10px",
+                        fontSize: "20px",
+                        color: linksColor || "white",
                       }}
-                    >
-                      {buttonText}
-                    </a>
-                  </div>
-                );
-              })}
-          </div>
-
+                    />
+                  )}
+                  <p style={{ 
+                    margin: 0, 
+                    fontWeight: "bold", 
+                    color: linksColor || "white",
+                    fontFamily: releasePage?.font || 'inherit'
+                  }}>
+                    {link.name || platformName}
+                  </p>
+                </div>
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-block",  
+                    marginBottom: "20px",
+                    padding: "5px 10px", 
+                    fontSize: "13px",
+                    backgroundColor: releasePage.linksColor,
+                    color: "white",
+                    borderRadius: "5px",
+                    textDecoration: "none",
+                    fontFamily: releasePage?.font || 'inherit'
+                  }}
+                >
+                  {buttonText}
+                </a>
+              </div>
+            );
+          })}
+        </div>
           {/* Merch Section */}
           {renderMerchSection()}
 

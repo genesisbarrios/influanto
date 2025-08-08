@@ -330,119 +330,118 @@ return (
 
         <hr style={{margin: "5% 0"}}></hr>
 
-    {/* MERCH SECTION */}
-    {user?.hasAccess && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
-      <div className="mt-6 mb-4">
-        <h3 className="text-lg font-semibold mb-3 text-center" style={{
-          color: textColor,
-          fontFamily: font || 'inherit'
+   // Replace the merch section (around line 340):
+
+{/* MERCH SECTION */}
+{user?.hasAccess && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
+  <div className="mt-6 mb-4">
+    <h3 className="text-lg font-semibold mb-3 text-center" style={{
+      color: textColor,
+      fontFamily: font || 'inherit'
+    }}>
+      Merch
+    </h3>
+    
+    {isLoadingProducts ? (
+      <div className="text-center py-8" style={{
+        fontFamily: font || 'inherit'
+      }}>
+        <div className="animate-pulse">
+          <div className="h-32 bg-gray-200 rounded-lg mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded"></div>
+        </div>
+        <p className="mt-4 text-gray-600">Loading products...</p>
+      </div>
+    ) : (
+      <div className="w-full" style={{ 
+        overflowX: "auto", 
+        paddingBottom: "8px",
+        WebkitOverflowScrolling: "touch"
+      }}>
+        <div className="flex gap-3" style={{
+          width: 'max-content',
+          minWidth: '100%',
+          paddingLeft: "4px",
+          paddingRight: "4px"
         }}>
-          Merch
-        </h3>
-        
-        {isLoadingProducts ? (
-          <div className="text-center py-8" style={{
-            fontFamily: font || 'inherit'
-          }}>
-            <div className="animate-pulse">
-              <div className="h-32 bg-gray-200 rounded-lg mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded"></div>
-            </div>
-            <p className="mt-4 text-gray-600">Loading products...</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto pb-2">
-            <div className="flex gap-3" style={{
-              width: 'max-content',
-              minWidth: '100%'
-            }}>
-              {linkInBio.selectedProducts.map((productId: string) => {
-                // Find the product from availableProducts by ID
-                const product = availableProducts.find(p => p.id === productId);
-                if (!product) {
-                  console.log('❌ Product not found for ID:', productId);
-                  return null;
-                }
-                
-                // Use the URL directly from the product (set by the API)
-                const productUrl = product.url || '#';
-                
-                console.log('🔍 Product found:', {
-                  id: product.id,
-                  title: product.title,
-                  url: productUrl,
-                  hasImages: product.images?.length > 0
-                });
-                
-                return (
-                  <a 
-                    key={productId}
-                    href={productUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-shrink-0 p-3 rounded-lg cursor-pointer transition-transform hover:scale-105 block"
-                    style={{
-                      width: '33.333%',
-                      minWidth: '200px',
-                      backgroundColor: cardBgColor || 'rgba(255,255,255,0.1)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      textDecoration: 'none'
-                    }}
-                  >
-                    {/* Product Image */}
-                    <div className="w-full h-32 rounded overflow-hidden bg-gray-100 mb-3">
-                      {product.images && product.images.length > 0 && product.images[0] ? (
-                        <img
-                          src={product.images[0]}
-                          alt={product.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            console.log('❌ Image failed to load:', product.images[0]);
-                            e.currentTarget.src = `https://via.placeholder.com/200x128/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
-                          }}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-                          <span className="text-gray-400 text-2xl">📦</span>
-                        </div>
-                      )}
+          {linkInBio.selectedProducts.map((productId: string) => {
+            const product = availableProducts.find(p => p.id === productId);
+            if (!product) {
+              console.log('❌ Product not found for ID:', productId);
+              return null;
+            }
+            
+            const productUrl = product.url || '#';
+            
+            return (
+              <a 
+                key={productId}
+                href={productUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 p-3 rounded-lg cursor-pointer transition-transform hover:scale-105 block"
+                style={{
+                  width: '160px', // Fixed width for consistency
+                  minWidth: '160px', // Ensures consistent size
+                  maxWidth: '160px', // Prevents growing larger
+                  backgroundColor: cardBgColor || 'rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  textDecoration: 'none',
+                  boxSizing: 'border-box'
+                }}
+              >
+                {/* Product Image */}
+                <div className="w-full h-24 rounded overflow-hidden bg-gray-100 mb-2">
+                  {product.images && product.images.length > 0 && product.images[0] ? (
+                    <img
+                      src={product.images[0]}
+                      alt={product.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.log('❌ Image failed to load:', product.images[0]);
+                        e.currentTarget.src = `https://via.placeholder.com/160x96/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                      <span className="text-gray-400 text-lg">📦</span>
                     </div>
-                    
-                    {/* Product Info */}
-                    <div>
-                      <div className="text-sm font-medium mb-2" style={{
-                        color: textColor,
-                        fontFamily: font || 'inherit',
-                        lineHeight: '1.3',
-                        wordWrap: 'break-word',
-                        minHeight: '2.6em',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
-                      }}>
-                        {product.title && product.title.length > 40 
-                          ? `${product.title.substring(0, 40)}...` 
-                          : product.title || 'Product'
-                        }
-                      </div>
-                      <div className="text-lg font-bold text-center" style={{
-                        color: linksColor,
-                        fontFamily: font || 'inherit'
-                      }}>
-                        ${product.variants?.[0]?.price || product.price || 'N/A'}
-                      </div>
-                    </div>
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-        )}
-        
-       
+                  )}
+                </div>
+                
+                {/* Product Info */}
+                <div>
+                  <div className="text-xs font-medium mb-1" style={{
+                    color: textColor,
+                    fontFamily: font || 'inherit',
+                    lineHeight: '1.2',
+                    wordWrap: 'break-word',
+                    height: '2.4em', // Fixed height to maintain consistency
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                  }}>
+                    {product.title && product.title.length > 25 
+                      ? `${product.title.substring(0, 25)}...` 
+                      : product.title || 'Product'
+                    }
+                  </div>
+                  <div className="text-sm font-bold text-center" style={{
+                    color: linksColor,
+                    fontFamily: font || 'inherit'
+                  }}>
+                    ${product.variants?.[0]?.price || product.price || 'N/A'}
+                  </div>
+                </div>
+              </a>
+            );
+          })}
+        </div>
       </div>
     )}
+  </div>
+)}
         {alert && <div className="alert mt-10 w-1/2 m-auto" style={{ fontFamily: font || 'inherit' }}>{alert}</div>}
         <br></br>
       </div>
