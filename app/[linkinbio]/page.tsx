@@ -330,8 +330,6 @@ return (
 
         <hr style={{margin: "5% 0"}}></hr>
 
-   // Replace the merch section (around line 340):
-
 {/* MERCH SECTION */}
 {user?.hasAccess && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
   <div className="mt-6 mb-4">
