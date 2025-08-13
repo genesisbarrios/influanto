@@ -36,6 +36,11 @@ export default function ReverbandDelay() {
   const [preDelayOption, setPreDelayOption] = useState<"1/32" | "1/64">("1/64");
   const [delay1Bar, setDelay1Bar] = useState<string>(calcDelayMs(bpm, 4));
 
+  // Add this useEffect to update delay1Bar when BPM changes
+  useEffect(() => {
+    setDelay1Bar(calcDelayMs(bpm, 4));
+  }, [bpm]);
+
   return (
     <>  
      <Head>
@@ -136,16 +141,16 @@ export default function ReverbandDelay() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td style={{background: "#2a4d89", padding: "8px", border: "1px solid #444" }}>Hall (2 Bars)</td>
-                  <td style={{ padding: "8px", border: "1px solid #444" }}>{calculateReverbPreDelay(bpm, 8).toFixed(2) + " ms"}</td>
-                  <td style={{ padding: "8px", border: "1px solid #444" }}>{(Number(delay1Bar) * 2).toFixed(2)} ms</td>
-                </tr>
-                <tr>
-                  <td style={{background: "#2a4d89",padding: "8px", border: "1px solid #444" }}>Large Room (1 Bar)</td>
-                  <td style={{ padding: "8px", border: "1px solid #444" }}>{calculateReverbPreDelay(bpm, 16).toFixed(2) + " ms"}</td>
-                  <td style={{ padding: "8px", border: "1px solid #444" }}>{delay1Bar} ms</td>
-                </tr>
+             <tr>
+              <td style={{background: "#2a4d89", padding: "8px", border: "1px solid #444" }}>Hall (2 Bars)</td>
+              <td style={{ padding: "8px", border: "1px solid #444" }}>{calculateReverbPreDelay(bpm, 8).toFixed(2) + " ms"}</td>
+              <td style={{ padding: "8px", border: "1px solid #444" }}>{(Number(calcDelayMs(bpm, 4)) * 2).toFixed(2)} ms</td>
+            </tr>
+            <tr>
+              <td style={{background: "#2a4d89",padding: "8px", border: "1px solid #444" }}>Large Room (1 Bar)</td>
+              <td style={{ padding: "8px", border: "1px solid #444" }}>{calculateReverbPreDelay(bpm, 16).toFixed(2) + " ms"}</td>
+              <td style={{ padding: "8px", border: "1px solid #444" }}>{calcDelayMs(bpm, 4)} ms</td>
+            </tr>
                 <tr>
                   <td style={{background: "#2a4d89", padding: "8px", border: "1px solid #444" }}>Small Room (1/2 Note)</td>
                   <td style={{ padding: "8px", border: "1px solid #444" }}>{calculateReverbPreDelay(bpm, 32).toFixed(2)} ms</td>
