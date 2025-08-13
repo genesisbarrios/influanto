@@ -116,18 +116,18 @@ export default function BPMCalculator() {
             Tap or click anywhere or any key for the BPM.
             </p>
         
-            <h1
-              className="font-bold mb-4"
-              style={{
-                fontSize: "15rem",
-                lineHeight: 1,
-                margin: "0.5em 0",
-                color: "#181b20",
-                userSelect: "none" // Prevent text selection on taps
-              }}
-            >
-              {bpm}
-            </h1>
+          <h1
+            className="font-bold mb-4"
+            style={{
+              fontSize: "clamp(8rem, 12vw, 14rem)", // Responsive font size
+              lineHeight: 1,
+              margin: "0.5em 0",
+              color: "#181b20",
+              userSelect: "none" // Prevent text selection on taps
+            }}
+          >
+            {bpm}
+          </h1>
             <button
             className="btn btn-primary w-1/2 m-auto"
             style={{
