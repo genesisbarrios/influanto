@@ -282,12 +282,12 @@ useEffect(() => {
 
 const containerStyle = {
   width: "100%",
-  maxWidth: "100vw",
+  maxWidth: "480px", // Fixed pixel value instead of viewport units
   margin: "0 auto",
   fontFamily: linkInBio?.font || 'inherit',
   backgroundColor: linkInBio?.cardBgColor || 'white',
   boxSizing: "border-box" as const,
-  overflow: "hidden", // Prevent overflow
+  overflow: "hidden",
 };
 
    // Check if user data is not yet loaded
@@ -300,19 +300,22 @@ const containerStyle = {
     <Head>
       <title>Influanto | FREE Link In Bio Tool</title>
       <meta name="description" content="FREE Link In Bio Tool" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
       <meta property="og:title" content="FREE Link In Bio Tool" />
       <meta property="og:description" content="Generate and manage your Link In Bio easily." />
       <meta name="twitter:title" content="Link In Bio Tool" />
       <meta name="twitter:description" content="Generate and manage your Link In Bio easily." />
     </Head>
      <div 
-        className="p-2 sm:p-4 bg-white shadow rounded-md text-black"
+        className="mx-auto bg-white shadow rounded-md text-black"
         style={{
-          ...containerStyle,
-          maxWidth: "90vw", // Responsive max width
-          width: "100%",
-          margin: "0 auto"
+          width: "calc(100% - 16px)", // Always leave 8px margin on each side
+          maxWidth: "480px", // Fixed max width
+          padding: "0.5rem 1rem", // Responsive padding
+          fontFamily: linkInBio?.font || 'inherit',
+          backgroundColor: linkInBio?.cardBgColor || 'white',
+          boxSizing: "border-box",
+          overflow: "hidden"
         }}
       >
        <div className="w-full flex justify-between items-center">
@@ -479,14 +482,19 @@ const containerStyle = {
 </>
 )}else{
   return (
-    <div 
-      className="p-4 shadow rounded-md" 
-      style={{
-        ...containerStyle,
-        backgroundColor: linkInBio?.cardBgColor || 'white',
-        fontFamily: linkInBio?.font || 'inherit'
-      }}
-    >
+  
+<div 
+  className="shadow rounded-md mx-auto" 
+  style={{
+    width: "calc(100% - 16px)", // Always leave 8px margin on each side
+    maxWidth: "600px", // Fixed max width for editing
+    padding: "1rem",
+    fontFamily: linkInBio?.font || 'inherit',
+    backgroundColor: linkInBio?.cardBgColor || 'white',
+    boxSizing: "border-box",
+    overflow: "hidden"
+  }}
+>
       <div className="w-full flex flex-wrap">
         <h2 className="text-xl sm:text-2xl font-bold mb-2 inline" style={{
           fontFamily: linkInBio?.font || 'inherit'
