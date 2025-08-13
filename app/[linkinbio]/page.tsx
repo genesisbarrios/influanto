@@ -389,7 +389,14 @@ return (
                 }}
               >
                 {/* Product Image */}
-                <div className="w-full h-24 rounded overflow-hidden bg-gray-100 mb-2">
+                <div className="w-full h-24 rounded overflow-hidden bg-gray-100 mb-2" style={{ 
+                  width: "100%", 
+                  height: "100px", 
+                  borderRadius: "6px", 
+                  overflow: "hidden", 
+                  backgroundColor: "#f0f0f0", 
+                  marginBottom: "4px"
+                }} >
                   {product.images && product.images.length > 0 && product.images[0] ? (
                     <img
                       src={product.images[0]}
