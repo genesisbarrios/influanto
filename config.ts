@@ -42,10 +42,10 @@ const config = {
         ],
       },
       {
-        priceId:
-          process.env.NODE_ENV === "development"
-            ? "price_1PTHqhHYk9DUtBP3l9IFqCPx"
-            : "prod_StNpQhydjH8pQO", 
+        priceId: "prod_StNpQhydjH8pQO", 
+          // process.env.NODE_ENV === "development"
+          //   ? "price_1PTHqhHYk9DUtBP3l9IFqCPx"
+          //   : "prod_StNpQhydjH8pQO", 
         // This plan will look different on the pricing page, it will be highlighted. You can only have one plan with isFeatured: true
         isFeatured: true,
         name: "Influanto Pro",
