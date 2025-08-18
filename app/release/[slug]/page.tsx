@@ -458,15 +458,6 @@ const getReleasePage = async () => {
           {/* Display releasePage.video at the top if it exists */}
           {releasePage.video && (
             <div style={{ marginBottom: "30px" }}>
-              <h4 style={{ 
-                color: textColor || "white", 
-                fontFamily: releasePage?.font || 'inherit',
-                marginBottom: "15px",
-                fontSize: "18px",
-                fontWeight: "bold"
-              }}>
-                Featured Video
-              </h4>
               <iframe
                 width="100%"
                 height="315"

@@ -19,6 +19,12 @@ const tools = [
     icon: "⏱️",
   },
   {
+    title: "Split Sheet Generator",
+    description: "Create and export split sheets for your music collaborations.",
+    href: "/Split-Sheet-Generator",
+    icon: "📄",
+  },
+  {
     title: "BPM Calculator",
     description: "Tap or click on beat to find the tempo of your track.",
     href: "/BPM-Calculator",
@@ -36,12 +42,6 @@ const tools = [
 //     href: "/Synthfluanto",
 //     icon: "🎹",
 //   },
-  {
-    title: "Split Sheet Generator",
-    description: "Create and export split sheets for your music collaborations.",
-    href: "/Split-Sheet-Generator",
-    icon: "📄",
-  },
   {
     title: "More Tools",
     description: "Sign Up to get access to more tools.",

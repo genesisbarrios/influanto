@@ -583,7 +583,7 @@ const disconnectPrintify = async () => {
               </>
             )}
             {/* Premium Sign Up */}
-            {/* {!user.hasAccess &&
+            {!user.hasAccess &&
             <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
               <div className="text-sm font-medium text-blue-800 mb-2">
                 🚀 Unlock Premium Features
@@ -599,7 +599,7 @@ const disconnectPrintify = async () => {
                 priceId={config.stripe.plans[1].priceId} 
               />
             </div>
-            } */}
+            }
           </div>
         </div>
     );
