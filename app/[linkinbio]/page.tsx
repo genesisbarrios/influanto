@@ -330,123 +330,156 @@ return (
 
         <hr style={{margin: "5% 0"}}></hr>
 
-{/* MERCH SECTION */}
-{user?.hasAccess && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
-  <div className="mt-6 mb-4">
-    <h3 className="text-lg font-semibold mb-3 text-center" style={{
-      color: textColor,
-      fontFamily: font || 'inherit'
-    }}>
-      Merch
-    </h3>
-    
-    {isLoadingProducts ? (
-      <div className="text-center py-8" style={{
-        fontFamily: font || 'inherit'
-      }}>
-        <div className="animate-pulse">
-          <div className="h-32 bg-gray-200 rounded-lg mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded"></div>
-        </div>
-        <p className="mt-4 text-gray-600">Loading products...</p>
-      </div>
-    ) : (
-      <div className="w-full" style={{ 
-        overflowX: "auto", 
-        paddingBottom: "8px",
-        WebkitOverflowScrolling: "touch"
-      }}>
-        <div className="flex gap-3" style={{
-          width: 'max-content',
-          minWidth: '100%',
-          paddingLeft: "4px",
-          paddingRight: "4px"
-        }}>
-          {linkInBio.selectedProducts.map((productId: string) => {
-            const product = availableProducts.find(p => p.id === productId);
-            if (!product) {
-              console.log('❌ Product not found for ID:', productId);
-              return null;
-            }
-            
-            const productUrl = product.url || '#';
-            
-            return (
-              <a 
-                key={productId}
-                href={productUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-shrink-0 p-3 rounded-lg cursor-pointer transition-transform hover:scale-105 block"
-                style={{
-                  width: '160px', // Fixed width for consistency
-                  minWidth: '160px', // Ensures consistent size
-                  maxWidth: '160px', // Prevents growing larger
-                  backgroundColor: cardBgColor || 'rgba(255,255,255,0.1)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  textDecoration: 'none',
-                  boxSizing: 'border-box'
-                }}
-              >
-                {/* Product Image */}
-                <div className="w-full h-24 rounded overflow-hidden bg-gray-100 mb-2" style={{ 
-                  width: "100%", 
-                  height: "100px", 
-                  borderRadius: "6px", 
-                  overflow: "hidden", 
-                  backgroundColor: "#f0f0f0", 
-                  marginBottom: "4px"
-                }} >
-                  {product.images && product.images.length > 0 && product.images[0] ? (
-                    <img
-                      src={product.images[0]}
-                      alt={product.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        console.log('❌ Image failed to load:', product.images[0]);
-                        e.currentTarget.src = `https://via.placeholder.com/160x96/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
+      {/* MERCH SECTION */}
+      {user?.hasAccess && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
+        <div className="mt-6 mb-4">
+          <h3 className="text-lg font-semibold mb-3 text-center" style={{
+            color: textColor,
+            fontFamily: font || 'inherit'
+          }}>
+            Merch
+          </h3>
+          
+          {isLoadingProducts ? (
+            <div className="text-center py-8" style={{
+              fontFamily: font || 'inherit'
+            }}>
+              <div className="animate-pulse">
+                <div className="h-32 bg-gray-200 rounded-lg mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded"></div>
+              </div>
+              <p className="mt-4 text-gray-600">Loading products...</p>
+            </div>
+          ) : (
+            <div style={{ 
+              width: "100%",
+              overflow: "hidden"
+            }}>
+              {/* Responsive Grid Container */}
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: linkInBio.selectedProducts.length === 1 
+                  ? "1fr" // 1 item: center it
+                  : linkInBio.selectedProducts.length === 2 
+                  ? "repeat(2, 1fr)" // 2 items: side by side
+                  : "repeat(auto-fit, minmax(140px, 1fr))", // 3+ items: responsive grid
+                gap: "12px",
+                width: "100%",
+                padding: "0 4px",
+                justifyItems: "center"
+              }}>
+                {linkInBio.selectedProducts.map((productId: string) => {
+                  const product = availableProducts.find(p => p.id === productId);
+                  if (!product) {
+                    console.log('❌ Product not found for ID:', productId);
+                    return null;
+                  }
+                  
+                  const productUrl = product.url || '#';
+                  
+                  return (
+                    <a 
+                      key={productId}
+                      href={productUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'block',
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        backgroundColor: cardBgColor || 'rgba(255,255,255,0.1)',
+                        textDecoration: 'none',
+                        width: '100%',
+                        maxWidth: linkInBio.selectedProducts.length === 1 
+                          ? "200px" // Single item: max 200px width
+                          : linkInBio.selectedProducts.length === 2 
+                          ? "180px" // Two items: max 180px each
+                          : "160px", // Multiple items: max 160px each
+                        minWidth: "140px",
+                        boxSizing: 'border-box',
+                        transition: 'transform 0.2s ease',
+                        cursor: 'pointer'
                       }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-                      <span className="text-gray-400 text-lg">📦</span>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Product Info */}
-                <div>
-                  <div className="text-xs font-medium mb-1" style={{
-                    color: textColor,
-                    fontFamily: font || 'inherit',
-                    lineHeight: '1.2',
-                    wordWrap: 'break-word',
-                    height: '2.4em', // Fixed height to maintain consistency
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  }}>
-                    {product.title && product.title.length > 25 
-                      ? `${product.title.substring(0, 25)}...` 
-                      : product.title || 'Product'
-                    }
-                  </div>
-                  <div className="text-sm font-bold text-center" style={{
-                    color: linksColor,
-                    fontFamily: font || 'inherit'
-                  }}>
-                    ${product.variants?.[0]?.price || product.price || 'N/A'}
-                  </div>
-                </div>
-              </a>
-            );
-          })}
+                      className="hover:scale-105"
+                    >
+                      {/* Product Image */}
+                      <div style={{ 
+                        width: "100%", 
+                        height: linkInBio.selectedProducts.length === 1 ? "120px" : "80px", // Larger image for single item
+                        borderRadius: "6px", 
+                        overflow: "hidden", 
+                        backgroundColor: "#f0f0f0", 
+                        marginBottom: "6px" 
+                      }}>
+                        {product.images && product.images.length > 0 && product.images[0] ? (
+                          <img
+                            src={product.images[0]}
+                            alt={product.title}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover"
+                            }}
+                            onError={(e) => {
+                              console.log('❌ Image failed to load:', product.images[0]);
+                              e.currentTarget.src = `https://via.placeholder.com/160x80/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
+                            }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: "100%",
+                            height: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "linear-gradient(45deg, #e3f2fd, #f3e5f5)"
+                          }}>
+                            <span style={{ color: "#999", fontSize: "16px" }}>📦</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Product Info */}
+                      <div>
+                        <div style={{
+                          fontSize: linkInBio.selectedProducts.length === 1 ? "14px" : "12px", // Larger text for single item
+                          fontWeight: "500",
+                          marginBottom: "4px",
+                          color: textColor,
+                          fontFamily: font || 'inherit',
+                          lineHeight: '1.2',
+                          height: linkInBio.selectedProducts.length === 1 ? "auto" : "2.4em", // Auto height for single item
+                          overflow: 'hidden',
+                          wordWrap: 'break-word',
+                          textAlign: 'center'
+                        }}>
+                          {linkInBio.selectedProducts.length === 1 
+                            ? product.title || 'Product' // Show full title for single item
+                            : product.title && product.title.length > 20 
+                            ? `${product.title.substring(0, 20)}...` 
+                            : product.title || 'Product'
+                          }
+                        </div>
+                        <div style={{
+                          fontSize: linkInBio.selectedProducts.length === 1 ? "16px" : "12px", // Larger price for single item
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          color: linksColor,
+                          fontFamily: font || 'inherit'
+                        }}>
+                          ${product.variants?.[0]?.price || product.price || 'N/A'}
+                        </div>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-    )}
-  </div>
-)}
+      )}
+
         {alert && <div className="alert mt-10 w-1/2 m-auto" style={{ fontFamily: font || 'inherit' }}>{alert}</div>}
         <br></br>
       </div>

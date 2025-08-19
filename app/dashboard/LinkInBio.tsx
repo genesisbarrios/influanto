@@ -375,150 +375,147 @@ const containerStyle = {
                 )
               ))}
 
-{/* MERCH SECTION */}
-{user?.hasAccess && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
-  <div style={{ 
-    marginTop: "24px", 
-    marginBottom: "16px", 
-    width: "100%"
-  }}>
-    <h3 style={{
-      fontSize: "18px",
-      fontWeight: "600",
-      marginBottom: "12px",
-      textAlign: "center",
-      color: textColor,
-      fontFamily: linkInBio?.font || 'inherit'
-    }}>
-      Merch
-    </h3>
-    
-    <div style={{ 
-      width: "100%",
-      overflowX: "auto",
-      overflowY: "hidden",
-      paddingBottom: "8px",
-      WebkitOverflowScrolling: "touch"
-    }}>
-      <div style={{
-        display: "flex",
-        gap: "6px",
-        width: "fit-content", // Remove the calc() formula
-        paddingLeft: "2px",
-        paddingRight: "2px"
+    {/* MERCH SECTION */}
+    {user?.hasAccess && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
+      <div style={{ 
+        marginTop: "24px", 
+        marginBottom: "16px", 
+        width: "100%"
       }}>
-        {linkInBio.selectedProducts.map((productId: string) => {
-          const product = availableProducts.find(p => p.id === productId);
-          if (!product) {
-            console.log('❌ Product not found for ID:', productId);
-            return null;
-          }
-          
-          const productUrl = product.url || '#';
-          
-          return (
-            <div 
-              key={productId}
-              style={{ 
-                width: "calc(33.333% - 5.33px)", // 1/3 of container minus gap
-                minWidth: "calc(33.333% - 5.33px)",
-                maxWidth: "calc(33.333% - 5.33px)",
-                flexShrink: 0
-              }}
-            >
-             
-            <a 
-              href={productUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'block',
-                padding: '2px', // Reduced padding
-                borderRadius: '6px',
-                border: '1px solid rgba(255,255,255,0.2)',
-                backgroundColor: linkInBio?.cardBgColor || 'rgba(255,255,255,0.1)',
-                textDecoration: 'none',
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.02)";
+        <h3 style={{
+          fontSize: "18px",
+          fontWeight: "600",
+          marginBottom: "12px",
+          textAlign: "center",
+          color: textColor,
+          fontFamily: linkInBio?.font || 'inherit'
+        }}>
+          Merch
+        </h3>
+        
+        {/* Responsive Grid Container */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(80px, 1fr))", // Responsive grid
+          gap: "8px",
+          width: "100%",
+          maxWidth: "100%",
+          padding: "0 4px"
+        }}>
+          {linkInBio.selectedProducts.map((productId: string) => {
+            const product = availableProducts.find(p => p.id === productId);
+            if (!product) {
+              console.log('❌ Product not found for ID:', productId);
+              return null;
+            }
+            
+            const productUrl = product.url || '#';
+            
+            return (
+              <div 
+                key={productId}
+                style={{ 
+                  width: "100%", // Take full grid cell width
+                  minWidth: "80px",
+                  maxWidth: "120px", // Prevent cards from getting too large
+                  margin: "0 auto" // Center in grid cell
                 }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-              }}
               >
-                {/* Product Image */}
-               <div style={{ 
-                  width: "100%", 
-                  height: "80px", 
-                  borderRadius: "6px", 
-                  overflow: "hidden", 
-                  backgroundColor: "#f0f0f0", 
-                  marginBottom: "4px" // Reduced margin
-                }}>
-                  {product.images && product.images.length > 0 && product.images[0] ? (
-                    <img
-                      src={product.images[0]}
-                      alt={product.title}
-                      style={{
+                <a 
+                  href={productUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'block',
+                    padding: '6px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    backgroundColor: linkInBio?.cardBgColor || 'rgba(255,255,255,0.1)',
+                    textDecoration: 'none',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    transition: 'transform 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "scale(1.02)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "scale(1)";
+                  }}
+                >
+                  {/* Product Image */}
+                  <div style={{ 
+                    width: "100%", 
+                    height: "60px",
+                    borderRadius: "6px", 
+                    overflow: "hidden", 
+                    backgroundColor: "#f0f0f0", 
+                    marginBottom: "6px" 
+                  }}>
+                    {product.images && product.images.length > 0 && product.images[0] ? (
+                      <img
+                        src={product.images[0]}
+                        alt={product.title}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover"
+                        }}
+                        onError={(e) => {
+                          console.log('❌ Image failed to load:', product.images[0]);
+                          e.currentTarget.src = `https://via.placeholder.com/80x60/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
+                        }}
+                      />
+                    ) : (
+                      <div style={{
                         width: "100%",
                         height: "100%",
-                        objectFit: "cover"
-                      }}
-                      onError={(e) => {
-                        console.log('❌ Image failed to load:', product.images[0]);
-                        e.currentTarget.src = `https://via.placeholder.com/120x60/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
-                      }}
-                    />
-                  ) : (
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "linear-gradient(45deg, #e3f2fd, #f3e5f5)"
+                      }}>
+                        <span style={{ color: "#999", fontSize: "12px" }}>📦</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Product Info */}
+                  <div>
                     <div style={{
-                      width: "100%",
-                      height: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: "linear-gradient(45deg, #e3f2fd, #f3e5f5)"
+                      fontSize: "10px",
+                      fontWeight: "500",
+                      marginBottom: "3px",
+                      color: textColor,
+                      fontFamily: linkInBio?.font || 'inherit',
+                      lineHeight: '1.2',
+                      height: '2.4em',
+                      overflow: 'hidden',
+                      wordWrap: 'break-word',
+                      textAlign: 'center'
                     }}>
-                      <span style={{ color: "#999", fontSize: "14px" }}>📦</span>
+                      {product.title && product.title.length > 12 
+                        ? `${product.title.substring(0, 12)}...` 
+                        : product.title || 'Product'
+                      }
                     </div>
-                  )}
-                </div>
-                
-              {/* Product Info */}
-              <div style={{
-                fontSize: "7px", // Reduced from 10px
-                fontWeight: "500",
-                marginBottom: "2px", // Reduced margin
-                color: textColor,
-                fontFamily: linkInBio?.font || 'inherit',
-                lineHeight: '1.1',
-                height: '1.8em', // Reduced height
-                overflow: 'hidden',
-                wordWrap: 'break-word'
-              }}>
-                {product.title && product.title.length > 8 // Reduced from 15
-                  ? `${product.title.substring(0, 12)}..` 
-                  : product.title || 'Product'
-                }
+                    <div style={{
+                      fontSize: "10px",
+                      fontWeight: "bold",
+                      textAlign: "center",
+                      color: linksColor,
+                      fontFamily: linkInBio?.font || 'inherit'
+                    }}>
+                      ${product.variants?.[0]?.price || product.price || 'N/A'}
+                    </div>
+                  </div>
+                </a>
               </div>
-              <div style={{
-                fontSize: "9px", // Reduced from 10px
-                fontWeight: "bold",
-                textAlign: "center",
-                color: linksColor,
-                fontFamily: linkInBio?.font || 'inherit'
-              }}>
-                ${product.variants?.[0]?.price || product.price || 'N/A'}
-              </div>
-              </a>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </div>
-  </div>
-)}
+    )}  
               <br />
               <a
                   className="btn btn-primary btn-block btn-lg btn-narrow"
