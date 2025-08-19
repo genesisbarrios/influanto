@@ -100,7 +100,7 @@ const ReleasePages = () => {
       setReleasePages(data);
     } catch (e: any) {
       console.error(e?.message);
-      setAlert(e?.message);
+      //setAlert(e?.message);
     }
   };
 
