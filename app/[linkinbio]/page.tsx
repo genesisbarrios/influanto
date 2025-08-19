@@ -328,11 +328,11 @@ return (
           )
         )}
 
-        <hr style={{margin: "5% 0"}}></hr>
-
+      
       {/* MERCH SECTION */}
       {user?.hasAccess && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
         <div className="mt-6 mb-4">
+          <hr style={{margin: "5% 0"}}></hr>
           <h3 className="text-lg font-semibold mb-3 text-center" style={{
             color: textColor,
             fontFamily: font || 'inherit'
