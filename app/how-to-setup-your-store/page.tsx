@@ -71,14 +71,6 @@ const TOS = () => {
               />
             </li>
             <li>
-              Choose Sales Channel: Select the desired sales channel from the available options, and choose &quot;API&quot; for direct integration with Influanto. 
-              <img
-                src="/printify-sales-channel.png"
-                alt="Sales Channel Printify"
-                className="my-4"
-              />
-            </li>
-            <li>
               Connect your printify account with your store URL on the Profile Page.
               <img
                 src="/printify-connect-url.png"
@@ -100,7 +92,7 @@ const TOS = () => {
           <p>
             For any questions or concerns, please contact us at 
             <a href="mailto:info@influanto.com" className="text-blue-500">
-              info@influanto.com
+               info@influanto.com
             </a>.
           </p>
 
