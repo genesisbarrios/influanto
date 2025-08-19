@@ -730,7 +730,78 @@ const containerStyle = {
                       <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
                     </select>
                   </div>
- </div>
+
+                  {/* Background Image Selector */}
+                <div className="mb-3">
+                  <label className="mr-2" style={{
+                    fontFamily: linkInBio?.font || 'inherit'
+                  }}>Background Image:</label>
+                  <div className="flex gap-3 flex-wrap">
+                    <button
+                      type="button"
+                      className={`border rounded-lg p-2 ${!linkInBio?.bgImage ? "border-blue-500" : "border-gray-300"}`}
+                      onClick={() => {
+                        setLinkInBio({ ...linkInBio, bgImage: null });
+                        // Immediately clear background
+                        document.body.style.backgroundImage = 'none';
+                      }}
+                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div style={{ 
+                          width: 80, 
+                          height: 80, 
+                          backgroundColor: '#f0f0f0', 
+                          borderRadius: 8, 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          fontSize: '12px', 
+                          marginBottom: 4 
+                        }}>
+                          None
+                        </div>
+                      </div>
+                    </button>
+                    {[
+                      "https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg",
+                      "https://images.pexels.com/photos/3308588/pexels-photo-3308588.jpeg",
+                      "https://images.pexels.com/photos/2832382/pexels-photo-2832382.jpeg",
+                      "https://images.pexels.com/photos/7598077/pexels-photo-7598077.jpeg",
+                      "https://images.pexels.com/photos/7630061/pexels-photo-7630061.jpeg",
+                      "https://images.pexels.com/photos/1292998/pexels-photo-1292998.jpeg",
+                      "https://images.pexels.com/photos/6788581/pexels-photo-6788581.jpeg"
+                    ].map((img, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className={`border rounded-lg p-2 ${linkInBio?.bgImage === img ? "border-blue-500 border-2" : "border-gray-300"}`}
+                        onClick={() => {
+                          setLinkInBio({ ...linkInBio, bgImage: img });
+                          // Immediately apply background
+                          document.body.style.backgroundImage = `url(${img})`;
+                          document.body.style.backgroundSize = 'cover';
+                          document.body.style.backgroundPosition = 'center';
+                          document.body.style.backgroundRepeat = 'no-repeat';
+                          document.body.style.backgroundAttachment = 'fixed';
+                        }}
+                      >
+                        <img 
+                          src={img} 
+                          alt={`bg-${idx}`} 
+                          style={{ 
+                            width: 80, 
+                            height: 80, 
+                            objectFit: "cover", 
+                            borderRadius: 8 
+                          }} 
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
               </>
              )}
               
