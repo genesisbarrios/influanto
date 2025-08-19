@@ -22,23 +22,24 @@ const PitchToSpotify = () => {
   // Predefined list of genres
   const genres = [
     "Indie",
-    "Rock",
-    "Hip Hop",
-    "Jazz",
-    "EDM",
     "Latin",
     "Latin Indie",
     "Reggaeton",
     "Reparto",
     "Latin Trap",
-    "DnB",
+    "Hip Hop",
     "R&B",
     "Trap",
     "Drill",
     "Post Punk",
+    "Pop",
+    "EDM",
     "House",
+    "DnB",
     "Dubstep",
-    "Techno"
+    "Techno",
+    "Rock",
+    "Jazz",
   ];
 
   // Fetch playlists based on selected genre
