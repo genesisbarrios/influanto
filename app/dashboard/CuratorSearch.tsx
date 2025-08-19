@@ -31,14 +31,14 @@ const PitchToSpotify = () => {
     "R&B",
     "Trap",
     "Drill",
-    "Post Punk",
-    "Pop",
     "EDM",
     "House",
     "DnB",
     "Dubstep",
     "Techno",
     "Rock",
+    "Post Punk",
+    "Pop",
     "Jazz",
   ];
 
