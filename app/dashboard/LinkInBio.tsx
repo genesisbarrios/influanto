@@ -20,6 +20,7 @@ const LinkInBio =  () => {
   const {data, status} = useSession();
   const [user, setUser] = useState<any>();
   const [bgColor, setBgColor] = useState<any>();
+  const [bgImage, setBgImage] = useState<any>();
   const [textColor, setTextColor] = useState <any>();
   const [linksColor, setLinksColor] = useState <any>();
   const [linkInBio, setLinkInBio] = useState<any>();
@@ -219,6 +220,7 @@ useEffect(() => {
     const { data } = await apiClient.get("/get-links");
     setLinkInBio(data);
     setBgColor(data.bgColor);
+    setBgImage(data.bgImage);
     setTextColor(data.textColor);
     setLinksColor(data.linksColor);
     setLinks(data.links);
@@ -261,6 +263,7 @@ useEffect(() => {
     try {
       const { data } = await apiClient.post("/linkinbio", {
         bgColor: bgColor,
+        bgImage: bgImage,
         textColor: textColor,
         linksColor: linksColor,
         links: links,
@@ -777,13 +780,7 @@ const containerStyle = {
                         type="button"
                         className={`border rounded-lg p-2 ${linkInBio?.bgImage === img ? "border-blue-500 border-2" : "border-gray-300"}`}
                         onClick={() => {
-                          setLinkInBio({ ...linkInBio, bgImage: img });
-                          // Immediately apply background
-                          document.body.style.backgroundImage = `url(${img})`;
-                          document.body.style.backgroundSize = 'cover';
-                          document.body.style.backgroundPosition = 'center';
-                          document.body.style.backgroundRepeat = 'no-repeat';
-                          document.body.style.backgroundAttachment = 'fixed';
+                          setBgImage(img);
                         }}
                       >
                         <img 
