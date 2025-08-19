@@ -21,7 +21,7 @@ const PitchToSpotify = () => {
 
   // Predefined list of genres
   const genres = [
-    "Indie Pop",
+    "Indie",
     "Rock",
     "Hip Hop",
     "Jazz",
