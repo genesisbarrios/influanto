@@ -7,6 +7,7 @@ import User from "@/models/User";
 import Codes from "@/models/Codes";
 import LinkInBio from "@/models/LinkInBio";
 import ReleasePage from "@/models/ReleasePage";
+import Account from "@/models/Account";
 
 export async function DELETE() {
   try {
@@ -22,6 +23,7 @@ export async function DELETE() {
     await Codes.deleteMany({ userId: session.user.id });
     await LinkInBio.deleteMany({ userId: session.user.id });
     await ReleasePage.deleteMany({ userId: session.user.id });
+    await Account.deleteMany({ userId: session.user.id });
     await User.findByIdAndDelete(session.user.id);
 
     return NextResponse.json({ message: "Account deleted successfully" });
