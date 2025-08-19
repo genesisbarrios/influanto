@@ -780,6 +780,7 @@ const containerStyle = {
                         type="button"
                         className={`border rounded-lg p-2 ${linkInBio?.bgImage === img ? "border-blue-500 border-2" : "border-gray-300"}`}
                         onClick={() => {
+                          setLinkInBio({ ...linkInBio, bgImage: img });
                           setBgImage(img);
                         }}
                       >
