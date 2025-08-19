@@ -583,10 +583,7 @@ const disconnectPrintify = async () => {
                 <PrintifyIntegration user={user} />
               </>
             )}
-             {/* settings */}
-            <div className="flex justify-end items-center mb-4 mt-4">
-              <SettingsDropdown />
-            </div>
+           
             {/* Premium Sign Up */}
             {!user.hasAccess &&
             <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
@@ -605,6 +602,10 @@ const disconnectPrintify = async () => {
               />
             </div>
             }
+            {/* settings */}
+            <div className="flex justify-end items-center mb-4 mt-4">
+              <SettingsDropdown />
+            </div>
           </div>
         </div>
     );
