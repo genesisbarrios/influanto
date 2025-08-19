@@ -554,7 +554,6 @@ const disconnectPrintify = async () => {
 
             {user?.hasAccess && (
               <>
-                <h3 className="mt-5">Merchandise</h3>
                 
                 {/* Show connection status if connected */}
                 {user?.printifyShopId && (
