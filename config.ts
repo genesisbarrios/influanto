@@ -42,7 +42,7 @@ const config = {
         ],
       },
       {
-        priceId: "prod_StNpQhydjH8pQO", 
+        priceId: "price_1Rxb4IHYk9DUtBP3UrdhTmAl", 
           // process.env.NODE_ENV === "development"
           //   ? "price_1PTHqhHYk9DUtBP3l9IFqCPx"
           //   : "prod_StNpQhydjH8pQO", 
