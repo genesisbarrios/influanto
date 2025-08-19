@@ -691,47 +691,8 @@ const containerStyle = {
                   className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer"
                 />
              </div>
-             {user.hasAccess && (
-              <>
-                {/* Premium Styling Options */}
-                <div className="mt-4 w-full">
-                  <h2 className="text-md font-semibold mb-2" style={{
-                    fontFamily: linkInBio?.font || 'inherit'
-                  }}>Premium Styles</h2>
-                  
-                  {/* Card Background Color */}
-                  <div className="mb-3 flex items-center gap-2">
-                    <label className="mr-2" style={{
-                      fontFamily: linkInBio?.font || 'inherit'
-                    }}>Card BG:</label>
-                    <input
-                      type="color"
-                      value={linkInBio?.cardBgColor || "#ffffff"}
-                      onChange={e => setLinkInBio({ ...linkInBio, cardBgColor: e.target.value })}
-                      className="w-8 h-8 border border-gray-300 rounded-lg cursor-pointer"
-                    />
-                  </div>
 
-                  {/* Font Picker */}
-                  <div className="mb-3">
-                    <label className="mr-2" style={{
-                      fontFamily: linkInBio?.font || 'inherit'
-                    }}>Font:</label>
-                    <select
-                      value={linkInBio?.font || "sans-serif"}
-                      onChange={e => setLinkInBio({ ...linkInBio, font: e.target.value })}
-                      className="input w-40"
-                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                    >
-                      <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
-                      <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
-                      <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
-                      <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
-                      <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
-                    </select>
-                  </div>
-
-                  {/* Background Image Selector */}
+               {/* Background Image Selector */}
                 <div className="mb-3">
                   <label className="mr-2" style={{
                     fontFamily: linkInBio?.font || 'inherit'
@@ -795,6 +756,46 @@ const containerStyle = {
                     ))}
                   </div>
                 </div>
+                
+             {user.hasAccess && (
+              <>
+                {/* Premium Styling Options */}
+                <div className="mt-4 w-full">
+                  <h2 className="text-md font-semibold mb-2" style={{
+                    fontFamily: linkInBio?.font || 'inherit'
+                  }}>Premium Styles</h2>
+                  
+                  {/* Card Background Color */}
+                  <div className="mb-3 flex items-center gap-2">
+                    <label className="mr-2" style={{
+                      fontFamily: linkInBio?.font || 'inherit'
+                    }}>Card BG:</label>
+                    <input
+                      type="color"
+                      value={linkInBio?.cardBgColor || "#ffffff"}
+                      onChange={e => setLinkInBio({ ...linkInBio, cardBgColor: e.target.value })}
+                      className="w-8 h-8 border border-gray-300 rounded-lg cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Font Picker */}
+                  <div className="mb-3">
+                    <label className="mr-2" style={{
+                      fontFamily: linkInBio?.font || 'inherit'
+                    }}>Font:</label>
+                    <select
+                      value={linkInBio?.font || "sans-serif"}
+                      onChange={e => setLinkInBio({ ...linkInBio, font: e.target.value })}
+                      className="input w-40"
+                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
+                    >
+                      <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
+                      <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
+                      <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
+                      <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
+                      <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
+                    </select>
+                  </div>
 
               </div>
               </>
