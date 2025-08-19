@@ -594,7 +594,7 @@ const handleDownloadPDF = () => {
           </button>
           <div style={{ textAlign: "center" }}>
             <p>
-              Get access to more tools, save your settings, and connect with other musicians and producers.
+               Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.
             </p>
           </div>
         </div>
