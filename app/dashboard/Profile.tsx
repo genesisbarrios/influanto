@@ -16,6 +16,8 @@ import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
 import PrintifyIntegration from "@/components/PrintifyIntegration";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
+import SettingsDropdown from "@/components/SettingsDropdown";
+
 
 const Profile =  () => {
   const [user, setUser] = useState<any>();
@@ -581,6 +583,10 @@ const disconnectPrintify = async () => {
                 <PrintifyIntegration user={user} />
               </>
             )}
+             {/* settings */}
+            <div className="flex justify-end items-center mb-4 mt-4">
+              <SettingsDropdown />
+            </div>
             {/* Premium Sign Up */}
             {!user.hasAccess &&
             <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
