@@ -11,7 +11,7 @@ const config = {
   domainName: "influanto.com",
   crisp: {
     // Crisp website ID. IF YOU DON'T USE CRISP: just remove this => Then add a support email in this config file (mailgun.supportEmail) otherwise customer support won't work.
-    id: "",
+    id: "04e1381d-3c21-45f4-8205-81bca626cc91",
     // Hide Crisp by default, except on route "/". Crisp is toggled with <ButtonSupport/>. If you want to show Crisp on every routes, just remove this below
     onlyShowOnRoutes: ["/"],
   },
@@ -46,7 +46,7 @@ const config = {
           // process.env.NODE_ENV === "development"
           //   ? "price_1PTHqhHYk9DUtBP3l9IFqCPx"
           //   : "prod_StNpQhydjH8pQO", 
-          
+
         // This plan will look different on the pricing page, it will be highlighted. You can only have one plan with isFeatured: true
         isFeatured: true,
         name: "Influanto Pro",
