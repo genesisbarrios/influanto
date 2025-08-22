@@ -266,7 +266,7 @@ const getReleasePage = async () => {
         marginTop: "40px", 
         marginBottom: "40px",
         width: "100%",
-        maxWidth: window.innerWidth <= 768 ? "80%" : "60%",
+        maxWidth: window.innerWidth <= 768 ? "95%" : "60%",
         margin: "40px auto"
       }}>
         <div style={{ 
@@ -455,25 +455,39 @@ const getReleasePage = async () => {
             ...(window.innerWidth <= 768 ? { width: "80%" } : {}),
           }}
         >
-          {/* Display releasePage.video at the top if it exists */}
-          {releasePage.video && (
-            <div style={{ marginBottom: "30px" }}>
-              <iframe
-                width="100%"
-                height="315"
-                style={{ 
-                  maxWidth: "100%", 
-                  borderRadius: "12px", 
-                  marginBottom: "20px" 
-                }}
-                src={getYouTubeEmbedUrl(releasePage.video)}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title="Featured Video"
-              />
-            </div>
-          )}
+       
+{/* Display releasePage.video at the top if it exists */}
+{releasePage.video && (
+  <div style={{ marginBottom: "30px" }}>
+    <div 
+      className="video-responsive"
+      style={{
+        position: "relative",
+        paddingBottom: "56.25%", // 16:9 aspect ratio (9/16 = 0.5625)
+        height: 0,
+        overflow: "hidden",
+        borderRadius: "12px",
+        backgroundColor: "#000"
+      }}
+    >
+      <iframe
+        style={{ 
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          border: "none"
+        }}
+        src={getYouTubeEmbedUrl(releasePage.video)}
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        title="Featured Video"
+      />
+    </div>
+  </div>
+)}
 
           {/* Render ALL links (including YouTube) as regular links */}
           {releasePage.links?.map((link: { url: string; name: string }, index: number) => {

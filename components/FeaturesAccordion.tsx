@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import type { JSX } from "react";
 import Image from "next/image";
-import image from "@/app/QRCode.jpg";
+import image from "@/app/qrcode.png";
 import playlist from "@/app/Playlist.png";
 import link from "@/app/linkInBio.png";
 
