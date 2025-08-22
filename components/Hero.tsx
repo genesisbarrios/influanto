@@ -27,7 +27,7 @@ const Hero = () => {
 
         <TestimonialsAvatars priority={true} />
       </div>
-      <div className="lg:w-full">
+      <div className="medium:w-full">
         <Image
           src={image}
           alt="artist image"
