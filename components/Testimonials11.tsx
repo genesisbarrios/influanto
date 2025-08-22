@@ -82,7 +82,7 @@ const list: {
     // Show @username for social media like Twitter. Does not link anywhere but cool to display
     username: "_influanto",
     name: "influanto",
-    text: "The all in one marketing platform for content creators by content creators.",
+    text: "The all in one marketing platform for artists and musicians.",
     // use refTypes.other if you don't want to display an icon
     type: refTypes.twitter,
     // Link to the person's testimonial. It's more trustable

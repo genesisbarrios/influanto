@@ -6,7 +6,7 @@ const config = {
   appName: "influanto",
   // REQUIRED: a short description of your app for SEO tags (can be overwritten)
   appDescription:
-    "The all in one marketing platform for content creators by content creators.",
+    "The all in one marketing platform for artists and musicians.",
   // REQUIRED (no https://, not trialing slash at the end, just the naked domain)
   domainName: "influanto.com",
   crisp: {

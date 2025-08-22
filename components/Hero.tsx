@@ -10,7 +10,7 @@ const Hero = () => {
       <div className="flex flex-col gap-10 lg:gap-14 items-center justify-center text-center lg:text-left lg:items-start">
 
         <h1 className="font-extrabold text-4xl lg:text-6xl tracking-tight md:-mb-4">
-         The all in one marketing platform for content creators by content creators.
+         The all in one marketing platform for artists and musicians.
         </h1>
         <p className="text-lg opacity-80 leading-relaxed">
           The platform with all you need to market and promote your music.
