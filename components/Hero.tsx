@@ -33,8 +33,8 @@ const Hero = () => {
           alt="artist image"
           className="w-full"
           priority={true}
-          width={250}
-          height={250}
+          width={500}
+          height={500}
         />
       </div>
     </section>
