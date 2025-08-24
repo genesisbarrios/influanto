@@ -463,9 +463,6 @@ const QRCodeGenerator = () => {
               <label htmlFor="transparentBg" className="font-medium text-gray-700">
               Transparent Background
               </label>
-              <span className="ml-2 text-sm text-gray-500">
-              (Perfect for overlaying on images)
-              </span>
             </div>
             </div>
           
