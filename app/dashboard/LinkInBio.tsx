@@ -543,7 +543,7 @@ const containerStyle = {
   className="shadow rounded-md mx-auto" 
   style={{
     width: "calc(100% - 16px)", // Always leave 8px margin on each side
-    maxWidth: "600px", // Fixed max width for editing
+    maxWidth: "600px", // Fixed max width for editing (was 60px!)
     padding: "1rem",
     fontFamily: linkInBio?.font || 'inherit',
     backgroundColor: linkInBio?.cardBgColor || 'white',
@@ -657,206 +657,212 @@ const containerStyle = {
               Add Link
           </button>
 
-          {/************ Styles ************/}
-          
-          <h1 className="mt-8 mb-2 w-full" style={{
-            fontFamily: linkInBio?.font || 'inherit'
-          }}>Styles</h1>
-          
-          <div className="flex flex-wrap items-center gap-2 w-full"> 
-             <div className="flex items-center gap-1">
-               <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>BG</span>
-               <input
-                  type="color"
-                  value={bgColor}
-                  onChange={(e) => setBgColor(e.target.value)}
-                  className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer"
-                />
-             </div>
-             <div className="flex items-center gap-1">
-               <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Text</span>
-               <input
-                  type="color"
-                  value={textColor}
-                  onChange={(e) => setTextColor(e.target.value)}
-                  className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer"
-                />
-             </div>
-             <div className="flex items-center gap-1">
-               <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Links</span>
-               <input
-                  type="color"
-                  value={linksColor}
-                  onChange={(e) => setLinksColor(e.target.value)}
-                  className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer"
-                />
-             </div>
+{/************ Styles ************/}
 
-               {/* Background Image Selector */}
-                <div className="mb-3">
-                  <label className="mr-2" style={{
-                    fontFamily: linkInBio?.font || 'inherit'
-                  }}>Background Image:</label>
-                  <div className="flex gap-3 flex-wrap">
-                    <button
-                      type="button"
-                      className={`border rounded-lg p-2 ${!linkInBio?.bgImage ? "border-blue-500" : "border-gray-300"}`}
-                      onClick={() => {
-                        setLinkInBio({ ...linkInBio, bgImage: null });
-                        // Immediately clear background
-                        document.body.style.backgroundImage = 'none';
-                      }}
-                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                    >
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div style={{ 
-                          width: 80, 
-                          height: 80, 
-                          backgroundColor: '#f0f0f0', 
-                          borderRadius: 8, 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          fontSize: '12px', 
-                          marginBottom: 4 
-                        }}>
-                          None
-                        </div>
-                      </div>
-                    </button>
-                    {[
-                      "https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg",
-                      "https://images.pexels.com/photos/3308588/pexels-photo-3308588.jpeg",
-                      "https://images.pexels.com/photos/2832382/pexels-photo-2832382.jpeg",
-                      "https://images.pexels.com/photos/7598077/pexels-photo-7598077.jpeg",
-                      "https://images.pexels.com/photos/7630061/pexels-photo-7630061.jpeg",
-                      "https://images.pexels.com/photos/1292998/pexels-photo-1292998.jpeg",
-                      "https://images.pexels.com/photos/6788581/pexels-photo-6788581.jpeg"
-                    ].map((img, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        className={`border rounded-lg p-2 ${linkInBio?.bgImage === img ? "border-blue-500 border-2" : "border-gray-300"}`}
-                        onClick={() => {
-                          setLinkInBio({ ...linkInBio, bgImage: img });
-                          setBgImage(img);
-                        }}
-                      >
-                        <img 
-                          src={img} 
-                          alt={`bg-${idx}`} 
-                          style={{ 
-                            width: 80, 
-                            height: 80, 
-                            objectFit: "cover", 
-                            borderRadius: 8 
-                          }} 
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
+<h1 className="mt-8 mb-2 w-full" style={{
+  fontFamily: linkInBio?.font || 'inherit'
+}}>Colors:</h1>
 
-             {user.hasAccess && (
-              <>
-                {/* Premium Styling Options */}
-                <div className="mt-4 w-full">
-                  <h2 className="text-md font-semibold mb-2" style={{
-                    fontFamily: linkInBio?.font || 'inherit'
-                  }}>Premium Styles</h2>
-                  
-                  {/* Card Background Color */}
-                  <div className="mb-3 flex items-center gap-2">
-                    <label className="mr-2" style={{
-                      fontFamily: linkInBio?.font || 'inherit'
-                    }}>Card BG:</label>
-                    <input
-                      type="color"
-                      value={linkInBio?.cardBgColor || "#ffffff"}
-                      onChange={e => setLinkInBio({ ...linkInBio, cardBgColor: e.target.value })}
-                      className="w-8 h-8 border border-gray-300 rounded-lg cursor-pointer"
-                    />
-                  </div>
+<div className="w-full"> 
+  {/* Color Pickers Row */}
+  <div className="flex justify-center items-center gap-4 mb-4 flex-wrap">
+    <div className="flex items-center gap-1">
+      <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Text</span>
+      <input
+        type="color"
+        value={textColor}
+        onChange={(e) => setTextColor(e.target.value)}
+        className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer"
+      />
+    </div>
+    <div className="flex items-center gap-1">
+      <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Links</span>
+      <input
+        type="color"
+        value={linksColor}
+        onChange={(e) => setLinksColor(e.target.value)}
+        className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer"
+      />
+    </div>
+    <div className="flex items-center gap-1">
+      <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>BG</span>
+      <input
+        type="color"
+        value={bgColor}
+        onChange={(e) => setBgColor(e.target.value)}
+        className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer"
+      />
+    </div>
+  </div>
 
-                  {/* Font Picker */}
-                  <div className="mb-3">
-                    <label className="mr-2" style={{
-                      fontFamily: linkInBio?.font || 'inherit'
-                    }}>Font:</label>
-                    <select
-                      value={linkInBio?.font || "sans-serif"}
-                      onChange={e => setLinkInBio({ ...linkInBio, font: e.target.value })}
-                      className="input w-40"
-                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                    >
-                      <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
-                      <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
-                      <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
-                      <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
-                      <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
-                    </select>
-                  </div>
-
-              </div>
-              </>
-             )}
-              
-           </div>
+  {/* Background Image Selector */}
+  <div className="mb-3 w-full">
+    <label className="block mb-3 font-medium" style={{
+      fontFamily: linkInBio?.font || 'inherit'
+    }}>Background Image:</label>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 justify-items-center max-w-lg mx-auto">
+      <button
+        type="button"
+        className={`border rounded-lg p-2 ${!linkInBio?.bgImage ? "border-blue-500" : "border-gray-300"}`}
+        onClick={() => {
+          setLinkInBio({ ...linkInBio, bgImage: null });
+          // Immediately clear background
+          document.body.style.backgroundImage = 'none';
+        }}
+        style={{ fontFamily: linkInBio?.font || 'inherit' }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ 
+            width: 60, 
+            height: 60, 
+            backgroundColor: '#f0f0f0', 
+            borderRadius: 8, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            fontSize: '10px', 
+            marginBottom: 4 
+          }}>
+            None
           </div>
         </div>
+      </button>
+      {[
+        "https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg",
+        "https://images.pexels.com/photos/3308588/pexels-photo-3308588.jpeg",
+        "https://images.pexels.com/photos/2832382/pexels-photo-2832382.jpeg",
+        "https://images.pexels.com/photos/7598077/pexels-photo-7598077.jpeg",
+        "https://images.pexels.com/photos/7630061/pexels-photo-7630061.jpeg",
+        "https://images.pexels.com/photos/1292998/pexels-photo-1292998.jpeg",
+        "https://images.pexels.com/photos/6788581/pexels-photo-6788581.jpeg"
+      ].map((img, idx) => (
+        <button
+          key={idx}
+          type="button"
+          className={`border rounded-lg p-2 ${linkInBio?.bgImage === img ? "border-blue-500 border-2" : "border-gray-300"}`}
+          onClick={() => {
+            setLinkInBio({ ...linkInBio, bgImage: img });
+            setBgImage(img);
+          }}
+        >
+          <img 
+            src={img} 
+            alt={`bg-${idx}`} 
+            style={{ 
+              width: 60, 
+              height: 60, 
+              objectFit: "cover", 
+              borderRadius: 6 
+            }} 
+          />
+        </button>
+      ))}
+    </div>
+  </div>
 
-    {/* PRODUCT SELECTION SECTION - ONLY IN EDITING VIEW */}
-    {user?.hasAccess && user?.printifyShopId && (
-      <div className="mt-8 w-full border-t pt-6">
-        <h2 className="text-lg font-semibold mb-4" style={{
+  {user.hasAccess && (
+    <>
+      {/* Premium Styling Options */}
+      <div className="mt-4 w-full">
+        <h2 className="text-md font-semibold mb-2" style={{
           fontFamily: linkInBio?.font || 'inherit'
-        }}>
-          🛍️ Select Products from Printify (Max 10)
-        </h2>
+        }}>Premium Styles</h2>
         
-        {isLoadingProducts ? (
-          <div className="text-center py-8" style={{
-            fontFamily: linkInBio?.font || 'inherit'
-          }}>
-            <div className="animate-pulse">
-              <div className="h-64 bg-gray-200 rounded-lg"></div>
-            </div>
-            <p className="mt-4 text-gray-600">Loading your products...</p>
+        <div className="flex justify-center items-center gap-6 flex-wrap">
+          {/* Card Background Color */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm" style={{
+              fontFamily: linkInBio?.font || 'inherit'
+            }}>Card BG:</label>
+            <input
+              type="color"
+              value={linkInBio?.cardBgColor || "#ffffff"}
+              onChange={e => setLinkInBio({ ...linkInBio, cardBgColor: e.target.value })}
+              className="w-8 h-8 border border-gray-300 rounded-lg cursor-pointer"
+            />
           </div>
-        ) : availableProducts.length > 0 ? (
-          <>
-            {/* Selection Summary */}
-            <div className="bg-gray-50 rounded-lg p-4 mb-4 flex justify-between items-center">
-              <div>
-                <span className="text-sm font-medium text-gray-700" style={{
+
+          {/* Font Picker */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm" style={{
+              fontFamily: linkInBio?.font || 'inherit'
+            }}>Font:</label>
+            <select
+              value={linkInBio?.font || "sans-serif"}
+              onChange={e => setLinkInBio({ ...linkInBio, font: e.target.value })}
+              className="input w-40"
+              style={{ fontFamily: linkInBio?.font || 'inherit' }}
+            >
+              <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
+              <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
+              <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
+              <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
+              <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </>
+  )}
+</div>
+</div>
+</div>
+
+
+{/* PRODUCT SELECTION SECTION - ONLY IN EDITING VIEW */}
+{user?.hasAccess && user?.printifyShopId && (
+  <div className="mt-8 w-full border-t pt-6">
+    <div className="mb-4">
+      <h2 className="text-lg font-semibold" style={{
+        fontFamily: linkInBio?.font || 'inherit'
+      }}>
+        🛍️ Select Products from Printify (Max 10)
+      </h2>
+    </div>
+    
+    {isLoadingProducts ? (
+      <div className="text-center py-8" style={{
+        fontFamily: linkInBio?.font || 'inherit'
+      }}>
+        <div className="animate-pulse mx-auto max-w-sm">
+          <div className="h-64 bg-gray-200 rounded-lg"></div>
+        </div>
+        <p className="mt-4 text-gray-600">Loading your products...</p>
+      </div>
+    ) : availableProducts.length > 0 ? (
+      <>
+        {/* Selection Summary */}
+        <div className="bg-gray-50 rounded-lg p-4 mb-4 max-w-md mx-auto flex justify-between items-center">
+          <div>
+            <span className="text-sm font-medium text-gray-700" style={{
+              fontFamily: linkInBio?.font || 'inherit'
+            }}>
+              {selectedProductIds.length}/10 products selected
+            </span>
+            {selectedProductIds.length === 10 && (
+              <p className="text-xs text-orange-600 mt-1" style={{
+                fontFamily: linkInBio?.font || 'inherit'
+              }}>
+                Maximum selection reached
+              </p>
+            )}
+          </div>
+          
+          {selectedProductIds.length > 0 && (
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => setSelectedProductIds([])}
+                className="btn btn-alert btn-sm"
+                style={{
                   fontFamily: linkInBio?.font || 'inherit'
-                }}>
-                  {selectedProductIds.length}/10 products selected
-                </span>
-                {selectedProductIds.length === 10 && (
-                  <p className="text-xs text-orange-600 mt-1" style={{
-                    fontFamily: linkInBio?.font || 'inherit'
-                  }}>
-                    Maximum selection reached
-                  </p>
-                )}
-              </div>
-              
-              <div className="flex gap-2">
-                {selectedProductIds.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedProductIds([])}
-                    className="btn btn-alert btn-sm"
-                    style={{
-                      fontFamily: linkInBio?.font || 'inherit'
-                    }}
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
+                }}
+              >
+                Clear
+              </button>
             </div>
+          )}
+        </div>
 
           {/* Mobile-Friendly Products Grid */}
           <div className="border border-gray-300 rounded-lg overflow-hidden">
