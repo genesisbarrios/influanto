@@ -756,7 +756,7 @@ const containerStyle = {
                     ))}
                   </div>
                 </div>
-                
+
              {user.hasAccess && (
               <>
                 {/* Premium Styling Options */}
@@ -852,97 +852,169 @@ const containerStyle = {
                       fontFamily: linkInBio?.font || 'inherit'
                     }}
                   >
-                    Clear All
+                    Clear
                   </button>
                 )}
               </div>
             </div>
 
-         {/* Scrollable Products Table */}
-        <div className="border border-gray-300 rounded-lg overflow-hidden">
-          <div className="max-h-96 overflow-y-auto overflow-x-auto">
-            <table className="w-full min-w-full">
-              <tbody className="bg-white divide-y divide-gray-200">
-                {availableProducts.map((product: any, index: number) => (
-                  <tr 
-                    key={product.id}
-                    className={`cursor-pointer transition-colors hover:bg-gray-50 ${
-                      selectedProductIds.includes(product.id) 
-                        ? 'bg-blue-50 border-l-4 border-blue-500' 
-                        : ''
-                    }`}
-                    onClick={() => toggleProductSelection(product.id)}
-                  >
-                    {/* Selection Checkbox */}
-                    <td className="px-2 py-2">
-                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                        selectedProductIds.includes(product.id)
-                          ? 'bg-blue-500 border-blue-500'
-                          : 'bg-white border-gray-300'
-                      }`}>
-                        {selectedProductIds.includes(product.id) && (
-                          <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
-                          </svg>
-                        )}
-                      </div>
-                    </td>
+          {/* Mobile-Friendly Products Grid */}
+          <div className="border border-gray-300 rounded-lg overflow-hidden">
+            <div className="max-h-96 overflow-y-auto">
+              {/* Mobile: Card Layout, Desktop: Table Layout */}
+              <div className="md:hidden">
+                {/* Mobile Card Layout */}
+                <div className="space-y-3 p-3">
+                  {availableProducts.map((product: any) => (
+                    <div 
+                      key={product.id}
+                      className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                        selectedProductIds.includes(product.id) 
+                          ? 'bg-blue-50 border-blue-500' 
+                          : 'bg-white border-gray-200 hover:bg-gray-50'
+                      }`}
+                      onClick={() => toggleProductSelection(product.id)}
+                    >
+                      <div className="flex items-start gap-3">
+                        {/* Checkbox */}
+                        <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-1 ${
+                          selectedProductIds.includes(product.id)
+                            ? 'bg-blue-500 border-blue-500'
+                            : 'bg-white border-gray-300'
+                        }`}>
+                          {selectedProductIds.includes(product.id) && (
+                            <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                            </svg>
+                          )}
+                        </div>
 
-                    {/* Product Image */}
-                    <td className="px-2 py-2">
-                      <div className="w-10 h-10 rounded overflow-hidden bg-gray-100 flex-shrink-0">
-                        {product.images && product.images.length > 0 && product.images[0] ? (
-                          <img
-                            src={product.images[0]}
-                            alt={product.title}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              console.error('Image failed to load:', product.images[0]);
-                              e.currentTarget.src = `https://via.placeholder.com/40x40/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-                            <span className="text-gray-400 text-xs">📦</span>
+                        {/* Product Image */}
+                        <div className="w-12 h-12 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                          {product.images && product.images.length > 0 && product.images[0] ? (
+                            <img
+                              src={product.images[0]}
+                              alt={product.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = `https://via.placeholder.com/48x48/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                              <span className="text-gray-400 text-xs">📦</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 leading-tight" style={{
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            {product.title && product.title.length > 40 
+                              ? `${product.title.substring(0, 40)}...` 
+                              : product.title || 'Untitled Product'
+                            }
                           </div>
-                        )}
+                          <div className="text-xs text-gray-500 mt-1" style={{
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            {product.variants?.length || 1} variant{(product.variants?.length || 1) > 1 ? 's' : ''}
+                          </div>
+                          <div className="text-sm font-semibold text-green-600 mt-1" style={{
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            ${product.variants?.[0]?.price || 'N/A'}
+                          </div>
+                        </div>
                       </div>
-                    </td>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-                    {/* Product Name */}
-                    <td className="px-2 py-3">
-                      <div className="text-sm font-medium text-gray-900 max-w-[250px]" style={{
-                        fontFamily: linkInBio?.font || 'inherit',
-                        lineHeight: '1.3',
-                        wordWrap: 'break-word',
-                        whiteSpace: 'normal'
-                      }}>
-                        {product.title && product.title.length > 60 
-                          ? `${product.title.substring(0, 60)}...` 
-                          : product.title || 'Untitled Product'
-                        }
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1" style={{
-                        fontFamily: linkInBio?.font || 'inherit'
-                      }}>
-                        {product.variants?.length || 1} variant{(product.variants?.length || 1) > 1 ? 's' : ''}
-                      </div>
-                    </td>
+              {/* Desktop Table Layout */}
+              <div className="hidden md:block">
+                <table className="w-full">
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {availableProducts.map((product: any) => (
+                      <tr 
+                        key={product.id}
+                        className={`cursor-pointer transition-colors hover:bg-gray-50 ${
+                          selectedProductIds.includes(product.id) 
+                            ? 'bg-blue-50 border-l-4 border-blue-500' 
+                            : ''
+                        }`}
+                        onClick={() => toggleProductSelection(product.id)}
+                      >
+                        {/* Selection Checkbox */}
+                        <td className="px-2 py-2">
+                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                            selectedProductIds.includes(product.id)
+                              ? 'bg-blue-500 border-blue-500'
+                              : 'bg-white border-gray-300'
+                          }`}>
+                            {selectedProductIds.includes(product.id) && (
+                              <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                              </svg>
+                            )}
+                          </div>
+                        </td>
 
-                    {/* Price */}
-                    <td className="px-2 py-2">
-                      <div className="text-sm font-semibold text-green-600" style={{
-                        fontFamily: linkInBio?.font || 'inherit'
-                      }}>
-                        ${product.variants?.[0]?.price || 'N/A'}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        {/* Product Image */}
+                        <td className="px-2 py-2">
+                          <div className="w-10 h-10 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                            {product.images && product.images.length > 0 && product.images[0] ? (
+                              <img
+                                src={product.images[0]}
+                                alt={product.title}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.src = `https://via.placeholder.com/40x40/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                                <span className="text-gray-400 text-xs">📦</span>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Product Name */}
+                        <td className="px-2 py-3">
+                          <div className="text-sm font-medium text-gray-900" style={{
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            {product.title && product.title.length > 60 
+                              ? `${product.title.substring(0, 60)}...` 
+                              : product.title || 'Untitled Product'
+                            }
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1" style={{
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            {product.variants?.length || 1} variant{(product.variants?.length || 1) > 1 ? 's' : ''}
+                          </div>
+                        </td>
+
+                        {/* Price */}
+                        <td className="px-2 py-2">
+                          <div className="text-sm font-semibold text-green-600" style={{
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            ${product.variants?.[0]?.price || 'N/A'}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
 
           {/* Footer with product count */}
           <div className="text-xs text-gray-500 mt-2 text-center" style={{
@@ -967,18 +1039,6 @@ const containerStyle = {
 
   {alert && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alert}</div>}
       <div style={{textAlign:"center"}}>
-      <button 
-          className="btn btn-primary btn-block btn-sm btn-narrow"
-          style={{
-            width:"35%", 
-            display:"inline", 
-            margin:"8% 0 0",
-            fontFamily: linkInBio?.font || 'inherit'
-          }}
-          onClick={(e) => handleEditLinkInBio(e)} 
-          type="submit">
-          Submit
-      </button>
       <button
         className="btn btn-alert btn-block btn-sm btn-narrow"
         style={{ 
@@ -989,6 +1049,18 @@ const containerStyle = {
         }}
         onClick={() => setEditing(false)}>
         Cancel
+      </button>
+       <button 
+          className="btn btn-primary btn-block btn-sm btn-narrow"
+          style={{
+            width:"35%", 
+            display:"inline", 
+            margin:"8% 0 0",
+            fontFamily: linkInBio?.font || 'inherit'
+          }}
+          onClick={(e) => handleEditLinkInBio(e)} 
+          type="submit">
+          Submit
       </button>
       </div>
 
