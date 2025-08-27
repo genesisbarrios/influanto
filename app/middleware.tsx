@@ -22,5 +22,5 @@ export default async function middleware(request:any) {
 }
 
 export const config = {
-  matcher: ["/api/auth/signin/email"],
+  matcher: ["/api/auth/signin/email", "/api/fetch-curators"],
 };
