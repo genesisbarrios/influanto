@@ -23,6 +23,8 @@
     "@types/formidable": "^3.4.5",
     "@types/lodash": "^4.17.16",
     "@types/multer": "^2.0.0",
+    "@upstash/ratelimit": "^2.0.6",
+    "@upstash/redis": "^1.35.3",
     "axios": "^1.6.8",
     "cloudinary": "^2.5.1",
     "crisp-sdk-web": "^1.0.22",
