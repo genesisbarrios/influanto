@@ -194,17 +194,33 @@ const LinkInBioPage =  () => {
 
 return (
  <>
-  <Head>
-    <title>{user.name} Links | Influanto</title>
-    <meta name="description" content={`${user.name}'s Links. Powered by Influanto.com`} />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta property="og:title" content={`${user.name}'s Links. Powered by Influanto.com`} />
-    <meta property="og:description" content={`${user.name}'s Links. Powered by Influanto.com`} />
-    <meta name="twitter:title" content={`${user.name}'s Links. Powered by Influanto.com`} />
-    <meta name="twitter:description" content={`${user.name}'s Links. Powered by Influanto.com`} />
-    <meta property="og:image" content={user.image || fallbackImageUrl} />
-    <meta name="twitter:image" content={user.image || fallbackImageUrl} />
-  </Head>
+<Head>
+  <title>{user.name ? `${user.name} (@${userName}) - Link In Bio | Influanto` : 'Link In Bio - Influanto'}</title>
+  <meta name="description" content={`${user.name}'s links and social media. Follow ${user.name} on Influanto.`} />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="keywords" content={`${user.name}, links, social media, influencer, ${userName}`} />
+  
+  {/* Open Graph Tags */}
+  <meta property="og:title" content={`${user.name} (@${userName}) - Link In Bio | Influanto`} />
+  <meta property="og:description" content={`${user.name}'s links and social media. Follow ${user.name} on Influanto.`} />
+  <meta property="og:image" content={user.image || fallbackImageUrl} />
+  <meta property="og:url" content={`https://influanto.com/${userName}`} />
+  <meta property="og:type" content="profile" />
+  <meta property="og:site_name" content="Influanto" />
+  
+  {/* Twitter Cards */}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={`${user.name} (@${userName}) - Link In Bio | Influanto`} />
+  <meta name="twitter:description" content={`${user.name}'s links and social media. Follow ${user.name} on Influanto.`} />
+  <meta name="twitter:image" content={user.image || fallbackImageUrl} />
+  
+  {/* Canonical URL */}
+  <link rel="canonical" href={`https://influanto.com/${userName}`} />
+  
+  {/* Additional Meta */}
+  <meta name="author" content={user.name} />
+  <meta name="robots" content="index, follow" />
+</Head>
   
   {/* Main container with proper spacing for mobile */}
   <div style={{
