@@ -18,6 +18,7 @@ const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-3
 import { useRouter } from 'next/navigation'; 
 import { usePathname, useSearchParams } from 'next/navigation'
 
+
 const ReleasePageView =  () => {
   const router = useRouter();
   const [slug, setSlug] = useState("");
