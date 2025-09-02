@@ -253,6 +253,54 @@ useEffect(() => {
   }
 }, [bgColor]); // This will trigger whenever bgColor changes
 
+useEffect(() => {
+    document.title = "Link In Bio | Influanto";
+    
+    // Update meta description
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 'Link In Bio - Create a personalized landing page for your social media links powered by Influanto.');
+
+    // Update og:title
+    let ogTitle = document.querySelector('meta[property="og:title"]');
+    if (!ogTitle) {
+      ogTitle = document.createElement('meta');
+      ogTitle.setAttribute('property', 'og:title');
+      document.head.appendChild(ogTitle);
+    }
+    ogTitle.setAttribute('content', 'Link In Bio | Influanto');
+
+    // Update og:description
+    let ogDescription = document.querySelector('meta[property="og:description"]');
+    if (!ogDescription) {
+      ogDescription = document.createElement('meta');
+      ogDescription.setAttribute('property', 'og:description');
+      document.head.appendChild(ogDescription);
+    }
+    ogDescription.setAttribute('content', 'All your links on one page. Free Link In Bio Tool powered by Influanto.');
+
+    // Update twitter:title
+    let twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    if (!twitterTitle) {
+      twitterTitle = document.createElement('meta');
+      twitterTitle.setAttribute('name', 'twitter:title');
+      document.head.appendChild(twitterTitle);
+    }
+    twitterTitle.setAttribute('content', 'Link In Bio | Influanto');
+
+    // Update twitter:description
+    let twitterDescription = document.querySelector('meta[name="twitter:description"]');
+    if (!twitterDescription) {
+      twitterDescription = document.createElement('meta');
+      twitterDescription.setAttribute('name', 'twitter:description');
+      document.head.appendChild(twitterDescription);
+    }
+    twitterDescription.setAttribute('content', 'Share your links easily. Free Link In Bio Tool powered by Influanto.');
+  }, []);
 
   const handleEditLinkInBio = async (e:any) => {
     e.preventDefault();
@@ -300,15 +348,6 @@ const containerStyle = {
     if (!isEditing){
     return (
        <>
-    <Head>
-      <title>Influanto | FREE Link In Bio Tool</title>
-      <meta name="description" content="FREE Link In Bio Tool" />
-      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-      <meta property="og:title" content="FREE Link In Bio Tool" />
-      <meta property="og:description" content="Generate and manage your Link In Bio easily." />
-      <meta name="twitter:title" content="Link In Bio Tool" />
-      <meta name="twitter:description" content="Generate and manage your Link In Bio easily." />
-    </Head>
      <div 
         className="mx-auto bg-white shadow rounded-md text-black"
         style={{

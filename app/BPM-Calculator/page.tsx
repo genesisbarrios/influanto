@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
-import Head from 'next/head';
+import { getSEOTags } from "@/libs/seo";
 
 export default function BPMCalculator() {
   const [bpm, setBpm] = useState<number>(0);
@@ -24,6 +24,29 @@ export default function BPMCalculator() {
       return newTaps;
     });
   }, []);
+
+  useEffect(() => {
+    document.title = "BPM Calculator - Tap Tempo | Influanto";
+    
+    // Update meta description
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 'BPM Calculator - Tap tempo to find the beats per minute of any song. Free producer tools by Influanto.');
+    
+    // Update og:title
+    let ogTitle = document.querySelector('meta[property="og:title"]');
+    if (!ogTitle) {
+      ogTitle = document.createElement('meta');
+      ogTitle.setAttribute('property', 'og:title');
+      document.head.appendChild(ogTitle);
+    }
+    ogTitle.setAttribute('content', 'BPM Calculator - Tap Tempo | Influanto');
+  }, []);
+
 
   // Listen for keyboard and screen taps
   useEffect(() => {
@@ -80,15 +103,6 @@ export default function BPMCalculator() {
 
   return (
     <>  
-      <Head>
-        <title>Influanto | BPM Calculator</title>
-        <meta name="description" content="Free Producer Tools: BPM Calculator + more" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:title" content="FREE Producer Tools" />
-        <meta property="og:description" content="Free Producer Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
-        <meta name="twitter:title" content="FREE Producer Tools" />
-        <meta name="twitter:description" content="Free Producer Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
-      </Head>
       <Suspense>
         <Header />
       </Suspense>

@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
 import { useSession } from "next-auth/react";
-import Head from 'next/head';
 import { CldUploadWidget } from 'next-cloudinary';
 import { debounce } from "lodash";
 
@@ -25,6 +24,56 @@ const ReleasePages = () => {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [showMerchSection, setShowMerchSection] = useState(false);
+
+
+  useEffect(() => {
+      document.title = "Release Pages | Influanto";
+      
+      // Update meta description
+      let metaDescription = document.querySelector('meta[name="description"]');
+      if (!metaDescription) {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        document.head.appendChild(metaDescription);
+      }
+      metaDescription.setAttribute('content', 'Release Pages - Create a personalized landing page for your music release.');
+  
+      // Update og:title
+      let ogTitle = document.querySelector('meta[property="og:title"]');
+      if (!ogTitle) {
+        ogTitle = document.createElement('meta');
+        ogTitle.setAttribute('property', 'og:title');
+        document.head.appendChild(ogTitle);
+      }
+      ogTitle.setAttribute('content', 'Release Pages | Influanto');
+
+      // Update og:description
+      let ogDescription = document.querySelector('meta[property="og:description"]');
+      if (!ogDescription) {
+        ogDescription = document.createElement('meta');
+        ogDescription.setAttribute('property', 'og:description');
+        document.head.appendChild(ogDescription);
+      }
+      ogDescription.setAttribute('content', 'All your links on one page. Free Release Pages Tool powered by Influanto.');
+
+      // Update twitter:title
+      let twitterTitle = document.querySelector('meta[name="twitter:title"]');
+      if (!twitterTitle) {
+        twitterTitle = document.createElement('meta');
+        twitterTitle.setAttribute('name', 'twitter:title');
+        document.head.appendChild(twitterTitle);
+      }
+      twitterTitle.setAttribute('content', 'Link In Bio | Influanto');
+  
+      // Update twitter:description
+      let twitterDescription = document.querySelector('meta[name="twitter:description"]');
+      if (!twitterDescription) {
+        twitterDescription = document.createElement('meta');
+        twitterDescription.setAttribute('name', 'twitter:description');
+        document.head.appendChild(twitterDescription);
+      }
+      twitterDescription.setAttribute('content', 'Share your music easily. Free Release Pages Tool powered by Influanto.');
+    }, []);
 
   // Function to get user data from API
   const getUserData = async (userId: string) => {
@@ -414,10 +463,6 @@ const ReleasePages = () => {
 
   return (
     <>
-      <Head>
-        <title>Influanto | Release Pages</title>
-        <meta name="description" content="Manage your Release Pages" />
-      </Head>
       <div className="p-4 bg-white shadow rounded-md text-black" style={{ fontFamily: font || 'inherit' }}>
         <div className="w-full flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold" style={{ fontFamily: font || 'inherit' }}>Release Pages</h2>

@@ -14,9 +14,7 @@ export default function Synthfluanto() {
  
   return (
     <>  
-      <Suspense>
-        <Header />
-      </Suspense>
+     
       <div
         id="bpm-bg"
         style={{

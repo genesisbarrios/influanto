@@ -62,10 +62,158 @@ const ReleasePageView =  () => {
   // Add merch-related states
   const [merchProducts, setMerchProducts] = useState<any[]>([]);
   const [isLoadingMerch, setIsLoadingMerch] = useState(false);
-  
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
- 
+
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+useEffect(() => {
+  // Only run when we have ALL the required data loaded
+  if (user && userName && releasePage && slug) {
+    const releaseTitle = releasePage.name ? `"${releasePage.name}"` : "New Release";
+    const userDisplayName = user.name || userName;
+    
+    console.log('🏷️ Setting metadata for release page:', { userDisplayName, releaseTitle, slug });
+    
+    // Set page title
+    document.title = `${userDisplayName}'s ${releaseTitle} | Influanto`;
+    
+    // Update meta description
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 
+      `Listen to ${userDisplayName}'s latest release ${releaseTitle}. ${releasePage.description || 'Available on all streaming platforms.'} Follow ${userDisplayName} on Influanto.`
+    );
+    
+    // Update og:title
+    let ogTitle = document.querySelector('meta[property="og:title"]');
+    if (!ogTitle) {
+      ogTitle = document.createElement('meta');
+      ogTitle.setAttribute('property', 'og:title');
+      document.head.appendChild(ogTitle);
+    }
+    ogTitle.setAttribute('content', `${userDisplayName}'s ${releaseTitle} | Influanto`);
+    
+    // Update og:description
+    let ogDescription = document.querySelector('meta[property="og:description"]');
+    if (!ogDescription) {
+      ogDescription = document.createElement('meta');
+      ogDescription.setAttribute('property', 'og:description');
+      document.head.appendChild(ogDescription);
+    }
+    ogDescription.setAttribute('content', 
+      `Listen to ${userDisplayName}'s latest release ${releaseTitle}. ${releasePage.description || 'Available on all streaming platforms.'} Follow ${userDisplayName} on Influanto.`
+    );
+    
+    // Update og:image - use release image if available, fallback to user image
+    let ogImage = document.querySelector('meta[property="og:image"]');
+    if (!ogImage) {
+      ogImage = document.createElement('meta');
+      ogImage.setAttribute('property', 'og:image');
+      document.head.appendChild(ogImage);
+    }
+    const imageUrl = releasePage.image || user.image || fallbackImageUrl;
+    ogImage.setAttribute('content', imageUrl);
+    
+    // Update og:url
+    let ogUrl = document.querySelector('meta[property="og:url"]');
+    if (!ogUrl) {
+      ogUrl = document.createElement('meta');
+      ogUrl.setAttribute('property', 'og:url');
+      document.head.appendChild(ogUrl);
+    }
+    ogUrl.setAttribute('content', `https://influanto.com/release/${slug}`);
+    
+    // Update og:type to music for releases
+    let ogType = document.querySelector('meta[property="og:type"]');
+    if (!ogType) {
+      ogType = document.createElement('meta');
+      ogType.setAttribute('property', 'og:type');
+      document.head.appendChild(ogType);
+    }
+    ogType.setAttribute('content', 'music.song');
+    
+    // Add music-specific Open Graph tags
+    let ogMusicMusician = document.querySelector('meta[property="music:musician"]');
+    if (!ogMusicMusician) {
+      ogMusicMusician = document.createElement('meta');
+      ogMusicMusician.setAttribute('property', 'music:musician');
+      document.head.appendChild(ogMusicMusician);
+    }
+    ogMusicMusician.setAttribute('content', userDisplayName);
+    
+    // Update twitter:title
+    let twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    if (!twitterTitle) {
+      twitterTitle = document.createElement('meta');
+      twitterTitle.setAttribute('name', 'twitter:title');
+      document.head.appendChild(twitterTitle);
+    }
+    twitterTitle.setAttribute('content', `${userDisplayName}'s ${releaseTitle} | Influanto`);
+    
+    // Update twitter:description
+    let twitterDescription = document.querySelector('meta[name="twitter:description"]');
+    if (!twitterDescription) {
+      twitterDescription = document.createElement('meta');
+      twitterDescription.setAttribute('name', 'twitter:description');
+      document.head.appendChild(twitterDescription);
+    }
+    twitterDescription.setAttribute('content', 
+      `Listen to ${userDisplayName}'s latest release ${releaseTitle}. ${releasePage.description || 'Available on all streaming platforms.'}`
+    );
+    
+    // Update twitter:image
+    let twitterImage = document.querySelector('meta[name="twitter:image"]');
+    if (!twitterImage) {
+      twitterImage = document.createElement('meta');
+      twitterImage.setAttribute('name', 'twitter:image');
+      document.head.appendChild(twitterImage);
+    }
+    twitterImage.setAttribute('content', imageUrl);
+    
+    // Update canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', `https://influanto.com/release/${slug}`);
+    
+    // Update author
+    let author = document.querySelector('meta[name="author"]');
+    if (!author) {
+      author = document.createElement('meta');
+      author.setAttribute('name', 'author');
+      document.head.appendChild(author);
+    }
+    author.setAttribute('content', userDisplayName);
+    
+    // Update keywords
+    let keywords = document.querySelector('meta[name="keywords"]');
+    if (!keywords) {
+      keywords = document.createElement('meta');
+      keywords.setAttribute('name', 'keywords');
+      document.head.appendChild(keywords);
+    }
+    keywords.setAttribute('content', 
+      `${userDisplayName}, ${releasePage.name || 'music'}, release, music, streaming, ${userName}, influanto`
+    );
+    
+    console.log('✅ Metadata updated successfully');
+  } else {
+    console.log('⏳ Waiting for data to load...', { 
+      hasUser: !!user, 
+      hasUserName: !!userName, 
+      hasReleasePage: !!releasePage, 
+      hasSlug: !!slug 
+    });
+  }
+}, [user, userName, releasePage, slug]); // This will run when ALL dependencies are loaded
+
   useEffect(() => {
     const url = `${pathname}`
     console.log(url);

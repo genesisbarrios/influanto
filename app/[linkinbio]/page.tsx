@@ -17,7 +17,6 @@ import { getSEOTags } from "@/libs/seo";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import { useRouter } from 'next/navigation'; 
 import { usePathname, useSearchParams } from 'next/navigation'
-import Head from "next/head";
 
 const LinkInBioPage =  () => {
   const router = useRouter();
@@ -45,6 +44,146 @@ const LinkInBioPage =  () => {
   const pathname = usePathname()
   const searchParams = useSearchParams()
  
+// Add this useEffect after your existing useEffects (around line 135)
+
+// Set page title and meta description using useEffect
+useEffect(() => {
+  if (user && userName) {
+    // Set page title
+    document.title = user.name 
+      ? `${user.name} (@${userName}) - Links | Influanto` 
+      : `@${userName} - Links | Influanto`;
+    
+    // Update meta description
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 
+      user.name 
+        ? `${user.name}'s links and social media. Follow ${user.name} on Influanto.`
+        : `${userName}'s links page on Influanto.`
+    );
+    
+    // Update og:title
+    let ogTitle = document.querySelector('meta[property="og:title"]');
+    if (!ogTitle) {
+      ogTitle = document.createElement('meta');
+      ogTitle.setAttribute('property', 'og:title');
+      document.head.appendChild(ogTitle);
+    }
+    ogTitle.setAttribute('content', 
+      user.name 
+        ? `${user.name} (@${userName}) - Links | Influanto`
+        : `@${userName} - Links | Influanto`
+    );
+    
+    // Update og:description
+    let ogDescription = document.querySelector('meta[property="og:description"]');
+    if (!ogDescription) {
+      ogDescription = document.createElement('meta');
+      ogDescription.setAttribute('property', 'og:description');
+      document.head.appendChild(ogDescription);
+    }
+    ogDescription.setAttribute('content', 
+      user.name 
+        ? `${user.name}'s links and social media. Follow ${user.name} on Influanto.`
+        : `${userName}'s links page on Influanto.`
+    );
+    
+    // Update og:image
+    let ogImage = document.querySelector('meta[property="og:image"]');
+    if (!ogImage) {
+      ogImage = document.createElement('meta');
+      ogImage.setAttribute('property', 'og:image');
+      document.head.appendChild(ogImage);
+    }
+    ogImage.setAttribute('content', user.image || fallbackImageUrl);
+    
+    // Update og:url
+    let ogUrl = document.querySelector('meta[property="og:url"]');
+    if (!ogUrl) {
+      ogUrl = document.createElement('meta');
+      ogUrl.setAttribute('property', 'og:url');
+      document.head.appendChild(ogUrl);
+    }
+    ogUrl.setAttribute('content', `https://influanto.com/${userName}`);
+    
+    // Update og:type
+    let ogType = document.querySelector('meta[property="og:type"]');
+    if (!ogType) {
+      ogType = document.createElement('meta');
+      ogType.setAttribute('property', 'og:type');
+      document.head.appendChild(ogType);
+    }
+    ogType.setAttribute('content', 'profile');
+    
+    // Update twitter:title
+    let twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    if (!twitterTitle) {
+      twitterTitle = document.createElement('meta');
+      twitterTitle.setAttribute('name', 'twitter:title');
+      document.head.appendChild(twitterTitle);
+    }
+    twitterTitle.setAttribute('content', 
+      user.name 
+        ? `${user.name} (@${userName}) - Link In Bio | Influanto`
+        : `@${userName} - Link In Bio | Influanto`
+    );
+    
+    // Update twitter:description
+    let twitterDescription = document.querySelector('meta[name="twitter:description"]');
+    if (!twitterDescription) {
+      twitterDescription = document.createElement('meta');
+      twitterDescription.setAttribute('name', 'twitter:description');
+      document.head.appendChild(twitterDescription);
+    }
+    twitterDescription.setAttribute('content', 
+      user.name 
+        ? `${user.name}'s links and social media. Follow ${user.name} on Influanto.`
+        : `${userName}'s link in bio page on Influanto.`
+    );
+    
+    // Update twitter:image
+    let twitterImage = document.querySelector('meta[name="twitter:image"]');
+    if (!twitterImage) {
+      twitterImage = document.createElement('meta');
+      twitterImage.setAttribute('name', 'twitter:image');
+      document.head.appendChild(twitterImage);
+    }
+    twitterImage.setAttribute('content', user.image || fallbackImageUrl);
+    
+    // Update canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', `https://influanto.com/${userName}`);
+    
+    // Update author
+    let author = document.querySelector('meta[name="author"]');
+    if (!author) {
+      author = document.createElement('meta');
+      author.setAttribute('name', 'author');
+      document.head.appendChild(author);
+    }
+    author.setAttribute('content', user.name || userName);
+    
+    // Update keywords
+    let keywords = document.querySelector('meta[name="keywords"]');
+    if (!keywords) {
+      keywords = document.createElement('meta');
+      keywords.setAttribute('name', 'keywords');
+      document.head.appendChild(keywords);
+    }
+    keywords.setAttribute('content', `${user.name || userName}, links, social media, influencer, ${userName}`);
+  }
+}, [user, userName]); // Dependencies: user and userName
+
   useEffect(() => {
     const url = `${pathname}`
     //console.log(url);
@@ -194,34 +333,6 @@ const LinkInBioPage =  () => {
 
 return (
  <>
-<Head>
-  <title>{user.name ? `${user.name} (@${userName}) - Link In Bio | Influanto` : 'Link In Bio - Influanto'}</title>
-  <meta name="description" content={`${user.name}'s links and social media. Follow ${user.name} on Influanto.`} />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="keywords" content={`${user.name}, links, social media, influencer, ${userName}`} />
-  
-  {/* Open Graph Tags */}
-  <meta property="og:title" content={`${user.name} (@${userName}) - Link In Bio | Influanto`} />
-  <meta property="og:description" content={`${user.name}'s links and social media. Follow ${user.name} on Influanto.`} />
-  <meta property="og:image" content={user.image || fallbackImageUrl} />
-  <meta property="og:url" content={`https://influanto.com/${userName}`} />
-  <meta property="og:type" content="profile" />
-  <meta property="og:site_name" content="Influanto" />
-  
-  {/* Twitter Cards */}
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content={`${user.name} (@${userName}) - Link In Bio | Influanto`} />
-  <meta name="twitter:description" content={`${user.name}'s links and social media. Follow ${user.name} on Influanto.`} />
-  <meta name="twitter:image" content={user.image || fallbackImageUrl} />
-  
-  {/* Canonical URL */}
-  <link rel="canonical" href={`https://influanto.com/${userName}`} />
-  
-  {/* Additional Meta */}
-  <meta name="author" content={user.name} />
-  <meta name="robots" content="index, follow" />
-</Head>
-  
   {/* Main container with proper spacing for mobile */}
   <div style={{
     minHeight: "100vh",

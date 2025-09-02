@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
-import Head from 'next/head';
 
 const noteOptions = [
   { label: "Whole (1/1)", value: 4 },
@@ -41,20 +40,42 @@ export default function ReverbandDelay() {
     setDelay1Bar(calcDelayMs(bpm, 4));
   }, [bpm]);
 
+  useEffect(() => {
+    document.title = "Delay & Reverb Calculator | Influanto";
+    
+    // Update meta description
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more');
+    
+    // Update og:title
+    let ogTitle = document.querySelector('meta[property="og:title"]');
+    if (!ogTitle) {
+      ogTitle = document.createElement('meta');
+      ogTitle.setAttribute('property', 'og:title');
+      document.head.appendChild(ogTitle);
+    }
+    ogTitle.setAttribute('content', 'FREE Musician Tools | Influanto');
+    
+    // Update og:description
+    let ogDescription = document.querySelector('meta[property="og:description"]');
+    if (!ogDescription) {
+      ogDescription = document.createElement('meta');
+      ogDescription.setAttribute('property', 'og:description');
+      document.head.appendChild(ogDescription);
+    }
+    ogDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more');
+  }, []);
+
   return (
     <>  
-     <Head>
-        <title>Influanto | Delay & Reverb Calculator</title>
-        <meta name="description" content="Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:title" content="FREE Musician Tools" />
-        <meta property="og:description" content="Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
-        <meta name="twitter:title" content="FREE Musician Tools" />
-        <meta name="twitter:description" content="Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more" />
-      </Head>
-    <Suspense>
+      <Suspense>
         <Header />
-    </Suspense>
+      </Suspense>
     <div 
       id="delay-bg"
       style={{ 
