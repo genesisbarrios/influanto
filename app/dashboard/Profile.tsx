@@ -78,75 +78,553 @@ const disconnectPrintify = async () => {
   }
 };
 
-  const validateUsername = (value: string) => {
-    // Remove spaces and convert to lowercase
-    const cleanValue = value.replace(/\s+/g, '').toLowerCase();
-    
-    // Check for invalid characters (only allow letters, numbers, underscore, hyphen)
-    if (!/^[a-zA-Z0-9_-]*$/.test(cleanValue)) {
-        setAlertt("Username can only contain letters, numbers, underscores, and hyphens.");
-        return false;
-    }
-    
-    // Check minimum length
-    if (cleanValue.length > 0 && cleanValue.length < 3) {
-        setAlertt("Username must be at least 3 characters long.");
-        return false;
-    }
-    
-    // Check maximum length
-    if (cleanValue.length > 30) {
-        setAlertt("Username cannot be longer than 30 characters.");
-        return false;
-    }
-    
-    // Check if username starts with a letter or number
-    if (cleanValue.length > 0 && !/^[a-zA-Z0-9]/.test(cleanValue)) {
-        setAlertt("Username must start with a letter or number.");
-        return false;
-    }
-    
+  // Replace the existing validation functions and add missing ones:
+
+const validateUsername = (value: string) => {
+  // Remove spaces and convert to lowercase
+  const cleanValue = value.replace(/\s+/g, '').toLowerCase();
+  
+  // Check for invalid characters (only allow letters, numbers, underscore, hyphen)
+  if (!/^[a-zA-Z0-9_-]*$/.test(cleanValue)) {
+      setAlertt("Username can only contain letters, numbers, underscores, and hyphens.");
+      return false;
+  }
+  
+  // Check minimum length
+  if (cleanValue.length > 0 && cleanValue.length < 3) {
+      setAlertt("Username must be at least 3 characters long.");
+      return false;
+  }
+  
+  // Check maximum length
+  if (cleanValue.length > 30) {
+      setAlertt("Username cannot be longer than 30 characters.");
+      return false;
+  }
+  
+  // Check if username starts with a letter or number
+  if (cleanValue.length > 0 && !/^[a-zA-Z0-9]/.test(cleanValue)) {
+      setAlertt("Username must start with a letter or number.");
+      return false;
+  }
+  
+  setAlertt("");
+  return true;
+};
+
+const validateName = (value: string) => {
+  if (value.length > 50) {
+    setAlertt("Name cannot be longer than 50 characters.");
+    return false;
+  }
+  if (value.includes("@") || value.includes("http")) {
+    setAlertt("Name cannot contain @ symbols or links.");
+    return false;
+  }
+  setAlertt("");
+  return true;
+};
+
+const validateLocation = (value: string) => {
+  if (value.length > 100) {
+    setAlertt("Location cannot be longer than 100 characters.");
+    return false;
+  }
+  if (value.includes("@") || value.includes("http")) {
+    setAlertt("Location cannot contain @ symbols or links.");
+    return false;
+  }
+  setAlertt("");
+  return true;
+};
+
+const validateBio = (value: string) => {
+  if (value.length > 500) {
+    setAlertt("Bio cannot be longer than 500 characters.");
+    return false;
+  }
+  if (value.includes("@")) {
+    setAlertt("Bio cannot contain @ symbols.");
+    return false;
+  }
+  setAlertt("");
+  return true;
+};
+
+const validateWebsite = (value: string) => {
+  if (!value) return true; // Empty is allowed
+  if (!value.startsWith("https://") && !value.startsWith("http://")) {
+    setAlertt("Website must start with 'https://' or 'http://'.");
+    return false;
+  }
+  if (value.length > 200) {
+    setAlertt("Website URL is too long.");
+    return false;
+  }
+  setAlertt("");
+  return true;
+};
+
+const validateSocialHandle = (value: string, platform: string) => {
+  if (!value) return true; // Empty is allowed
+  
+  if (value.includes("@") && platform !== "youtube") {
+    setAlertt(`${platform} handle cannot contain @ symbols.`);
+    return false;
+  }
+  
+  if (value.includes("http")) {
+    setAlertt(`${platform} handle should not contain links.`);
+    return false;
+  }
+  
+  if (value.includes(" ")) {
+    setAlertt(`${platform} handle cannot contain spaces.`);
+    return false;
+  }
+  
+  if (value.length > 50) {
+    setAlertt(`${platform} handle is too long.`);
+    return false;
+  }
+  
+  setAlertt("");
+  return true;
+};
+
+const validateYouTubeHandle = (value: string) => {
+  if (!value) return true; // Empty is allowed
+  
+  if (!value.includes("@")) {
+    setAlertt("YouTube handle must include @ symbol.");
+    return false;
+  }
+  
+  if (value.includes("http")) {
+    setAlertt("YouTube handle should not contain links.");
+    return false;
+  }
+  
+  if (value.includes(" ")) {
+    setAlertt("YouTube handle cannot contain spaces.");
+    return false;
+  }
+  
+  setAlertt("");
+  return true;
+};
+
+const validateFacebookLink = (value: string) => {
+  if (!value) return true; // Empty is allowed
+  
+  if (!value.startsWith("https://")) {
+    setAlertt("Facebook link must start with 'https://'.");
+    return false;
+  }
+  
+  if (!value.includes("facebook.com")) {
+    setAlertt("Must be a valid Facebook URL.");
+    return false;
+  }
+  
+  setAlertt("");
+  return true;
+};
+
+const validateBandcampLink = (value: string) => {
+  if (!value) return true; // Empty is allowed
+  
+  if (!value.startsWith("https://")) {
+    setAlertt("Bandcamp link must start with 'https://'.");
+    return false;
+  }
+  
+  if (!value.includes("bandcamp.com")) {
+    setAlertt("Must be a valid Bandcamp URL.");
+    return false;
+  }
+  
+  setAlertt("");
+  return true;
+};
+
+const validateSpotifyURI = (value: string) => {
+  if (!value) return true; // Empty is allowed
+  
+  // Can be either Spotify URI or artist ID
+  if (value.includes(" ")) {
+    setAlertt("Spotify URI/ID cannot contain spaces.");
+    return false;
+  }
+  
+  if (value.length > 100) {
+    setAlertt("Spotify URI/ID is too long.");
+    return false;
+  }
+  
+  setAlertt("");
+  return true;
+};
+
+const validateArtistID = (value: string, platform: string) => {
+  if (!value) return true; // Empty is allowed
+  
+  if (value.includes(" ")) {
+    setAlertt(`${platform} Artist ID cannot contain spaces.`);
+    return false;
+  }
+  
+  if (value.includes("@") || value.includes("http")) {
+    setAlertt(`${platform} Artist ID should not contain @ or links.`);
+    return false;
+  }
+  
+  if (value.length > 100) {
+    setAlertt(`${platform} Artist ID is too long.`);
+    return false;
+  }
+  
+  setAlertt("");
+  return true;
+};
+
+const handleNameChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state so user can type
+  setFormName(newValue);
+  
+  // Validate only if there's a value, but don't prevent typing
+  if (newValue && !validateName(newValue)) {
+    // Error already set in validateName function
+  } else {
     setAlertt("");
-    return true;
-  };
+  }
+};
 
-  const validateInput = (value: string, allowLinks = false) => {
-    if (!allowLinks && (value.includes("http://") || value.includes("https://"))) {
-        setAlertt("Links are not allowed in this field.");
-        return false;
-    }
-    if (value.includes("@")) {
-        setAlertt("The '@' character is not allowed in this field.");
-        return false;
-    }
-    return true;
-  };
-
-  const validateYoutubeInput = (value: string, allowLinks = false) => {
-    if (value.includes("@")) {
-        return true;
-    }else{
-      setAlertt("The '@' character must be included in your YouTube Handle.");
-    }
-    return true;
-  };
-
-  const validateFacebookLink = (value: string) => {
-    if (!value.startsWith("https://")) {
-        setAlertt("Facebook link must start with 'https://'.");
-        return false;
-    }
-    return true;
-  };
-
-  const validateWebsite = (value: string) => {
-    if (!value.startsWith("https://")) {
-        setAlertt("Website must start with 'https://'.");
-        return false;
-    }
+const handleUserNameChange = (e: any) => {
+  const newValue = e.target.value.replace(/\s+/g, '').toLowerCase();
+  // Always update the state so user can type
+  setFormUserName(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateUsername(newValue)) {
+    // Error already set in validateUsername function
+  } else {
     setAlertt("");
-    return true;
-  };
+  }
+};
+
+const handleLocationChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setLocation(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateLocation(newValue)) {
+    // Error already set in validateLocation function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleBioChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setBio(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateBio(newValue)) {
+    // Error already set in validateBio function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleWebsiteChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setWebsite(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateWebsite(newValue)) {
+    // Error already set in validateWebsite function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleInstagramChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setInstagram(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateSocialHandle(newValue, "Instagram")) {
+    // Error already set in validateSocialHandle function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleTwitterChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setTwitter(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateSocialHandle(newValue, "Twitter")) {
+    // Error already set in validateSocialHandle function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleFacebookChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setFacebook(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateFacebookLink(newValue)) {
+    // Error already set in validateFacebookLink function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleLinkedInChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setLinkedIn(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateSocialHandle(newValue, "LinkedIn")) {
+    // Error already set in validateSocialHandle function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleYouTubeChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setYouTube(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateYouTubeHandle(newValue)) {
+    // Error already set in validateYouTubeHandle function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleTikTokChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setTikTok(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateSocialHandle(newValue, "TikTok")) {
+    // Error already set in validateSocialHandle function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleGithubChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setGithub(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateSocialHandle(newValue, "GitHub")) {
+    // Error already set in validateSocialHandle function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleEtsyChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setEtsy(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateSocialHandle(newValue, "Etsy")) {
+    // Error already set in validateSocialHandle function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handlePatreonChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setPatreon(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateSocialHandle(newValue, "Patreon")) {
+    // Error already set in validateSocialHandle function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleTelegramChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setTelegram(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateSocialHandle(newValue, "Telegram")) {
+    // Error already set in validateSocialHandle function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleSubstackChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setSubstack(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateSocialHandle(newValue, "Substack")) {
+    // Error already set in validateSocialHandle function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleSpotifyChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setSpotify(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateSpotifyURI(newValue)) {
+    // Error already set in validateSpotifyURI function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleAppleMusicChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setAppleMusic(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateArtistID(newValue, "Apple Music")) {
+    // Error already set in validateArtistID function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleSoundcloudChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setSoundCloud(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateSocialHandle(newValue, "SoundCloud")) {
+    // Error already set in validateSocialHandle function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleSoundChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setSoundxyz(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateSocialHandle(newValue, "Sound.xyz")) {
+    // Error already set in validateSocialHandle function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleTidalChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setTidal(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateArtistID(newValue, "Tidal")) {
+    // Error already set in validateArtistID function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleAmazonMusicChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setAmazonMusic(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateArtistID(newValue, "Amazon Music")) {
+    // Error already set in validateArtistID function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleBandcampChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setBandcamp(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateBandcampLink(newValue)) {
+    // Error already set in validateBandcampLink function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleDeezerChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setDeezer(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateArtistID(newValue, "Deezer")) {
+    // Error already set in validateArtistID function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handlePandoraChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setPandora(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateArtistID(newValue, "Pandora")) {
+    // Error already set in validateArtistID function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleYouTubeMusicChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state
+  setYouTubeMusic(newValue);
+  
+  // Validate only if there's a value
+  if (newValue && !validateArtistID(newValue, "YouTube Music")) {
+    // Error already set in validateArtistID function
+  } else {
+    setAlertt("");
+  }
+};
 
   const getUser = async () => {
     try {
@@ -358,188 +836,6 @@ const disconnectPrintify = async () => {
     }
   };
 
-  const handleNameChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setFormName(newValue);
-    }
-  };
-
-  const handleUserNameChange = (e: any) => {
-    const newValue = e.target.value.replace(/\s+/g, '').toLowerCase();
-    if (validateUsername(newValue)) {
-        setFormUserName(newValue);
-    }
-  };
-
-  const handleWebsiteChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateWebsite(newValue)) {
-        setWebsite(newValue);
-    }
-  };
-
-  const handleBioChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setBio(newValue);
-    }
-  };
-
-  const handleLocationChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setLocation(newValue);
-    }
-  };
-
-  const handleInstagramChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setInstagram(newValue);
-    }
-  };
-
-  const handleTwitterChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setTwitter(newValue);
-    }
-  };
-
-  const handleFacebookChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateFacebookLink(newValue)) {
-        setFacebook(newValue);
-    }
-  };
-
-  const handleLinkedInChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setLinkedIn(newValue);
-    }
-  };
-
-  const handleYouTubeChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateYoutubeInput(newValue)) {
-        setYouTube(newValue);
-    }
-  };
-
-  const handleTikTokChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setTikTok(newValue);
-    }
-  };
-
-  const handleGithubChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setGithub(newValue);
-    }
-  };
-
-  const handleEtsyChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setEtsy(newValue);
-    }
-  };
-
-  const handlePatreonChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setPatreon(newValue);
-    }
-  };
-
-  const handleTelegramChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setTelegram(newValue);
-    }
-  };
-
-  const handleSubstackChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setSubstack(newValue);
-    }
-  };
-
-  const handleSpotifyChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setSpotify(newValue);
-    }
-  };
-
-  const handleAppleMusicChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setAppleMusic(newValue);
-    }
-  };
-
-  const handleSoundcloudChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setSoundCloud(newValue);
-    }
-  };
-
-  const handleSoundChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setSoundxyz(newValue);
-    }
-  };
-
-  const handleTidalChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setTidal(newValue);
-    }
-  };
-
-  const handleAmazonMusicChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setAmazonMusic(newValue);
-    }
-  };
-
-  const handleBandcampChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setBandcamp(newValue);
-    }
-  };
-
-  const handleDeezerChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setDeezer(newValue);
-    }
-  };
-
-  const handlePandoraChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setPandora(newValue);
-    }
-  };
-
-  const handleYouTubeMusicChange = (e: any) => {
-    const newValue = e.target.value;
-    if (validateInput(newValue)) {
-        setYouTubeMusic(newValue);
-    }
-  };
-
   const containerStyle = {
     width: "100%", // Limit width on larger screens
     margin: "0 auto", // Center the container
@@ -666,145 +962,303 @@ const disconnectPrintify = async () => {
         <div className="w-full flex flex-wrap">
         <h2 className="text-xl sm:text-2xl font-bold mb-2 inline">Profile</h2>
         <br></br>
-       
-        <form>
-         <img src={avatarImage || fallbackImageUrl} style={{ borderRadius: '50%', width:"75px", height:"75px", display:"inline"}} alt="Avatar" />
-          <div style={{display:"inline"}}>
-            <input style={{display:"inline", marginLeft:"10px"}} 
-                type="file"
-                className="input mb-2 p-2 w-1/2"
-                accept="image/*"
-                onChange={(e) => handleFileSelection(e)}
-              />
-          </div>
-          <br></br>
-          <label style={{display:"block"}}>Name</label>
-          <input type="text" className="input mb-2 w-3/4" required placeholder={user?.name || "enter your name"} onChange={(e) => handleNameChange(e)}/>
-          <br />
-          <label style={{display:"block"}}>Username</label>
-          <input type="text" className="input mb-2 w-3/4" required placeholder={user?.username || "enter your username"} onChange={(e) => handleUserNameChange(e)}/>
-          <br />
-          <label style={{display:"block"}}>Location</label> 
-          <input type="text" className="input mb-2 w-3/4" placeholder={user?.location || "Enter Your Location"} onChange={(e) => handleLocationChange(e)} />
-          <br />
-          <label style={{display:"block"}}>Website</label> 
-          <input type="text" className="input mb-2 w-3/4" placeholder={user?.website || "Website Link"} onChange={(e) => handleWebsiteChange(e)} />
-          <br />
-          <label style={{display:"block"}}>Bio</label> 
-          <input type="text" className="input mb-2 w-3/4" placeholder={user?.bio || "Describe Yourself"} onChange={(e) => handleBioChange(e)} />
-          <br />
-          <label style={{display:"block"}}>Email</label>
-          <p className="text-sm mb-2">{user?.email}</p>
-          <label style={{display:"block"}}>
-            <input 
-              type="checkbox" 
-              className="mr-2" 
-              checked={displayEmail} 
-              onChange={(e) => setDisplayEmail(e.target.checked)} 
-            /> 
-            Display Email
-          </label>
-          <br />
+      
+      <form>
+        <img src={avatarImage || fallbackImageUrl} style={{ borderRadius: '50%', width:"75px", height:"75px", display:"inline"}} alt="Avatar" />
+        <div style={{display:"inline"}}>
+          <input style={{display:"inline", marginLeft:"10px"}} 
+              type="file"
+              className="input mb-2 p-2 w-1/2"
+              accept="image/*"
+              onChange={(e) => handleFileSelection(e)}
+            />
+        </div>
+        <br></br>
+        <label style={{display:"block"}}>Name</label>
+        <input 
+          type="text" 
+          className="input mb-2 w-3/4" 
+          required 
+          placeholder="Enter your name"
+          value={formName || ""}
+          onChange={(e) => handleNameChange(e)}
+        />
+        <br />
+        <label style={{display:"block"}}>Username</label>
+        <input 
+          type="text" 
+          className="input mb-2 w-3/4" 
+          required 
+          placeholder="Enter your username"
+          value={formUserName || ""}
+          onChange={(e) => handleUserNameChange(e)}
+        />
+        <br />
+        <label style={{display:"block"}}>Location</label> 
+        <input 
+          type="text" 
+          className="input mb-2 w-3/4" 
+          placeholder="Enter Your Location"
+          value={location || ""}
+          onChange={(e) => handleLocationChange(e)} 
+        />
+        <br />
+        <label style={{display:"block"}}>Website</label> 
+        <input 
+          type="text" 
+          className="input mb-2 w-3/4" 
+          placeholder="Website Link"
+          value={website || ""}
+          onChange={(e) => handleWebsiteChange(e)} 
+        />
+        <br />
+        <label style={{display:"block"}}>Bio</label> 
+        <input 
+          type="text" 
+          className="input mb-2 w-3/4" 
+          placeholder="Describe Yourself"
+          value={bio || ""}
+          onChange={(e) => handleBioChange(e)} 
+        />
+        <br />
+        <label style={{display:"block"}}>Email</label>
+        <p className="text-sm mb-2">{user?.email}</p>
+        <label style={{display:"block"}}>
+          <input 
+            type="checkbox" 
+            className="mr-2" 
+            checked={displayEmail || false} 
+            onChange={(e) => setDisplayEmail(e.target.checked)} 
+          /> 
+          Display Email
+        </label>
+        <br />
 
-          <h1>Socials</h1>
-          <div className="flex flex-wrap w-full">
-            <div className="w-full lg:w-1/2 p-2">
-              <label style={{display:"block"}}>Instagram</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.instagram || "handle"} onChange={(e) => handleInstagramChange(e)} />
+        <h1>Socials</h1>
+        <div className="flex flex-wrap w-full">
+          <div className="w-full lg:w-1/2 p-2">
+            <label style={{display:"block"}}>Instagram</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="handle"
+              value={instagram || ""}
+              onChange={(e) => handleInstagramChange(e)} 
+            />
+          
+            <label style={{display:"block"}}>Twitter(X)</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="handle"
+              value={twitter || ""}
+              onChange={(e) => handleTwitterChange(e)} 
+            />
+          
+            <label style={{display:"block"}}>FaceBook</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="link"
+              value={facebook || ""}
+              onChange={(e) => handleFacebookChange(e)} 
+            />
             
-              <label style={{display:"block"}}>Twitter(X)</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.twitter || "handle"} onChange={(e) => handleTwitterChange(e)} />
+            <label style={{display:"block"}}>LinkedIn</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="handle"
+              value={linkedin || ""}
+              onChange={(e) => handleLinkedInChange(e)} 
+            />
             
-              <label style={{display:"block"}}>FaceBook</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.facebook || "link"} onChange={(e) => handleFacebookChange(e)} />
-              
-              <label style={{display:"block"}}>LinkedIn</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.linkedin || "handle"} onChange={(e) => handleLinkedInChange(e)} />
-              
-              <label style={{display:"block"}}>Etsy</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.etsy || "handle"} onChange={(e) => handleEtsyChange(e)} />
-              
-              <label style={{display:"block"}}>Patreon</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.patreon || "handle"} onChange={(e) => handlePatreonChange(e)} />
-            </div>
-            <div className="w-full lg:w-1/2 p-2">
-            <label style={{display:"block"}}>TikTok</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.tiktok || "handle"} onChange={(e) => handleTikTokChange(e)} />
-              <br />
-              <label>YouTube</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.youtube || "handle"} onChange={(e) => handleYouTubeChange(e)} />
-              <br />
-              <label>Telegram</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.telegram || "handle"} onChange={(e) => handleTelegramChange(e)} />
-              <br />
-              <label  style={{display:"block"}}>GitHub</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.github || "handle"} onChange={(e) => handleGithubChange(e)} />
-              <br />
-              <label>SubStack</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.substack || "handle"} onChange={(e) => handleSubstackChange(e)} />
-              <br />
-            </div>
+            <label style={{display:"block"}}>Etsy</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="handle"
+              value={etsy || ""}
+              onChange={(e) => handleEtsyChange(e)} 
+            />
+            
+            <label style={{display:"block"}}>Patreon</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="handle"
+              value={patreon || ""}
+              onChange={(e) => handlePatreonChange(e)} 
+            />
           </div>
-          <h1 style={{display:"inline"}}>Listen</h1>
-          {!isEditingStreaming &&  <button 
-            type="button"
-            className="btn btn-alert btn-sm btn-narrow ml-2"
-            style={{ width: "auto", display: "inline"}}
-            onClick={() => setEditingStreaming(true)}> {/* Changed to setEditing(false) to handle cancel */}
-            Edit Streaming Links  
-          </button> }
-          <br></br>
-          {isEditingStreaming && <div className="flex flex-wrap w-full">
-            <div className="w-full sm:w-1/2 p-2">
-              <label  style={{display:"block"}}>Spotify</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.spotify || "Spotify URI"} onChange={(e) => handleSpotifyChange(e)} />
-              <br />
-              <label>Apple Music</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.appleMusic || "Artist ID"} onChange={(e) => handleAppleMusicChange(e)} />
-              <br />
-              <label>YouTube Music</label>   <br />
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.youtubeMusic || "Channel ID"} onChange={(e) => handleYouTubeMusicChange(e)} />
-              <br />
-              <label>Amazon Music</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.amazonMusic || "Artist ID"} onChange={(e) => handleAmazonMusicChange(e)} />
-              <br />
-              <label>Bandcamp</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.bandcamp || "link"} onChange={(e) => handleBandcampChange(e)} />
-              <br />
-            </div>
-            <div className="w-full sm:w-1/2 p-2">
-              <label>Soundcloud</label>   <br />
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.soundcloud || "handle"} onChange={(e) => handleSoundcloudChange(e)} />
-              <br />
-              <label>Tidal</label> <br />
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.tidal || "Artist ID"} onChange={(e) => handleTidalChange(e)} />
-              <br />
-              <label>Pandora</label>   <br />
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.pandora || "Artist ID"} onChange={(e) => handlePandoraChange(e)} />
-              <br />
-              <label style={{display:"block"}}>Deezer</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.deezer || "Artist ID"} onChange={(e) => handleDeezerChange(e)} />
-              <br />
-              <label>Sound.xyz</label> 
-              <input type="text" className="input mb-2 w-3/4" placeholder={user?.soundxyz || "handle"} onChange={(e) => handleSoundChange(e)} />
-              <br />
-            </div>
-          </div>}
-          {alertMsg && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alertMsg}</div>}
-          <button 
-            className="btn btn-primary btn-block btn-sm btn-narrow"
-            style={{width:"35%", display:"inline", margin:"8% 0 0"}}
-            onClick={(e) => handleEditProfile(e)} 
-            type="submit">
-            Submit
-        </button>
-        <button
-          className="btn btn-alert btn-block btn-sm btn-narrow"
-          style={{ width: "35%", display: "inline", margin: "2% 5%" }}
-          onClick={() => setEditing(false)}> {/* Changed to setEditing(false) to handle cancel */}
-          Cancel
-        </button>
-        </form>
+          <div className="w-full lg:w-1/2 p-2">
+          <label style={{display:"block"}}>TikTok</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="handle"
+              value={tiktok || ""}
+              onChange={(e) => handleTikTokChange(e)} 
+            />
+            <br />
+            <label>YouTube</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="handle"
+              value={youtube || ""}
+              onChange={(e) => handleYouTubeChange(e)} 
+            />
+            <br />
+            <label>Telegram</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="handle"
+              value={telegram || ""}
+              onChange={(e) => handleTelegramChange(e)} 
+            />
+            <br />
+            <label  style={{display:"block"}}>GitHub</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="handle"
+              value={github || ""}
+              onChange={(e) => handleGithubChange(e)} 
+            />
+            <br />
+            <label>SubStack</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="handle"
+              value={substack || ""}
+              onChange={(e) => handleSubstackChange(e)} 
+            />
+            <br />
+          </div>
+        </div>
+        <h1 style={{display:"inline"}}>Listen</h1>
+        {!isEditingStreaming &&  <button 
+          type="button"
+          className="btn btn-alert btn-sm btn-narrow ml-2"
+          style={{ width: "auto", display: "inline"}}
+          onClick={() => setEditingStreaming(true)}>
+          Edit Streaming Links  
+        </button> }
+        <br></br>
+        {isEditingStreaming && <div className="flex flex-wrap w-full">
+          <div className="w-full sm:w-1/2 p-2">
+            <label  style={{display:"block"}}>Spotify</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="Spotify URI"
+              value={spotify || ""}
+              onChange={(e) => handleSpotifyChange(e)} 
+            />
+            <br />
+            <label>Apple Music</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="Artist ID"
+              value={appleMusic || ""}
+              onChange={(e) => handleAppleMusicChange(e)} 
+            />
+            <br />
+            <label>YouTube Music</label>   <br />
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="Channel ID"
+              value={youtubeMusic || ""}
+              onChange={(e) => handleYouTubeMusicChange(e)} 
+            />
+            <br />
+            <label>Amazon Music</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="Artist ID"
+              value={amazonMusic || ""}
+              onChange={(e) => handleAmazonMusicChange(e)} 
+            />
+            <br />
+            <label>Bandcamp</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="link"
+              value={bandcamp || ""}
+              onChange={(e) => handleBandcampChange(e)} 
+            />
+            <br />
+          </div>
+          <div className="w-full sm:w-1/2 p-2">
+            <label>Soundcloud</label>   <br />
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="handle"
+              value={soundcloud || ""}
+              onChange={(e) => handleSoundcloudChange(e)} 
+            />
+            <br />
+            <label>Tidal</label> <br />
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="Artist ID"
+              value={tidal || ""}
+              onChange={(e) => handleTidalChange(e)} 
+            />
+            <br />
+            <label>Pandora</label>   <br />
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="Artist ID"
+              value={pandora || ""}
+              onChange={(e) => handlePandoraChange(e)} 
+            />
+            <br />
+            <label style={{display:"block"}}>Deezer</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="Artist ID"
+              value={deezer || ""}
+              onChange={(e) => handleDeezerChange(e)} 
+            />
+            <br />
+            <label>Sound.xyz</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="handle"
+              value={soundxyz || ""}
+              onChange={(e) => handleSoundChange(e)} 
+            />
+            <br />
+          </div>
+        </div>}
+        {alertMsg && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alertMsg}</div>}
+        <button 
+          className="btn btn-primary btn-block btn-sm btn-narrow"
+          style={{width:"35%", display:"inline", margin:"8% 0 0"}}
+          onClick={(e) => handleEditProfile(e)} 
+          type="submit">
+          Submit
+      </button>
+      <button
+        className="btn btn-alert btn-block btn-sm btn-narrow"
+        style={{ width: "35%", display: "inline", margin: "2% 5%" }}
+        onClick={() => setEditing(false)}>
+        Cancel
+      </button>
+      </form>
         </div>
       </div>
       );

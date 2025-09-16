@@ -209,40 +209,6 @@ const ReleasePages = () => {
     }
   };
 
-  const handleSave = async () => {
-    try {
-      const maxPages = getMaxPages();
-      
-      // Check if we're creating a new page and already have the maximum allowed
-      if (!editingPage?._id && releasePages.length >= maxPages) {
-        const userType = userData?.hasAccess ? "premium" : "free";
-        setAlert(`You can only create up to ${maxPages} release pages on the ${userType} plan.`);
-        return;
-      }
-
-      // Debug: Log what we're sending
-      const dataToSend = {
-        ...editingPage,
-        bgColor,
-        textColor,
-        linksColor,
-        font,
-        selectedProducts: selectedProductIds,
-      };
-
-      await apiClient.post(`/release/`, dataToSend);
-
-      setEditingPage(null);
-      setCreatePage(false);
-      setSelectedProductIds([]);
-      getReleasePages(data?.user?.id);
-      setAlert("Release page saved successfully!");
-    } catch (e: any) {
-      console.error('❌ Save error:', e?.message); 
-      setAlert(e?.message);
-    }
-  };
-
   const handleImageUpload = (result: any) => {
     const imageUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/v1742637738/${result.info.publicId}.png`;
     setEditingPage({ ...editingPage, image: imageUrl });
@@ -265,11 +231,6 @@ const ReleasePages = () => {
 
   const addCustomLink = () => {
     const updatedLinks = [...(editingPage?.links || []), { url: "", name: "" }];
-    setEditingPage({ ...editingPage, links: updatedLinks });
-  };
-
-  const removeCustomLink = (index: number) => {
-    const updatedLinks = (editingPage?.links || []).filter((_: any, i: number) => i !== index);
     setEditingPage({ ...editingPage, links: updatedLinks });
   };
 
@@ -308,6 +269,397 @@ const ReleasePages = () => {
     }
   }, 300);
 
+  const validateName = (value: string) => {
+    if (!value.trim()) {
+      setAlert("Release page name is required.");
+      return false;
+    }
+    if (value.length < 3) {
+      setAlert("Release page name must be at least 3 characters long.");
+      return false;
+    }
+    if (value.length > 50) {
+      setAlert("Release page name cannot be longer than 50 characters.");
+      return false;
+    }
+    if (value.includes(' ')) {
+      setAlert("Release page name cannot contain spaces. Use hyphens (-) or underscores (_) instead.");
+      return false;
+    }
+    if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
+      setAlert("Release page name can only contain letters, numbers, hyphens (-), and underscores (_).");
+      return false;
+    }
+    if (!/^[a-zA-Z0-9]/.test(value)) {
+      setAlert("Release page name must start with a letter or number.");
+      return false;
+    }
+    setAlert("");
+    return true;
+  };
+
+  const validateDescription = (value: string) => {
+    if (value.length > 500) {
+      setAlert("Description cannot be longer than 500 characters.");
+      return false;
+    }
+    if (value.includes("@")) {
+      setAlert("Description cannot contain @ symbols.");
+      return false;
+    }
+    setAlert("");
+    return true;
+  };
+
+  const validateURL = (value: string, fieldName: string) => {
+    if (!value) return true; // Empty is allowed
+    
+    if (!value.startsWith("https://") && !value.startsWith("http://")) {
+      setAlert(`${fieldName} must start with 'https://' or 'http://'.`);
+      return false;
+    }
+    
+    // Basic URL validation
+    try {
+      new URL(value);
+    } catch {
+      setAlert(`${fieldName} must be a valid URL.`);
+      return false;
+    }
+    
+    if (value.length > 500) {
+      setAlert(`${fieldName} URL is too long.`);
+      return false;
+    }
+    
+    setAlert("");
+    return true;
+  };
+
+  const validateYouTubeURL = (value: string) => {
+    if (!value) return true; // Empty is allowed
+    
+    if (!validateURL(value, "YouTube video")) return false;
+    
+    if (!value.includes("youtube.com") && !value.includes("youtu.be")) {
+      setAlert("Please enter a valid YouTube URL.");
+      return false;
+    }
+    
+    setAlert("");
+    return true;
+  };
+
+  const validateSpotifyURL = (value: string) => {
+    if (!value) return true; // Empty is allowed
+    
+    if (!validateURL(value, "Spotify")) return false;
+    
+    if (!value.includes("spotify.com")) {
+      setAlert("Please enter a valid Spotify URL.");
+      return false;
+    }
+    
+    setAlert("");
+    return true;
+  };
+
+  const validateAppleMusicURL = (value: string) => {
+    if (!value) return true; // Empty is allowed
+    
+    if (!validateURL(value, "Apple Music")) return false;
+    
+    if (!value.includes("music.apple.com")) {
+      setAlert("Please enter a valid Apple Music URL.");
+      return false;
+    }
+    
+    setAlert("");
+    return true;
+  };
+
+  const validateCustomLinkName = (value: string) => {
+    if (!value.trim()) {
+      setAlert("Custom link name is required.");
+      return false;
+    }
+    if (value.length > 50) {
+      setAlert("Custom link name cannot be longer than 50 characters.");
+      return false;
+    }
+    if (value.includes("@") || value.includes("http")) {
+      setAlert("Custom link name cannot contain @ symbols or URLs.");
+      return false;
+    }
+    setAlert("");
+    return true;
+  };
+
+  const validateImageURL = (value: string) => {
+    if (!value) return true; // Empty is allowed
+    
+    if (!validateURL(value, "Image")) return false;
+    
+    // Check if it's likely an image URL
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+    const hasImageExtension = imageExtensions.some(ext => 
+      value.toLowerCase().includes(ext)
+    );
+    
+    if (!hasImageExtension && !value.includes('cloudinary')) {
+      setAlert("Image URL should point to a valid image file.");
+      return false;
+    }
+    
+    setAlert("");
+    return true;
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let name = e.target.value;
+    
+    // Remove spaces and convert to lowercase as user types
+    name = name.replace(/\s+/g, '-').toLowerCase();
+    
+    // Always update the state so user can type
+    setEditingPage({ 
+      ...editingPage, 
+      name
+    });
+    
+    // Validate and set error message, but don't prevent typing
+    if (name && !validateName(name)) {
+      // Error already set in validateName function
+    } else {
+      setAlert("");
+    }
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    
+    // Always update the state
+    setEditingPage({ ...editingPage, description: value });
+    
+    // Validate but don't prevent typing
+    if (value && !validateDescription(value)) {
+      // Error already set in validateDescription function
+    } else {
+      setAlert("");
+    }
+  };
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // Always update the state
+    setEditingPage({ ...editingPage, video: value });
+    
+    // Validate but don't prevent typing
+    if (value && !validateYouTubeURL(value)) {
+      // Error already set in validateYouTubeURL function
+    } else {
+      setAlert("");
+    }
+  };
+
+  const handlePredefinedLinkChange = (linkName: string, value: string) => {
+    // Always update the state first
+    const existingLinkIndex = (editingPage?.links || []).findIndex(
+      (l: any) => l.name === linkName
+    );
+    
+    if (existingLinkIndex !== -1) {
+      handleLinkChange(existingLinkIndex, "url", value);
+    } else {
+      setEditingPage({
+        ...editingPage,
+        links: [
+          ...(editingPage?.links || []),
+          { name: linkName, url: value },
+        ],
+      });
+    }
+    
+    // Validate after updating (but don't prevent the update)
+    if (value) {
+      switch (linkName.toLowerCase()) {
+        case 'spotify':
+          validateSpotifyURL(value);
+          break;
+        case 'apple music':
+          validateAppleMusicURL(value);
+          break;
+        case 'youtube music':
+        case 'youtube':
+          validateYouTubeURL(value);
+          break;
+        default:
+          validateURL(value, linkName);
+      }
+    } else {
+      setAlert("");
+    }
+  };
+  
+// Replace the handleCustomLinkNameChange function with this corrected version:
+const handleCustomLinkNameChange = (index: number, value: string) => {
+  // Get the actual index in the full links array
+  const customLinks = (editingPage?.links || []).filter((link: any) => !predefinedLinks.some((p) => p.name === link.name));
+  const customLink = customLinks[index];
+  
+  // Find the actual index in the full links array
+  const actualIndex = (editingPage?.links || []).findIndex((link: any) => link === customLink);
+  
+  if (actualIndex !== -1) {
+    // Always update the state
+    handleLinkChange(actualIndex, "name", value);
+    
+    // Validate but don't prevent typing
+    if (value && !validateCustomLinkName(value)) {
+      // Error already set in validateCustomLinkName function
+    } else {
+      setAlert("");
+    }
+  }
+};
+
+// Also fix the handleCustomLinkURLChange function:
+const handleCustomLinkURLChange = (index: number, value: string) => {
+  // Get the actual index in the full links array
+  const customLinks = (editingPage?.links || []).filter((link: any) => !predefinedLinks.some((p) => p.name === link.name));
+  const customLink = customLinks[index];
+  
+  // Find the actual index in the full links array
+  const actualIndex = (editingPage?.links || []).findIndex((link: any) => link === customLink);
+  
+  if (actualIndex !== -1) {
+    // Always update the state
+    handleLinkChange(actualIndex, "url", value);
+    
+    // Validate but don't prevent typing
+    if (value && !validateURL(value, "Custom link")) {
+      // Error already set in validateURL function
+    } else {
+      setAlert("");
+    }
+  }
+};
+
+// And fix the removeCustomLink function too:
+const removeCustomLink = (index: number) => {
+  // Get the actual index in the full links array
+  const customLinks = (editingPage?.links || []).filter((link: any) => !predefinedLinks.some((p) => p.name === link.name));
+  const customLink = customLinks[index];
+  
+  // Find the actual index in the full links array
+  const actualIndex = (editingPage?.links || []).findIndex((link: any) => link === customLink);
+  
+  if (actualIndex !== -1) {
+    const updatedLinks = (editingPage?.links || []).filter((_: any, i: number) => i !== actualIndex);
+    setEditingPage({ ...editingPage, links: updatedLinks });
+  }
+};
+
+  // Update your handleSave function to include comprehensive validation:
+  const handleSave = async () => {
+    try {
+      // Validate required fields
+      if (!editingPage?.name || !validateName(editingPage.name)) {
+        setAlert("Please provide a valid release page name.");
+        return;
+      }
+      
+      if (editingPage?.description && !validateDescription(editingPage.description)) {
+        return; // Error already set in validation function
+      }
+      
+      if (editingPage?.video && !validateYouTubeURL(editingPage.video)) {
+        return; // Error already set in validation function
+      }
+      
+      if (editingPage?.image && !validateImageURL(editingPage.image)) {
+        return; // Error already set in validation function
+      }
+      
+      // Validate all links
+      if (editingPage?.links) {
+        for (let i = 0; i < editingPage.links.length; i++) {
+          const link = editingPage.links[i];
+          
+          if (link.url) {
+            // Check predefined links
+            const isPredefined = predefinedLinks.some(p => p.name === link.name);
+            
+            if (isPredefined) {
+              let isValid = false;
+              switch (link.name.toLowerCase()) {
+                case 'spotify':
+                  isValid = validateSpotifyURL(link.url);
+                  break;
+                case 'apple music':
+                  isValid = validateAppleMusicURL(link.url);
+                  break;
+                case 'youtube music':
+                case 'youtube':
+                  isValid = validateYouTubeURL(link.url);
+                  break;
+                default:
+                  isValid = validateURL(link.url, link.name);
+              }
+              if (!isValid) return;
+            } else {
+              // Custom link validation
+              if (!validateCustomLinkName(link.name)) return;
+              if (!validateURL(link.url, "Custom link")) return;
+            }
+          }
+        }
+      }
+      
+      const maxPages = getMaxPages();
+      
+      // Check if we're creating a new page and already have the maximum allowed
+      if (!editingPage?._id && releasePages.length >= maxPages) {
+        const userType = userData?.hasAccess ? "premium" : "free";
+        setAlert(`You can only create up to ${maxPages} release pages on the ${userType} plan.`);
+        return;
+      }
+
+      // Check name uniqueness for new pages
+      if (!editingPage?._id && !isNameUnique) {
+        setAlert("This name is already taken. Please choose another.");
+        return;
+      }
+
+      // Validate selected products (if any)
+      if (selectedProductIds.length > 0 && !userData?.hasAccess) {
+        setAlert("Merch integration is only available for premium users.");
+        return;
+      }
+
+      const dataToSend = {
+        ...editingPage,
+        bgColor,
+        textColor,
+        linksColor,
+        font,
+        selectedProducts: selectedProductIds,
+      };
+
+      await apiClient.post(`/release/`, dataToSend);
+
+      setEditingPage(null);
+      setCreatePage(false);
+      setSelectedProductIds([]);
+      getReleasePages(data?.user?.id);
+      setAlert("Release page saved successfully!");
+    } catch (e: any) {
+      console.error('❌ Save error:', e?.message); 
+      setAlert(e?.response?.data?.message || e?.message || "Failed to save release page.");
+    }
+  };
+
   const validateReleasePageName = (name: string): { isValid: boolean; message: string } => {
     if (!name) return { isValid: true, message: "" };
     
@@ -334,20 +686,6 @@ const ReleasePages = () => {
     }
     
     return { isValid: true, message: "" };
-  };
-
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let name = e.target.value;
-    
-    name = name.replace(/\s+/g, '-');
-    
-    const validation = validateReleasePageName(name);
-    
-    setEditingPage({ 
-      ...editingPage, 
-      name,
-      nameError: validation.isValid ? "" : validation.message
-    });
   };
 
   const handleNameBlur = () => {
@@ -515,15 +853,13 @@ const ReleasePages = () => {
             </div>
             <div className="mb-4">
               <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Description</label>
-              <textarea
-                className="input w-full"
-                placeholder="Enter release page description"
-                value={editingPage?.description || ""}
-                onChange={(e) =>
-                  setEditingPage({ ...editingPage, description: e.target.value })
-                }
-                style={{ fontFamily: font || 'inherit' }}
-              />
+             <textarea
+            className="input w-full"
+            placeholder="Enter release page description"
+            value={editingPage?.description || ""}
+            onChange={handleDescriptionChange}
+            style={{ fontFamily: font || 'inherit' }}
+          />
             </div>
             {editingPage?.name && (
               <div className="mb-4">
@@ -558,14 +894,12 @@ const ReleasePages = () => {
             )}
             <div className="mb-4">
               <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>YouTube Video Link</label>
-              <input
+             <input
                 type="text"
                 className="input w-full"
                 placeholder="Enter YouTube video link"
                 value={editingPage?.video || ""}
-                onChange={(e) =>
-                  setEditingPage({ ...editingPage, video: e.target.value })
-                }
+                onChange={handleVideoChange}
                 style={{ fontFamily: font || 'inherit' }}
               />
               {editingPage?.video && getYouTubeVideoId(editingPage.video).videoId && (
@@ -591,22 +925,7 @@ const ReleasePages = () => {
                     value={
                       (editingPage?.links || []).find((l: any) => l.name === link.name)?.url || ""
                     }
-                    onChange={(e) => {
-                      const existingLinkIndex = (editingPage?.links || []).findIndex(
-                        (l: any) => l.name === link.name
-                      );
-                      if (existingLinkIndex !== -1) {
-                        handleLinkChange(existingLinkIndex, "url", e.target.value);
-                      } else {
-                        setEditingPage({
-                          ...editingPage,
-                          links: [
-                            ...(editingPage?.links || []),
-                            { name: link.name, url: e.target.value },
-                          ],
-                        });
-                      }
-                    }}
+                    onChange={(e) => handlePredefinedLinkChange(link.name, e.target.value)}
                     style={{ fontFamily: font || 'inherit' }}
                   />
                 </div>
@@ -777,29 +1096,29 @@ const ReleasePages = () => {
           <div className="p-4 bg-gray-100 rounded-md" style={{ fontFamily: font || 'inherit' }}>
             <h3 className="text-xl font-bold mb-4" style={{ fontFamily: font || 'inherit' }}>Edit Release Page</h3>
             <div className="mb-4">
-              <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Name</label>
+             <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Name</label>
               <input
                 type="text"
                 className="input w-full"
                 placeholder="Enter release page name"
                 value={editingPage?.name || ""}
-                onChange={(e) =>
-                  setEditingPage({ ...editingPage, name: e.target.value })
-                }
+                onChange={(e) => {
+                  // Simple handler for edit mode - just update the value
+                  setEditingPage({ ...editingPage, name: e.target.value });
+                }}
+                onBlur={handleNameBlur}
                 style={{ fontFamily: font || 'inherit' }}
               />
             </div>
             <div className="mb-4">
               <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Description</label>
-              <textarea
-                className="input w-full"
-                placeholder="Enter release page description"
-                value={editingPage?.description || ""}
-                onChange={(e) =>
-                  setEditingPage({ ...editingPage, description: e.target.value })
-                }
-                style={{ fontFamily: font || 'inherit' }}
-              />
+                <textarea
+                  className="input w-full"
+                  placeholder="Enter release page description"
+                  value={editingPage?.description || ""}
+                  onChange={handleDescriptionChange}
+                  style={{ fontFamily: font || 'inherit' }}
+                />
             </div>
             <div className="mb-4">
               <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Image</label>
@@ -832,16 +1151,14 @@ const ReleasePages = () => {
             </div>
             <div className="mb-4">
               <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>YouTube Video Link</label>
-              <input
-                type="text"
-                className="input w-full"
-                placeholder="Enter YouTube video link"
-                value={editingPage?.video || ""}
-                onChange={(e) =>
-                  setEditingPage({ ...editingPage, video: e.target.value })
-                }
-                style={{ fontFamily: font || 'inherit' }}
-              />
+            <input
+              type="text"
+              className="input w-full"
+              placeholder="Enter YouTube video link"
+              value={editingPage?.video || ""}
+              onChange={handleVideoChange}
+              style={{ fontFamily: font || 'inherit' }}
+            />
               {editingPage?.video && getYouTubeVideoId(editingPage.video).videoId && (
                 <iframe
                   width="100%"
@@ -855,7 +1172,7 @@ const ReleasePages = () => {
             </div>
             <div className="mb-4">
               <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Predefined Links</h4>
-              {predefinedLinks.map((link, index) => (
+             {predefinedLinks.map((link, index) => (
                 <div key={index} className="mb-2">
                   <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>{link.name}</label>
                   <input
@@ -865,22 +1182,7 @@ const ReleasePages = () => {
                     value={
                       (editingPage?.links || []).find((l: any) => l.name === link.name)?.url || ""
                     }
-                    onChange={(e) => {
-                      const existingLinkIndex = (editingPage?.links || []).findIndex(
-                        (l: any) => l.name === link.name
-                      );
-                      if (existingLinkIndex !== -1) {
-                        handleLinkChange(existingLinkIndex, "url", e.target.value);
-                      } else {
-                        setEditingPage({
-                          ...editingPage,
-                          links: [
-                            ...(editingPage?.links || []),
-                            { name: link.name, url: e.target.value },
-                          ],
-                        });
-                      }
-                    }}
+                    onChange={(e) => handlePredefinedLinkChange(link.name, e.target.value)}
                     style={{ fontFamily: font || 'inherit' }}
                   />
                 </div>
@@ -888,37 +1190,37 @@ const ReleasePages = () => {
             </div>
             <div className="mb-4">
               <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Custom Links</h4>
-              {(editingPage?.links || [])
-                .filter((link: any) => !predefinedLinks.some((p) => p.name === link.name))
-                .map((link: any, index: number) => (
-                  <div key={index} className="mb-2">
-                    <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>Name</label>
-                    <input
-                      type="text"
-                      className="input w-full mb-2"
-                      placeholder="Enter link name"
-                      value={link.name || ""}
-                      onChange={(e) => handleLinkChange(index, "name", e.target.value)}
-                      style={{ fontFamily: font || 'inherit' }}
-                    />
-                    <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>URL</label>
-                    <input
-                      type="text"
-                      className="input w-full"
-                      placeholder="Enter link URL"
-                      value={link.url || ""}
-                      onChange={(e) => handleLinkChange(index, "url", e.target.value)}
-                      style={{ fontFamily: font || 'inherit' }}
-                    />
-                    <button
-                      className="btn btn-alert btn-sm mt-2"
-                      onClick={() => removeCustomLink(index)}
-                      style={{ fontFamily: font || 'inherit' }}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
+           {(editingPage?.links || [])
+              .filter((link: any) => !predefinedLinks.some((p) => p.name === link.name))
+              .map((link: any, index: number) => (
+                <div key={index} className="mb-2">
+                  <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>Name</label>
+                  <input
+                    type="text"
+                    className="input w-full mb-2"
+                    placeholder="Enter link name"
+                    value={link.name || ""}
+                    onChange={(e) => handleCustomLinkNameChange(index, e.target.value)}
+                    style={{ fontFamily: font || 'inherit' }}
+                  />
+                  <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>URL</label>
+                  <input
+                    type="text"
+                    className="input w-full"
+                    placeholder="Enter link URL"
+                    value={link.url || ""}
+                    onChange={(e) => handleCustomLinkURLChange(index, e.target.value)}
+                    style={{ fontFamily: font || 'inherit' }}
+                  />
+                  <button
+                    className="btn btn-alert btn-sm mt-2"
+                    onClick={() => removeCustomLink(index)}
+                    style={{ fontFamily: font || 'inherit' }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
               <button
                 className="btn btn-primary btn-sm mt-2"
                 onClick={addCustomLink}

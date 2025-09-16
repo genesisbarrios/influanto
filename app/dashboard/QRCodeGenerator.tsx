@@ -46,6 +46,178 @@ const QRCodeGenerator = () => {
     return user?.hasAccess ? 30 : 10;
   };
 
+// Add these validation functions after your state declarations:
+
+const validateURL = (value: string) => {
+  if (!value.trim()) {
+    setAlert("URL is required.");
+    return false;
+  }
+  
+  // Basic URL validation
+  try {
+    new URL(value);
+  } catch {
+    setAlert("Please enter a valid URL (must include http:// or https://).");
+    return false;
+  }
+  
+  if (value.length > 500) {
+    setAlert("URL is too long (max 500 characters).");
+    return false;
+  }
+  
+  setAlert("");
+  return true;
+};
+
+const validateName = (value: string) => {
+  if (!value.trim()) {
+    setAlert("QR Code name is required.");
+    return false;
+  }
+  
+  if (value.length < 2) {
+    setAlert("QR Code name must be at least 2 characters long.");
+    return false;
+  }
+  
+  if (value.length > 50) {
+    setAlert("QR Code name cannot be longer than 50 characters.");
+    return false;
+  }
+  
+  if (value.includes("@") || value.includes("http")) {
+    setAlert("QR Code name cannot contain @ symbols or URLs.");
+    return false;
+  }
+  
+  setAlert("");
+  return true;
+};
+
+const validateSize = (value: number) => {
+  if (value < 200 || value > 500) {
+    setAlert("QR Code size must be between 200px and 500px.");
+    return false;
+  }
+  
+  setAlert("");
+  return true;
+};
+
+// Add these handler functions with validation:
+
+const handleLinkChange = (value: string) => {
+  // Always update state so user can type
+  setNewLink(value);
+  
+  // Validate only if there's a value
+  if (value && !validateURL(value)) {
+    // Error already set in validateURL function
+  } else {
+    setAlert("");
+  }
+};
+
+const handleNameChange = (value: string) => {
+  // Always update state so user can type
+  setNewName(value);
+  
+  // Validate only if there's a value
+  if (value && !validateName(value)) {
+    // Error already set in validateName function
+  } else {
+    setAlert("");
+  }
+};
+
+const handleSizeChange = (value: number) => {
+  // Always update state
+  setNewSize(value);
+  
+  // Validate the size
+  if (!validateSize(value)) {
+    // Error already set in validateSize function
+  } else {
+    setAlert("");
+  }
+};
+
+// Update your addQRCode function to include comprehensive validation:
+const addQRCode = async () => {
+  try {
+    // Validate all fields before saving
+    if (!validateURL(newLink)) {
+      return;
+    }
+    
+    if (!validateName(newName)) {
+      return;
+    }
+    
+    if (!validateSize(newSize)) {
+      return;
+    }
+    
+    // Check if name is unique
+    if (qrCodes && qrCodes.some((code: any) => code.name.toLowerCase() === newName.toLowerCase())) {
+      setAlert("A QR code with this name already exists. Please choose a different name.");
+      return;
+    }
+    
+    const maxCodes = getMaxCodes();
+    
+    if (qrCodes && qrCodes.length >= maxCodes) {
+      const userType = user?.hasAccess ? "premium" : "free";
+      setAlert(`You can only create up to ${maxCodes} QR codes on the ${userType} plan.`);
+      return;
+    }
+
+    setIsLoading(true);
+
+    const { data } = await apiClient.post("/codes", {
+      link: newLink,
+      name: newName,
+      bgColor: newBgColor,
+      transparentBg: transparentBg,
+      color: user?.hasAccess ? dotsColor : newColor,
+      cornerDotColor: user?.hasAccess ? cornerDotColor : undefined,
+      cornerSquareColor: user?.hasAccess ? cornerSquareColor : undefined,
+      size: newSize,
+      dotStyle: dotStyle,
+      cornerSquareStyle: cornerSquareStyle,
+      cornerDotStyle: cornerDotStyle
+    });
+
+    console.log(data);
+    setAlert("✅ QR Code saved successfully");
+    setShowCreateView(false);
+    
+    // Reset form fields
+    setNewLink('');
+    setNewName('');
+    setNewColor('#000000');
+    setNewBgColor('#ffffff');
+    setTransparentBg(false);
+    setDotsColor('#000000');
+    setCornerDotColor('#000000');
+    setCornerSquareColor('#000000');
+    setNewSize(300);
+    setDotStyle('square');
+    setCornerDotStyle('square');
+    setCornerSquareStyle('square');
+    
+    getQrCodes();
+  } catch (e: any) {
+    console.error('Create QR error:', e);
+    const errorMessage = e?.response?.data?.message || e?.message || "Failed to create QR code.";
+    setAlert(`❌ ${errorMessage}`);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 useEffect(() => {
     document.title = "QR Code Generator | Influanto";
     
@@ -289,58 +461,7 @@ useEffect(() => {
       setAlert(e?.message);
     } 
   }
-
-  const addQRCode = async () => {
-    try {
-      const maxCodes = getMaxCodes();
-      
-      if (qrCodes && qrCodes.length >= maxCodes) {
-        const userType = user?.hasAccess ? "premium" : "free";
-        setAlert(`You can only create up to ${maxCodes} QR codes on the ${userType} plan.`);
-        return;
-      }
-
-      const { data } = await apiClient.post("/codes", {
-        link: newLink,
-        name: newName,
-        bgColor: newBgColor,
-        transparentBg: transparentBg,
-        color: user?.hasAccess ? dotsColor : newColor,
-        cornerDotColor: user?.hasAccess ? cornerDotColor : undefined,
-        cornerSquareColor: user?.hasAccess ? cornerSquareColor : undefined,
-        size: newSize,
-        dotStyle: dotStyle,
-        cornerSquareStyle: cornerSquareStyle,
-        cornerDotStyle: cornerDotStyle
-      });
-
-      console.log(data);
-      setAlert("QR Code saved successfully");
-      setShowCreateView(false);
-      
-      // Reset form fields
-      setNewLink('');
-      setNewName('');
-      setNewColor('#000000');
-      setNewBgColor('#ffffff');
-      setTransparentBg(false);
-      setDotsColor('#000000');
-      setCornerDotColor('#000000');
-      setCornerSquareColor('#000000');
-      setNewSize(300);
-      setDotStyle('square');
-      setCornerDotStyle('square');
-      setCornerSquareStyle('square');
-      
-      getQrCodes();
-    } catch (e) {
-      setAlert(e?.message);
-    } finally {
-      setIsLoading(false);
-      setEditing(false);
-    }
-  };
-
+  
   return (
     <>
    
