@@ -847,12 +847,12 @@ const containerStyle = {
 </div>
 </div>
 
-
-{/* PRODUCT SELECTION SECTION - ONLY IN EDITING VIEW */}
+  {/* PRODUCT SELECTION SECTION - ONLY IN EDITING VIEW */}
 {user?.hasAccess && user?.printifyShopId && (
   <div className="mt-8 w-full border-t pt-6">
-    <div className="mb-4">
-      <h2 className="text-lg font-semibold" style={{
+    {/* Center the title on mobile */}
+    <div className="mb-4 text-center">
+      <h2 className="text-md font-semibold" style={{
         fontFamily: linkInBio?.font || 'inherit'
       }}>
         🛍️ Select Products from Printify (Max 10)
@@ -870,40 +870,48 @@ const containerStyle = {
       </div>
     ) : availableProducts.length > 0 ? (
       <>
-        {/* Selection Summary */}
-        <div className="bg-gray-50 rounded-lg p-4 mb-4 max-w-md mx-auto flex justify-between items-center">
-          <div>
-            <span className="text-sm font-medium text-gray-700" style={{
+       {/* Selection Summary - Responsive width */}
+      <div className="bg-gray-50 rounded-lg p-2 sm:p-4 mb-4 mx-auto" style={{
+        maxWidth: '100%', // Full width on desktop
+        width: '100%'
+      }}>
+        <div className="flex justify-between items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+            <span className="text-xs sm:text-sm font-medium text-gray-700" style={{
               fontFamily: linkInBio?.font || 'inherit'
             }}>
-              {selectedProductIds.length}/10 products selected
+              {selectedProductIds.length}/10 selected
             </span>
             {selectedProductIds.length === 10 && (
-              <p className="text-xs text-orange-600 mt-1" style={{
+              <span className="text-xs text-orange-600" style={{
                 fontFamily: linkInBio?.font || 'inherit'
               }}>
-                Maximum selection reached
-              </p>
+                Max reached
+              </span>
             )}
           </div>
           
           {selectedProductIds.length > 0 && (
-            <div className="mt-3">
-              <button
-                type="button"
-                onClick={() => setSelectedProductIds([])}
-                className="btn btn-alert btn-sm"
-                style={{
-                  fontFamily: linkInBio?.font || 'inherit'
-                }}
-              >
-                Clear
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setSelectedProductIds([])}
+              className="btn btn-sm btn-alert text-xs px-2 py-1"
+              style={{
+                fontSize: '11px',
+                fontFamily: linkInBio?.font || 'inherit'
+              }}
+            >
+              Clear
+            </button>
           )}
         </div>
+      </div>
 
-          {/* Mobile-Friendly Products Grid */}
+        {/* Mobile-Friendly Products Grid - Responsive container */}
+        <div className="mx-auto" style={{
+          maxWidth: '100%', // Full width on desktop
+          width: '100%'
+        }}>
           <div className="border border-gray-300 rounded-lg overflow-hidden">
             <div className="max-h-96 overflow-y-auto">
               {/* Mobile: Card Layout, Desktop: Table Layout */}
@@ -1067,20 +1075,26 @@ const containerStyle = {
           }}>
             Showing {availableProducts.length} products • Scroll to see more
           </div>
-          </>
-        ) : (
-          <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg" style={{
-            fontFamily: linkInBio?.font || 'inherit'
-          }}>
-            <div className="text-4xl text-gray-400 mb-2">🏪</div>
-            <h3 className="text-lg font-medium text-gray-700 mb-1">No Products Found</h3>
-            <p className="text-sm text-gray-500">
-              Make sure your Printify store has published products.
-            </p>
-          </div>
-        )}
+        </div>
+      </>
+    ) : (
+      <div className="mx-auto" style={{
+        maxWidth: '100%', // Full width on desktop
+        width: '100%'
+      }}>
+        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg" style={{
+          fontFamily: linkInBio?.font || 'inherit'
+        }}>
+          <div className="text-4xl text-gray-400 mb-2">🏪</div>
+          <h3 className="text-lg font-medium text-gray-700 mb-1">No Products Found</h3>
+          <p className="text-sm text-gray-500">
+            Make sure your Printify store has published products.
+          </p>
+        </div>
       </div>
     )}
+  </div>
+)}
 
   {alert && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alert}</div>}
       <div style={{textAlign:"center"}}>
