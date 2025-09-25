@@ -127,7 +127,7 @@ const ReleasePages = () => {
 
   // Get the maximum allowed pages based on user status
   const getMaxPages = () => {
-    return userData?.hasAccess ? 10 : 3;
+    return userData?.hasAccess ? 50 : 10;
   };
   
   const predefinedLinks = [
@@ -819,7 +819,7 @@ const removeCustomLink = (index: number) => {
           {releasePages.length} of {getMaxPages()} pages used
           {!userData?.hasAccess && (
             <span className="ml-2 text-blue-600">
-              (Upgrade to Premium for up to 10 pages)
+              (Upgrade to Premium for up to 50 pages)
             </span>
           )}
         </div>

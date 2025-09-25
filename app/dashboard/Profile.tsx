@@ -852,12 +852,19 @@ const handleYouTubeMusicChange = (e: any) => {
       <div className="p-4 bg-white shadow rounded-md text-black" style={containerStyle}>
          <div className="w-full flex justify-between items-center">
             <h2 className="text-xl sm:text-2xl font-bold mb-2">Profile</h2>
-            <button 
-              className="btn btn-primary btn-sm btn-narrow"
-              style={{margin:"0 2%"}}
+           
+
+            {/* settings */}
+            <div className="flex justify-end items-center mb-4 mt-4">
+               <button 
+              className="btn btn-primary btn-sm btn-narrow mr-4"
+              style={{margin:"0"}}
               onClick={() => setEditing(true)}>
               Edit
             </button>
+
+              <SettingsDropdown />
+            </div>
           </div>
           <br></br>
 
@@ -931,28 +938,78 @@ const handleYouTubeMusicChange = (e: any) => {
               </>
             )}
            
-            {/* Premium Sign Up */}
-            {!user.hasAccess &&
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
-              <div className="text-sm font-medium text-blue-800 mb-2">
-                🚀 Unlock Premium Features
+
+          {/* Premium Sign Up - Enhanced aesthetic version */}
+          {!user.hasAccess &&
+          <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 border border-blue-200 rounded-xl shadow-lg">
+            {/* Header with icon */}
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-bold text-gray-800 mb-1">
+                Unlock Premium Features
+              </h3>
+            </div>
+
+            {/* Features grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              <div className="flex items-center space-x-2 text-sm text-gray-700">
+                <span className="flex-shrink-0 w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-green-600 text-xs">✓</span>
+                </span>
+                <span>Advanced Styling Features</span>
               </div>
-              <div className="text-xs text-blue-600 mb-3">
-                • Advanced Styling Features<br/>
-                • Advanced QR Code Generator<br/>
-                • More Release Pages + 30 QR codes limit<br/>
-                • Connect to Printify and link your Merch<br/>
+              <div className="flex items-center space-x-2 text-sm text-gray-700">
+                <span className="flex-shrink-0 w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-green-600 text-xs">✓</span>
+                </span>
+                <span>Advanced QR Code Generator</span>
               </div>
-             <ButtonCheckout
+              <div className="flex items-center space-x-2 text-sm text-gray-700">
+                <span className="flex-shrink-0 w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-green-600 text-xs">✓</span>
+                </span>
+                <span>More Release Pages</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-700">
+                <span className="flex-shrink-0 w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-green-600 text-xs">✓</span>
+                </span>
+                <span>Printify Merch Integration</span>
+              </div>
+            </div>
+
+            {/* CTA Button */}
+            <div className="text-center">
+              <ButtonCheckout
                 mode="subscription"
                 priceId={config.stripe.plans[1].priceId} 
               />
+              
+              {/* Enhanced trial notice */}
+              <div className="mt-4 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-white/20">
+                <div className="flex items-center justify-center space-x-2 mb-1">
+                  <span className="text-lg">⏰</span>
+                  <span className="text-sm font-semibold text-gray-800">
+                    14-Day FREE Trial
+                  </span>
+                  <span className="text-lg">⏰</span>
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Start your free trial today • No commitment required • Cancel anytime
+                </p>
+                <div className="flex items-center justify-center space-x-4 mt-2 text-xs text-gray-500">
+                  <div className="flex items-center space-x-1">
+                    <span>💳</span>
+                    <span>No charges for 14 days</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <span>🔄</span>
+                    <span>Cancel with one click</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            }
-            {/* settings */}
-            <div className="flex justify-end items-center mb-4 mt-4">
-              <SettingsDropdown />
-            </div>
+          </div>
+          }
           </div>
         </div>
     );

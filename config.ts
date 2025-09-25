@@ -36,7 +36,7 @@ const config = {
           {
             name: "Link In Bio Page",
           },
-          { name: "Release Pages (3)" },
+          { name: "Release Pages (10)" },
           { name: "Playlist Pitching" },
           { name: "QR Code Generator" },
         ],
@@ -57,7 +57,7 @@ const config = {
           {
             name: "Link in Bio Page",
           },
-          { name: "Release Pages (10)" },
+          { name: "Release Pages (50)" },
           { name: "Extra Styling Features" },
           { name: "Playlist Pitching" },
           { name: "Advanced QR Code Generator" },

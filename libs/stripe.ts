@@ -81,6 +81,26 @@ export const createCheckout = async ({
       success_url: successUrl,
       cancel_url: cancelUrl,
       ...extraParams,
+  
+      // Add trial period for subscription mode
+      ...(mode === 'subscription' && {
+        subscription_data: {
+          trial_period_days: 14,
+        },
+      }),
+      
+      // Optional: Add trial end behavior
+      ...(mode === 'subscription' && {
+        subscription_data: {
+          trial_period_days: 14,
+          trial_settings: {
+            end_behavior: {
+              missing_payment_method: 'cancel', // Cancel if no payment method
+            },
+          },
+        },
+      }),
+      
     });
 
     if (!stripeSession.url) {
