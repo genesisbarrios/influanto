@@ -43,7 +43,7 @@ const QRCodeGenerator = () => {
 
   // Get the maximum allowed pages based on user status
   const getMaxCodes = () => {
-    return user?.hasAccess ? 30 : 10;
+    return user?.hasAccess ? 50 : 10;
   };
 
 // Add these validation functions after your state declarations:
@@ -461,7 +461,7 @@ useEffect(() => {
       setAlert(e?.message);
     } 
   }
-  
+
   return (
     <>
    
@@ -483,7 +483,7 @@ useEffect(() => {
         {qrCodes?.length || 0} of {getMaxCodes()} QR codes used
         {!user?.hasAccess && (
           <span className="ml-2 text-blue-600">
-            (Upgrade to Premium for up to 30 QR codes)
+            (Upgrade to Premium for up to 50 QR codes)
           </span>
         )}
       </div>
@@ -733,7 +733,7 @@ useEffect(() => {
               <div className="text-xs text-blue-600 mb-3">
                 • Individual color controls for dots, corners, and squares (🌐💠⚫)<br/>
                 • Advanced styling options (6 dot styles, 3 corner styles)<br/>
-                • 30 QR codes limit<br/>
+                • 50 QR codes limit<br/>
               </div>
              <ButtonCheckout
                 mode="subscription"
