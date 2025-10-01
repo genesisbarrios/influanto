@@ -13,6 +13,7 @@ const SettingsDropdown = () => {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
+
   const handleBilling = async () => {
     setIsLoading(true);
 
