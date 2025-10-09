@@ -199,7 +199,16 @@ const CollectiblesScreen: React.FC = () => {
       <NFTCreationModal
         isOpen={isModalOpen}
         onClose={() => setModalOpen(false)}
-        onCreate={(newNFT) => setNFTs([...nfts, { id: Date.now().toString(), ...newNFT }])}
+        onCreate={(newNFT) =>
+          setNFTs([
+            ...nfts,
+            {
+              id: Date.now().toString(),
+              ...newNFT,
+              editionSize: typeof newNFT.editionSize === "number" ? newNFT.editionSize : 1,
+            },
+          ])
+        }
       />
     </div>
   );

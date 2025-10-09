@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { fetchDotUsdPrice } from "../libs/price";
-import { uploadToStoracha, uploadMetadata, StoachaClient } from "@/libs/storacha";
+import { uploadMetadata, uploadToPinata } from "@/libs/pinata";
 
 interface MusicNFT {
   title: string;
@@ -10,7 +10,7 @@ interface MusicNFT {
   image?: string;
   audio: string;
   artist: string;
-  genres: string; // comma-separated list
+  genre: string; // comma-separated list
   bpm?: number;
   lyrics?: string;
   editionSize?: number;
@@ -118,9 +118,9 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
     setUploading(true);
 
     try {
-      // Upload files to Storacha
-      const audioCID = await uploadToStoracha(audioFile!);
-      const imageCID = imageFile ? await uploadToStoracha(imageFile) : undefined;
+      // Upload files to Pinata
+      const audioCID = await uploadToPinata(audioFile!);
+      const imageCID = imageFile ? await uploadToPinata(imageFile) : undefined;
 
       // Convert USD to DOT
       const priceDot = priceUsd / dotUsdPrice;
@@ -133,7 +133,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         animation_url: audioCID,
         lyrics,
         artist,
-        genre: genres.join(", "),
+        genres: genres.join(", "),
         bpm,
         edition: editionSize,
         price_usd: priceUsd,
@@ -146,7 +146,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         title,
         description,
         artist,
-        genres: genres.join(", "),
+        genre: genres.join(", "),
         bpm,
         lyrics,
         editionSize,

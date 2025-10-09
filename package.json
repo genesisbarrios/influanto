@@ -50,6 +50,7 @@
     "next-sitemap": "^4.2.3",
     "nextjs-toploader": "^1.6.11",
     "nodemailer": "^6.9.13",
+    "pinata-web3": "^0.5.4",
     "qr-code-styling": "1.6.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
