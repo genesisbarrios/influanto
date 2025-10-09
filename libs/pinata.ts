@@ -84,17 +84,17 @@ export const getFileFromPinata = (ipfsHash: string): string => {
 };
 
 // Pin existing file by CID
-export const pinByCID = async (cid: string, name?: string): Promise<void> => {
-  try {
-    await pinata.pin.cid(cid, {
-      ...(name && { metadata: { name } })
-    });
-    console.log(`Successfully pinned CID: ${cid}`);
-  } catch (error) {
-    console.error('Error pinning CID:', error);
-    throw new Error(`Failed to pin CID: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-};
+// export const pinByCID = async (cid: string, name?: string): Promise<void> => {
+//   try {
+//     await pinata.pinByHash(cid, {
+//       ...(name && { metadata: { name } })
+//     });
+//     console.log(`Successfully pinned CID: ${cid}`);
+//   } catch (error) {
+//     console.error('Error pinning CID:', error);
+//     throw new Error(`Failed to pin CID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+//   }
+//};
 
 // List pinned files
 export const listPinnedFiles = async (options?: {
@@ -103,11 +103,7 @@ export const listPinnedFiles = async (options?: {
   metadata?: Record<string, string>;
 }) => {
   try {
-    const files = await pinata.listFiles({
-      pageLimit: options?.limit || 10,
-      pageOffset: options?.offset || 0,
-      ...(options?.metadata && { metadata: options.metadata })
-    });
+    const files = await pinata.listFiles();
     
     return files;
   } catch (error) {
