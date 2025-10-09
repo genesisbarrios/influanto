@@ -119,8 +119,8 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
 
     try {
       // Upload files to Storacha
-      const audioCID = await uploadToStoacha(audioFile!);
-      const imageCID = imageFile ? await uploadToStoacha(imageFile) : undefined;
+      const audioCID = await uploadToStoracha(audioFile!);
+      const imageCID = imageFile ? await uploadToStoracha(imageFile) : undefined;
 
       // Convert USD to DOT
       const priceDot = priceUsd / dotUsdPrice;
