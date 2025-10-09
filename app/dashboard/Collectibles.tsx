@@ -249,7 +249,7 @@ const CollectiblesScreen: React.FC = () => {
 
             <div className="mb-4">
               <p className="text-gray-600 text-sm">
-                To connect and manage your collectibles, you'll need to install a Polkadot-compatible wallet. 
+                To connect and manage your collectibles, you&apos;ll need to install a Polkadot-compatible wallet. 
                 Choose one of the recommended wallets below:
               </p>
             </div>
@@ -299,7 +299,7 @@ const CollectiblesScreen: React.FC = () => {
                   <ol className="list-decimal list-inside space-y-1 text-xs">
                     <li>Refresh this page</li>
                     <li>Create or import your wallet account</li>
-                    <li>Click "Connect Wallet" again</li>
+                    <li>Click &quot;Connect Wallet&quot; again</li>
                   </ol>
                 </div>
               </div>
@@ -314,7 +314,7 @@ const CollectiblesScreen: React.FC = () => {
                 }}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
-                I've Installed a Wallet
+                I&apos;ve Installed a Wallet
               </button>
             </div>
           </div>
@@ -429,7 +429,7 @@ const CollectiblesScreen: React.FC = () => {
               <h2 className="text-lg font-bold text-gray-800">Unlink Wallet</h2>
             </div>
             <p className="mb-6 text-gray-600">
-              Are you sure you want to unlink your wallet? This will remove access to your collectibles and you'll need to reconnect to view them again.
+              Are you sure you want to unlink your wallet? This will remove access to your collectibles and you&apos;ll need to reconnect to view them again.
             </p>
             <div className="flex justify-around gap-3">
               <button
