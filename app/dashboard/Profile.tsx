@@ -52,7 +52,6 @@ const Profile =  () => {
   const [pandora, setPandora] = useState("");
   const [youtubeMusic, setYouTubeMusic] = useState("");
   const [bandcamp, setBandcamp] = useState("");
-  const [soundxyz, setSoundxyz] = useState("");
   const [displayEmail, setDisplayEmail] = useState(Boolean);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -535,19 +534,6 @@ const handleSoundcloudChange = (e: any) => {
   }
 };
 
-const handleSoundChange = (e: any) => {
-  const newValue = e.target.value;
-  // Always update the state
-  setSoundxyz(newValue);
-  
-  // Validate only if there's a value
-  if (newValue && !validateSocialHandle(newValue, "Sound.xyz")) {
-    // Error already set in validateSocialHandle function
-  } else {
-    setAlertt("");
-  }
-};
-
 const handleTidalChange = (e: any) => {
   const newValue = e.target.value;
   // Always update the state
@@ -658,7 +644,6 @@ const handleYouTubeMusicChange = (e: any) => {
       setPandora(data.pandora);
       setYouTubeMusic(data.youtubeMusic);
       setBandcamp(data.bandcamp);
-      setSoundxyz(data.soundxyz);
       setUser(data);
   
     } catch (e) {
@@ -798,8 +783,6 @@ const handleYouTubeMusicChange = (e: any) => {
       if (pandora != null && pandora != "") formData.append("pandora", pandora);
       if (youtubeMusic != null && youtubeMusic != "") formData.append("youtubeMusic", youtubeMusic);
       if (bandcamp != null && bandcamp != "") formData.append("bandcamp", bandcamp);
-      if (soundxyz != null && soundxyz != "") formData.append("soundxyz", soundxyz);
-
   
       // Only append the image if it exists
       if (formImage) {
@@ -901,8 +884,7 @@ const handleYouTubeMusicChange = (e: any) => {
             {user.deezer && <a href={"https://deezer.com/" + user.deezer } target="_blank" style={{marginRight:"10px", color:"purple"}}><FontAwesomeIcon icon={faDeezer} /></a>}
             {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{marginRight:"10px", color:"darkblue", display:"inline-block"}}><img src="/pandora.png" width={16}/></a>}
             {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
-            {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
-            
+           
             <br></br>
             {alertMsg && <div className="alert mt-10 w-1/2 m-auto">{alertMsg}</div>}
             
@@ -1288,15 +1270,6 @@ const handleYouTubeMusicChange = (e: any) => {
               placeholder="Artist ID"
               value={deezer || ""}
               onChange={(e) => handleDeezerChange(e)} 
-            />
-            <br />
-            <label>Sound.xyz</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="handle"
-              value={soundxyz || ""}
-              onChange={(e) => handleSoundChange(e)} 
             />
             <br />
           </div>

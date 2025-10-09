@@ -8,6 +8,7 @@ import LinkInBio from './LinkInBio';
 import QRCodeGenerator from './QRCodeGenerator';
 import CuratorSearch from './CuratorSearch';
 import Community from './Community';
+import Collectibles from './Collectibles';
 import ReleasePage from './ReleasePage';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/next-auth";
@@ -23,7 +24,8 @@ export default function Dashboard() {
     'release-page': <ReleasePage />,
     'qr-code-generator': <QRCodeGenerator />,
     'curator-search': <CuratorSearch />,
-    'community': <Community />
+    'community': <Community />,
+    'collectibles': <Collectibles/>
   };
 
   return (
@@ -48,6 +50,9 @@ export default function Dashboard() {
           </li>
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('community')}>Community</button>
+          </li>
+            <li>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('collectibles')}>Collectibles</button>
           </li>
         </ul>
       </aside>

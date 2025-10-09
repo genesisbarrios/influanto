@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema(
     location: {
       type: String,
     },
+    walletAddress:{
+      type: String,
+      default: null
+    },
     instagram: {
       type: String,
       lowercase: true,
