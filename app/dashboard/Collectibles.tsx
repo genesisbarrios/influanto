@@ -26,7 +26,7 @@ interface UserProfile {
   walletAddress?: string;
 }
 
-const CollectiblesScreen: React.FC = () => {
+const Collectibles: React.FC = () => {
   const [wallet, setWallet] = useState<string | null>(null);
   const [nfts, setNFTs] = useState<NFT[]>([]);
   const [isModalOpen, setModalOpen] = useState(false);
@@ -524,4 +524,4 @@ const CollectiblesScreen: React.FC = () => {
   );
 };
 
-export default CollectiblesScreen;
+export default Collectibles;
