@@ -49,10 +49,10 @@ export default function Dashboard() {
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('curator-search')}>Curator Search</button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('community')}>Community</button>
-          </li>
-            <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('collectibles')}>Collectibles</button>
+          </li>
+          <li>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('community')}>Community</button>
           </li>
         </ul>
       </aside>

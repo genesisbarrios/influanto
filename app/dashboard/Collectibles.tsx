@@ -515,6 +515,7 @@ const Collectibles: React.FC = () => {
             {
               id: Date.now().toString(),
               ...newNFT,
+              audio: newNFT.audio ?? "",
               editionSize: typeof newNFT.editionSize === "number" ? newNFT.editionSize : 1,
             },
           ])
