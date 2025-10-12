@@ -266,13 +266,42 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         }
       });
 
-      if (!response.data.success) {
-        throw new Error(response.data.error || 'Album upload failed');
+      console.log('Full response object:', response); // Add this
+      console.log('Response status:', response.status); // Add this
+      console.log('Response data:', response.data); // Add this
+      console.log('Response data type:', typeof response.data); // Add this
+
+      // Check if response.data is already the data we want
+      const responseData = response.data;
+      
+      // Try different response structures
+      if (responseData && responseData.success) {
+        console.log('Using responseData.data:', responseData.data);
+        return responseData.data;
+      } else if (responseData && responseData.data) {
+        console.log('Using responseData.data directly:', responseData.data);
+        return responseData.data;
+      } else if (responseData && responseData.albumCID) {
+        console.log('Using responseData directly (no success field):', responseData);
+        return responseData;
+      } else {
+        console.error('Unexpected response structure:', responseData);
+        throw new Error('Unexpected response structure from server');
       }
 
-      return response.data.data;
     } catch (error) {
       console.error('Error uploading album:', error);
+      
+      // Enhanced error logging
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+      }
+      if (error.response) {
+        console.error('Error response:', error.response);
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
+      
       throw error;
     }
   };
@@ -321,7 +350,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
 
         setUploadProgress('Single track created successfully!');
         onCreate(nftData);
-      } else {
+      } else if (type === 'album') {
         // Handle album upload
         const albumData = await uploadAlbumBundle();
 
@@ -333,7 +362,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
           editionSize: albumData.editionSize,
           price: albumData.price,
           releaseDate: albumData.releaseDate,
-          metadataCID: albumData.albumCID,
+          metadataCID: albumData.albumCID, // Make sure this matches backend response
           albumCID: albumData.albumCID,
           type: 'album',
           trackCount: albumData.trackCount,
@@ -382,7 +411,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
               <div className="flex-1">
                 <div className="text-sm font-medium text-blue-800">{uploadProgress}</div>
                 <div className="text-xs text-blue-600 mt-1">
-                  Please don't close this window while uploading...
+                  Please don&apos;t close this window while uploading...
                 </div>
               </div>
             </div>
@@ -415,7 +444,8 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
             </button>
             <button
               onClick={() => setType('album')}
-              disabled={uploading}
+              // disabled={uploading}
+              disabled
               className={`px-6 py-3 rounded-lg font-medium transition ${
                 type === 'album' 
                   ? 'bg-blue-600 text-white' 

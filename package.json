@@ -20,6 +20,7 @@
     "@mdx-js/loader": "^2.3.0",
     "@mdx-js/react": "^2.3.0",
     "@next/mdx": "^13.5.6",
+    "@polkadot/api-contract": "^16.4.8",
     "@polkadot/extension-dapp": "^0.62.2",
     "@storacha/client": "^1.8.2",
     "@types/formidable": "^3.4.5",

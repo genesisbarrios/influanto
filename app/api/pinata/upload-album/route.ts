@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PinataSDK } from "pinata-web3";
+import connectMongo from '@/libs/mongoose';
+import { Collectible } from '@/models/Collectible';
 
 const pinata = new PinataSDK({
   pinataJwt: process.env.PINATA_JWT!,
@@ -72,12 +74,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`Album: ${albumMetadata.title}, Tracks: ${tracks.length}`);
-
-    // Create sanitized filename prefix
-    const sanitizeFileName = (str: string) => str.replace(/[^a-zA-Z0-9]/g, '_');
-    const filePrefix = `${sanitizeFileName(albumMetadata.userId)}_${sanitizeFileName(albumMetadata.title)}`;
+    // Create sanitized filename with userId and title
+    const sanitizeFileName = (str: string) => str.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+    const albumTitle = sanitizeFileName(albumMetadata.title);
+    const userIdShort = albumMetadata.userId.slice(-8); // Use last 8 chars of userId for shorter names
+    const filePrefix = `${userIdShort}_${albumTitle}`;
     const groupName = `${filePrefix}_album_bundle`;
+
+    console.log(`Album: ${albumMetadata.title}, Tracks: ${tracks.length}`);
+    console.log('File prefix:', filePrefix);
 
     try {
       // Step 1: Create a group for this album
@@ -88,119 +93,127 @@ export async function POST(request: NextRequest) {
       
       console.log('Group created:', group.id);
 
-      // Step 2: Upload album cover if provided
+      // Step 2: Upload album cover with userId_title_album_cover naming
       let albumCoverUrl = '';
+      let albumCoverHash = '';
       if (albumCover) {
         console.log('Uploading album cover...');
+
         const albumCoverUpload = await pinata.upload.file(albumCover, {
           metadata: {
-            name: `${filePrefix}_album_cover`,
+            name: `${filePrefix}_album_cover`, // userId_title_album_cover
             keyValues: {
               userId: albumMetadata.userId,
-              albumTitle: albumMetadata.title,
+              collectibleTitle: albumMetadata.title,
               contentType: 'album',
               fileType: 'cover_image',
-              groupId: group.id
+              groupId: group.id,
+              originalFileName: albumCover.name,
+              customFileName: `${filePrefix}_album_cover.${albumCover.name.split('.').pop() || 'jpg'}`
             }
           },
           groupId: group.id
         });
         
-        albumCoverUrl = `${process.env.PINATA_GATEWAY}/ipfs/${albumCoverUpload.IpfsHash}`;
+        albumCoverUrl = `https://silver-legal-python-898.mypinata.cloud/files/${albumCoverUpload.IpfsHash}`;
+        albumCoverHash = albumCoverUpload.IpfsHash;
         console.log('Album cover uploaded:', albumCoverUrl);
       }
 
-      // Step 3: Upload all tracks
-      const processedTracks: Array<{
-        audioHash: string;
+      // Step 3: Upload all tracks with userId_title_trackNumber_trackTitle naming
+      const trackData: Array<{
+        title: string;
+        artist: string;
+        bpm?: number;
+        lyrics?: string;
+        trackNumber: number;
         audioUrl: string;
-        imageHash?: string;
-        imageUrl?: string;
-        metadataHash: string;
-        metadataUrl: string;
-      }> = [];
-      const trackUploads: Array<{
         audioHash: string;
-        audioUrl: string;
-        imageHash?: string;
         imageUrl?: string;
-        metadataHash: string;
+        imageHash?: string;
         metadataUrl: string;
+        metadataHash: string;
       }> = [];
 
       for (let i = 0; i < tracks.length; i++) {
         const track = tracks[i];
         const trackNumber = track.metadata.trackNumber || (i + 1);
+        const trackTitle = sanitizeFileName(track.metadata.title || `Track_${trackNumber}`);
         
         console.log(`Uploading track ${trackNumber}: ${track.metadata.title}`);
 
-        // Upload track audio
+        // Upload track audio with userId_title_trackNumber_trackTitle naming
         const audioUpload = await pinata.upload.file(track.audioFile, {
           metadata: {
-            name: `${filePrefix}_track${trackNumber}_audio`,
+            name: `${filePrefix}_${String(trackNumber).padStart(2, '0')}_${trackTitle}_audio`,
             keyValues: {
               userId: albumMetadata.userId,
-              albumTitle: albumMetadata.title,
+              collectibleTitle: albumMetadata.title,
               trackTitle: track.metadata.title,
               trackNumber: trackNumber.toString(),
               contentType: 'album',
               fileType: 'track_audio',
-              groupId: group.id
+              groupId: group.id,
+              originalFileName: track.audioFile.name,
+              customFileName: `${filePrefix}_${String(trackNumber).padStart(2, '0')}_${trackTitle}_audio.${track.audioFile.name.split('.').pop() || 'mp3'}`
             }
           },
           groupId: group.id
         });
 
-        const audioUrl = `${process.env.PINATA_GATEWAY}/ipfs/${audioUpload.IpfsHash}`;
+        const audioUrl = `https://silver-legal-python-898.mypinata.cloud/files/${audioUpload.IpfsHash}`;
         console.log(`Track ${trackNumber} audio uploaded:`, audioUrl);
 
-        // Upload track image if provided
+        // Upload track image with userId_title_trackNumber_trackTitle_image naming if provided
         let trackImageUrl = '';
-        let trackImageUpload = null;
+        let trackImageHash = '';
         if (track.imageFile) {
-          trackImageUpload = await pinata.upload.file(track.imageFile, {
+          const trackImageUpload = await pinata.upload.file(track.imageFile, {
             metadata: {
-              name: `${filePrefix}_track${trackNumber}_image`,
+              name: `${filePrefix}_${String(trackNumber).padStart(2, '0')}_${trackTitle}_image`,
               keyValues: {
                 userId: albumMetadata.userId,
-                albumTitle: albumMetadata.title,
+                collectibleTitle: albumMetadata.title,
                 trackTitle: track.metadata.title,
                 trackNumber: trackNumber.toString(),
                 contentType: 'album',
                 fileType: 'track_image',
-                groupId: group.id
+                groupId: group.id,
+                originalFileName: track.imageFile.name,
+                customFileName: `${filePrefix}_${String(trackNumber).padStart(2, '0')}_${trackTitle}_image.${track.imageFile.name.split('.').pop() || 'jpg'}`
               }
             },
             groupId: group.id
           });
           
           trackImageUrl = `${process.env.PINATA_GATEWAY}/ipfs/${trackImageUpload.IpfsHash}`;
+          trackImageHash = trackImageUpload.IpfsHash;
           console.log(`Track ${trackNumber} image uploaded:`, trackImageUrl);
         }
 
-        // Create track metadata
+        // Create track metadata object
         const trackMetadata = {
           name: track.metadata.title,
           track_number: trackNumber,
           artist: track.metadata.artist || albumMetadata.artist,
-          bpm: track.metadata.bpm,
+          bpm: track.metadata.bmp,
           lyrics: track.metadata.lyrics || '',
           duration: 0,
           audio_url: audioUrl,
           audio_ipfs: audioUpload.IpfsHash,
           ...(trackImageUrl && { 
             image_url: trackImageUrl,
-            image_ipfs: trackImageUpload?.IpfsHash 
+            image_ipfs: trackImageHash 
           })
         };
 
-        // Upload track metadata
+        // Upload track metadata with userId_title_trackNumber_trackTitle_metadata naming
         const trackMetadataUpload = await pinata.upload.json(trackMetadata, {
           metadata: {
-            name: `${filePrefix}_track${trackNumber}_metadata`,
+            name: `${filePrefix}_${String(trackNumber).padStart(2, '0')}_${trackTitle}_metadata`,
             keyValues: {
               userId: albumMetadata.userId,
-              albumTitle: albumMetadata.title,
+              collectibleTitle: albumMetadata.title,
               trackTitle: track.metadata.title,
               trackNumber: trackNumber.toString(),
               contentType: 'album',
@@ -214,35 +227,30 @@ export async function POST(request: NextRequest) {
         const trackMetadataUrl = `${process.env.PINATA_GATEWAY}/ipfs/${trackMetadataUpload.IpfsHash}`;
         console.log(`Track ${trackNumber} metadata uploaded:`, trackMetadataUrl);
 
-        processedTracks.push({
-          audioHash: audioUpload.IpfsHash,
+        // Store track data
+        trackData.push({
+          title: track.metadata.title,
+          artist: track.metadata.artist || albumMetadata.artist,
+          bpm: track.metadata.bpm,
+          lyrics: track.metadata.lyrics,
+          trackNumber: trackNumber,
           audioUrl: audioUrl,
-          ...(trackImageUpload && { 
-            imageHash: trackImageUpload.IpfsHash,
-            imageUrl: trackImageUrl 
-          }),
-          metadataHash: trackMetadataUpload.IpfsHash,
-          metadataUrl: trackMetadataUrl
-        });
-
-        trackUploads.push({
           audioHash: audioUpload.IpfsHash,
-          audioUrl: audioUrl,
-          ...(trackImageUpload && { 
-            imageHash: trackImageUpload.IpfsHash,
-            imageUrl: trackImageUrl 
+          ...(trackImageUrl && { 
+            imageUrl: trackImageUrl,
+            imageHash: trackImageHash 
           }),
-          metadataHash: trackMetadataUpload.IpfsHash,
-          metadataUrl: trackMetadataUrl
+          metadataUrl: trackMetadataUrl,
+          metadataHash: trackMetadataUpload.IpfsHash
         });
       }
 
-      // Step 4: Create and upload complete album metadata
+      // Step 4: Create and upload complete album metadata with userId_title_album_metadata naming
       const completeAlbumMetadata = {
         name: albumMetadata.title,
         description: albumMetadata.description || '',
         image: albumCoverUrl,
-        animation_url: processedTracks[0]?.audioUrl || '',
+        animation_url: trackData[0]?.audioUrl || '',
         external_url: '',
         attributes: [
           { trait_type: "Type", value: "Album" },
@@ -265,16 +273,30 @@ export async function POST(request: NextRequest) {
         creator_id: albumMetadata.userId,
         group_id: group.id,
         ...(albumCoverUrl && { album_cover_url: albumCoverUrl }),
-        tracks: processedTracks
+        tracks: trackData.map(track => ({
+          name: track.title,
+          track_number: track.trackNumber,
+          artist: track.artist,
+          bmp: track.bpm,
+          lyrics: track.lyrics,
+          audio_url: track.audioUrl,
+          audio_ipfs: track.audioHash,
+          ...(track.imageUrl && { 
+            image_url: track.imageUrl,
+            image_ipfs: track.imageHash 
+          }),
+          metadata_url: track.metadataUrl,
+          metadata_ipfs: track.metadataHash
+        }))
       };
 
       console.log('Uploading album metadata...');
       const albumMetadataUpload = await pinata.upload.json(completeAlbumMetadata, {
         metadata: {
-          name: `${filePrefix}_album_metadata`,
+          name: `${filePrefix}_album_metadata`, // userId_title_album_metadata
           keyValues: {
             userId: albumMetadata.userId,
-            albumTitle: albumMetadata.title,
+            collectibleTitle: albumMetadata.title,
             contentType: 'album',
             fileType: 'album_metadata',
             groupId: group.id
@@ -286,10 +308,60 @@ export async function POST(request: NextRequest) {
       const albumMetadataUrl = `${process.env.PINATA_GATEWAY}/ipfs/${albumMetadataUpload.IpfsHash}`;
       console.log('Album metadata uploaded:', albumMetadataUrl);
 
+      // Step 5: Save collectible directly to database
+      console.log('Saving album collectible to database...');
+      try {
+        await connectMongo();
+
+        const collectible = new Collectible({
+          userId: albumMetadata.userId,
+          title: albumMetadata.title,
+          description: albumMetadata.description,
+          artist: albumMetadata.artist,
+          type: 'album',
+          
+          // IPFS Data
+          metadataUri: albumMetadataUrl,
+          metadataHash: albumMetadataUpload.IpfsHash,
+          groupId: group.id,
+          groupName: groupName,
+          audioUrl: trackData[0]?.audioUrl || '',
+          audioHash: trackData[0]?.audioHash || '',
+          ...(albumCoverUrl && { 
+            imageUrl: albumCoverUrl,
+            imageHash: albumCoverHash 
+          }),
+          
+          // Metadata
+          genres: albumMetadata.genres || [],
+          releaseDate: albumMetadata.releaseDate ? new Date(albumMetadata.releaseDate) : null,
+          
+          // Album specific
+          trackCount: tracks.length,
+          albumType: tracks.length <= 7 ? 'EP' : 'LP',
+          
+          // Commercial
+          priceUsd: albumMetadata.priceUsd || 0,
+          editionSize: albumMetadata.editionSize || 1,
+          
+          // Status
+          status: 'uploaded',
+          network: 'polkadot',
+          
+          // Tracks data for database
+          tracks: trackData
+        });
+
+        const savedCollectible = await collectible.save();
+        console.log('Album collectible saved to database:', savedCollectible._id);
+      } catch (dbError) {
+        console.error('Database save failed:', dbError);
+        // Continue anyway - IPFS upload succeeded
+      }
+
       // Prepare response data
       const result = {
         albumCID: albumMetadataUrl,
-        metadata: completeAlbumMetadata,
         trackCount: tracks.length,
         title: albumMetadata.title,
         description: albumMetadata.description,
@@ -301,22 +373,11 @@ export async function POST(request: NextRequest) {
         groupId: group.id,
         groupName: groupName,
         albumMetadataHash: albumMetadataUpload.IpfsHash,
-        ...(albumCoverUrl && { albumCoverUrl }),
-        tracks: tracks.map((track, index) => ({
-          title: track.metadata.title,
-          artist: track.metadata.artist || albumMetadata.artist,
-          bpm: track.metadata.bpm,
-          lyrics: track.metadata.lyrics,
-          trackNumber: track.metadata.trackNumber || (index + 1),
-          audioUrl: trackUploads[index].audioUrl,
-          audioHash: trackUploads[index].audioHash,
-          ...(trackUploads[index].imageUrl && { 
-            imageUrl: trackUploads[index].imageUrl,
-            imageHash: trackUploads[index].imageHash
-          }),
-          metadataUrl: trackUploads[index].metadataUrl,
-          metadataHash: trackUploads[index].metadataHash
-        }))
+        ...(albumCoverUrl && { 
+          albumCoverUrl,
+          albumCoverHash 
+        }),
+        tracks: trackData
       };
 
       console.log('Album upload completed successfully');

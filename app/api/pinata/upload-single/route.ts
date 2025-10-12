@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PinataSDK } from "pinata-web3";
+import connectMongo from '@/libs/mongoose';
+import { Collectible } from '@/models/Collectible';
 
 const pinata = new PinataSDK({
   pinataJwt: process.env.PINATA_JWT!,
@@ -53,16 +55,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create sanitized filename with userId and title
+    const sanitizeFileName = (str: string) => str.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+    const songTitle = sanitizeFileName(metadata.title);
+    const userIdShort = metadata.userId.slice(-8); // Use last 8 chars of userId for shorter names
+    const filePrefix = `${userIdShort}_${songTitle}`;
+    const groupName = `${filePrefix}_single_bundle`;
+
+    console.log('File prefix:', filePrefix);
     console.log('Audio file:', audioFile.name, 'Size:', audioFile.size);
     if (imageFile) {
       console.log('Image file:', imageFile.name, 'Size:', imageFile.size);
     }
-    console.log('Metadata:', JSON.stringify(metadata, null, 2));
-
-    // Create sanitized filename prefix
-    const sanitizeFileName = (str: string) => str.replace(/[^a-zA-Z0-9]/g, '_');
-    const filePrefix = `${sanitizeFileName(metadata.userId)}_${sanitizeFileName(metadata.title)}`;
-    const groupName = `${filePrefix}_single_bundle`;
 
     try {
       // Step 1: Create a group for this single track
@@ -73,39 +77,45 @@ export async function POST(request: NextRequest) {
       
       console.log('Group created:', group.id);
 
-      // Step 2: Upload audio file to the group
+      // Step 2: Upload audio file with userId_title_audio naming
       console.log('Uploading audio file...');
+      
       const audioUpload = await pinata.upload.file(audioFile, {
         metadata: {
-          name: `${filePrefix}_audio`,
+          name: `${filePrefix}_audio`, // userId_title_audio
           keyValues: {
             userId: metadata.userId,
-            nftTitle: metadata.title,
+            collectibleTitle: metadata.title,
             contentType: 'single',
             fileType: 'audio',
-            groupId: group.id
+            groupId: group.id,
+            originalFileName: audioFile.name,
+            customFileName: `${filePrefix}_audio.${audioFile.name.split('.').pop() || 'mp3'}`
           }
         },
         groupId: group.id
       });
-      
-      const audioUrl = `${process.env.PINATA_GATEWAY}/ipfs/${audioUpload.IpfsHash}`;
+    
+      const audioUrl = `https://silver-legal-python-898.mypinata.cloud/files/${audioUpload.IpfsHash}`;
       console.log('Audio uploaded:', audioUrl);
 
-      // Step 3: Upload image file if provided
+      // Step 3: Upload image file with userId_title_image naming if provided
       let imageUrl = '';
       let imageUpload: any = null;
       if (imageFile) {
         console.log('Uploading image file...');
+
         imageUpload = await pinata.upload.file(imageFile, {
           metadata: {
-            name: `${filePrefix}_image`,
+            name: `${filePrefix}_image`, // userId_title_image
             keyValues: {
               userId: metadata.userId,
-              nftTitle: metadata.title,
+              collectibleTitle: metadata.title,
               contentType: 'single',
               fileType: 'image',
-              groupId: group.id
+              groupId: group.id,
+              originalFileName: imageFile.name,
+              customFileName: `${filePrefix}_image.${imageFile.name.split('.').pop() || 'jpg'}`
             }
           },
           groupId: group.id
@@ -115,22 +125,30 @@ export async function POST(request: NextRequest) {
         console.log('Image uploaded:', imageUrl);
       }
 
-      // Step 4: Create and upload NFT metadata
-      const nftMetadata = {
+      // Step 4: Create and upload collectible metadata
+      const attributes = [
+        { trait_type: "Type", value: "Single" },
+        { trait_type: "Artist", value: metadata.artist || 'Unknown' },
+        { trait_type: "Genre", value: metadata.genres?.join(", ") || 'Uncategorized' },
+        { trait_type: "Edition Size", value: metadata.editionSize || 1 },
+        { trait_type: "Price (USD)", value: metadata.priceUsd || 0 }
+      ];
+
+      // Add optional attributes
+      if (metadata.bpm) {
+        attributes.push({ trait_type: "BPM", value: metadata.bpm });
+      }
+      if (metadata.releaseDate) {
+        attributes.push({ trait_type: "Release Date", value: metadata.releaseDate });
+      }
+
+      const collectibleMetadata = {
         name: metadata.title,
         description: metadata.description || '',
         image: imageUrl,
         animation_url: audioUrl,
         external_url: '',
-        attributes: [
-          { trait_type: "Type", value: "Single" },
-          { trait_type: "Artist", value: metadata.artist || 'Unknown' },
-          { trait_type: "Genre", value: metadata.genres?.join(", ") || 'Uncategorized' },
-          ...(metadata.bpm && [{ trait_type: "BPM", value: metadata.bpm }]),
-          { trait_type: "Edition Size", value: metadata.editionSize || 1 },
-          { trait_type: "Price (USD)", value: metadata.priceUsd || 0 },
-          ...(metadata.releaseDate && [{ trait_type: "Release Date", value: metadata.releaseDate }])
-        ].filter(Boolean),
+        attributes: attributes,
         lyrics: metadata.lyrics || '',
         artist: metadata.artist || '',
         genres: metadata.genres?.join(", ") || '',
@@ -148,12 +166,12 @@ export async function POST(request: NextRequest) {
       };
 
       console.log('Uploading metadata...');
-      const metadataUpload = await pinata.upload.json(nftMetadata, {
+      const metadataUpload = await pinata.upload.json(collectibleMetadata, {
         metadata: {
-          name: `${filePrefix}_metadata`,
+          name: `${filePrefix}_metadata`, // userId_title_metadata
           keyValues: {
             userId: metadata.userId,
-            nftTitle: metadata.title,
+            collectibleTitle: metadata.title,
             contentType: 'single',
             fileType: 'metadata',
             groupId: group.id
@@ -165,12 +183,58 @@ export async function POST(request: NextRequest) {
       const metadataUrl = `${process.env.PINATA_GATEWAY}/ipfs/${metadataUpload.IpfsHash}`;
       console.log('Metadata uploaded:', metadataUrl);
 
+      // Step 5: Save collectible directly to database
+      console.log('Saving collectible to database...');
+      try {
+        await connectMongo();
+
+        const collectible = new Collectible({
+          userId: metadata.userId,
+          title: metadata.title,
+          description: metadata.description,
+          artist: metadata.artist,
+          type: 'single',
+          
+          // IPFS Data
+          metadataUri: metadataUrl,
+          metadataHash: metadataUpload.IpfsHash,
+          groupId: group.id,
+          groupName: groupName,
+          audioUrl: audioUrl,
+          audioHash: audioUpload.IpfsHash,
+          ...(imageUrl && { 
+            imageUrl: imageUrl,
+            imageHash: imageUpload.IpfsHash 
+          }),
+          
+          // Metadata
+          genres: metadata.genres || [],
+          bpm: metadata.bmp,
+          lyrics: metadata.lyrics,
+          releaseDate: metadata.releaseDate ? new Date(metadata.releaseDate) : null,
+          
+          // Commercial
+          priceUsd: metadata.priceUsd || 0,
+          editionSize: metadata.editionSize || 1,
+          
+          // Status
+          status: 'uploaded',
+          network: 'polkadot'
+        });
+
+        const savedCollectible = await collectible.save();
+        console.log('Single collectible saved to database:', savedCollectible._id);
+      } catch (dbError) {
+        console.error('Database save failed:', dbError);
+        // Continue anyway - IPFS upload succeeded
+      }
+
       const result = {
         title: metadata.title,
         description: metadata.description,
         artist: metadata.artist,
         genre: metadata.genres?.join(", ") || '',
-        bpm: metadata.bpm,
+        bmp: metadata.bmp,
         lyrics: metadata.lyrics,
         editionSize: metadata.editionSize || 1,
         price: metadata.priceUsd || 0,
@@ -203,18 +267,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error uploading single track:', error);
     
-    // Log more details about the error
-    if (error instanceof Error) {
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-    }
-    
     return NextResponse.json(
       { 
         error: 'Failed to upload track', 
-        details: error instanceof Error ? error.message : 'Unknown error',
-        type: error instanceof Error ? error.name : 'Unknown'
+        details: error instanceof Error ? error.message : 'Unknown error'
       }, 
       { status: 500 }
     );
