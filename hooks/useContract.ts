@@ -119,6 +119,7 @@ export const useContract = () => {
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
   const [account, setAccount] = useState<string>('');
+  const [wallet, setWallet] = useState<string>('');
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [networkId, setNetworkId] = useState<number | null>(null);
@@ -149,6 +150,8 @@ export const useContract = () => {
 
       const signer = await web3Provider.getSigner();
       const userAccount = await signer.getAddress();
+      const wallet = await signer.getAddress();
+      setWallet(wallet);
       
       console.log('✅ Wallet connected:', {
         account: userAccount,
@@ -951,6 +954,7 @@ Error: ${gasError.message}`);
     provider,
     signer,
     account,
+    wallet,
     isConnected,
     isLoading,
     networkId,

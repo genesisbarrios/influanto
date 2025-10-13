@@ -1098,9 +1098,9 @@ export default function TestContract() {
                 <div className="flex-1">
                   <h4 className="font-bold text-orange-800 mb-2">Switch to Talisman EVM Mode</h4>
                   <p className="text-sm text-orange-700 mb-3">
-                    You deployed your contract with <strong>Talisman EVM</strong>, but you're currently connected to <strong>Talisman Substrate</strong>. 
+                    You deployed your contract with <strong>Talisman EVM</strong>, but you&apos;re currently connected to <strong>Talisman Substrate</strong>. 
                     To test your deployed contract at <code className="bg-white px-1 rounded font-mono">{CONTRACT_ADDRESS_EVM}</code>, 
-                    you need to switch to Talisman's EVM mode.
+                    you need to switch to Talisman&apos;s EVM mode.
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                     <div className="p-3 bg-red-50 rounded border border-red-200">
@@ -1223,7 +1223,7 @@ export default function TestContract() {
             {wallet?.type === 'polkadot' && (
               <div className="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
                 <p className="text-sm text-orange-800">
-                  <strong>⚠️ Note:</strong> You're connected with a Polkadot wallet. Contract verification requires an EVM wallet like Talisman EVM.
+                  <strong>⚠️ Note:</strong> You&apos;re connected with a Polkadot wallet. Contract verification requires an EVM wallet like Talisman EVM.
                 </p>
               </div>
             )}
@@ -1405,7 +1405,7 @@ export default function TestContract() {
           <li>Get PAS test tokens from the <a href="https://faucet.polkadot.io/" target="_blank" className="underline">Polkadot Faucet</a></li>
           <li>Connect your wallet using the button above</li>
           <li>Configure your contract address in .env.local: <code>NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS=0xYourAddress</code></li>
-          <li><strong>⚠️ IMPORTANT:</strong> Use the "🔍 Verify Contract" button to check if your contract is deployed</li>
+          <li><strong>⚠️ IMPORTANT:</strong> Use the &quot;🔍 Verify Contract&quot; button to check if your contract is deployed</li>
           <li>Test functions - connect with Talisman EVM mode to test your deployed contract</li>
         </ol>
 

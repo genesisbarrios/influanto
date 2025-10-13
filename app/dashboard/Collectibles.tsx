@@ -32,7 +32,7 @@ interface UserProfile {
   name: string;
   email: string;
   walletAddress?: string;
-  Id?: string;
+  id?: string;
 }
 
 type WalletType = 'polkadot' | 'evm';
@@ -756,7 +756,7 @@ const Collectibles: React.FC = () => {
           collectibles.map((collectible) => (
             <a
               key={collectible._id}
-              href={`https://influanto.com/collectible/${userProfile?.Id || userProfile?.name}/${encodeURIComponent(collectible.title)}`}
+              href={`/collectible/${userProfile?.id || userProfile?.name}/${encodeURIComponent(collectible.title)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="border rounded-lg shadow hover:shadow-lg transition cursor-pointer overflow-hidden block"
