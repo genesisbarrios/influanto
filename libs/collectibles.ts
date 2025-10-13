@@ -1,13 +1,13 @@
 // Database utility functions
-import { NFT, Track, UserNFTStats } from '@/models/Collectible';
-import { connectToDatabase } from '@/libs/mongodb';
-
+// Update the import path for UserNFTStats if it's exported from another file
+import { Collectible, Track } from '@/models/Collectible';
+import connectMongo from "@/libs/mongoose";
 export class CollectibleService {
   
   // NFT Operations
   static async createNFT(nftData: any) {
-    await connectToDatabase();
-    const nft = new NFT(nftData);
+    await connectMongo();
+    const nft = new Collectible(nftData);
     await nft.save();
     
     // Update user stats
@@ -17,13 +17,13 @@ export class CollectibleService {
   }
   
   static async getUserNFTs(userId: string, status?: string) {
-    await connectToDatabase();
-    return NFT.findByUser(userId, status);
+    await connectMongo();
+    return Collectible.find({ userId, ...(status && { status }) });
   }
   
   static async getNFTWithTracks(nftId: string) {
-    await connectToDatabase();
-    const nft = await NFT.findById(nftId);
+    await connectMongo();
+    const nft = await Collectible.findById(nftId);
     if (nft?.type === 'album') {
       const tracks = await Track.find({ nftId }).sort({ trackNumber: 1 });
       return { ...nft.toObject(), tracks };
@@ -32,8 +32,8 @@ export class CollectibleService {
   }
   
   static async searchNFTs(searchTerm: string, filters?: any) {
-    await connectToDatabase();
-    let query = NFT.searchNFTs(searchTerm);
+    await connectMongo();
+    let query = Collectible.find({ $text: { $search: searchTerm } });
     
     if (filters) {
       if (filters.genre) query = query.where('genres').in([filters.genre]);
@@ -47,20 +47,20 @@ export class CollectibleService {
   
   // Track Operations
   static async createTracks(tracks: any[]) {
-    await connectToDatabase();
+    await connectMongo();
     return Track.insertMany(tracks);
   }
   
   static async getAlbumTracks(nftId: string) {
-    await connectToDatabase();
+    await connectMongo();
     return Track.find({ nftId }).sort({ trackNumber: 1 });
   }
   
   // User Stats Operations
   static async updateUserStats(userId: string) {
-    await connectToDatabase();
+    await connectMongo();
     
-    const nfts = await NFT.find({ userId });
+    const nfts = await Collectible.find({ userId });
     const totalTracks = await Track.countDocuments({ 
       nftId: { $in: nfts.filter(nft => nft.type === 'album').map(nft => nft._id) } 
     });
@@ -78,7 +78,7 @@ export class CollectibleService {
       nftIds: nfts.map(nft => nft._id)
     };
     
-    return UserNFTStats.findOneAndUpdate(
+    return Collectible.findOneAndUpdate(
       { userId },
       stats,
       { upsert: true, new: true }
@@ -86,7 +86,7 @@ export class CollectibleService {
   }
   
   static async getUserStats(userId: string) {
-    await connectToDatabase();
-    return UserNFTStats.findOne({ userId });
+    await connectMongo();
+    return Collectible.findOne({ userId });
   }
 }
