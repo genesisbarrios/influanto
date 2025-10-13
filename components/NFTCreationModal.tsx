@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faUpload, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useSession } from "next-auth/react";
 import apiClient from "@/libs/api";
+import { useContract } from '../hooks/useContract';
 
 interface Track {
   id: string;
@@ -54,6 +55,17 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
   onCreate,
 }) => {
   const { data: session } = useSession();
+  
+  const { 
+    contract,
+    account,
+    isConnected,
+    mintTrack,
+    buyTrack,
+    withdrawEarnings,
+    getTrackInfo,
+    getPendingEarnings
+  } = useContract();
   
   // Common fields
   const [type, setType] = useState<'single' | 'album'>('single');
@@ -266,10 +278,10 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         }
       });
 
-      console.log('Full response object:', response); // Add this
-      console.log('Response status:', response.status); // Add this
-      console.log('Response data:', response.data); // Add this
-      console.log('Response data type:', typeof response.data); // Add this
+      console.log('Full response object:', response);
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      console.log('Response data type:', typeof response.data);
 
       // Check if response.data is already the data we want
       const responseData = response.data;
@@ -331,11 +343,28 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         // Handle single track upload
         const singleData = await uploadSingleTrack();
 
+        // Mint on blockchain using the correct contract function
+        setUploadProgress('Minting NFT on blockchain...');
+        try {
+          const mintResult = await mintTrack(
+            singleData.metadataHash, // IPFS hash
+            priceUsd.toString(), // price in USD (will be converted to ETH/DEV)
+            editionSize || 1 // max editions
+          );
+
+          console.log('NFT minted on blockchain:', mintResult);
+          setUploadProgress('NFT successfully created and minted!');
+        } catch (mintError) {
+          console.error('Blockchain minting failed:', mintError);
+          setUploadProgress('IPFS upload successful, blockchain minting pending...');
+          // Continue with the flow even if minting fails
+        }
+
         const nftData: MusicNFT = {
           title: singleData.title,
           description: singleData.description,
           artist: singleData.artist,
-          genre: singleData.genre,
+          genre: singleData.genre || genres.join(', '),
           bpm: singleData.bpm,
           lyrics: singleData.lyrics,
           editionSize: singleData.editionSize,
@@ -348,29 +377,6 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
           userId
         };
 
-        setUploadProgress('Single track created successfully!');
-        onCreate(nftData);
-      } else if (type === 'album') {
-        // Handle album upload
-        const albumData = await uploadAlbumBundle();
-
-        const nftData: MusicNFT = {
-          title: albumData.title,
-          description: albumData.description,
-          artist: albumData.artist,
-          genre: albumData.genre,
-          editionSize: albumData.editionSize,
-          price: albumData.price,
-          releaseDate: albumData.releaseDate,
-          metadataCID: albumData.albumCID, // Make sure this matches backend response
-          albumCID: albumData.albumCID,
-          type: 'album',
-          trackCount: albumData.trackCount,
-          tracks: albumData.tracks,
-          userId
-        };
-
-        setUploadProgress('Album created successfully!');
         onCreate(nftData);
       }
 
@@ -403,6 +409,15 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
           </button>
         </div>
 
+        {/* Contract Connection Status */}
+        {!isConnected && (
+          <div className="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div className="text-sm text-yellow-800">
+              ⚠️ Wallet not connected. NFT will be uploaded to IPFS but won't be minted on blockchain until wallet is connected.
+            </div>
+          </div>
+        )}
+
         {/* Upload Progress */}
         {uploading && (
           <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -427,6 +442,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
           </div>
         )}
 
+        {/* Rest of your component remains the same... */}
         {/* Type Selector */}
         <div className="mb-6">
           <label className="block text-gray-700 mb-2 font-medium">Type</label>
@@ -444,7 +460,6 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
             </button>
             <button
               onClick={() => setType('album')}
-              // disabled={uploading}
               disabled
               className={`px-6 py-3 rounded-lg font-medium transition ${
                 type === 'album' 
@@ -452,7 +467,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Album
+              Album (Coming Soon)
             </button>
           </div>
         </div>
@@ -517,130 +532,6 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
                 </label>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Album Tracks */}
-        {type === 'album' && (
-          <div className="mb-6">
-            {/* Album Cover */}
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2 font-medium">Album Cover Image</label>
-              <div className="w-48 h-48 border-dashed border-2 border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition">
-                <FontAwesomeIcon icon={faUpload} className="text-gray-400 text-2xl mb-2" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setAlbumCoverImage(e.target.files ? e.target.files[0] : null)}
-                  className="hidden"
-                  id="album-cover-upload"
-                  disabled={uploading}
-                />
-                <label htmlFor="album-cover-upload" className={`cursor-pointer text-blue-600 font-semibold text-xs text-center ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                  {albumCoverImage ? (
-                    <div>
-                      <div className="text-green-600 font-medium text-xs">{albumCoverImage.name}</div>
-                    </div>
-                  ) : (
-                    "Click to upload album cover"
-                  )}
-                </label>
-              </div>
-            </div>
-
-            {/* Tracks */}
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Tracks</h3>
-              <button
-                onClick={addTrack}
-                disabled={uploading}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50"
-              >
-                <FontAwesomeIcon icon={faPlus} className="mr-2" />
-                Add Track
-              </button>
-            </div>
-
-            {tracks.map((track) => (
-              <div key={track.id} className="border rounded-lg p-4 mb-4 bg-gray-50">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-medium">Track {track.trackNumber}</h4>
-                  <button
-                    onClick={() => removeTrack(track.id)}
-                    disabled={uploading}
-                    className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Track Title <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder={`Track ${track.trackNumber} title`}
-                      value={track.title}
-                      onChange={(e) => updateTrack(track.id, 'title', e.target.value)}
-                      disabled={uploading}
-                      className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Audio File <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="file"
-                      accept=".wav,.mp3,.m4a"
-                      onChange={(e) => updateTrack(track.id, 'audioFile', e.target.files?.[0] || null)}
-                      disabled={uploading}
-                      className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Artist (optional)</label>
-                    <input
-                      type="text"
-                      placeholder="Track artist (if different)"
-                      value={track.artist || ""}
-                      onChange={(e) => updateTrack(track.id, 'artist', e.target.value)}
-                      disabled={uploading}
-                      className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">BPM</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 120"
-                      min="1"
-                      max="300"
-                      value={track.bpm || ""}
-                      onChange={(e) => updateTrack(track.id, 'bpm', Number(e.target.value))}
-                      disabled={uploading}
-                      className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Lyrics</label>
-                  <textarea
-                    placeholder="Enter track lyrics..."
-                    value={track.lyrics || ""}
-                    onChange={(e) => updateTrack(track.id, 'lyrics', e.target.value)}
-                    disabled={uploading}
-                    className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] disabled:bg-gray-100"
-                  />
-                </div>
-              </div>
-            ))}
           </div>
         )}
 

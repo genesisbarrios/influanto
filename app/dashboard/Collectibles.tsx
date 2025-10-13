@@ -1,10 +1,11 @@
-"use client"; // Add this at the top
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faMinus, faWallet, faExclamationTriangle, faTimes, faExternalLinkAlt, faLock } from "@fortawesome/free-solid-svg-icons";
 import { web3Accounts, web3Enable, web3FromSource } from "@polkadot/extension-dapp";
 import type { InjectedAccountWithMeta } from '@polkadot/extension-inject/types';
+import { ethers } from 'ethers';
 import NFTCreationModal from "../../components/NFTCreationModal";
 import apiClient from "@/libs/api";
 
@@ -33,8 +34,17 @@ interface UserProfile {
   walletAddress?: string;
 }
 
+type WalletType = 'polkadot' | 'evm';
+
+interface ConnectedWallet {
+  address: string;
+  type: WalletType;
+  name?: string;
+  source?: string;
+}
+
 const Collectibles: React.FC = () => {
-  const [wallet, setWallet] = useState<string | null>(null);
+  const [wallet, setWallet] = useState<ConnectedWallet | null>(null);
   const [collectibles, setCollectibles] = useState<Collectible[]>([]);
   const [isModalOpen, setModalOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -45,16 +55,18 @@ const Collectibles: React.FC = () => {
   const [showInstallDialog, setShowInstallDialog] = useState<boolean>(false);
   const [availableWallets, setAvailableWallets] = useState<string[]>([]);
   const [availableAccounts, setAvailableAccounts] = useState<InjectedAccountWithMeta[]>([]);
+  const [evmAccount, setEvmAccount] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
+  const [selectedWalletType, setSelectedWalletType] = useState<WalletType | null>(null);
 
   // Wallet installation options
-  const walletOptions = [
+  const polkadotWalletOptions = [
     {
-      name: "Fearless Wallet",
-      icon: "💎",
-      description: "Mobile-first wallet for Polkadot & Kusama",
-      url: "https://fearlesswallet.io/",
-      platforms: ["Mobile", "Desktop"]
+      name: "Polkadot{.js}",
+      icon: "🟠",
+      description: "Official Polkadot extension wallet",
+      url: "https://polkadot.js.org/extension/",
+      platforms: ["Browser Extension"]
     },
     {
       name: "Talisman",
@@ -72,6 +84,54 @@ const Collectibles: React.FC = () => {
     }
   ];
 
+  const evmWalletOptions = [
+    {
+      name: "MetaMask",
+      icon: "🦊",
+      description: "Popular Ethereum wallet and gateway to blockchain apps",
+      url: "https://metamask.io/",
+      platforms: ["Browser Extension", "Mobile"]
+    },
+    {
+      name: "WalletConnect",
+      icon: "🔗",
+      description: "Connect to mobile wallets via QR code",
+      url: "https://walletconnect.com/",
+      platforms: ["Mobile Bridge"]
+    },
+    {
+      name: "Coinbase Wallet",
+      icon: "🔵",
+      description: "Self-custody wallet from Coinbase",
+      url: "https://wallet.coinbase.com/",
+      platforms: ["Browser Extension", "Mobile"]
+    }
+  ];
+
+  // Check for MetaMask on component mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.ethereum) {
+      // MetaMask is available
+      checkMetaMaskConnection();
+    }
+  }, []);
+
+  const checkMetaMaskConnection = async () => {
+    try {
+      if (window.ethereum) {
+        const accounts = await window.ethereum.request({ 
+          method: 'eth_accounts' 
+        });
+        
+        if (accounts.length > 0) {
+          setEvmAccount(accounts[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking MetaMask connection:', error);
+    }
+  };
+
   // Fetch user profile on page load
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -80,14 +140,33 @@ const Collectibles: React.FC = () => {
         setUserProfile(data);
 
         if (data.walletAddress) {
-          setWallet(data.walletAddress);
+          // Try to determine wallet type from stored address
+          const walletType = data.walletAddress.startsWith('0x') ? 'evm' : 'polkadot';
+          setWallet({
+            address: data.walletAddress,
+            type: walletType,
+            name: walletType === 'evm' ? 'MetaMask' : 'Polkadot Wallet'
+          });
           fetchNFTs();
-          localStorage.setItem("connectedWallet", data.walletAddress);
+          localStorage.setItem("connectedWallet", JSON.stringify({
+            address: data.walletAddress,
+            type: walletType
+          }));
         } else {
           const savedWallet = localStorage.getItem("connectedWallet");
           if (savedWallet) {
-            setWallet(savedWallet);
-            fetchNFTs();
+            try {
+              const walletData = JSON.parse(savedWallet);
+              setWallet(walletData);
+              fetchNFTs();
+            } catch {
+              // Fallback for old format
+              setWallet({
+                address: savedWallet,
+                type: savedWallet.startsWith('0x') ? 'evm' : 'polkadot'
+              });
+              fetchNFTs();
+            }
           }
         }
       } catch (err) {
@@ -98,6 +177,13 @@ const Collectibles: React.FC = () => {
   }, []);
 
   const detectWallets = async () => {
+    setIsConnecting(true);
+    setSelectedWalletType(null);
+    setShowWalletDialog(true);
+    setIsConnecting(false);
+  };
+
+  const connectPolkadotWallet = async () => {
     try {
       setIsConnecting(true);
       
@@ -105,8 +191,8 @@ const Collectibles: React.FC = () => {
       const extensions = await web3Enable("Influanto");
       
       if (extensions.length === 0) {
-        // Show wallet installation dialog instead of alert
         setShowInstallDialog(true);
+        setSelectedWalletType('polkadot');
         setIsConnecting(false);
         return;
       }
@@ -120,21 +206,54 @@ const Collectibles: React.FC = () => {
       setAvailableAccounts(accounts);
 
       if (accounts.length === 0) {
-        alert("No accounts found in your wallet(s). Please create an account first.");
+        alert("No accounts found in your Polkadot wallet(s). Please create an account first.");
         setIsConnecting(false);
         return;
       }
 
-      setShowWalletDialog(true);
+      setSelectedWalletType('polkadot');
       setIsConnecting(false);
     } catch (err) {
-      console.error("Failed to detect wallets:", err);
+      console.error("Failed to detect Polkadot wallets:", err);
       setShowInstallDialog(true);
+      setSelectedWalletType('polkadot');
       setIsConnecting(false);
     }
   };
 
-  const connectToAccount = async (account: InjectedAccountWithMeta) => {
+  const connectMetaMask = async () => {
+    try {
+      setIsConnecting(true);
+
+      if (!window.ethereum) {
+        setShowInstallDialog(true);
+        setSelectedWalletType('evm');
+        setIsConnecting(false);
+        return;
+      }
+
+      // Request account access
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      });
+
+      if (accounts.length === 0) {
+        alert("No accounts found in MetaMask. Please create an account first.");
+        setIsConnecting(false);
+        return;
+      }
+
+      const account = accounts[0];
+      await connectToEvmAccount(account);
+      setIsConnecting(false);
+    } catch (err) {
+      console.error("Failed to connect to MetaMask:", err);
+      alert("Failed to connect to MetaMask. Please try again.");
+      setIsConnecting(false);
+    }
+  };
+
+  const connectToPolkadotAccount = async (account: InjectedAccountWithMeta) => {
     try {
       const address = account.address;
 
@@ -146,25 +265,67 @@ const Collectibles: React.FC = () => {
         return;
       }
 
-      setWallet(address);
-      localStorage.setItem("connectedWallet", address);
+      const walletData: ConnectedWallet = {
+        address,
+        type: 'polkadot',
+        name: account.meta.name || 'Polkadot Account',
+        source: account.meta.source
+      };
+
+      setWallet(walletData);
+      localStorage.setItem("connectedWallet", JSON.stringify(walletData));
       fetchNFTs();
       setShowWalletDialog(false);
 
       // Save wallet if not set
       if (userProfile && !userProfile.walletAddress) {
-        try {
-          const { data } = await apiClient.post("/save-wallet", {
-            walletAddress: address,
-          });
-          setUserProfile({ ...userProfile, walletAddress: address });
-          console.log("Wallet address saved:", data);
-        } catch (err) {
-          console.error("Failed to save wallet address:", err);
-        }
+        await saveWalletToProfile(address);
       }
     } catch (err) {
-      console.error("Wallet connection failed:", err);
+      console.error("Polkadot wallet connection failed:", err);
+    }
+  };
+
+  const connectToEvmAccount = async (address: string) => {
+    try {
+      // Check for mismatch with stored wallet
+      if (userProfile?.walletAddress && userProfile.walletAddress !== address) {
+        setNewWalletAddress(address);
+        setWalletMismatch(true);
+        setShowWalletDialog(false);
+        return;
+      }
+
+      const walletData: ConnectedWallet = {
+        address,
+        type: 'evm',
+        name: 'MetaMask',
+        source: 'metamask'
+      };
+
+      setWallet(walletData);
+      localStorage.setItem("connectedWallet", JSON.stringify(walletData));
+      fetchNFTs();
+      setShowWalletDialog(false);
+
+      // Save wallet if not set
+      if (userProfile && !userProfile.walletAddress) {
+        await saveWalletToProfile(address);
+      }
+    } catch (err) {
+      console.error("EVM wallet connection failed:", err);
+    }
+  };
+
+  const saveWalletToProfile = async (address: string) => {
+    try {
+      const { data } = await apiClient.post("/save-wallet", {
+        walletAddress: address,
+      });
+      setUserProfile({ ...userProfile!, walletAddress: address });
+      console.log("Wallet address saved:", data);
+    } catch (err) {
+      console.error("Failed to save wallet address:", err);
     }
   };
 
@@ -175,8 +336,16 @@ const Collectibles: React.FC = () => {
         walletAddress: newWalletAddress,
       });
       setUserProfile({ ...userProfile!, walletAddress: newWalletAddress });
-      setWallet(newWalletAddress);
-      localStorage.setItem("connectedWallet", newWalletAddress);
+      
+      const walletType = newWalletAddress.startsWith('0x') ? 'evm' : 'polkadot';
+      const walletData: ConnectedWallet = {
+        address: newWalletAddress,
+        type: walletType,
+        name: walletType === 'evm' ? 'MetaMask' : 'Polkadot Wallet'
+      };
+      
+      setWallet(walletData);
+      localStorage.setItem("connectedWallet", JSON.stringify(walletData));
       setWalletMismatch(false);
       setNewWalletAddress(null);
       console.log("New wallet saved:", data);
@@ -194,7 +363,7 @@ const Collectibles: React.FC = () => {
   const handleUnlinkWallet = async () => {
     try {
       await apiClient.post("/save-wallet", {
-        walletAddress: wallet,
+        walletAddress: wallet?.address,
         action: "unlink"
       });
       
@@ -210,8 +379,6 @@ const Collectibles: React.FC = () => {
     }
   };
 
-  // Get user's collectibles (from frontend)
- // ...existing code...
   const fetchNFTs = async () => {
     try {
       const response = await apiClient.get('/collectibles/get', {
@@ -223,7 +390,6 @@ const Collectibles: React.FC = () => {
       
       console.log('Full response:', response.data);
       
-      // Handle different response structures
       if (response.data.success && response.data.data && response.data.data.collectibles) {
         setCollectibles(response.data.data.collectibles);
       } else if (response.data.collectibles) {
@@ -236,35 +402,12 @@ const Collectibles: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching collectibles:', error);
-      setCollectibles([]); // Set empty array on error instead of leaving undefined
-    }
-  };
-
-  // ...rest of your existing code stays the same...
-
-  // Public search (from frontend)
-  const searchCollectibles = async (searchParams:any) => {
-    try {
-      const response = await apiClient.post('/collectibles/get', {
-        search: 'rock music',
-        genres: ['Rock', 'Alternative'],
-        type: 'album',
-        priceMin: 10,
-        priceMax: 100,
-        sortBy: 'createdAt',
-        sortOrder: 'desc',
-        limit: 20,
-        page: 1
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error searching collectibles:', error);
+      setCollectibles([]);
     }
   };
 
   const handleCreateNFT = () => {
     if (!wallet) {
-      // Show a message or trigger wallet connection
       alert("Please connect your wallet first to create collectibles.");
       return;
     }
@@ -281,6 +424,8 @@ const Collectibles: React.FC = () => {
         return '🌐';
       case 'fearless wallet':
         return '💎';
+      case 'metamask':
+        return '🦊';
       default:
         return '👛';
     }
@@ -295,9 +440,11 @@ const Collectibles: React.FC = () => {
       {/* Wallet Installation Dialog */}
       {showInstallDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg p-6 w-[500px] shadow-xl max-h-[80vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 w-[600px] shadow-xl max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Install a Polkadot Wallet</h2>
+              <h2 className="text-xl font-bold text-gray-800">
+                Install {selectedWalletType === 'evm' ? 'EVM' : 'Polkadot'} Wallet
+              </h2>
               <button
                 onClick={() => setShowInstallDialog(false)}
                 className="text-gray-500 hover:text-gray-700"
@@ -308,14 +455,14 @@ const Collectibles: React.FC = () => {
 
             <div className="mb-4">
               <p className="text-gray-600 text-sm">
-                To connect and manage your collectibles, you&apos;ll need to install a Polkadot-compatible wallet. 
+                To connect and manage your collectibles, you&apos;ll need to install a compatible wallet. 
                 Choose one of the recommended wallets below:
               </p>
             </div>
 
             {/* Wallet Options */}
             <div className="space-y-3">
-              {walletOptions.map((wallet) => (
+              {(selectedWalletType === 'evm' ? evmWalletOptions : polkadotWalletOptions).map((wallet) => (
                 <div
                   key={wallet.name}
                   className="border rounded-lg p-4 hover:shadow-md transition-shadow"
@@ -368,7 +515,6 @@ const Collectibles: React.FC = () => {
               <button
                 onClick={() => {
                   setShowInstallDialog(false);
-                  // Retry detection after user potentially installs a wallet
                   setTimeout(() => detectWallets(), 1000);
                 }}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -383,9 +529,9 @@ const Collectibles: React.FC = () => {
       {/* Wallet Selection Dialog */}
       {showWalletDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg p-6 w-96 shadow-xl max-h-[80vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 w-[500px] shadow-xl max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold">Select Wallet & Account</h2>
+              <h2 className="text-lg font-bold">Connect Wallet</h2>
               <button
                 onClick={() => setShowWalletDialog(false)}
                 className="text-gray-500 hover:text-gray-700"
@@ -394,58 +540,118 @@ const Collectibles: React.FC = () => {
               </button>
             </div>
 
-            {/* Available Wallets */}
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Detected Wallets:</h3>
-              <div className="flex flex-wrap gap-2">
-                {availableWallets.map((wallet) => (
-                  <div
-                    key={wallet}
-                    className="flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs"
-                  >
-                    <span className="mr-1">{getWalletIcon(wallet)}</span>
-                    {wallet}
-                  </div>
-                ))}
-              </div>
-            </div>
+            {!selectedWalletType && (
+              <div className="space-y-4">
+                <p className="text-gray-600 text-sm mb-4">
+                  Choose your preferred wallet type to connect:
+                </p>
 
-            {/* Available Accounts */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Select Account:</h3>
-              <div className="space-y-2">
-                {availableAccounts.map((account, index) => (
-                  <div
-                    key={account.address}
-                    onClick={() => connectToAccount(account)}
-                    className="p-3 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">{getWalletIcon(account.meta.source || '')}</span>
-                          <div>
-                            <p className="font-medium text-sm">
-                              {account.meta.name || `Account ${index + 1}`}
-                            </p>
-                            <p className="text-xs text-gray-500 font-mono">
-                              {account.address.slice(0, 8)}...{account.address.slice(-8)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {account.meta.source}
+                {/* EVM Wallets */}
+                <div 
+                  onClick={connectMetaMask}
+                  className="p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">🦊</span>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">EVM Wallets (MetaMask)</h3>
+                      <p className="text-sm text-gray-600">Connect with MetaMask, Coinbase Wallet, etc.</p>
+                      <div className="flex gap-1 mt-1">
+                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                          Ethereum
+                        </span>
+                        <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
+                          Moonbeam
+                        </span>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            <div className="mt-4 text-xs text-gray-500 text-center">
-              Select an account to connect to Influanto
-            </div>
+                {/* Polkadot Wallets */}
+                <div 
+                  onClick={connectPolkadotWallet}
+                  className="p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">🟠</span>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">Polkadot Wallets</h3>
+                      <p className="text-sm text-gray-600">Connect with Polkadot.js, Talisman, SubWallet</p>
+                      <div className="flex gap-1 mt-1">
+                        <span className="px-2 py-1 bg-pink-100 text-pink-700 text-xs rounded-full">
+                          Polkadot
+                        </span>
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
+                          Kusama
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Polkadot Account Selection */}
+            {selectedWalletType === 'polkadot' && (
+              <div>
+                {/* Available Wallets */}
+                <div className="mb-4">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Detected Wallets:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {availableWallets.map((wallet) => (
+                      <div
+                        key={wallet}
+                        className="flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs"
+                      >
+                        <span className="mr-1">{getWalletIcon(wallet)}</span>
+                        {wallet}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Available Accounts */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Select Account:</h3>
+                  <div className="space-y-2">
+                    {availableAccounts.map((account, index) => (
+                      <div
+                        key={account.address}
+                        onClick={() => connectToPolkadotAccount(account)}
+                        className="p-3 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{getWalletIcon(account.meta.source || '')}</span>
+                              <div>
+                                <p className="font-medium text-sm">
+                                  {account.meta.name || `Account ${index + 1}`}
+                                </p>
+                                <p className="text-xs text-gray-500 font-mono">
+                                  {account.address.slice(0, 8)}...{account.address.slice(-8)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {account.meta.source}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setSelectedWalletType(null)}
+                  className="mt-4 text-sm text-blue-600 hover:text-blue-800"
+                >
+                  ← Back to wallet selection
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -513,9 +719,14 @@ const Collectibles: React.FC = () => {
         {wallet ? (
           <div className="flex items-center gap-3">
             {/* Wallet Display */}
-            <div className="flex items-center px-4 py-2 bg-gray-100 rounded-lg font-mono">
-              <FontAwesomeIcon icon={faWallet} className="text-gray-600 mr-2" />
-              <span>{wallet.slice(0, 6)}...{wallet.slice(-4)}</span>
+            <div className="flex items-center px-4 py-2 bg-gray-100 rounded-lg">
+              <span className="mr-2">{wallet.type === 'evm' ? '🦊' : '🟠'}</span>
+              <span className="font-mono text-sm">
+                {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}
+              </span>
+              <span className="ml-2 text-xs text-gray-500 capitalize">
+                ({wallet.type})
+              </span>
             </div>
             
             {/* Unlink Wallet Button */}
@@ -534,7 +745,7 @@ const Collectibles: React.FC = () => {
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FontAwesomeIcon icon={faWallet} />
-            {isConnecting ? "Detecting..." : "Connect Wallet"}
+            {isConnecting ? "Connecting..." : "Connect Wallet"}
           </button>
         )}
       </div>
@@ -555,7 +766,7 @@ const Collectibles: React.FC = () => {
             </div>
           ))}
 
-        {/* Create Collectible Button - Disabled when no wallet */}
+        {/* Create Collectible Button */}
         <div
           onClick={handleCreateNFT}
           className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg h-48 transition
