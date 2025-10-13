@@ -290,6 +290,23 @@ export const useContract = () => {
     }
   };
 
+  const testDifferentMintSignatures = async () => {
+  if (!provider) return;
+  
+  const possibleSignatures = [
+    'mint(string,uint256,uint32)',  // Your current ABI
+    'mint(address,uint256)',        // Standard ERC721
+    'safeMint(address,uint256)',    // OpenZeppelin ERC721
+    'mintTo(address,string)',       // Custom variant
+    'createToken(string,uint256,uint32)'  // Alternative name
+  ];
+  
+  for (const sig of possibleSignatures) {
+    const selector = ethers.id(sig).slice(0, 10);
+    console.log(`${sig}: ${selector}`);
+  }
+};
+
   const testContract = async (web3Provider: BrowserProvider, signer: ethers.Signer) => {
     try {
       setContractStatus('testing');
@@ -566,61 +583,70 @@ export const useContract = () => {
     }
   };
 
-  const debugContract = async () => {
-    if (!provider) {
-      console.error('❌ No provider available');
-      return { success: false, error: 'No provider available' };
+
+const debugContract = async () => {
+  if (!provider) {
+    console.error('❌ No provider available');
+    return { success: false, error: 'No provider available' };
+  }
+
+  try {
+    console.log('🔍 Starting comprehensive contract debug...');
+    console.log('📍 Contract address:', CONTRACT_ADDRESS);
+    console.log('🌐 Network ID:', networkId);
+    console.log('🔗 Connected:', isConnected);
+    console.log('📄 Contract status:', contractStatus);
+
+    if (!CONTRACT_ADDRESS) {
+      return { 
+        success: false, 
+        error: 'No contract address configured',
+        details: {
+          fix: 'Add NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS to your .env.local file'
+        }
+      };
     }
 
+    // Test contract bytecode with multiple methods
+    const codeTests = [];
+    let contractCode = null;
+    
+    // Test 1: MetaMask provider
     try {
-      console.log('🔍 Starting comprehensive contract debug...');
-      console.log('📍 Contract address:', CONTRACT_ADDRESS);
-      console.log('🌐 Network ID:', networkId);
-      console.log('🔗 Connected:', isConnected);
-      console.log('📄 Contract status:', contractStatus);
+      const code = await provider.getCode(CONTRACT_ADDRESS);
+      contractCode = code;
+      codeTests.push({ 
+        method: 'MetaMask Provider', 
+        success: true, 
+        codeLength: code.length,
+        hasCode: code !== '0x' && code !== '0x0',
+        codePreview: code.slice(0, 20) + '...'
+      });
+    } catch (error: any) {
+      codeTests.push({ 
+        method: 'MetaMask Provider', 
+        success: false, 
+        error: error.message 
+      });
+    }
 
-      if (!CONTRACT_ADDRESS) {
-        return { 
-          success: false, 
-          error: 'No contract address configured',
-          details: {
-            fix: 'Add NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS to your .env.local file'
-          }
-        };
-      }
-
-      // Test contract bytecode with multiple methods
-      const codeTests = [];
-      
-      // Test 1: MetaMask provider
-      try {
-        const code = await provider.getCode(CONTRACT_ADDRESS);
-        codeTests.push({ 
-          method: 'MetaMask Provider', 
-          success: true, 
-          codeLength: code.length,
-          hasCode: code !== '0x' && code !== '0x0'
-        });
-      } catch (error: any) {
-        codeTests.push({ 
-          method: 'MetaMask Provider', 
-          success: false, 
-          error: error.message 
-        });
-      }
-
-      // Test 2: Alternative RPC providers
+    // Test 2: Alternative RPC providers
+    if (!contractCode || contractCode === '0x') {
       for (const rpcUrl of MOONBASE_RPC_ENDPOINTS) {
         try {
           const altProvider = new ethers.JsonRpcProvider(rpcUrl);
           const code = await altProvider.getCode(CONTRACT_ADDRESS);
-          codeTests.push({ 
-            method: `Alternative RPC: ${rpcUrl}`, 
-            success: true, 
-            codeLength: code.length,
-            hasCode: code !== '0x' && code !== '0x0'
-          });
-          break; // If one works, we're good
+          if (code !== '0x' && code !== '0x0') {
+            contractCode = code;
+            codeTests.push({ 
+              method: `Alternative RPC: ${rpcUrl}`, 
+              success: true, 
+              codeLength: code.length,
+              hasCode: true,
+              codePreview: code.slice(0, 20) + '...'
+            });
+            break;
+          }
         } catch (error: any) {
           codeTests.push({ 
             method: `Alternative RPC: ${rpcUrl}`, 
@@ -629,150 +655,337 @@ export const useContract = () => {
           });
         }
       }
+    }
 
-      // Test contract functions if we have a working provider
-      const functionTests = [];
-      if (contract) {
-        const functions = ['nextId', 'owner'];
-        
-        for (const funcName of functions) {
+    // NEW: Test different mint function signatures
+    const mintSignatureTests = [];
+    if (contractCode && contractCode !== '0x') {
+      console.log('🧪 Testing different mint function signatures...');
+      
+      const possibleMintSignatures = [
+        { name: 'mint(string,uint256,uint32)', sig: 'mint(string,uint256,uint32)', expected: true },
+        { name: 'mint(address,uint256)', sig: 'mint(address,uint256)', expected: false },
+        { name: 'safeMint(address,uint256)', sig: 'safeMint(address,uint256)', expected: false },
+        { name: 'mintTo(address,string)', sig: 'mintTo(address,string)', expected: false },
+        { name: 'createToken(string,uint256,uint32)', sig: 'createToken(string,uint256,uint32)', expected: false },
+        { name: 'mint(address,uint256,string)', sig: 'mint(address,uint256,string)', expected: false },
+        { name: 'publicMint(uint256)', sig: 'publicMint(uint256)', expected: false },
+        { name: 'mint(uint256)', sig: 'mint(uint256)', expected: false }
+      ];
+      
+      for (const mintSig of possibleMintSignatures) {
+        try {
+          const selector = ethers.id(mintSig.sig).slice(0, 10);
+          
+          // Try calling the function selector directly
+          const callData = selector; // Just the selector for testing
+          const rawResult = await provider.call({
+            to: CONTRACT_ADDRESS,
+            data: callData
+          });
+          
+          mintSignatureTests.push({
+            name: mintSig.name,
+            signature: mintSig.sig,
+            selector: selector,
+            expected: mintSig.expected,
+            rawCallSuccess: true,
+            rawResult: rawResult,
+            exists: true
+          });
+          
+        } catch (error: any) {
+          const selector = ethers.id(mintSig.sig).slice(0, 10);
+          let exists = false;
+          
+          // Check if the error suggests the function doesn't exist vs other issues
+          if (error.message.includes('function selector was not recognized')) {
+            exists = false;
+          } else if (error.message.includes('missing revert data') || error.code === 'CALL_EXCEPTION') {
+            exists = true; // Function exists but call failed (probably needs parameters)
+          }
+          
+          mintSignatureTests.push({
+            name: mintSig.name,
+            signature: mintSig.sig,
+            selector: selector,
+            expected: mintSig.expected,
+            rawCallSuccess: false,
+            error: error.message,
+            exists: exists
+          });
+        }
+      }
+    }
+
+    // Test contract functions with detailed error analysis
+    const functionTests = [];
+    if (contract && contractCode && contractCode !== '0x') {
+      console.log('🧪 Testing individual contract functions...');
+      
+      // Test each function individually with detailed error handling
+      const testFunctions = [
+        { name: 'nextId', selector: '0x61b8ce8c' },
+        { name: 'owner', selector: '0x8da5cb5b' },
+        { name: 'withdraw', selector: '0x3ccfd60b' }
+      ];
+      
+      for (const func of testFunctions) {
+        try {
+          console.log(`🔍 Testing ${func.name}()...`);
+          
+          // Try direct function call
+          const result = await Promise.race([
+            contract[func.name](),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout after 10s')), 10000)
+            )
+          ]);
+          
+          functionTests.push({ 
+            function: func.name, 
+            selector: func.selector,
+            success: true, 
+            result: result.toString(),
+            type: 'function_call'
+          });
+          
+        } catch (funcError: any) {
+          console.error(`❌ ${func.name}() failed:`, funcError);
+          
+          // Try raw call to see if function exists
           try {
-            const result = await Promise.race([
-              contract[funcName](),
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout')), 15000)
-              )
-            ]);
-            functionTests.push({ 
-              function: funcName, 
-              success: true, 
-              result: result.toString() 
+            const rawResult = await provider.call({
+              to: CONTRACT_ADDRESS,
+              data: func.selector
             });
-          } catch (error: any) {
+            
             functionTests.push({ 
-              function: funcName, 
+              function: func.name, 
+              selector: func.selector,
               success: false, 
-              error: error.message 
+              error: funcError.message,
+              rawCallSuccess: true,
+              rawResult: rawResult,
+              type: 'raw_call_success'
+            });
+          } catch (rawError: any) {
+            functionTests.push({ 
+              function: func.name, 
+              selector: func.selector,
+              success: false, 
+              error: funcError.message,
+              rawCallSuccess: false,
+              rawError: rawError.message,
+              type: 'raw_call_failed'
             });
           }
         }
       }
+    }
 
-      const workingCodeTests = codeTests.filter(t => t.success && t.hasCode);
-      const workingFunctionTests = functionTests.filter(t => t.success);
-
-      return {
-        success: workingCodeTests.length > 0,
-        details: {
-          address: CONTRACT_ADDRESS,
-          network: networkId,
-          contractStatus,
-          codeTests,
-          functionTests,
-          workingCodeProviders: workingCodeTests.length,
-          workingFunctions: workingFunctionTests.length,
-          totalFunctions: functionTests.length,
-          explorerUrl: `https://moonbase.moonscan.io/address/${CONTRACT_ADDRESS}`,
-          recommendations: workingCodeTests.length === 0 ? 
-            ['Contract not found at address', 'Check deployment on Moonbase Alpha', 'Verify contract address'] :
-            workingFunctionTests.length === 0 ?
-            ['Contract exists but functions fail', 'Check ABI compatibility', 'Try refreshing or switching networks'] :
-            ['Contract is working properly']
+    // Check if this might be a different contract
+    let contractAnalysis = null;
+    if (contractCode && contractCode !== '0x') {
+      try {
+        // Try to call some common contract functions to identify what type of contract this is
+        const commonChecks = [];
+        
+        // Check if it's an ERC20 token
+        try {
+          const nameResult = await provider.call({
+            to: CONTRACT_ADDRESS,
+            data: '0x06fdde03' // name()
+          });
+          commonChecks.push({ type: 'ERC20', function: 'name', success: true, result: nameResult });
+        } catch {
+          commonChecks.push({ type: 'ERC20', function: 'name', success: false });
         }
-      };
-
-    } catch (error: any) {
-      console.error('❌ Debug failed:', error);
-      return { success: false, error: error.message };
+        
+        // Check if it's an ERC721 token
+        try {
+          const supportsInterface = await provider.call({
+            to: CONTRACT_ADDRESS,
+            data: '0x01ffc9a7000000000000000000000000000000000000000000000000000000000001ffc9a7' // supportsInterface(0x01ffc9a7)
+          });
+          commonChecks.push({ type: 'ERC721', function: 'supportsInterface', success: true, result: supportsInterface });
+        } catch {
+          commonChecks.push({ type: 'ERC721', function: 'supportsInterface', success: false });
+        }
+        
+        contractAnalysis = { commonChecks };
+        
+      } catch (analysisError) {
+        contractAnalysis = { error: 'Failed to analyze contract type' };
+      }
     }
+
+    const workingCodeTests = codeTests.filter(t => t.success && t.hasCode);
+    const workingFunctionTests = functionTests.filter(t => t.success);
+    const existingMintFunctions = mintSignatureTests.filter(t => t.exists);
+
+    return {
+      success: workingCodeTests.length > 0,
+      details: {
+        address: CONTRACT_ADDRESS,
+        network: networkId,
+        contractStatus,
+        codeTests,
+        functionTests,
+        mintSignatureTests, // NEW: Include mint signature test results
+        contractAnalysis,
+        workingCodeProviders: workingCodeTests.length,
+        workingFunctions: workingFunctionTests.length,
+        totalFunctions: functionTests.length,
+        foundMintFunctions: existingMintFunctions.length, // NEW: Count of found mint functions
+        explorerUrl: `https://moonbase.moonscan.io/address/${CONTRACT_ADDRESS}`,
+        recommendations: workingCodeTests.length === 0 ? 
+          ['Contract not found at address', 'Check deployment on Moonbase Alpha', 'Verify contract address'] :
+          workingFunctionTests.length === 0 ?
+          ['Contract exists but expected functions are missing', 'This might be a different contract than expected', 'Check if you have the correct contract address', 'Verify the contract was deployed with the expected ABI'] :
+          ['Contract is working properly'],
+        nextSteps: [
+          'Visit the explorer link to see what contract is actually deployed',
+          'Check the contract source code if verified',
+          'Compare the expected ABI with the actual contract functions',
+          'Verify you have the correct contract address',
+          existingMintFunctions.length > 0 ? `Found ${existingMintFunctions.length} possible mint function(s)` : 'No mint functions found'
+        ]
+      }
+    };
+
+  } catch (error: any) {
+    console.error('❌ Debug failed:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+
+  // Add this temporary debug function to see the current status
+  const debugContractStatus = () => {
+    console.log('🔍 Current contract status debug:', {
+      contractStatus,
+      contract: !!contract,
+      isConnected,
+      networkId,
+      contractAddress: CONTRACT_ADDRESS,
+      provider: !!provider,
+      signer: !!signer
+    });
   };
 
-  const mintTrack = async (hash: string, price: bigint | string, maxEditions: number) => {
-    if (!contract) throw new Error('Contract not initialized');
-    if (!isConnected) throw new Error('Wallet not connected');
-    if (networkId !== 1287) throw new Error('Please switch to Moonbase Alpha network');
-    if (contractStatus !== 'accessible') throw new Error('Contract not accessible. Please check contract status.');
+// mintTrack function to skip the nextId test temporarily:
+const mintTrack = async (hash: string, price: bigint | string, maxEditions: number) => {
+  // Log current status first
+  console.log('🔍 Pre-mint status check:', {
+    contractStatus,
+    contract: !!contract,
+    isConnected,
+    networkId,
+    contractAddress: CONTRACT_ADDRESS
+  });
+
+  if (!contract) throw new Error('Contract not initialized');
+  if (!isConnected) throw new Error('Wallet not connected');
+  if (networkId !== 1287) throw new Error('Please switch to Moonbase Alpha network');
+  
+  try {
+    console.log('🔨 Minting track with params:', { hash, price, maxEditions });
     
-    try {
-      console.log('🔨 Minting track with params:', { hash, price, maxEditions });
-      
-      // Convert price to Wei if it's a string
-      const priceWei = typeof price === 'string' ? ethers.parseEther(price) : price;
-      
-      console.log('💰 Price in Wei:', priceWei.toString());
-      console.log('🎯 Contract address:', CONTRACT_ADDRESS);
-      console.log('👤 Account:', account);
-      
-      // Validate parameters
-      if (!hash || hash.trim() === '') {
-        throw new Error('Hash cannot be empty');
-      }
-      
-      if (priceWei <= 0) {
-        throw new Error('Price must be greater than 0');
-      }
-      
-      if (maxEditions <= 0 || maxEditions > 10000) {
-        throw new Error('Max editions must be between 1 and 10000');
-      }
-
-      // Estimate gas first
-      try {
-        const gasEstimate = await contract.mint.estimateGas(hash, priceWei, maxEditions);
-        console.log('⛽ Estimated gas:', gasEstimate.toString());
-      } catch (gasError) {
-        console.error('❌ Gas estimation failed:', gasError);
-        throw new Error('Transaction would fail. Please check your parameters and try again.');
-      }
-      
-      // Call the mint function with explicit gas limit
-      const tx = await contract.mint(hash, priceWei, maxEditions, {
-        gasLimit: 500000 // Set a reasonable gas limit
-      });
-      
-      console.log('📝 Transaction sent:', tx.hash);
-      
-      // Wait for transaction confirmation
-      const receipt = await tx.wait();
-      console.log('✅ Transaction confirmed:', receipt);
-      
-      // Get the token ID from the contract
-      let tokenId;
-      try {
-        const nextId = await contract.nextId();
-        tokenId = Number(nextId) - 1;
-      } catch (idError) {
-        console.warn('Could not get token ID:', idError);
-        tokenId = Date.now(); // Fallback
-      }
-      
-      return {
-        tokenId,
-        transactionHash: tx.hash,
-        blockNumber: receipt.blockNumber,
-        receipt,
-        gasUsed: receipt.gasUsed
-      };
-      
-    } catch (error: any) {
-      console.error('❌ Mint failed:', error);
-      
-      // Enhanced error handling
-      if (error.code === 'CALL_EXCEPTION') {
-        throw new Error('Contract call failed. Please check your parameters and network connection.');
-      } else if (error.code === 'INSUFFICIENT_FUNDS') {
-        throw new Error('Insufficient DEV tokens for gas fees.');
-      } else if (error.code === 4001) {
-        throw new Error('Transaction cancelled by user.');
-      } else if (error.message?.includes('user rejected')) {
-        throw new Error('Transaction cancelled by user.');
-      } else if (error.message?.includes('network')) {
-        throw new Error('Network error. Please check your connection and try again.');
-      }
-      
-      throw error;
+    // Convert price to Wei if it's a string
+    const priceWei = typeof price === 'string' ? ethers.parseEther(price) : price;
+    
+    console.log('💰 Price in Wei:', priceWei.toString());
+    console.log('🎯 Contract address:', CONTRACT_ADDRESS);
+    console.log('👤 Account:', account);
+    
+    // Validate parameters
+    if (!hash || hash.trim() === '') {
+      throw new Error('Hash cannot be empty');
     }
-  };
+    
+    if (priceWei <= 0) {
+      throw new Error('Price must be greater than 0');
+    }
+    
+    if (maxEditions <= 0 || maxEditions > 10000) {
+      throw new Error('Max editions must be between 1 and 10000');
+    }
+
+    // SKIP the nextId test for now and go straight to mint
+    console.log('⚠️ Skipping nextId() test and attempting mint directly...');
+
+    // Estimate gas first - this will tell us if the mint function exists
+    try {
+      console.log('🧪 Testing mint function with gas estimation...');
+      const gasEstimate = await contract.mint.estimateGas(hash, priceWei, maxEditions);
+      console.log('✅ Gas estimation succeeded:', gasEstimate.toString());
+      console.log('✅ Mint function exists and parameters are valid!');
+    } catch (gasError: any) {
+      console.error('❌ Gas estimation failed:', gasError);
+      
+      // Try to get more info about why it failed
+      if (gasError.code === 'CALL_EXCEPTION') {
+        throw new Error(`Mint function failed validation. This might mean:
+1. The contract doesn't have a mint() function
+2. The function exists but reverted due to invalid parameters
+3. This is a different contract than expected
+
+Error: ${gasError.message}`);
+      }
+      throw new Error(`Gas estimation failed: ${gasError.message}`);
+    }
+    
+    // If gas estimation worked, proceed with the actual transaction
+    console.log('🚀 Proceeding with mint transaction...');
+    const tx = await contract.mint(hash, priceWei, maxEditions, {
+      gasLimit: 500000 // Set a reasonable gas limit
+    });
+    
+    console.log('📝 Transaction sent:', tx.hash);
+    
+    // Wait for transaction confirmation
+    const receipt = await tx.wait();
+    console.log('✅ Transaction confirmed:', receipt);
+    
+    // Try to get token ID, but don't fail if nextId doesn't work
+    let tokenId;
+    try {
+      const nextId = await contract.nextId();
+      tokenId = Number(nextId) - 1;
+      console.log('✅ Got token ID from nextId():', tokenId);
+    } catch (idError) {
+      console.warn('⚠️ Could not get token ID from nextId(), using fallback:', idError.message);
+      tokenId = Date.now(); // Fallback
+    }
+    
+    return {
+      tokenId,
+      transactionHash: tx.hash,
+      blockNumber: receipt.blockNumber,
+      receipt,
+      gasUsed: receipt.gasUsed
+    };
+    
+  } catch (error: any) {
+    console.error('❌ Mint failed:', error);
+    
+    // Enhanced error handling
+    if (error.code === 'CALL_EXCEPTION') {
+      throw new Error('Contract call failed. Please check your parameters and network connection.');
+    } else if (error.code === 'INSUFFICIENT_FUNDS') {
+      throw new Error('Insufficient DEV tokens for gas fees.');
+    } else if (error.code === 4001) {
+      throw new Error('Transaction cancelled by user.');
+    } else if (error.message?.includes('user rejected')) {
+      throw new Error('Transaction cancelled by user.');
+    } else if (error.message?.includes('network')) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    throw error;
+  }
+};
 
   const buyTrack = async (tokenId: number, price: string) => {
     if (!contract) throw new Error('Contract not initialized');
@@ -856,6 +1069,7 @@ export const useContract = () => {
     withdrawEarnings,
     getTrackInfo,
     getPendingEarnings,
-    debugContract
+    debugContract,
+    debugContractStatus  // Add this temporarily
   };
 };

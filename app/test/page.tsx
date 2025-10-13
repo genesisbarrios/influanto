@@ -6,6 +6,7 @@ import { faWallet, faTimes, faExternalLinkAlt, faExclamationTriangle, faCopy, fa
 import { web3Accounts, web3Enable } from "@polkadot/extension-dapp";
 import type { InjectedAccountWithMeta } from '@polkadot/extension-inject/types';
 import { ethers, parseEther } from 'ethers';
+import { useContract } from '@/hooks/useContract';
 
 // Contract configuration with better error handling
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS || '';
@@ -1108,188 +1109,12 @@ const switchToMoonbeam = async () => {
     }
   };
 
-  const debugContract = async () => {
-  try {
-    if (!CONTRACT_ADDRESS || !isValidAddress(CONTRACT_ADDRESS)) {
-      alert('Please configure a valid contract address first');
-      return;
-    }
 
-    setError(null);
-    console.log('🔍 Starting comprehensive contract debug...');
-    
-    // Check network with better error handling
-    let chainIdNumber;
-    try {
-      const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-      chainIdNumber = parseInt(chainId, 16);
-      console.log('🌐 Current network:', chainIdNumber);
-    } catch (networkError: any) {
-      alert(`Cannot get current network: ${networkError.message}`);
-      return;
-    }
-    
-    if (chainIdNumber !== 1287) {
-      alert(`Wrong network: ${chainIdNumber}. Please switch to Moonbase Alpha (1287)`);
-      return;
-    }
+    const { 
+        debugContract  // ✅ Add this line
+        } = useContract();
 
-    const debugResults: any = {};
     
-    console.log('🔍 Testing contract on multiple RPC endpoints...');
-    
-    // Use the more robust fetch method for each RPC
-    for (let i = 0; i < MOONBASE_RPC_ENDPOINTS.length; i++) {
-      const rpcUrl = MOONBASE_RPC_ENDPOINTS[i];
-      console.log(`\n🔍 Testing RPC ${i + 1}/${MOONBASE_RPC_ENDPOINTS.length}: ${rpcUrl}`);
-      
-      try {
-        // Test basic connectivity with fetch
-        console.log('  ⏳ Testing connectivity...');
-        const response = await fetch(rpcUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            method: 'eth_chainId',
-            params: [],
-            id: 1
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const networkData = await response.json();
-        if (networkData.error) {
-          throw new Error(networkData.error.message);
-        }
-
-        console.log('  ✅ Connected to network');
-        
-        // Test contract code
-        console.log('  ⏳ Checking contract code...');
-        const codeResponse = await fetch(rpcUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            method: 'eth_getCode',
-            params: [CONTRACT_ADDRESS, 'latest'],
-            id: 2
-          })
-        });
-
-        if (!codeResponse.ok) {
-          throw new Error(`HTTP ${codeResponse.status}`);
-        }
-
-        const codeData = await codeResponse.json();
-        if (codeData.error) {
-          throw new Error(codeData.error.message);
-        }
-
-        const code = codeData.result;
-        console.log(`  📄 Contract code length: ${code.length} characters`);
-        
-        if (code === '0x' || code === '0x0') {
-          console.log(`  ❌ No contract found`);
-          debugResults[rpcUrl] = { success: false, error: 'No contract code found' };
-          continue;
-        }
-        
-        console.log('  ✅ Contract code exists');
-        
-        // Try to test contract functions with ethers (if code exists)
-        try {
-          const provider = new ethers.JsonRpcProvider(rpcUrl);
-          const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
-          
-          // Add timeout for function calls
-          const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Function call timeout')), 10000);
-          });
-          
-          const nextIdPromise = contract.nextId();
-          const nextId = await Promise.race([nextIdPromise, timeoutPromise]);
-          
-          console.log(`    ✅ nextId(): ${nextId}`);
-          
-          debugResults[rpcUrl] = { 
-            success: true, 
-            nextId: (nextId as any).toString(),
-            codeLength: code.length,
-            functions: 'Working'
-          };
-          
-        } catch (funcError: any) {
-          console.log(`    ❌ Contract function failed: ${funcError.message}`);
-          debugResults[rpcUrl] = { 
-            success: false, 
-            error: `Function call failed: ${funcError.message}`,
-            codeLength: code.length,
-            hasCode: true
-          };
-        }
-        
-      } catch (error: any) {
-        console.log(`  ❌ RPC failed: ${error.message}`);
-        debugResults[rpcUrl] = { success: false, error: error.message };
-      }
-    }
-    
-    // Rest of the debug function remains the same...
-    console.log('\n📊 Debug Results Summary:');
-    console.table(debugResults);
-    
-    const successfulRpcs = Object.entries(debugResults).filter(([_, result]: any) => result.success);
-    const hasCode = Object.entries(debugResults).some(([_, result]: any) => result.hasCode || result.success);
-    
-    let message = `🔍 Debug Complete!\n\n`;
-    message += `Contract Address: ${CONTRACT_ADDRESS}\n`;
-    message += `Network: Moonbase Alpha (${chainIdNumber})\n`;
-    message += `Successful RPCs: ${successfulRpcs.length}/${MOONBASE_RPC_ENDPOINTS.length}\n\n`;
-    
-    if (successfulRpcs.length > 0) {
-      message += `✅ Working RPCs:\n`;
-      successfulRpcs.forEach(([rpc, result]: any) => {
-        message += `• ${rpc}: nextId = ${result.nextId}\n`;
-      });
-    } else if (hasCode) {
-      message += `⚠️ Contract found but functions not working:\n`;
-      message += `This suggests the contract ABI might not match the deployed contract.\n\n`;
-      message += `Possible causes:\n`;
-      message += `1. Contract was deployed with different functions\n`;
-      message += `2. Contract is not fully deployed/initialized\n`;
-      message += `3. Contract constructor failed\n`;
-    } else {
-      message += `❌ No contract found at this address.\n\n`;
-      message += `Possible causes:\n`;
-      message += `1. Wrong contract address\n`;
-      message += `2. Contract not deployed on Moonbase Alpha\n`;
-      message += `3. Deployment transaction failed\n`;
-    }
-    
-    message += `\n🛠️ Troubleshooting Steps:\n`;
-    message += `1. Check Remix deployment transaction on Moonbase Alpha\n`;
-    message += `2. Verify contract address in Moonbase Explorer\n`;
-    message += `3. Ensure you're using the correct network\n`;
-    message += `4. Check if contract constructor completed successfully\n`;
-    
-    alert(message);
-    
-    const explorerUrl = `https://moonbase.moonscan.io/address/${CONTRACT_ADDRESS}`;
-    if (confirm('Would you like to open Moonbase Alpha explorer to verify your contract?')) {
-      window.open(explorerUrl, '_blank');
-    }
-    
-  } catch (error: any) {
-    console.error('❌ Debug failed:', error);
-    alert(`Debug failed: ${error.message}`);
-  }
-};
-
 
   return (
     <div className="p-8">

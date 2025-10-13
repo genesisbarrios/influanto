@@ -103,6 +103,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
   const [bpm, setBpm] = useState<number | undefined>();
   const [lyrics, setLyrics] = useState("");
   
+  
   // Album fields
   const [albumCoverImage, setAlbumCoverImage] = useState<File | null>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -132,6 +133,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
     setReleaseDate("");
     setUploadProgress("");
   };
+
 
   // Store NFT metadata in localStorage
   const storeNFTMetadata = (tokenId: number, metadata: MusicNFT) => {

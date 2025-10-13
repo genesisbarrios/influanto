@@ -4,57 +4,53 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import apiClient from "@/libs/api";
 
-const calcDelayMs = (bpm: number, note: number) => {
-  if (!bpm || !note) return "";
-  return ((60000 / bpm) * note).toFixed(2);
-};
+export default function Collectibles() {
+  // ✅ All hooks and state INSIDE the component
+  const [collectibles, setCollectibles] = useState<
+    { title: string; imageUrl: string; audioUrl:string; userId: string; description: string }[]
+  >([]);
 
-const tools = [
-  {
-    title: "Delay & Reverb Time Calculator",
-    description: "Calculate delay and reverb times for your song.",
-    href: "/Reverb-and-Delay-Calculator",
-    icon: "⏱️",
-  },
-  {
-    title: "Split Sheet Generator",
-    description: "Create and export split sheets for your music collaborations.",
-    href: "/Split-Sheet-Generator",
-    icon: "📄",
-  },
-  {
-    title: "BPM Calculator",
-    description: "Tap or click on beat to find the tempo of your track.",
-    href: "/BPM-Calculator",
-    icon: "🎵",
-  },
-//   {
-//     title: "WAV to MP3 Converter",
-//     description: "Convert WAV files to MP3 format easily.",
-//     href: "/MP3Converter",
-//     icon: "🎛️",
-//   },
-//   {
-//     title: "Synthfluanto",
-//     description: "Create and share your own melodies in our app.",
-//     href: "/Synthfluanto",
-//     icon: "🎹",
-//   },
-  {
-    title: "More Tools",
-    description: "Sign Up to get access to more tools.",
-    href: "api/auth/signin?callbackUrl=/dashboard",
-    icon: "🛠️",
-  },
-  
-];
+  // ✅ Move fetchNFTs function INSIDE the component
+  const fetchNFTs = async () => {
+    try {
+      const response = await apiClient.get('/collectibles/fetch-all', {
+        params: {
+          limit: 10,
+          page: 1,
+        }
+      });
+      
+      console.log('Full response:', response.data);
+      
+      if (response.data.success && response.data.data && response.data.data.collectibles) {
+        setCollectibles(response.data.data.collectibles);
+      } else if (response.data.collectibles) {
+        setCollectibles(response.data.collectibles);
+      } else if (Array.isArray(response.data)) {
+        setCollectibles(response.data);
+      } else {
+        console.log('No collectibles found, setting empty array');
+        setCollectibles([]);
+      }
+    } catch (error) {
+      console.error('Error fetching collectibles:', error);
+      setCollectibles([]);
+    }
+  };
 
-export default function Tools() {
+  // ✅ First useEffect for fetching data
+  useEffect(() => {
+    async function fetchCollectibles() {
+      await fetchNFTs();
+    }
+    fetchCollectibles();
+  }, []);
 
-
-useEffect(() => {
-    document.title = "Music Tools | Influanto";
+  // ✅ Second useEffect for meta tags
+  useEffect(() => {
+    document.title = "Music Collectibles | Influanto";
     
     // Update meta description
     let metaDescription = document.querySelector('meta[name="description"]');
@@ -102,118 +98,159 @@ useEffect(() => {
     twitterDescription.setAttribute('content', 'Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more');
   }, []);
 
-
   return (
     <>  
-    <Suspense>
+      <Suspense>
         <Header />
-    </Suspense> 
-    <div 
-      id="tools-bg"
-      style={{ 
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "80vh", 
-        width: "100%" 
-      }}
-    >
-      {/* Left: Free Tools Grid */}
-      <div
-        style={{
-          padding: "2rem",
-          background: "#f9fafb"
-        }}
-        className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
-      >
-        <h2 className="text-2xl font-bold ml-8 mb-8 mt-4" style={{color: "#181b20"}}>Music Tools</h2>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: "2rem",
-            width: "100%",
-            maxWidth: "900px",
-            margin: "0 auto",
-          }}
-        >
-          {tools.map((tool) => (
-            <Link
-              key={tool.href}
-              href={tool.href}
-              style={{
-                background: "#fff",
-                borderRadius: "16px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                padding: "2rem 1.5rem",
-                textAlign: "center",
-                textDecoration: "none",
-                color: "#222",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                aspectRatio: "1 / 1",
-                transition: "box-shadow 0.2s",
-              }}
-              className="tool-card"
-            >
-              <span style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>{tool.icon}</span>
-              <span style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.5rem" }}>
-                {tool.title}
-              </span>
-              <span style={{ color: "#666", fontSize: "0.98rem" }}>{tool.description}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-      {/* Right: Sign up and info */}
-      <div
-        style={{
-          padding: "2rem",
-          background: "#fff",
+      </Suspense> 
+      <div 
+        id="tools-bg"
+        style={{ 
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center"
+          minHeight: "80vh", 
+          width: "100%" 
         }}
-        className="w-full sm:w-1/4 p-8"
       >
-        <h3 className="text-xl font-bold mb-4" style={{color: "#181b20"}}>Join Influanto</h3>
-        <button
-          className="btn btn-primary"
+        <div
           style={{
-            padding: "0.75rem 2rem",
-            fontSize: "1.1rem",
-            borderRadius: "8px",
-            marginBottom: "1.5rem",
-            background: "#2563eb",
-            color: "#fff",
-            border: "none",
-            cursor: "pointer",
+            padding: "2rem",
+            background: "#f9fafb"
           }}
-          onClick={() => window.location.href = "api/auth/signin?callbackUrl=/dashboard"}
+          className="w-full p-8 sm:border-r sm:border-gray-300"
         >
-          Sign Up
-        </button>
-        <div style={{ color: "#444", textAlign: "center" }}>
-          <p>
-            Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.
-          </p>
+          <h2 className="text-2xl font-bold ml-8 mb-8 mt-4" style={{color: "#181b20"}}>Music Collectibles</h2>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: "2rem",
+              width: "100%",
+              maxWidth: "900px",
+              margin: "0 auto",
+            }}
+          >
+            {collectibles.map((collectible, index) => (
+            <div
+                key={`${collectible.title}-${index}`}
+                style={{
+                    background: `url(${collectible.imageUrl}) center center/cover no-repeat`,
+                    borderRadius: "16px",
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+                    padding: "1.5rem 1rem",
+                    textAlign: "center",
+                    color: "#fff",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    justifyContent: "center",
+                    aspectRatio: "1 / 1.15",
+                    position: "relative",
+                    overflow: "hidden",
+                    minHeight: "200px",
+                    maxWidth: "220px",
+                    width: "100%",
+                    margin: "0",
+                    transition: "box-shadow 0.2s",
+                }}
+                className="tool-card"
+            >
+                <Link
+                    href={collectible.userId ? `/${collectible.userId}/${collectible.title}` : '/'}
+                    style={{
+                        position: "absolute",
+                        inset: 0,
+                        zIndex: 2,
+                        borderRadius: "16px",
+                        textDecoration: "none",
+                        color: "inherit",
+                    }}
+                    tabIndex={-1}
+                    aria-label={collectible.title}
+                />
+                <div
+                    style={{
+                        position: "absolute",
+                        inset: 0,
+                        background: "rgba(0,0,0,0.45)",
+                        borderRadius: "16px",
+                        zIndex: 1,
+                    }}
+                />
+                <div
+                    style={{
+                        position: "relative",
+                        zIndex: 3,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        justifyContent: "center",
+                        height: "100%",
+                        width: "100%",
+                        pointerEvents: "none",
+                    }}
+                >
+                    <span
+                        style={{
+                            fontWeight: 700,
+                            fontSize: "1.1rem",
+                            marginBottom: "0.4rem",
+                            textShadow: "0 2px 8px rgba(0,0,0,0.7), 0 0 2px #000",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            maxWidth: "95%",
+                        }}
+                        title={collectible.title}
+                    >
+                        {collectible.title}
+                    </span>
+                    <span
+                        style={{
+                            color: "#fff",
+                            fontSize: "0.92rem",
+                            textShadow: "0 2px 8px rgba(0,0,0,0.7), 0 0 2px #000",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            maxWidth: "95%",
+                        }}
+                        title={collectible.description}
+                    >
+                        {collectible.description}
+                    </span>
+                </div>
+                <audio
+                    controls
+                    style={{
+                        width: "95%",
+                        marginTop: "0.7rem",
+                        borderRadius: "8px",
+                        zIndex: 4,
+                        background: "#222",
+                        pointerEvents: "auto",
+                    }}
+                >
+                    <source src={collectible.audioUrl} type="audio/mpeg" />
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-    <style>{`
-      #tools-bg {
-        background: #638bcf !important;
-      }
-      
-      @media (min-width: 640px) {
+      <style>{`
         #tools-bg {
-          flex-direction: row !important;
+          background: #638bcf !important;
         }
-      }
-    `}</style>
-    <Footer></Footer>
+        
+        @media (min-width: 640px) {
+          #tools-bg {
+            flex-direction: row !important;
+          }
+        }
+      `}</style>
+      <Footer />
     </>
   );
 }
