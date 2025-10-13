@@ -122,15 +122,18 @@ const Collectibles = () => {
   ];
 
   const checkMetaMaskConnection = async () => {
+    // Add safety checks for both mounted and window
+    if (!mounted || typeof window === 'undefined' || !window.ethereum) {
+      return;
+    }
+
     try {
-      if (window.ethereum) {
-        const accounts = await window.ethereum.request({ 
-          method: 'eth_accounts' 
-        });
-        
-        if (accounts.length > 0) {
-          setEvmAccount(accounts[0]);
-        }
+      const accounts = await window.ethereum.request({ 
+        method: 'eth_accounts' 
+      });
+      
+      if (accounts.length > 0) {
+        setEvmAccount(accounts[0]);
       }
     } catch (error) {
       console.error('Error checking MetaMask connection:', error);
@@ -162,12 +165,14 @@ const Collectibles = () => {
             name: walletType === 'evm' ? 'MetaMask' : 'Polkadot Wallet'
           });
           fetchNFTs();
-          localStorage.setItem("connectedWallet", JSON.stringify({
-            address: data.walletAddress,
-            type: walletType
-          }));
+          if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem("connectedWallet", JSON.stringify({
+              address: data.walletAddress,
+              type: walletType
+            }));
+          }
         } else {
-          const savedWallet = localStorage.getItem("connectedWallet");
+          const savedWallet = typeof window !== 'undefined' && window.localStorage ? localStorage.getItem("connectedWallet") : null;
           if (savedWallet) {
             try {
               const walletData = JSON.parse(savedWallet);
