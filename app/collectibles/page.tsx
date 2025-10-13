@@ -156,7 +156,7 @@ export default function Collectibles() {
                 className="tool-card"
             >
                 <Link
-                    href={collectible.userId ? `/${collectible.userId}/${collectible.title}` : '/'}
+                    href={collectible.userId ? `/collectible/${collectible.userId}/${collectible.title}` : '/'}
                     style={{
                         position: "absolute",
                         inset: 0,
