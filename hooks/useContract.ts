@@ -5,22 +5,114 @@ import { ethers, BrowserProvider } from 'ethers';
 
 // Add your actual contract address here
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS || '';
-import CONTRACT_ABI from '../contracts/abi';
 
-// Alternative RPC endpoints for Westend Alpha
-// Alternative RPC endpoints for Westend Asset Hub (chainId: 420420421)
-const WESTEND_ASSET_HUB_RPC_ENDPOINTS = [
-  'https://westend-asset-hub-eth-rpc.polkadot.io',
+// Alternative RPC endpoints for Paseo Asset Hub (chainId: 420420422)
+const PASEO_RPC_ENDPOINTS = [
+  "https://paseo.rpc.amforc.com/",
+  "https://rpc-paseo.luckyfriday.io/",
+  "https://paseo-rpc.dwellir.com/"
 ];
 
-// For compatibility with the rest of the code, alias to Westend
-const MOONBASE_RPC_ENDPOINTS = WESTEND_ASSET_HUB_RPC_ENDPOINTS;
 
 declare global {
   interface Window {
     ethereum?: any;
   }
 }
+
+// Solidity ABI for EVM (your actual deployed contract)
+const CONTRACT_ABI = [
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "address", "name": "account", "type": "address"},
+      {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
+    "name": "FundsWithdrawn",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "uint256", "name": "id", "type": "uint256"},
+      {"indexed": true, "internalType": "address", "name": "buyer", "type": "address"},
+      {"indexed": false, "internalType": "uint32", "name": "edition", "type": "uint32"},
+      {"indexed": false, "internalType": "uint256", "name": "price", "type": "uint256"}
+    ],
+    "name": "TokenBought",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "uint256", "name": "id", "type": "uint256"},
+      {"indexed": true, "internalType": "address", "name": "creator", "type": "address"},
+      {"indexed": false, "internalType": "uint256", "name": "price", "type": "uint256"},
+      {"indexed": false, "internalType": "uint32", "name": "maxEditions", "type": "uint32"}
+    ],
+    "name": "TokenMinted",
+    "type": "event"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "id", "type": "uint256"}],
+    "name": "buy",
+    "outputs": [{"internalType": "uint32", "name": "", "type": "uint32"}],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "string", "name": "hash", "type": "string"},
+      {"internalType": "uint256", "name": "price", "type": "uint256"},
+      {"internalType": "uint32", "name": "maxEditions", "type": "uint32"}
+    ],
+    "name": "mint",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "withdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "id", "type": "uint256"}],
+    "name": "getTokenInfo",
+    "outputs": [
+      {"internalType": "address", "name": "creator", "type": "address"},
+      {"internalType": "string", "name": "hash", "type": "string"},
+      {"internalType": "uint256", "name": "price", "type": "uint256"},
+      {"internalType": "uint32", "name": "soldCount", "type": "uint32"},
+      {"internalType": "uint32", "name": "maxEditions", "type": "uint32"},
+      {"internalType": "bool", "name": "exists", "type": "bool"}
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "account", "type": "address"}],
+    "name": "getPendingBalance",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "nextId",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  }
+] as const;
+
 
 export const useContract = () => {
   const [contract, setContract] = useState<ethers.Contract | null>(null);
@@ -52,7 +144,7 @@ export const useContract = () => {
       console.log('🌐 Current network:', {
         chainId,
         name: network.name,
-        expected: 420420421 // Westend Asset Hub
+        expected: 420420422 // Westend Asset Hub
       });
 
       const signer = await web3Provider.getSigner();
@@ -70,7 +162,7 @@ export const useContract = () => {
       setIsConnected(true);
 
       // Only test contract if we have the address and we're on the right network
-      if (CONTRACT_ADDRESS && chainId === 1287) {
+      if (CONTRACT_ADDRESS && chainId === 420420422) {
         await testContract(web3Provider, signer);
       } else if (!CONTRACT_ADDRESS) {
         console.warn('⚠️ No contract address configured');
@@ -125,7 +217,7 @@ export const useContract = () => {
         console.warn('⚠️ getCode via MetaMask failed:', error.message);
         
         // Method 2: Try with alternative RPC provider
-        for (const rpcUrl of WESTEND_ASSET_HUB_RPC_ENDPOINTS) {
+        for (const rpcUrl of PASEO_RPC_ENDPOINTS) {
           try {
             console.log('🔄 Trying alternative RPC:', rpcUrl);
             const altProvider = new ethers.JsonRpcProvider(rpcUrl);
@@ -173,7 +265,7 @@ export const useContract = () => {
               // If MetaMask provider fails, try with read-only provider
               if (error.message.includes('Timeout') || error.code === -32603) {
                 console.log('🔄 Retrying nextId with alternative RPC...');
-                for (const rpcUrl of WESTEND_ASSET_HUB_RPC_ENDPOINTS) {
+                for (const rpcUrl of PASEO_RPC_ENDPOINTS) {
                   try {
                     const altProvider = new ethers.JsonRpcProvider(rpcUrl);
                     const altContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, altProvider);
@@ -208,7 +300,7 @@ export const useContract = () => {
               // Similar fallback for owner function
               if (error.message.includes('Timeout') || error.code === -32603) {
                 console.log('🔄 Retrying owner with alternative RPC...');
-                for (const rpcUrl of WESTEND_ASSET_HUB_RPC_ENDPOINTS) {
+                for (const rpcUrl of PASEO_RPC_ENDPOINTS) {
                   try {
                     const altProvider = new ethers.JsonRpcProvider(rpcUrl);
                     const altContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, altProvider);
@@ -328,7 +420,7 @@ export const useContract = () => {
     }
   };
 
-  const switchToWestEnd = async () => {
+  const switchToPaseo = async () => {
     if (typeof window === 'undefined' || !window.ethereum) {
       alert('Please install MetaMask');
       return;
@@ -338,7 +430,7 @@ export const useContract = () => {
       setIsLoading(true);
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x420420421' }], // 110105 in hex
+        params: [{ chainId: '420420422' }], // 110105 in hex
       });
       
       // Wait a bit for the network to switch
@@ -352,16 +444,16 @@ export const useContract = () => {
             method: 'wallet_addEthereumChain',
             params: [
               {
-              chainId: '0x420420421',
-              chainName: 'Westend Asset Hub',
+              chainId: '420420422', // Paseo Testnet
+              chainName: 'Paseo Asset Hub',
               nativeCurrency: {
-                name: 'WND',
-                symbol: 'WND',
+                name: 'PAS',
+                symbol: 'PAS',
                 decimals: 18,
               },
-              rpcUrls: WESTEND_ASSET_HUB_RPC_ENDPOINTS,
+              rpcUrls: PASEO_RPC_ENDPOINTS,
               blockExplorerUrls: [
-                'https://westend.subscan.io/', // Westend block explorer
+                'https://paseo.subscan.io/', // Paseo block explorer
               ],
               },
             ],
@@ -433,7 +525,7 @@ const debugContract = async () => {
 
     // Test 2: Alternative RPC providers
     if (!contractCode || contractCode === '0x') {
-      for (const rpcUrl of WESTEND_ASSET_HUB_RPC_ENDPOINTS) {
+      for (const rpcUrl of PASEO_RPC_ENDPOINTS) {
         try {
           const altProvider = new ethers.JsonRpcProvider(rpcUrl);
           const code = await altProvider.getCode(CONTRACT_ADDRESS);
@@ -688,7 +780,7 @@ const mintTrack = async (hash: string, price: bigint | string, maxEditions: numb
 
   if (!contract) throw new Error('Contract not initialized');
   if (!isConnected) throw new Error('Wallet not connected');
-  if (networkId !== 1287) throw new Error('Please switch to Westend network');
+  if (networkId !== 420420422) throw new Error('Please switch to Westend network');
   
   try {
     console.log('🔨 Minting track with params:', { hash, price, maxEditions });
@@ -790,7 +882,7 @@ Error: ${gasError.message}`);
 
   const buyTrack = async (tokenId: number, price: string) => {
     if (!contract) throw new Error('Contract not initialized');
-    if (networkId !== 1287) throw new Error('Please switch to Westend Alpha network');
+    if (networkId !== 420420422) throw new Error('Please switch to Westend Alpha network');
     
     try {
       const priceWei = ethers.parseEther(price);
@@ -804,7 +896,7 @@ Error: ${gasError.message}`);
 
   const withdrawEarnings = async () => {
     if (!contract) throw new Error('Contract not initialized');
-    if (networkId !== 1287) throw new Error('Please switch to Westend Alpha network');
+    if (networkId !== 420420422) throw new Error('Please switch to Westend Alpha network');
     
     try {
       const tx = await contract.withdraw();
@@ -864,7 +956,7 @@ Error: ${gasError.message}`);
     networkId,
     contractStatus,
     connectWallet,
-    switchToWestEnd,
+    switchToPaseo,
     mintTrack,
     buyTrack,
     withdrawEarnings,

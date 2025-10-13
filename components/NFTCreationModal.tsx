@@ -75,7 +75,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
     isLoading,
     networkId,
     connectWallet,
-    switchToMoonbeam,
+    switchToPaseo,
     mintTrack,
     buyTrack,
     withdrawEarnings,
@@ -170,7 +170,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
   // Add network switching handler
   const handleSwitchNetwork = async () => {
     try {
-      await switchToMoonbeam();
+      await switchToPaseo();
     } catch (error: any) {
       console.error('Failed to switch network:', error);
       alert('Failed to switch network: ' + error.message);
@@ -334,7 +334,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
 
       setUploadProgress('Calculating price...');
       
-      // Convert USD to DEV tokens properly for Moonbase Alpha
+      // Convert USD to DEV tokens properly for Paseo Testnet
       const priceInDev = priceUsd ? (priceUsd / devUsdPrice) : 0.1;
       const priceInWei = ethers.parseEther(priceInDev.toString());
       
@@ -390,7 +390,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         } else if (contractError.message?.includes('user rejected')) {
           throw new Error('Transaction cancelled by user.');
         } else if (contractError.message?.includes('chain')) {
-          throw new Error('Wrong network. Please switch to Moonbase Alpha network.');
+          throw new Error('Wrong network. Please switch to Paseo Testnet network.');
         } else if (contractError.reason) {
           throw new Error(`Contract error: ${contractError.reason}`);
         }
@@ -409,7 +409,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
       } else if (error.code === 4001) {
         userMessage = 'Transaction cancelled by user.';
       } else if (error.message?.includes('chain')) {
-        userMessage = 'Wrong network detected. Please switch to Moonbase Alpha network in your wallet.';
+        userMessage = 'Wrong network detected. Please switch to Paseo Testnet network in your wallet.';
       } else if (error.message?.includes('insufficient funds')) {
         userMessage = 'Insufficient DEV tokens. Please add more DEV to your wallet for gas fees.';
       }
@@ -434,8 +434,8 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
       return;
     }
 
-    if (networkId && networkId !== 1287) {
-      alert("Please switch to Moonbase Alpha network to mint NFTs.");
+    if (networkId && networkId !== 421) {
+      alert("Please switch to Paseo Testnet network to mint NFTs.");
       return;
     }
 
@@ -592,11 +592,11 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         )}
 
         {/* Wrong Network Warning */}
-        {isConnected && networkId && networkId !== 1287 && (
+        {isConnected && networkId && networkId !== 421 && (
           <div className="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
             <div className="flex items-center justify-between">
               <div className="text-sm text-orange-800">
-                ⚠️ Wrong network detected. Please switch to Moonbase Alpha network (Chain ID: 1287).
+                ⚠️ Wrong network detected. Please switch to Paseo Testnet network (Chain ID: 421).
                 <br />
                 <span className="text-xs">Current network: {networkId}</span>
               </div>
@@ -612,10 +612,10 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         )}
 
         {/* Connected Status */}
-        {isConnected && account && networkId === 1287 && (
+        {isConnected && account && networkId === 421 && (
           <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
             <div className="text-sm text-green-800">
-              ✅ Connected: {account.slice(0, 6)}...{account.slice(-4)} | Network: Moonbase Alpha
+              ✅ Connected: {account.slice(0, 6)}...{account.slice(-4)} | Network: Paseo Testnet
               {contract && (
                 <span className="ml-2">
                   | Contract: 
@@ -952,7 +952,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
               !priceUsd || 
               !audioFile || 
               !isConnected || 
-              (networkId && networkId !== 1287) ||
+              (networkId && networkId !== 421) ||
               (audioFile && audioFile.size > 50 * 1024 * 1024)
             }
             className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -965,9 +965,9 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         <div className="mt-3 text-xs text-gray-500">
           <span className="text-red-500">*</span> Required fields | 
           {!isConnected && ' Wallet connection required |'}
-          {isConnected && networkId !== 1287 && ' Moonbase Alpha network required |'}
-          {isConnected && networkId === 1287 && ' ✅ Ready to mint |'}
-          {' NFT minting on Moonbase Alpha'}
+          {isConnected && networkId !== 421 && ' Paseo Testnet network required |'}
+          {isConnected && networkId === 421 && ' ✅ Ready to mint |'}
+          {' NFT minting on Paseo Testnet'}
         </div>
       </div>
     </div>

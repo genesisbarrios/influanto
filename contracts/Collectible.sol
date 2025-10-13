@@ -15,12 +15,12 @@ contract MusicNFT {
     // Reentrancy protection
     bool private locked;
     
-    // Westend Asset Hub specific settings
-    uint256 public constant MIN_PRICE = 1e10; // 0.01 WND minimum (12 decimals)
-    uint32 public constant MAX_EDITIONS = 1000; // Reasonable limit for Westend
-    uint256 public constant MAX_GAS = 2000000; // Gas limit for Westend Asset Hub
+    // Paseo Testnet specific settings
+    uint256 public constant MIN_PRICE = 1e16; // 0.01 PAS minimum (18 decimals)
+    uint32 public constant MAX_EDITIONS = 1000; // Reasonable limit for Paseo
+    uint256 public constant MAX_GAS = 2000000; // Gas limit for Paseo testnet
     
-    // Events for better transparency on Westend
+    // Events for better transparency on Paseo
     event TokenMinted(uint256 indexed id, address indexed creator, uint256 price, uint32 maxEditions);
     event TokenBought(uint256 indexed id, address indexed buyer, uint32 edition, uint256 price);
     event FundsWithdrawn(address indexed account, uint256 amount);
@@ -42,9 +42,9 @@ contract MusicNFT {
     }
     
     /**
-     * @dev Mint a new music NFT with Westend Asset Hub optimizations
+     * @dev Mint a new music NFT with Paseo testnet optimizations
      * @param hash IPFS hash of the music metadata
-     * @param price Price per edition in WND (minimum 0.01 WND)
+     * @param price Price per edition in PAS (minimum 0.01 PAS)
      * @param maxEditions Maximum number of editions (max 1000)
      */
     function mint(string memory hash, uint256 price, uint32 maxEditions) 
@@ -52,7 +52,7 @@ contract MusicNFT {
         returns (uint256) 
     {
         require(bytes(hash).length > 0, "Hash cannot be empty");
-        require(price >= MIN_PRICE, "Price too low (min 0.01 WND)");
+        require(price >= MIN_PRICE, "Price too low (min 0.01 PAS)");
         require(maxEditions > 0 && maxEditions <= MAX_EDITIONS, "Invalid max editions (1-1000)");
         
         uint256 id = nextId++;
@@ -89,7 +89,7 @@ contract MusicNFT {
         pending[creators[id]] += creatorAmount;
         pending[owner] += platformAmount;
         
-        // Handle refund using call for Westend Asset Hub compatibility
+        // Handle refund using call for Paseo testnet compatibility
         if (msg.value > prices[id]) {
             uint256 refund = msg.value - prices[id];
             (bool success, ) = payable(msg.sender).call{value: refund, gas: 21000}("");
@@ -114,7 +114,7 @@ contract MusicNFT {
         // Update state before external call (CEI pattern)
         pending[msg.sender] = 0;
         
-        // Use call instead of transfer for Westend Asset Hub
+        // Use call instead of transfer for Paseo testnet
         (bool success, ) = payable(msg.sender).call{value: amount, gas: 21000}("");
         require(success, "Withdrawal failed");
         
@@ -237,5 +237,27 @@ contract MusicNFT {
         returns (uint256) 
     {
         return nextId - 1;
+    }
+
+    /**
+     * @dev Paseo testnet specific helper functions
+     */
+    function getNetworkInfo() 
+        public 
+        pure 
+        returns (string memory networkName, uint256 chainId, string memory currency) 
+    {
+        return ("Paseo Testnet", 420420422, "PAS");
+    }
+    
+    /**
+     * @dev Get minimum price in human readable format
+     */
+    function getMinPriceFormatted() 
+        public 
+        pure 
+        returns (string memory) 
+    {
+        return "0.01 PAS";
     }
 }

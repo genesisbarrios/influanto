@@ -32,6 +32,7 @@ interface UserProfile {
   name: string;
   email: string;
   walletAddress?: string;
+  Id?: string;
 }
 
 type WalletType = 'polkadot' | 'evm';
@@ -753,17 +754,20 @@ const Collectibles: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {collectibles.length > 0 &&
           collectibles.map((collectible) => (
-            <div
+            <a
               key={collectible._id}
-              className="border rounded-lg shadow hover:shadow-lg transition cursor-pointer overflow-hidden"
+              href={`https://influanto.com/collectible/${userProfile?.Id || userProfile?.name}/${encodeURIComponent(collectible.title)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border rounded-lg shadow hover:shadow-lg transition cursor-pointer overflow-hidden block"
             >
               <img
-                src={collectible.imageUrl || "/placeholder.png"}
-                alt={collectible.title}
-                className="w-full h-48 object-cover"
+          src={collectible.imageUrl || "/placeholder.png"}
+          alt={collectible.title}
+          className="w-full h-48 object-cover"
               />
               <h3 className="p-2 text-center font-semibold">{collectible.title}</h3>
-            </div>
+            </a>
           ))}
 
         {/* Create Collectible Button */}

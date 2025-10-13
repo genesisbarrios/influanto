@@ -105,16 +105,17 @@ const SOLIDITY_ABI = [
 ] as const;
 
 // Network configurations - PASEO TESTNET EVM
-const CONTRACT_ADDRESS_EVM = process.env.NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS || '';
-const PASEO_EVM_RPC_OPTIONS = [
-  'https://paseo.rpc.amforc.com/',
+const PASEO_RPC_ENDPOINTS = [
+  'https://paseo-asset-hub-eth-rpc.polkadot.io/',
+  'wss://paseo-asset-hub-eth-rpc.polkadot.io',
   'https://rpc-paseo.luckyfriday.io/',
-  'https://paseo-rpc.dwellir.com/',
-  'https://rpc.ibp.network/paseo'
+  'https://paseo-rpc.dwellir.com/'
 ];
-const PASEO_CHAIN_ID = '0x1A5'; // 421 in hex (where your contract is)
-const PASEO_CHAIN_ID_DECIMAL = 421; // Updated decimal value
 
+const PASEO_EVM_RPC = PASEO_RPC_ENDPOINTS[0]; // Use first as primary
+const PASEO_CHAIN_ID = '0x1A5'; // 421 in hex
+const PASEO_CHAIN_ID_DECIMAL = 421;
+const CONTRACT_ADDRESS_EVM = process.env.NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS || '';
 type WalletType = 'polkadot' | 'metamask';
 
 interface ConnectedWallet {
@@ -190,17 +191,18 @@ export default function TestContract() {
   const [viewTokenId, setViewTokenId] = useState<string>('1');
 
   // Paseo Asset Hub EVM network config
- const paseoNetwork = {
-  chainId: '0x1A5', // 421 in hex  
-  chainName: 'Paseo Testnet',
-  nativeCurrency: {
-    name: 'PAS',
-    symbol: 'PAS', 
-    decimals: 18
-  },
-  rpcUrls: PASEO_EVM_RPC_OPTIONS, // Use Paseo RPC instead
-  blockExplorerUrls: ['https://paseo.subscan.io/']
-};
+  const paseoNetwork = {
+    chainId: '0x1A5', // 421 in hex  
+    chainName: 'Paseo Asset Hub EVM',
+    nativeCurrency: {
+      name: 'PAS',
+      symbol: 'PAS', 
+      decimals: 18
+    },
+    rpcUrls: PASEO_RPC_ENDPOINTS, // Multiple RPC options for wallet
+    blockExplorerUrls: ['https://paseo.subscan.io/']
+  };
+
 
   // Initialize contract when wallet connects (only for EVM wallets)
   useEffect(() => {
@@ -291,21 +293,24 @@ export default function TestContract() {
         
         // If we're already on the right network, don't switch
         if (Number(network.chainId) === 421) {
-          console.log('✅ Already on Paseo Asset Hub EVM');
+          console.log('✅ Already on Paseo Asset Hub EVM (421)');
           setNetworkStatus(`✅ Connected to ${walletName} on Paseo Asset Hub EVM (Chain ID: ${network.chainId})`);
         } else {
           // Try to switch to Paseo Asset Hub EVM
+          console.log(`⚠️ Wrong network detected. Current: ${network.chainId}, Need: 421`);
           try {
             await switchToPaseo();
             setNetworkStatus(`✅ Connected to ${walletName} on Paseo Asset Hub EVM`);
           } catch (networkError: any) {
             console.warn('⚠️ Network switch failed, continuing with current network:', networkError.message);
-            setNetworkStatus(`⚠️ Connected to ${walletName} on ${network.name} (Chain ID: ${network.chainId})`);
+            setNetworkStatus(`⚠️ Connected to ${walletName} on ${network.name} (Chain ID: ${network.chainId}) - Need Chain ID 421`);
+            setError(`Wrong network! You're on Chain ID ${network.chainId} but need Chain ID 421 (Paseo Asset Hub EVM). Please switch networks in your wallet.`);
           }
         }
       } catch (networkCheckError: any) {
         console.warn('⚠️ Could not check network, continuing...', networkCheckError.message);
-        setNetworkStatus(`⚠️ Connected to ${walletName} (Network check failed)`);
+        setNetworkStatus(`⚠️ Connected to ${walletName} (Network check failed - RPC issues)`);
+        setError(`Network check failed: ${networkCheckError.message}. This might be an RPC connectivity issue.`);
       }
 
       const signer = await web3Provider.getSigner();
