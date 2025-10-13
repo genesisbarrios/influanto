@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWallet, faTimes, faExternalLinkAlt, faExclamationTriangle, faCopy, faUser, faMusic } from "@fortawesome/free-solid-svg-icons";
-import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 // Force dynamic rendering to prevent SSR issues
+import { Suspense } from 'react';
+// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 // Polkadot imports - keep for future use
@@ -792,7 +793,6 @@ export default function TestContract() {
 
   return (
 <div>
-    <Header />
     <div className="p-8 max-w-6xl mx-auto">
       {/* Install Dialog */}
       {showInstallDialog && (
