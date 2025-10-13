@@ -50,7 +50,7 @@ interface ConnectedWallet {
   source?: string;
 }
 
-const Collectibles: React.FC = () => {
+const Collectibles = () => {
   // Add mounted state to prevent SSR issues
   const [mounted, setMounted] = useState(false);
   const [wallet, setWallet] = useState<ConnectedWallet | null>(null);
