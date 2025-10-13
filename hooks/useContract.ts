@@ -5,217 +5,16 @@ import { ethers, BrowserProvider } from 'ethers';
 
 // Add your actual contract address here
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS || '';
+import CONTRACT_ABI from '../contracts/abi';
 
-// Use the exact ABI from your contract.abi file
-const CONTRACT_ABI = [
-  {
-    "inputs": [],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "id",
-        "type": "uint256"
-      }
-    ],
-    "name": "buy",
-    "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "",
-        "type": "uint32"
-      }
-    ],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "creators",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "editions",
-    "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "",
-        "type": "uint32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "hashes",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "hash",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "price",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint32",
-        "name": "maxEditions",
-        "type": "uint32"
-      }
-    ],
-    "name": "mint",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "nextId",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "pending",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "prices",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "sold",
-    "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "",
-        "type": "uint32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "withdraw",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
+// Alternative RPC endpoints for Westend Alpha
+// Alternative RPC endpoints for Westend Asset Hub (chainId: 420420421)
+const WESTEND_ASSET_HUB_RPC_ENDPOINTS = [
+  'https://westend-asset-hub-eth-rpc.polkadot.io',
 ];
 
-// Alternative RPC endpoints for Moonbase Alpha
-const MOONBASE_RPC_ENDPOINTS = [
-  'https://rpc.api.moonbase.moonbeam.network',
-  'https://moonbase-alpha.public.blastapi.io',
-  'https://moonbeam-alpha.api.onfinality.io/public'
-];
+// For compatibility with the rest of the code, alias to Westend
+const MOONBASE_RPC_ENDPOINTS = WESTEND_ASSET_HUB_RPC_ENDPOINTS;
 
 declare global {
   interface Window {
@@ -253,7 +52,7 @@ export const useContract = () => {
       console.log('🌐 Current network:', {
         chainId,
         name: network.name,
-        expected: 1287 // Moonbase Alpha
+        expected: 420420421 // Westend Asset Hub
       });
 
       const signer = await web3Provider.getSigner();
@@ -326,7 +125,7 @@ export const useContract = () => {
         console.warn('⚠️ getCode via MetaMask failed:', error.message);
         
         // Method 2: Try with alternative RPC provider
-        for (const rpcUrl of MOONBASE_RPC_ENDPOINTS) {
+        for (const rpcUrl of WESTEND_ASSET_HUB_RPC_ENDPOINTS) {
           try {
             console.log('🔄 Trying alternative RPC:', rpcUrl);
             const altProvider = new ethers.JsonRpcProvider(rpcUrl);
@@ -374,7 +173,7 @@ export const useContract = () => {
               // If MetaMask provider fails, try with read-only provider
               if (error.message.includes('Timeout') || error.code === -32603) {
                 console.log('🔄 Retrying nextId with alternative RPC...');
-                for (const rpcUrl of MOONBASE_RPC_ENDPOINTS) {
+                for (const rpcUrl of WESTEND_ASSET_HUB_RPC_ENDPOINTS) {
                   try {
                     const altProvider = new ethers.JsonRpcProvider(rpcUrl);
                     const altContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, altProvider);
@@ -409,7 +208,7 @@ export const useContract = () => {
               // Similar fallback for owner function
               if (error.message.includes('Timeout') || error.code === -32603) {
                 console.log('🔄 Retrying owner with alternative RPC...');
-                for (const rpcUrl of MOONBASE_RPC_ENDPOINTS) {
+                for (const rpcUrl of WESTEND_ASSET_HUB_RPC_ENDPOINTS) {
                   try {
                     const altProvider = new ethers.JsonRpcProvider(rpcUrl);
                     const altContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, altProvider);
@@ -529,7 +328,7 @@ export const useContract = () => {
     }
   };
 
-  const switchToMoonbeam = async () => {
+  const switchToWestEnd = async () => {
     if (typeof window === 'undefined' || !window.ethereum) {
       alert('Please install MetaMask');
       return;
@@ -539,7 +338,7 @@ export const useContract = () => {
       setIsLoading(true);
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x507' }], // 1287 in hex
+        params: [{ chainId: '0x420420421' }], // 110105 in hex
       });
       
       // Wait a bit for the network to switch
@@ -549,34 +348,36 @@ export const useContract = () => {
     } catch (switchError: any) {
       if (switchError.code === 4902) {
         try {
-          await window.ethereum.request({
+            await window.ethereum.request({
             method: 'wallet_addEthereumChain',
             params: [
               {
-                chainId: '0x507',
-                chainName: 'Moonbase Alpha',
-                nativeCurrency: {
-                  name: 'DEV',
-                  symbol: 'DEV',
-                  decimals: 18,
-                },
-                rpcUrls: ['https://rpc.api.moonbase.moonbeam.network'],
-                blockExplorerUrls: ['https://moonbase.moonscan.io/'],
+              chainId: '0x420420421',
+              chainName: 'Westend Asset Hub',
+              nativeCurrency: {
+                name: 'WND',
+                symbol: 'WND',
+                decimals: 18,
+              },
+              rpcUrls: WESTEND_ASSET_HUB_RPC_ENDPOINTS,
+              blockExplorerUrls: [
+                'https://westend.subscan.io/', // Westend block explorer
+              ],
               },
             ],
-          });
+            });
           
           // Wait for network to be added and switched
           await new Promise(resolve => setTimeout(resolve, 2000));
           await initContract();
           
         } catch (addError) {
-          console.error('Failed to add Moonbeam network:', addError);
-          alert('Failed to add Moonbeam network');
+          console.error('Failed to add westend network:', addError);
+          alert('Failed to add Westend network');
         }
       } else {
-        console.error('Failed to switch to Moonbeam:', switchError);
-        alert('Failed to switch to Moonbeam network');
+        console.error('Failed to switch to Westend:', switchError);
+        alert('Failed to switch to Westend network');
       }
     } finally {
       setIsLoading(false);
@@ -632,7 +433,7 @@ const debugContract = async () => {
 
     // Test 2: Alternative RPC providers
     if (!contractCode || contractCode === '0x') {
-      for (const rpcUrl of MOONBASE_RPC_ENDPOINTS) {
+      for (const rpcUrl of WESTEND_ASSET_HUB_RPC_ENDPOINTS) {
         try {
           const altProvider = new ethers.JsonRpcProvider(rpcUrl);
           const code = await altProvider.getCode(CONTRACT_ADDRESS);
@@ -838,9 +639,9 @@ const debugContract = async () => {
         workingFunctions: workingFunctionTests.length,
         totalFunctions: functionTests.length,
         foundMintFunctions: existingMintFunctions.length, // NEW: Count of found mint functions
-        explorerUrl: `https://moonbase.moonscan.io/address/${CONTRACT_ADDRESS}`,
+        explorerUrl: `https://westend.subscan.io/account/${CONTRACT_ADDRESS}`,
         recommendations: workingCodeTests.length === 0 ? 
-          ['Contract not found at address', 'Check deployment on Moonbase Alpha', 'Verify contract address'] :
+          ['Contract not found at address', 'Check deployment on Westend Asset Hub', 'Verify contract address'] :
           workingFunctionTests.length === 0 ?
           ['Contract exists but expected functions are missing', 'This might be a different contract than expected', 'Check if you have the correct contract address', 'Verify the contract was deployed with the expected ABI'] :
           ['Contract is working properly'],
@@ -887,7 +688,7 @@ const mintTrack = async (hash: string, price: bigint | string, maxEditions: numb
 
   if (!contract) throw new Error('Contract not initialized');
   if (!isConnected) throw new Error('Wallet not connected');
-  if (networkId !== 1287) throw new Error('Please switch to Moonbase Alpha network');
+  if (networkId !== 1287) throw new Error('Please switch to Westend network');
   
   try {
     console.log('🔨 Minting track with params:', { hash, price, maxEditions });
@@ -989,7 +790,7 @@ Error: ${gasError.message}`);
 
   const buyTrack = async (tokenId: number, price: string) => {
     if (!contract) throw new Error('Contract not initialized');
-    if (networkId !== 1287) throw new Error('Please switch to Moonbase Alpha network');
+    if (networkId !== 1287) throw new Error('Please switch to Westend Alpha network');
     
     try {
       const priceWei = ethers.parseEther(price);
@@ -1003,7 +804,7 @@ Error: ${gasError.message}`);
 
   const withdrawEarnings = async () => {
     if (!contract) throw new Error('Contract not initialized');
-    if (networkId !== 1287) throw new Error('Please switch to Moonbase Alpha network');
+    if (networkId !== 1287) throw new Error('Please switch to Westend Alpha network');
     
     try {
       const tx = await contract.withdraw();
@@ -1063,7 +864,7 @@ Error: ${gasError.message}`);
     networkId,
     contractStatus,
     connectWallet,
-    switchToMoonbeam,
+    switchToWestEnd,
     mintTrack,
     buyTrack,
     withdrawEarnings,
