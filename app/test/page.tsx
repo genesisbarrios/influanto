@@ -348,48 +348,48 @@ export default function TestContract() {
   }, []);
 
   const checkCurrentNetwork = async () => {
-    if (window.ethereum) {
-      try {
-        // Get current chain ID directly from MetaMask
-        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-        const chainIdNumber = parseInt(chainId, 16);
-        
-        console.log('Current chain ID:', chainIdNumber);
-        
-        let networkName = 'Unknown';
-        switch (chainIdNumber) {
-          case 1287:
-            networkName = 'Moonbase Alpha';
-            break;
-          case 1:
-            networkName = 'Ethereum Mainnet';
-            break;
-          case 11155111:
-            networkName = 'Sepolia Testnet';
-            break;
-          case 137:
-            networkName = 'Polygon Mainnet';
-            break;
-          default:
-            networkName = 'Unknown Network';
+      if (typeof window !== 'undefined' && window.ethereum) {
+        try {
+          // Get current chain ID directly from MetaMask
+          const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+          const chainIdNumber = parseInt(chainId, 16);
+          
+          console.log('Current chain ID:', chainIdNumber);
+          
+          let networkName = 'Unknown';
+          switch (chainIdNumber) {
+            case 1287:
+              networkName = 'Moonbase Alpha';
+              break;
+            case 1:
+              networkName = 'Ethereum Mainnet';
+              break;
+            case 11155111:
+              networkName = 'Sepolia Testnet';
+              break;
+            case 137:
+              networkName = 'Polygon Mainnet';
+              break;
+            default:
+              networkName = 'Unknown Network';
+          }
+          
+          setCurrentNetwork(`${networkName} (${chainIdNumber})`);
+          
+          // If we're on Moonbase Alpha, try to initialize contract
+          if (chainIdNumber === 1287 && wallet?.type === 'evm') {
+            console.log('On correct network, attempting to initialize contract...');
+            setTimeout(() => {
+              initializeContract();
+            }, 1000);
+          }
+          
+        } catch (error) {
+          console.error('Failed to get network:', error);
+          setCurrentNetwork('Unknown');
         }
-        
-        setCurrentNetwork(`${networkName} (${chainIdNumber})`);
-        
-        // If we're on Moonbase Alpha, try to initialize contract
-        if (chainIdNumber === 1287 && wallet?.type === 'evm') {
-          console.log('On correct network, attempting to initialize contract...');
-          setTimeout(() => {
-            initializeContract();
-          }, 1000);
-        }
-        
-      } catch (error) {
-        console.error('Failed to get network:', error);
-        setCurrentNetwork('Unknown');
       }
-    }
-  };
+    };
 
   const verifyContractManually = async () => {
   try {
@@ -1118,7 +1118,7 @@ const switchToMoonbeam = async () => {
 
   return (
     <div className="p-8">
-      {/* ... (keeping all existing wallet dialogs the same) */}
+     
       {/* Wallet Installation Dialog */}
       {showInstallDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -1352,24 +1352,80 @@ const switchToMoonbeam = async () => {
             {/* Add retry button for contract-related errors */}
             {(error.includes('RPC') || error.includes('network') || error.includes('connection') || error.includes('Contract') || error.includes('CALL_EXCEPTION') || error.includes('missing revert data')) && (
             <div className="mt-3 flex gap-2">
-                <button 
-                onClick={() => {
-                    setError(null);
-                    setTimeout(() => initializeContract(), 500);
-                }}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm"
-                >
-                🔄 Retry Connection
-                </button>
-                <button 
-                onClick={() => {
-                    setError(null);
-                    setTimeout(() => debugContract(), 500);
-                }}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm"
-                >
-                🐛 Debug Contract
-                </button>
+            <button 
+            onClick={async () => {
+                try {
+                setError(null);
+                console.log('🐛 Starting debug...');
+                
+                const result = await debugContract();
+                console.log('🐛 Debug result:', result);
+                
+                if (result && result.success) {
+                    const details = result.details;
+                    const message = `🔍 Contract Debug Results:
+
+            📍 Address: ${details?.address}
+            🌐 Network: ${details?.network}
+            📊 Status: ${details?.contractStatus}
+
+            💻 Code Tests:
+            ${details?.codeTests?.map((t: any) => 
+            t.success ? `✅ ${t.method}: ${t.hasCode ? 'Has Code' : 'No Code'} (${t.codeLength} bytes)` : `❌ ${t.method}: ${t.error}`
+            ).join('\n') || 'No code tests performed'}
+
+            🔧 Function Tests:
+            ${details?.functionTests?.map((t: any) => 
+            t.success ? `✅ ${t.function}: ${t.result}` : 
+            `❌ ${t.function}: ${t.error}${t.rawCallSuccess ? ' (but raw call worked)' : ' (raw call also failed)'}`
+            ).join('\n') || 'No function tests performed'}
+
+            🎯 Mint Function Signature Tests:
+            ${details?.mintSignatureTests ? details?.mintSignatureTests.map((t: any) => 
+            `${t.exists ? '✅' : '❌'} ${t.name} (${t.selector})${t.expected ? ' [EXPECTED]' : ''}${t.error ? ` - Error: ${t.error}` : t.rawResult ? ` - Result: ${t.rawResult}` : ''}`
+            ).join('\n') : 'No mint signature tests performed'}
+
+            ${details?.contractAnalysis ? `
+            🔍 Contract Analysis:
+            ${details?.contractAnalysis.commonChecks ? 
+            details?.contractAnalysis.commonChecks.map((c: any) => `${c.success ? '✅' : '❌'} ${c.type} ${c.function}`).join('\n') :
+            details?.contractAnalysis.error || 'No analysis available'
+            }` : ''}
+
+            💡 Summary:
+            - Found ${details?.foundMintFunctions || 0} potential mint function(s)
+            - ${details?.workingFunctions || 0}/${details?.totalFunctions || 0} standard functions working
+
+            💡 Recommendations:
+            ${details?.recommendations?.join('\n') || 'No recommendations available'}
+
+            🚀 Next Steps:
+            ${details?.nextSteps?.join('\n') || 'No next steps available'}
+
+            🔗 Explorer: ${details?.explorerUrl || 'No explorer URL available'}`;
+
+                    alert(message);
+                    
+                    // Also log to console for easier copying
+                    console.log('📋 Full debug results:', details);
+                    
+                } else {
+                    const errorMessage = `❌ Contract Debug Failed: ${result?.error || 'Unknown error - result is null or undefined'}`;
+                    alert(errorMessage);
+                    console.error('🐛 Debug failed:', result);
+                }
+                
+                } catch (error: any) {
+                console.error('❌ Debug function error:', error);
+                const errorMessage = `❌ Debug function failed: ${error.message}`;
+                alert(errorMessage);
+                setError(`Debug failed: ${error.message}`);
+                }
+            }}
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm"
+            >
+            🐛 Debug Contract
+            </button>
             </div>
             )}
         </div>

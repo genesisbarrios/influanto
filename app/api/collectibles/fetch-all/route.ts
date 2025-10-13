@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Connect to MongoDB
+    // Ensure MongoDB connection is established before querying
     await connectMongo();
 
     const { searchParams } = new URL(request.url);
