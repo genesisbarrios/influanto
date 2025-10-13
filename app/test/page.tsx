@@ -659,6 +659,9 @@ const initializeContract = async () => {
     
     while (attempts < maxAttempts) {
       try {
+        if (!web3Provider) {
+          throw new Error('web3Provider is undefined. Cannot get network information.');
+        }
         network = await web3Provider.getNetwork();
         console.log('Network retrieved:', network);
         break;
@@ -675,7 +678,7 @@ const initializeContract = async () => {
       }
     }
 
-    const chainId = typeof network.chainId === 'bigint' ? Number(network.chainId) : network.chainId;
+    const chainId = typeof network?.chainId === 'bigint' ? Number(network.chainId) : network?.chainId;
     console.log('Chain ID:', chainId);
     
     // Check if we're on Moonbase Alpha
@@ -691,6 +694,9 @@ const initializeContract = async () => {
       contractSigner = await metaMaskProvider.getSigner();
     } else {
       // Fallback to MetaMask provider
+      if (!web3Provider) {
+        throw new Error('No web3 provider available to get signer.');
+      }
       contractSigner = await web3Provider.getSigner();
     }
 
@@ -718,6 +724,9 @@ const initializeContract = async () => {
     if (!codeCheckSuccess) {
       // Final attempt with MetaMask provider
       try {
+        if (!web3Provider) {
+          throw new Error('No web3 provider available to check contract code.');
+        }
         contractCode = await web3Provider.getCode(CONTRACT_ADDRESS);
         console.log('Contract code check via MetaMask:', contractCode.length);
       } catch (finalError) {
@@ -770,12 +779,12 @@ const initializeContract = async () => {
 
     setContract(musicContract);
     setProvider(web3Provider);
-    setCurrentNetwork(`${network.name || 'Moonbase Alpha'} (${chainId})`);
+    setCurrentNetwork(`${network?.name || 'Moonbase Alpha'} (${chainId})`);
     setError(null);
     
     console.log('✅ Contract initialized successfully');
     console.log('- Address:', CONTRACT_ADDRESS);
-    console.log('- Network:', network.name, chainId);
+    console.log('- Network:', network?.name, chainId);
     console.log('- User:', userAddress);
     
   } catch (error: any) {
