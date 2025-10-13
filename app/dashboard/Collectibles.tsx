@@ -74,11 +74,11 @@ const Collectibles = () => {
   }, []);
 
 
-  useEffect(() => {
-    if (mounted && typeof window !== 'undefined' && window.ethereum) {
-      checkMetaMaskConnection();
-    }
-  }, [mounted]);
+  // useEffect(() => {
+  //   if (mounted && typeof window !== 'undefined' && window.ethereum) {
+  //     checkMetaMaskConnection();
+  //   }
+  // }, [mounted]);
 
 
   // Fetch user profile on page load
