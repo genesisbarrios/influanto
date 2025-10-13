@@ -413,7 +413,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         {!isConnected && (
           <div className="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
             <div className="text-sm text-yellow-800">
-              ⚠️ Wallet not connected. NFT will be uploaded to IPFS but won't be minted on blockchain until wallet is connected.
+              ⚠️ Wallet not connected. NFT will be uploaded to IPFS but won&apos;t be minted on blockchain until wallet is connected.
             </div>
           </div>
         )}
