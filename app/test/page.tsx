@@ -208,6 +208,7 @@ export default function TestContract() {
   const [availableAccounts, setAvailableAccounts] = useState<InjectedAccountWithMeta[]>([]);
   const [testResults, setTestResults] = useState<any>({});
   const [error, setError] = useState<string | null>(null);
+  const [networkSwitchStatus, setNetworkSwitchStatus] = useState<string>('');
 
   // Judge inputs
   const [judgeTrackId, setJudgeTrackId] = useState<string>('1');
@@ -276,136 +277,269 @@ export default function TestContract() {
     }
   }, []);
 
-  // Handle extension errors
+  // Handle extension errors - IMPROVED ERROR SUPPRESSION
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
-      if (event.error?.message?.includes('chrome.runtime.sendMessage')) {
-        console.warn('Extension error ignored:', event.error);
+      const errorMessage = event.error?.message || event.message || '';
+      
+      // Suppress known extension errors
+      if (
+        errorMessage.includes('chrome.runtime.sendMessage') ||
+        errorMessage.includes('Extension context invalidated') ||
+        errorMessage.includes('Cannot access') ||
+        errorMessage.includes('runtime.sendMessage')
+      ) {
+        console.warn('Extension error suppressed:', errorMessage);
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+      }
+      
+      // Only show meaningful errors
+      if (errorMessage && !errorMessage.includes('extension')) {
+        setError(errorMessage);
+      }
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const errorMessage = event.reason?.message || event.reason || '';
+      
+      // Suppress extension-related promise rejections
+      if (
+        typeof errorMessage === 'string' && (
+          errorMessage.includes('chrome.runtime.sendMessage') ||
+          errorMessage.includes('Extension context invalidated') ||
+          errorMessage.includes('runtime.sendMessage')
+        )
+      ) {
+        console.warn('Extension promise rejection suppressed:', errorMessage);
         event.preventDefault();
         return;
       }
-      setError(event.error?.message || 'Unknown error');
     };
 
     window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
   }, []);
 
   const checkCurrentNetwork = async () => {
-  if (window.ethereum) {
-    try {
-      // Get current chain ID directly from MetaMask
-      const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-      const chainIdNumber = parseInt(chainId, 16);
-      
-      console.log('Current chain ID:', chainIdNumber);
-      
-      let networkName = 'Unknown';
-      switch (chainIdNumber) {
-        case 1287:
-          networkName = 'Moonbase Alpha';
-          break;
-        case 1:
-          networkName = 'Ethereum Mainnet';
-          break;
-        case 11155111:
-          networkName = 'Sepolia Testnet';
-          break;
-        case 137:
-          networkName = 'Polygon Mainnet';
-          break;
-        default:
-          networkName = 'Unknown Network';
+    if (window.ethereum) {
+      try {
+        // Get current chain ID directly from MetaMask
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        const chainIdNumber = parseInt(chainId, 16);
+        
+        console.log('Current chain ID:', chainIdNumber);
+        
+        let networkName = 'Unknown';
+        switch (chainIdNumber) {
+          case 1287:
+            networkName = 'Moonbase Alpha';
+            break;
+          case 1:
+            networkName = 'Ethereum Mainnet';
+            break;
+          case 11155111:
+            networkName = 'Sepolia Testnet';
+            break;
+          case 137:
+            networkName = 'Polygon Mainnet';
+            break;
+          default:
+            networkName = 'Unknown Network';
+        }
+        
+        setCurrentNetwork(`${networkName} (${chainIdNumber})`);
+        
+        // If we're on Moonbase Alpha, try to initialize contract
+        if (chainIdNumber === 1287 && wallet?.type === 'evm') {
+          console.log('On correct network, attempting to initialize contract...');
+          setTimeout(() => {
+            initializeContract();
+          }, 1000);
+        }
+        
+      } catch (error) {
+        console.error('Failed to get network:', error);
+        setCurrentNetwork('Unknown');
       }
-      
-      setCurrentNetwork(`${networkName} (${chainIdNumber})`);
-      
-      // If we're on Moonbase Alpha, try to initialize contract
-      if (chainIdNumber === 1287 && wallet?.type === 'evm') {
-        console.log('On correct network, attempting to initialize contract...');
-        setTimeout(() => {
-          initializeContract();
-        }, 1000);
-      }
-      
-    } catch (error) {
-      console.error('Failed to get network:', error);
-      setCurrentNetwork('Unknown');
     }
+  };
+
+  const verifyContractManually = async () => {
+  try {
+    if (!CONTRACT_ADDRESS || !isValidAddress(CONTRACT_ADDRESS)) {
+      alert('Please configure a valid contract address first');
+      return;
+    }
+
+    setError(null);
+    
+    // Check what network we're on
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    const chainIdNumber = parseInt(chainId, 16);
+    
+    if (chainIdNumber !== 1287) {
+      alert(`Wrong network. You're on chain ${chainIdNumber}, but need to be on Moonbase Alpha (1287)`);
+      return;
+    }
+
+    // Try to get contract code using direct RPC call
+    const contractCode = await window.ethereum.request({
+      method: 'eth_getCode',
+      params: [CONTRACT_ADDRESS, 'latest']
+    });
+
+    if (contractCode === '0x' || contractCode === '0x0') {
+      alert(`No contract found at ${CONTRACT_ADDRESS} on Moonbase Alpha. Please verify the contract is deployed.`);
+    } else {
+      alert(`✅ Contract verified! Found ${contractCode.length} bytes of code at ${CONTRACT_ADDRESS}`);
+      // Try to initialize after manual verification
+      setTimeout(() => {
+        initializeContract();
+      }, 1000);
+    }
+    
+  } catch (error: any) {
+    console.error('Manual verification failed:', error);
+    alert(`Verification failed: ${error.message}`);
   }
 };
 
-  const initializeContract = async () => {
+
+const initializeContract = async () => {
+  try {
+    // Check if contract address is configured
+    if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS === '') {
+      throw new Error('Contract address not configured. Please add NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS to your .env.local file');
+    }
+
+    // Validate contract address format
+    if (!isValidAddress(CONTRACT_ADDRESS)) {
+      throw new Error(`Invalid contract address format: ${CONTRACT_ADDRESS}`);
+    }
+
+    console.log('Initializing contract with address:', CONTRACT_ADDRESS);
+
+    // Try ethers v6 first, fallback to v5
+    let web3Provider;
     try {
-      // Check if contract address is configured
-      if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS === '') {
-        throw new Error('Contract address not configured. Please add NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS to your .env.local file');
-      }
+      web3Provider = new ethers.BrowserProvider(window.ethereum);
+      console.log('Using ethers v6 BrowserProvider');
+    } catch {
+      web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+      console.log('Using ethers v5 Web3Provider');
+    }
+    
+    // Get network info with better error handling
+    let network;
+    try {
+      network = await web3Provider.getNetwork();
+      console.log('Network retrieved:', network);
+    } catch (networkError) {
+      console.error('Failed to get network:', networkError);
+      throw new Error(`Failed to get network information. Please ensure MetaMask is connected and try again.`);
+    }
 
-      // Validate contract address format
-      if (!isValidAddress(CONTRACT_ADDRESS)) {
-        throw new Error(`Invalid contract address format: ${CONTRACT_ADDRESS}`);
-      }
+    const chainId = typeof network.chainId === 'bigint' ? Number(network.chainId) : network.chainId;
+    console.log('Chain ID:', chainId);
+    
+    // Check if we're on Moonbase Alpha
+    if (chainId !== 1287) {
+      throw new Error(`Wrong network. Please switch to Moonbase Alpha (Chain ID: 1287). Current: ${chainId}`);
+    }
 
-      // Try ethers v6 first, fallback to v5
-      let web3Provider;
-      try {
-        web3Provider = new ethers.BrowserProvider(window.ethereum);
-      } catch {
-        web3Provider = new ethers.providers.Web3Provider(window.ethereum);
-      }
-      
-      const network = await web3Provider.getNetwork();
-      const chainId = typeof network.chainId === 'bigint' ? Number(network.chainId) : network.chainId;
-      
-      // Check if we're on Moonbase Alpha
-      if (chainId !== 1287) {
-        throw new Error(`Wrong network. Please switch to Moonbase Alpha (Chain ID: 1287). Current: ${chainId}`);
-      }
+    // Get signer with error handling
+    let signer;
+    try {
+      signer = await web3Provider.getSigner();
+      console.log('Signer obtained');
+    } catch (signerError) {
+      console.error('Failed to get signer:', signerError);
+      throw new Error('Failed to get wallet signer. Please ensure MetaMask is unlocked and try again.');
+    }
 
-      const signer = await web3Provider.getSigner();
-      const userAddress = await signer.getAddress();
+    const userAddress = await signer.getAddress();
+    console.log('User address:', userAddress);
+    
+    // Check if the contract exists at the address with better error handling
+    let contractCode;
+    try {
+      console.log('Checking contract code at address:', CONTRACT_ADDRESS);
+      contractCode = await web3Provider.getCode(CONTRACT_ADDRESS);
+      console.log('Contract code length:', contractCode.length);
+    } catch (codeError: any) {
+      console.error('Failed to get contract code:', codeError);
       
-      // Check if the contract exists at the address
-      const contractCode = await web3Provider.getCode(CONTRACT_ADDRESS);
-      if (contractCode === '0x') {
-        throw new Error(`No contract found at address ${CONTRACT_ADDRESS}. Please verify the contract is deployed.`);
+      // Handle specific RPC errors
+      if (codeError.message?.includes('Cannot destructure')) {
+        throw new Error(`RPC error when checking contract. This might be a network connectivity issue or the RPC endpoint is having problems. Please try again in a moment.`);
       }
       
-      const musicContract = new ethers.Contract(
+      throw new Error(`Failed to verify contract deployment: ${codeError.message || 'Unknown error'}`);
+    }
+    
+    if (contractCode === '0x' || contractCode === '0x0') {
+      throw new Error(`No contract found at address ${CONTRACT_ADDRESS}. Please verify the contract is deployed on Moonbase Alpha network.`);
+    }
+    
+    console.log('Contract exists, creating contract instance...');
+    
+    // Create contract instance
+    let musicContract;
+    try {
+      musicContract = new ethers.Contract(
         CONTRACT_ADDRESS,
         CONTRACT_ABI,
         signer
       );
-
-      // Test contract connection with a simple read call
-      try {
-        await musicContract.nextId();
-        console.log('Contract connection verified');
-      } catch (contractError) {
-        console.error('Contract call failed:', contractError);
-        throw new Error(`Contract connection failed. The contract may not have the expected functions.`);
-      }
-
-      setContract(musicContract);
-      setProvider(web3Provider);
-      setCurrentNetwork(`${network.name || 'Unknown'} (${chainId})`);
-      setError(null);
-      
-      console.log('Contract initialized successfully:');
-      console.log('- Address:', CONTRACT_ADDRESS);
-      console.log('- Network:', network.name, chainId);
-      console.log('- User:', userAddress);
-      
-    } catch (error: any) {
-      console.error('Failed to initialize contract:', error);
-      setError(error.message || 'Failed to initialize contract');
-      setContract(null);
-      setProvider(null);
+      console.log('Contract instance created');
+    } catch (contractError) {
+      console.error('Failed to create contract instance:', contractError);
+      throw new Error('Failed to create contract instance. Please check the contract ABI.');
     }
-  };
 
-  // ... (keeping all existing wallet connection functions the same)
+    // Test contract connection with a simple read call
+    try {
+      console.log('Testing contract connection...');
+      const nextId = await musicContract.nextId();
+      console.log('Contract connection verified, next ID:', nextId.toString());
+    } catch (contractError: any) {
+      console.error('Contract call failed:', contractError);
+      
+      // More specific error messages
+      if (contractError.message?.includes('execution reverted')) {
+        throw new Error(`Contract call failed: The contract function reverted. This might mean the contract is not properly deployed or has different functions than expected.`);
+      } else if (contractError.message?.includes('NETWORK_ERROR')) {
+        throw new Error(`Network error when calling contract. Please check your internet connection and try again.`);
+      }
+      
+      throw new Error(`Contract connection test failed: ${contractError.message || 'The contract may not have the expected functions or there might be a network issue.'}`);
+    }
+
+    setContract(musicContract);
+    setProvider(web3Provider);
+    setCurrentNetwork(`${network.name || 'Unknown'} (${chainId})`);
+    setError(null);
+    
+    console.log('✅ Contract initialized successfully');
+    console.log('- Address:', CONTRACT_ADDRESS);
+    console.log('- Network:', network.name, chainId);
+    console.log('- User:', userAddress);
+    
+  } catch (error: any) {
+    console.error('❌ Failed to initialize contract:', error);
+    setError(error.message || 'Failed to initialize contract');
+    setContract(null);
+    setProvider(null);
+  }
+};
+
   const detectWallets = async () => {
     setIsConnecting(true);
     setSelectedWalletType(null);
@@ -417,7 +551,19 @@ export default function TestContract() {
     try {
       setIsConnecting(true);
       
-      const extensions = await web3Enable("Influanto Test");
+      // Suppress console errors during web3Enable
+      const originalConsoleError = console.error;
+      console.error = (...args) => {
+        const message = args[0]?.toString() || '';
+        if (!message.includes('runtime.sendMessage') && !message.includes('Extension')) {
+          originalConsoleError(...args);
+        }
+      };
+      
+      const extensions = await web3Enable("Influanto Test").catch(() => []);
+      
+      // Restore console.error
+      console.error = originalConsoleError;
       
       if (extensions.length === 0) {
         setShowInstallDialog(true);
@@ -429,7 +575,7 @@ export default function TestContract() {
       const walletNames = extensions.map(ext => ext.name);
       setAvailableWallets(walletNames);
 
-      const accounts = await web3Accounts();
+      const accounts = await web3Accounts().catch(() => []);
       setAvailableAccounts(accounts);
 
       if (accounts.length === 0) {
@@ -514,77 +660,102 @@ export default function TestContract() {
     }
   };
 
-  const switchToMoonbeam = async () => {
+  // Also improve the network switch function with better RPC handling
+const switchToMoonbeam = async () => {
   if (typeof window === 'undefined' || !window.ethereum) {
     alert('Please install MetaMask');
     return;
   }
 
+  setNetworkSwitchStatus('⏳ Switching network...');
+  
   try {
     console.log('Attempting to switch to Moonbase Alpha...');
     
-    // First try to switch to the network
-    await window.ethereum.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: '0x507' }], // 1287 in hex (Moonbase Alpha)
-    });
+    // ALWAYS try to add the network first (safer approach)
+    try {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [
+          {
+            chainId: '0x507', // 1287 in hex
+            chainName: 'Moonbase Alpha',
+            nativeCurrency: {
+              name: 'DEV',
+              symbol: 'DEV',
+              decimals: 18,
+            },
+            // Use multiple RPC URLs for better reliability
+            rpcUrls: [
+              'https://rpc.api.moonbase.moonbeam.network',
+              'https://moonbase-alpha.public.blastapi.io',
+              'https://moonbeam-alpha.api.onfinality.io/public'
+            ],
+            blockExplorerUrls: ['https://moonbase.moonscan.io/'],
+            iconUrls: ['https://moonbeam.network/favicon.ico']
+          },
+        ],
+      });
+      
+      setNetworkSwitchStatus('✅ Network added/updated successfully!');
+      console.log('Network added/updated successfully');
+      
+    } catch (addError: any) {
+      console.log('Add network error (might already exist):', addError.message);
+      
+      // If network already exists, try to switch to it
+      if (addError.code === 4001) {
+        setNetworkSwitchStatus('❌ User cancelled network addition');
+        return;
+      }
+    }
     
-    console.log('Network switched successfully');
+    // Now try to switch to the network
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x507' }], // 1287 in hex
+      });
+      
+      setNetworkSwitchStatus('✅ Successfully switched to Moonbase Alpha!');
+      console.log('Network switched successfully');
+      
+    } catch (switchError: any) {
+      console.log('Switch error:', switchError);
+      
+      if (switchError.code === 4001) {
+        setNetworkSwitchStatus('❌ User cancelled network switch');
+        return;
+      }
+      
+      setNetworkSwitchStatus('⚠️ Please manually switch to Moonbase Alpha in MetaMask');
+    }
     
-    // Wait a bit for network switch, then reinitialize
+    // Wait a bit then check network and reinitialize with longer delay
     setTimeout(async () => {
       await checkCurrentNetwork();
-      await initializeContract();
-    }, 2000);
-    
-  } catch (switchError: any) {
-    console.log('Switch error code:', switchError.code);
-    console.log('Switch error message:', switchError.message);
-    
-    // This error code indicates that the chain has not been added to MetaMask
-    if (switchError.code === 4902 || switchError.message?.includes('Unrecognized chain')) {
-      try {
-        console.log('Adding Moonbase Alpha network...');
-        
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [
-            {
-              chainId: '0x507', // 1287 in hex
-              chainName: 'Moonbase Alpha',
-              nativeCurrency: {
-                name: 'DEV',
-                symbol: 'DEV',
-                decimals: 18,
-              },
-              rpcUrls: ['https://rpc.api.moonbase.moonbeam.network'],
-              blockExplorerUrls: ['https://moonbase.moonscan.io/'],
-            },
-          ],
-        });
-        
-        console.log('Network added successfully');
-        alert('Moonbase Alpha network added! It should switch automatically.');
-        
-        // After adding, the network should switch automatically
-        // But let's wait and then reinitialize
-        setTimeout(async () => {
-          await checkCurrentNetwork();
-          await initializeContract();
-        }, 3000);
-        
-      } catch (addError: any) {
-        console.error('Failed to add Moonbase Alpha network:', addError);
-        alert(`Failed to add Moonbase Alpha network: ${addError.message || 'Unknown error'}`);
+      if (wallet?.type === 'evm') {
+        // Wait longer for network to stabilize
+        setTimeout(() => {
+          console.log('Reinitializing contract after network switch...');
+          initializeContract();
+        }, 2000);
       }
-    } else if (switchError.code === 4001) {
-      // User rejected the request
-      console.log('User rejected network switch');
-      alert('Network switch was cancelled. Please manually switch to Moonbase Alpha network in MetaMask.');
-    } else {
-      console.error('Failed to switch network:', switchError);
-      alert(`Failed to switch network: ${switchError.message || 'Unknown error'}`);
-    }
+      
+      // Clear status after 8 seconds (longer for network issues)
+      setTimeout(() => {
+        setNetworkSwitchStatus('');
+      }, 8000);
+    }, 3000);
+    
+  } catch (error: any) {
+    console.error('Network switch failed:', error);
+    setNetworkSwitchStatus(`❌ Failed: ${error.message || 'Unknown error'}`);
+    
+    // Clear error after 8 seconds
+    setTimeout(() => {
+      setNetworkSwitchStatus('');
+    }, 8000);
   }
 };
 
@@ -1022,6 +1193,15 @@ export default function TestContract() {
           </div>
         </div>
       )}
+
+      {/* Network Switch Status */}
+      {networkSwitchStatus && (
+        <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+          <div className="text-sm text-purple-800">
+            <strong>Network Switch:</strong> {networkSwitchStatus}
+          </div>
+        </div>
+      )}
       
       {/* Contract Info */}
       <div className="mb-6 bg-gray-100 p-4 rounded">
@@ -1066,8 +1246,8 @@ export default function TestContract() {
         </div>
         </div>
 
-        {wallet.type === 'evm' && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+       {wallet.type === 'evm' && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
             <button 
             onClick={switchToMoonbeam}
             className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded text-sm"
@@ -1085,6 +1265,12 @@ export default function TestContract() {
             className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm"
             >
             🔗 Init Contract
+            </button>
+            <button 
+            onClick={verifyContractManually}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded text-sm"
+            >
+            🔍 Verify Contract
             </button>
             <button 
             onClick={() => {
@@ -1107,7 +1293,7 @@ export default function TestContract() {
             <div className="text-sm text-yellow-700 space-y-1">
             <p>1. Open MetaMask extension</p>
             <p>2. Click the network dropdown (currently showing "{currentNetwork}")</p>
-            <p>3. Select "Moonbase Alpha" or click "Add Network" if not visible</p>
+            <p>3. Select &quot;Moonbase Alpha&quot; or click &quot;Add Network&quot; if not visible</p>
             <p>4. Use these network details if adding manually:</p>
             <div className="mt-2 p-2 bg-yellow-100 rounded text-xs font-mono">
                 <div>Network Name: Moonbase Alpha</div>
