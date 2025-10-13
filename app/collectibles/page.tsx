@@ -12,7 +12,6 @@ export default function Collectibles() {
     { title: string; imageUrl: string; audioUrl:string; userId: string; description: string }[]
   >([]);
 
-  // ✅ Move fetchNFTs function INSIDE the component
   const fetchNFTs = async () => {
     try {
       const response = await apiClient.get('/collectibles/fetch-all', {
@@ -36,16 +35,34 @@ export default function Collectibles() {
       }
     } catch (error) {
       console.error('Error fetching collectibles:', error);
+      
+      // Add more detailed error logging
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
       setCollectibles([]);
     }
   };
 
-  // ✅ First useEffect for fetching data
+useEffect(() => {
+    // Handle ethereum injection errors
+    const handleError = (event: ErrorEvent) => {
+      if (event.message?.includes('Cannot redefine property: ethereum')) {
+        console.warn('Ethereum property already defined, ignoring error');
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener('error', handleError);
+    
+    return () => {
+      window.removeEventListener('error', handleError);
+    };
+  }, []);
+
   useEffect(() => {
-    async function fetchCollectibles() {
-      await fetchNFTs();
-    }
-    fetchCollectibles();
+    fetchNFTs();
   }, []);
 
   // ✅ Second useEffect for meta tags
