@@ -45,22 +45,6 @@ export default function Collectibles() {
     }
   };
 
-useEffect(() => {
-    // Handle ethereum injection errors
-    const handleError = (event: ErrorEvent) => {
-      if (event.message?.includes('Cannot redefine property: ethereum')) {
-        console.warn('Ethereum property already defined, ignoring error');
-        event.preventDefault();
-      }
-    };
-
-    window.addEventListener('error', handleError);
-    
-    return () => {
-      window.removeEventListener('error', handleError);
-    };
-  }, []);
-
   useEffect(() => {
     fetchNFTs();
   }, []);
