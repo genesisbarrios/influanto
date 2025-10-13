@@ -159,7 +159,7 @@ const CollectibleMintPage: React.FC = () => {
       console.log('🔍 Fetching collectible:', { userId, title: decodedTitle });
       
       // Fetch collectible by userId and title
-      const response = await apiClient.get('/collectibles/get-one', {
+      const response = await apiClient.get('/musiccollectibles/get-one', {
         params: {
           userId: userId,
           title: decodedTitle

@@ -453,7 +453,7 @@ const connectToPolkadotAccount = async (account: InjectedAccountWithMeta) => {
 
   const fetchNFTs = async () => {
     try {
-      const response = await apiClient.get('/collectibles/get', {
+      const response = await apiClient.get('/musiccollectibles/get', {
         params: {
           limit: 10,
           page: 1,
