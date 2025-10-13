@@ -104,10 +104,6 @@ const SOLIDITY_ABI = [
   }
 ] as const;
 
-
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
-
 // Network configurations - PASEO TESTNET EVM
 const PASEO_RPC_ENDPOINTS = [
   'https://paseo-asset-hub-eth-rpc.polkadot.io/',
