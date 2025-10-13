@@ -932,7 +932,7 @@ const switchToMoonbeam = async () => {
               decimals: 18,
             },
             // Use multiple RPC URLs for better reliability
-            rpcUrls: MOONBEAM_RPC_ENDPOINTS,
+            rpcUrls: MOONBASE_RPC_ENDPOINTS,
             blockExplorerUrls: ['https://moonbase.moonscan.io/'],
             iconUrls: ['https://moonbeam.network/favicon.ico']
           },
@@ -1039,15 +1039,15 @@ const switchToMoonbeam = async () => {
       const tx = await contract.mint("QmTestHash123", priceWei, 10);
       
       console.log('Transaction sent:', tx.hash);
-      setTestResults(prev => ({ ...prev, mint: { status: 'pending', hash: tx.hash } }));
+      setTestResults((prev: any) => ({ ...prev, mint: { status: 'pending', hash: tx.hash } }));
       
       const receipt = await tx.wait();
-      setTestResults(prev => ({ ...prev, mint: { status: 'confirmed', receipt } }));
+      setTestResults((prev: any) => ({ ...prev, mint: { status: 'confirmed', receipt } }));
       console.log('Mint successful:', receipt);
     } catch (error: any) {
       const errorMsg = error?.message || 'Mint failed';
       console.error('Mint failed:', error);
-      setTestResults(prev => ({ ...prev, mint: { error: errorMsg } }));
+      setTestResults((prev: any) => ({ ...prev, mint: { error: errorMsg } }));
       setError(errorMsg);
     }
   };
@@ -1063,15 +1063,15 @@ const switchToMoonbeam = async () => {
       const tx = await contract.buy(1, { value: priceWei });
       
       console.log('Transaction sent:', tx.hash);
-      setTestResults(prev => ({ ...prev, buy: { status: 'pending', hash: tx.hash } }));
+      setTestResults((prev: any) => ({ ...prev, buy: { status: 'pending', hash: tx.hash } }));
       
       const receipt = await tx.wait();
-      setTestResults(prev => ({ ...prev, buy: { status: 'confirmed', receipt } }));
+      setTestResults((prev: any) => ({ ...prev, buy: { status: 'confirmed', receipt } }));
       console.log('Buy successful:', receipt);
     } catch (error: any) {
       const errorMsg = error?.message || 'Buy failed';
       console.error('Buy failed:', error);
-      setTestResults(prev => ({ ...prev, buy: { error: errorMsg } }));
+      setTestResults((prev: any) => ({ ...prev, buy: { error: errorMsg } }));
       setError(errorMsg);
     }
   };
@@ -1086,15 +1086,15 @@ const switchToMoonbeam = async () => {
       const tx = await contract.withdraw();
       
       console.log('Transaction sent:', tx.hash);
-      setTestResults(prev => ({ ...prev, withdraw: { status: 'pending', hash: tx.hash } }));
+      setTestResults((prev: any) => ({ ...prev, withdraw: { status: 'pending', hash: tx.hash } }));
       
       const receipt = await tx.wait();
-      setTestResults(prev => ({ ...prev, withdraw: { status: 'confirmed', receipt } }));
+      setTestResults((prev: any) => ({ ...prev, withdraw: { status: 'confirmed', receipt } }));
       console.log('Withdraw successful:', receipt);
     } catch (error: any) {
       const errorMsg = error?.message || 'Withdraw failed';
       console.error('Withdraw failed:', error);
-      setTestResults(prev => ({ ...prev, withdraw: { error: errorMsg } }));
+      setTestResults((prev: any) => ({ ...prev, withdraw: { error: errorMsg } }));
       setError(errorMsg);
     }
   };
