@@ -125,10 +125,6 @@ const Collectibles = () => {
           }
         }
         
-        // REMOVE THIS LINE - DON'T CHECK METAMASK HERE
-        // if (typeof window !== 'undefined' && window.ethereum) {
-        //   checkMetaMaskConnection();
-        // }
       } catch (err) {
         console.error("Failed to fetch user profile:", err);
       }

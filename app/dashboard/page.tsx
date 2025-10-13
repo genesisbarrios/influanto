@@ -1,23 +1,38 @@
 "use client";
 
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 
-// Import or define your components here
+// Regular imports for components that don't use window
 import Profile from './Profile';
 import LinkInBio from './LinkInBio';
 import QRCodeGenerator from './QRCodeGenerator';
 import CuratorSearch from './CuratorSearch';
 import Community from './Community';
-import Collectibles from './Collectibles';
 import ReleasePage from './ReleasePage';
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/libs/next-auth";
-import User from "@/models/User";
+
+// Dynamic import ONLY for Collectibles to prevent SSR issues
+const DynamicCollectibles = dynamic(() => import('./Collectibles'), {
+  ssr: false,
+  loading: () => (
+    <div className="p-6">
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading collectibles...</p>
+        </div>
+      </div>
+    </div>
+  )
+});
+
+// Rename this to avoid conflict with the imported 'dynamic'
+export const dynamicRoute = 'force-dynamic';
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
 
-  // Components mapping
+  // Components mapping - use DynamicCollectibles instead of Collectibles
   const components: any = {
     'profile': <Profile />,
     'link-in-bio': <LinkInBio />,
@@ -25,7 +40,7 @@ export default function Dashboard() {
     'qr-code-generator': <QRCodeGenerator />,
     'curator-search': <CuratorSearch />,
     'community': <Community />,
-    'collectibles': <Collectibles/>
+    'collectibles': <DynamicCollectibles />  // ✅ This is the only change needed
   };
 
   return (
