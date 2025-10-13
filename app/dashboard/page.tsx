@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import dynamic from 'next/dynamic';
+import { default as nextDynamic } from 'next/dynamic';
 
 // Regular imports for components that don't use window
 import Profile from './Profile';
@@ -12,7 +12,7 @@ import Community from './Community';
 import ReleasePage from './ReleasePage';
 
 // Dynamic import ONLY for Collectibles to prevent SSR issues
-const DynamicCollectibles = dynamic(() => import('./Collectibles'), {
+const DynamicCollectibles = nextDynamic(() => import('./Collectibles'), {
   ssr: false,
   loading: () => (
     <div className="p-6">
@@ -25,6 +25,7 @@ const DynamicCollectibles = dynamic(() => import('./Collectibles'), {
     </div>
   )
 });
+
 
 // Rename this to avoid conflict with the imported 'dynamic'
 export const dynamicRoute = 'force-dynamic';
