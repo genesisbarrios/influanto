@@ -45,6 +45,8 @@ interface ConnectedWallet {
 }
 
 const Collectibles: React.FC = () => {
+  // Add mounted state to prevent SSR issues
+  const [mounted, setMounted] = useState(false);
   const [wallet, setWallet] = useState<ConnectedWallet | null>(null);
   const [collectibles, setCollectibles] = useState<Collectible[]>([]);
   const [isModalOpen, setModalOpen] = useState(false);
@@ -59,6 +61,10 @@ const Collectibles: React.FC = () => {
   const [evmAccount, setEvmAccount] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [selectedWalletType, setSelectedWalletType] = useState<WalletType | null>(null);
+
+   useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Wallet installation options
   const polkadotWalletOptions = [
@@ -109,14 +115,6 @@ const Collectibles: React.FC = () => {
     }
   ];
 
-  // Check for MetaMask on component mount
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.ethereum) {
-      // MetaMask is available
-      checkMetaMaskConnection();
-    }
-  }, []);
-
   const checkMetaMaskConnection = async () => {
     try {
       if (window.ethereum) {
@@ -133,8 +131,17 @@ const Collectibles: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (mounted && typeof window !== 'undefined' && window.ethereum) {
+      checkMetaMaskConnection();
+    }
+  }, [mounted]);
+
+
   // Fetch user profile on page load
   useEffect(() => {
+    if (!mounted) return;
+
     const fetchUserProfile = async () => {
       try {
         const { data } = await apiClient.get("/get-user");
@@ -175,7 +182,7 @@ const Collectibles: React.FC = () => {
       }
     };
     fetchUserProfile();
-  }, []);
+  }, [mounted]);
 
   const detectWallets = async () => {
     setIsConnecting(true);
@@ -226,7 +233,8 @@ const Collectibles: React.FC = () => {
     try {
       setIsConnecting(true);
 
-      if (!window.ethereum) {
+      // Check if we're on client side and have ethereum
+      if (typeof window === 'undefined' || !window.ethereum) {
         setShowInstallDialog(true);
         setSelectedWalletType('evm');
         setIsConnecting(false);
@@ -254,7 +262,7 @@ const Collectibles: React.FC = () => {
     }
   };
 
-  const connectToPolkadotAccount = async (account: InjectedAccountWithMeta) => {
+const connectToPolkadotAccount = async (account: InjectedAccountWithMeta) => {
     try {
       const address = account.address;
 
@@ -274,7 +282,12 @@ const Collectibles: React.FC = () => {
       };
 
       setWallet(walletData);
-      localStorage.setItem("connectedWallet", JSON.stringify(walletData));
+      
+      // Only access localStorage after checking we're on client
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("connectedWallet", JSON.stringify(walletData));
+      }
+      
       fetchNFTs();
       setShowWalletDialog(false);
 
@@ -305,7 +318,12 @@ const Collectibles: React.FC = () => {
       };
 
       setWallet(walletData);
-      localStorage.setItem("connectedWallet", JSON.stringify(walletData));
+      
+      // Only access localStorage after checking we're on client
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("connectedWallet", JSON.stringify(walletData));
+      }
+      
       fetchNFTs();
       setShowWalletDialog(false);
 
@@ -315,18 +333,6 @@ const Collectibles: React.FC = () => {
       }
     } catch (err) {
       console.error("EVM wallet connection failed:", err);
-    }
-  };
-
-  const saveWalletToProfile = async (address: string) => {
-    try {
-      const { data } = await apiClient.post("/save-wallet", {
-        walletAddress: address,
-      });
-      setUserProfile({ ...userProfile!, walletAddress: address });
-      console.log("Wallet address saved:", data);
-    } catch (err) {
-      console.error("Failed to save wallet address:", err);
     }
   };
 
@@ -346,7 +352,12 @@ const Collectibles: React.FC = () => {
       };
       
       setWallet(walletData);
-      localStorage.setItem("connectedWallet", JSON.stringify(walletData));
+      
+      // Only access localStorage after checking we're on client
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("connectedWallet", JSON.stringify(walletData));
+      }
+      
       setWalletMismatch(false);
       setNewWalletAddress(null);
       console.log("New wallet saved:", data);
@@ -357,8 +368,12 @@ const Collectibles: React.FC = () => {
 
   const handleSwitchWallet = () => {
     setWallet(null);
-    localStorage.removeItem("connectedWallet");
-    window.location.reload();
+    
+    // Only access localStorage and window after checking we're on client
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem("connectedWallet");
+      window.location.reload();
+    }
   };
 
   const handleUnlinkWallet = async () => {
@@ -370,13 +385,25 @@ const Collectibles: React.FC = () => {
       
       setWallet(null);
       setUserProfile({ ...userProfile!, walletAddress: undefined });
-      localStorage.removeItem("connectedWallet");
+      
+      // Only access localStorage after checking we're on client
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem("connectedWallet");
+      }
+      
       setCollectibles([]);
       setShowUnlinkDialog(false);
       
       console.log("Wallet unlinked successfully");
     } catch (err) {
       console.error("Failed to unlink wallet:", err);
+    }
+  };
+
+  const openWalletLink = (url: string) => {
+    // Only access window after checking we're on client
+    if (typeof window !== 'undefined') {
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -432,8 +459,17 @@ const Collectibles: React.FC = () => {
     }
   };
 
-  const openWalletLink = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
+
+  const saveWalletToProfile = async (address: string) => {
+    try {
+      const { data } = await apiClient.post("/save-wallet", {
+        walletAddress: address,
+      });
+      setUserProfile({ ...userProfile!, walletAddress: address });
+      console.log("Wallet address saved:", data);
+    } catch (err) {
+      console.error("Failed to save wallet address:", err);
+    }
   };
 
   return (
@@ -784,7 +820,7 @@ const Collectibles: React.FC = () => {
             icon={wallet ? faPlus : faLock} 
             className={`text-5xl ${wallet ? "text-gray-400" : "text-gray-300"}`} 
           />
-          <p className={`mt-2 font-semibold ${wallet ? "text-gray-500" : "text-gray-400"}`}>
+          <p className={`mt-2 font-semibold text-center ${wallet ? "text-gray-500" : "text-gray-400"}`}>
             {wallet ? "Create New Collectible" : "Connect Wallet to Create"}
           </p>
           {!wallet && (

@@ -434,7 +434,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
       return;
     }
 
-    if (networkId && networkId !== 421) {
+    if (networkId && networkId !== 420420422) {
       alert("Please switch to Paseo Testnet network to mint NFTs.");
       return;
     }
@@ -592,11 +592,11 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         )}
 
         {/* Wrong Network Warning */}
-        {isConnected && networkId && networkId !== 421 && (
+        {isConnected && networkId && networkId !== 420420422 && (
           <div className="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
             <div className="flex items-center justify-between">
               <div className="text-sm text-orange-800">
-                ⚠️ Wrong network detected. Please switch to Paseo Testnet network (Chain ID: 421).
+                ⚠️ Wrong network detected. Please switch to Paseo Testnet network (Chain ID: 420420422).
                 <br />
                 <span className="text-xs">Current network: {networkId}</span>
               </div>
@@ -612,7 +612,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         )}
 
         {/* Connected Status */}
-        {isConnected && account && networkId === 421 && (
+        {isConnected && account && networkId === 420420422 && (
           <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
             <div className="text-sm text-green-800">
               ✅ Connected: {account.slice(0, 6)}...{account.slice(-4)} | Network: Paseo Testnet
@@ -952,7 +952,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
               !priceUsd || 
               !audioFile || 
               !isConnected || 
-              (networkId && networkId !== 421) ||
+              (networkId && networkId !== 420420422) ||
               (audioFile && audioFile.size > 50 * 1024 * 1024)
             }
             className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -965,8 +965,8 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         <div className="mt-3 text-xs text-gray-500">
           <span className="text-red-500">*</span> Required fields | 
           {!isConnected && ' Wallet connection required |'}
-          {isConnected && networkId !== 421 && ' Paseo Testnet network required |'}
-          {isConnected && networkId === 421 && ' ✅ Ready to mint |'}
+          {isConnected && networkId !== 420420422 && ' Paseo Testnet network required |'}
+          {isConnected && networkId === 420420422 && ' ✅ Ready to mint |'}
           {' NFT minting on Paseo Testnet'}
         </div>
       </div>

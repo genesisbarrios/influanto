@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWallet, faTimes, faExternalLinkAlt, faExclamationTriangle, faCopy, faUser, faMusic } from "@fortawesome/free-solid-svg-icons";
-
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 // Force dynamic rendering to prevent SSR issues
 export const dynamic = 'force-dynamic';
 
@@ -790,8 +791,9 @@ export default function TestContract() {
   };
 
   return (
+<div>
+    <Header />
     <div className="p-8 max-w-6xl mx-auto">
-      
       {/* Install Dialog */}
       {showInstallDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -1465,6 +1467,8 @@ export default function TestContract() {
           </div>
         </div>
       </div>
+    </div>
+          <Footer />
     </div>
   );
 }
