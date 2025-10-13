@@ -264,20 +264,75 @@ export const useContract = () => {
         network: chainId
       });
 
+      // Enhanced contract testing
+      console.log('🧪 Testing contract accessibility...');
+      console.log('📍 Contract address:', CONTRACT_ADDRESS);
+      console.log('🌐 Network:', chainId);
+      
+      // First check if contract has code
+      const contractCode = await web3Provider.getCode(CONTRACT_ADDRESS);
+      console.log('📄 Contract code length:', contractCode.length);
+      console.log('📄 Contract code preview:', contractCode.slice(0, 20) + '...');
+      
+      if (contractCode === '0x' || contractCode === '0x0') {
+        console.error('❌ No contract code found at address:', CONTRACT_ADDRESS);
+        throw new Error(`No contract deployed at ${CONTRACT_ADDRESS}. Please verify:\n1. Contract is deployed on Moonbase Alpha\n2. Address is correct: ${CONTRACT_ADDRESS}\n3. Check on explorer: https://moonbase.moonscan.io/address/${CONTRACT_ADDRESS}`);
+      }
+      
+      console.log('✅ Contract has bytecode, creating contract instance...');
+
       const musicContract = new ethers.Contract(
         CONTRACT_ADDRESS,
         CONTRACT_ABI,
         signer
       );
 
-      // Test contract connection
-      try {
-        await musicContract.nextId();
-        console.log('✅ Contract connection verified');
-      } catch (testError) {
-        console.error('❌ Contract test failed:', testError);
-        throw new Error('Contract not accessible. Please check the contract address and network.');
+      console.log('✅ Contract instance created, testing functions...');
+      
+      // Test multiple functions to see which ones work
+      const functionTests = [
+        {
+          name: 'nextId',
+          test: async () => {
+            const result = await musicContract.nextId();
+            return result.toString();
+          }
+        },
+        {
+          name: 'owner',
+          test: async () => {
+            return await musicContract.owner();
+          }
+        }
+      ];
+
+      const testResults = [];
+      for (const funcTest of functionTests) {
+        try {
+          const result = await funcTest.test();
+          console.log(`✅ ${funcTest.name}() works:`, result);
+          testResults.push({ name: funcTest.name, success: true, result });
+        } catch (funcError: any) {
+          console.error(`❌ ${funcTest.name}() failed:`, funcError);
+          testResults.push({ name: funcTest.name, success: false, error: funcError.message });
+        }
       }
+
+      // If at least one function works, consider contract accessible
+      const workingFunctions = testResults.filter(t => t.success);
+      console.log('📊 Function test results:', testResults);
+      
+      if (workingFunctions.length === 0) {
+        // Provide more detailed error information
+        const errorDetails = testResults.map(t => `${t.name}: ${t.error || 'Unknown error'}`).join('\n');
+        
+        console.error('❌ No contract functions accessible');
+        console.error('Contract exists but functions failed:', errorDetails);
+        
+        throw new Error(`Contract exists but functions are not accessible:\n\n${errorDetails}\n\nThis could indicate:\n1. ABI mismatch - contract has different functions\n2. Contract is paused or has access restrictions\n3. RPC endpoint issues\n\nContract address: ${CONTRACT_ADDRESS}\nExplorer: https://moonbase.moonscan.io/address/${CONTRACT_ADDRESS}`);
+      }
+      
+      console.log(`✅ Contract connection verified (${workingFunctions.length}/${testResults.length} functions working)`);
 
       setProvider(web3Provider);
       setSigner(signer);
@@ -290,7 +345,9 @@ export const useContract = () => {
     } catch (error: any) {
       console.error('❌ Failed to initialize contract:', error);
       setIsConnected(false);
-      throw error;
+      
+      // Don't throw here - let the UI handle the error display
+      // throw error;
     } finally {
       setIsLoading(false);
     }
@@ -410,6 +467,73 @@ export const useContract = () => {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Add a debug function that can be called from the UI
+  const debugContract = async () => {
+    if (!provider) {
+      console.error('❌ No provider available');
+      return { success: false, error: 'No provider' };
+    }
+
+    try {
+      console.log('🔍 Starting contract debug...');
+      console.log('📍 Contract address:', CONTRACT_ADDRESS);
+      console.log('🌐 Network ID:', networkId);
+
+      // Check bytecode
+      const code = await provider.getCode(CONTRACT_ADDRESS);
+      console.log('📄 Contract bytecode length:', code.length);
+      
+      if (code === '0x' || code === '0x0') {
+        return { 
+          success: false, 
+          error: 'No contract found at address',
+          details: {
+            address: CONTRACT_ADDRESS,
+            network: networkId,
+            explorerUrl: `https://moonbase.moonscan.io/address/${CONTRACT_ADDRESS}`
+          }
+        };
+      }
+
+      // Test contract functions
+      if (contract) {
+        const tests = [];
+        
+        try {
+          const nextId = await contract.nextId();
+          tests.push({ function: 'nextId', result: nextId.toString(), success: true });
+        } catch (e: any) {
+          tests.push({ function: 'nextId', error: e.message, success: false });
+        }
+        
+        try {
+          const owner = await contract.owner();
+          tests.push({ function: 'owner', result: owner, success: true });
+        } catch (e: any) {
+          tests.push({ function: 'owner', error: e.message, success: false });
+        }
+
+        return {
+          success: true,
+          details: {
+            address: CONTRACT_ADDRESS,
+            network: networkId,
+            bytecodeLength: code.length,
+            functionTests: tests,
+            workingFunctions: tests.filter(t => t.success).length,
+            totalFunctions: tests.length
+          }
+        };
+      }
+
+      return { success: false, error: 'Contract instance not available' };
+
+    } catch (error: any) {
+      console.error('❌ Debug failed:', error);
+      return { success: false, error: error.message };
     }
   };
 
@@ -580,6 +704,7 @@ export const useContract = () => {
     buyTrack,
     withdrawEarnings,
     getTrackInfo,
-    getPendingEarnings
+    getPendingEarnings,
+    debugContract
   };
 };
