@@ -45,6 +45,7 @@ interface Collectible {
 
 interface UserProfile {
   name: string;
+  username: string;
   email: string;
   Id?: string;
 }
@@ -624,7 +625,7 @@ const CollectibleMintPage: React.FC = () => {
               {userProfile && (
                 <div className="mt-6 pt-6 border-t">
                   <a
-                    href={`/${userProfile.name}`}
+                    href={`/${userProfile.username}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"

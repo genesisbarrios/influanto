@@ -3,12 +3,16 @@ import connectMongo from "@/libs/mongoose";
 import { Collectible } from '@/models/Collectible';
 import User from '@/models/User';
 
+// Force dynamic rendering - this fixes the Vercel error
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(request: NextRequest) {
   try {
     // Connect to MongoDB
     await connectMongo();
 
-    // Get URL parameters
+    // Get URL parameters - this was causing the static rendering issue
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const title = searchParams.get('title');
@@ -27,11 +31,7 @@ export async function GET(request: NextRequest) {
     const decodedTitle = decodeURIComponent(title);
     console.log('📝 Decoded title:', decodedTitle);
 
-    // First, let's see what collectibles exist for this user
-    const allUserCollectibles = await Collectible.find({ userId }).select('title _id').lean();
-    console.log('📦 All collectibles for user:', allUserCollectibles);
-
-    // Try multiple search strategies
+    // Try multiple search strategies for collectible
     let collectible = null;
 
     // Strategy 1: Exact match (case-insensitive)
@@ -48,29 +48,10 @@ export async function GET(request: NextRequest) {
       }).lean();
     }
 
-    // Strategy 3: If still not found, try by ID if the title looks like an ObjectId
-    if (!collectible && title.match(/^[0-9a-fA-F]{24}$/)) {
-      collectible = await Collectible.findOne({
-        userId: userId,
-        _id: title
-      }).lean();
-    }
-
     console.log('🎯 Found collectible:', collectible ? 'Yes' : 'No');
 
-    // Fetch user profile data
-    const userProfile = await User.findOne({
-      $or: [
-        { _id: userId },
-        { Id: userId },
-        { name: userId }
-      ]
-    }).select('name email Id').lean();
-
-    console.log('👤 Found user profile:', userProfile ? 'Yes' : 'No');
-
-    // FIXED: Always return consistent structure
     if (!collectible) {
+      const allUserCollectibles = await Collectible.find({ userId }).select('title _id').lean();
       return NextResponse.json({
         success: false,
         error: 'Collectible not found',
@@ -82,7 +63,18 @@ export async function GET(request: NextRequest) {
       }, { status: 404 });
     }
 
-    // FIXED: Success response with proper structure
+    // Fetch user profile with username - THIS WAS MISSING
+    const userProfile = await User.findOne({
+      $or: [
+        { _id: userId },
+        { Id: userId },
+        { name: userId }
+      ]
+    }).select('name email Id username').lean(); // ✅ Added 'username' to select
+
+    console.log('👤 Found user profile:', userProfile);
+
+    // Return success response
     return NextResponse.json({
       success: true,
       data: {
