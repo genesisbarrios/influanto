@@ -115,6 +115,38 @@ const CollectibleMintPage: React.FC = () => {
     };
   }, [collectible]);
   
+  useEffect(() => {
+  const handleError = (event: ErrorEvent) => {
+    if (
+      event.message.includes('Extension ID') ||
+      event.message.includes('runtime.sendMessage') ||
+      event.filename?.includes('inpage.js')
+    ) {
+      console.log('Ignoring extension error:', event.message);
+      event.preventDefault();
+      return false;
+    }
+  };
+
+  const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+    if (
+      event.reason?.message?.includes('Extension ID') ||
+      event.reason?.message?.includes('runtime.sendMessage')
+    ) {
+      console.log('Ignoring extension promise rejection:', event.reason.message);
+      event.preventDefault();
+      return false;
+    }
+  };
+
+  window.addEventListener('error', handleError);
+  window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+  return () => {
+    window.removeEventListener('error', handleError);
+    window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+  };
+}, []);
 
   // Fetch collectible data
   useEffect(() => {
