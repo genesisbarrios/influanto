@@ -14,7 +14,7 @@ export default function Collectibles() {
 
   const fetchNFTs = async () => {
     try {
-      const response = await apiClient.get('/collectibles/fetch', {
+      const response = await apiClient.get('/collectibles/get-all', {
         params: {
           limit: 10,
           page: 1,
