@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWallet, faTimes, faExternalLinkAlt, faExclamationTriangle, faCopy, faUser, faMusic } from "@fortawesome/free-solid-svg-icons";
 
+// Force dynamic rendering to prevent SSR issues
+export const dynamic = 'force-dynamic';
+
 // Polkadot imports - keep for future use
 import { web3Accounts, web3Enable, web3FromAddress } from "@polkadot/extension-dapp";
 import type { InjectedAccountWithMeta } from '@polkadot/extension-inject/types';
@@ -171,6 +174,8 @@ const walletOptions = [
 ];
 
 export default function TestContract() {
+  // Add mounted state to prevent SSR issues
+  const [mounted, setMounted] = useState(false);
   const [wallet, setWallet] = useState<ConnectedWallet | null>(null);
   const [contract, setContract] = useState<Contract | null>(null);
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
@@ -189,6 +194,31 @@ export default function TestContract() {
   const [mintEditions, setMintEditions] = useState<string>('10');
   const [buyTokenId, setBuyTokenId] = useState<string>('1');
   const [viewTokenId, setViewTokenId] = useState<string>('1');
+
+  // Ensure component only renders on client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && wallet?.type === 'metamask' && provider) {
+      initializeEvmContract();
+    }
+  }, [wallet, provider, mounted]);
+
+    // if (!mounted) {
+    // return (
+    //     <div className="p-8 max-w-6xl mx-auto">
+    //     <div className="flex items-center justify-center min-h-screen">
+    //         <div className="text-center">
+    //         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
+    //         <p className="text-gray-600">Loading test interface...</p>
+    //         </div>
+    //     </div>
+    //     </div>
+    // );
+    // }
+
 
   // Paseo Asset Hub EVM network config
   const paseoNetwork = {
@@ -216,56 +246,58 @@ export default function TestContract() {
     setShowWalletDialog(true);
     
     try {
-      // Check for Polkadot wallets
-      const originalConsoleError = console.error;
-      console.error = (...args) => {
-        const message = args[0]?.toString() || '';
-        if (!message.includes('runtime.sendMessage') && !message.includes('Extension')) {
-          originalConsoleError(...args);
+        // Check for Polkadot wallets - but only on client
+        if (typeof window !== 'undefined') {
+            const originalConsoleError = console.error;
+            console.error = (...args) => {
+            const message = args[0]?.toString() || '';
+            if (!message.includes('runtime.sendMessage') && !message.includes('Extension')) {
+                originalConsoleError(...args);
+            }
+            };
+            
+            const extensions = await web3Enable("Influanto Music NFT").catch(() => []);
+            console.error = originalConsoleError;
+            
+            if (extensions.length > 0) {
+            const walletNames = extensions.map(ext => ext.name);
+            setAvailableWallets(walletNames);
+
+            const accounts = await web3Accounts().catch(() => []);
+            setAvailableAccounts(accounts);
+            console.log(`Found ${extensions.length} Polkadot wallet(s) and ${accounts.length} account(s)`);
+            }
+
+            // Check for EVM providers (MetaMask, Talisman EVM, etc.)
+            if (typeof window.ethereum !== 'undefined') {
+            console.log('✅ EVM provider detected');
+            
+            // Check if it's Talisman's EVM provider
+            if (window.ethereum.isTalisman) {
+                console.log('✅ Talisman EVM provider detected - this is what you used for deployment!');
+            } else if (window.ethereum.isMetaMask) {
+                console.log('✅ MetaMask detected');
+            } else {
+                console.log('✅ Unknown EVM provider detected');
+            }
+            }
         }
-      };
-      
-      const extensions = await web3Enable("Influanto Music NFT").catch(() => []);
-      console.error = originalConsoleError;
-      
-      if (extensions.length > 0) {
-        const walletNames = extensions.map(ext => ext.name);
-        setAvailableWallets(walletNames);
 
-        const accounts = await web3Accounts().catch(() => []);
-        setAvailableAccounts(accounts);
-        console.log(`Found ${extensions.length} Polkadot wallet(s) and ${accounts.length} account(s)`);
-      }
-
-      // Check for EVM providers (MetaMask, Talisman EVM, etc.)
-      if (typeof window.ethereum !== 'undefined') {
-        console.log('✅ EVM provider detected');
+        setIsConnecting(false);
         
-        // Check if it's Talisman's EVM provider
-        if (window.ethereum.isTalisman) {
-          console.log('✅ Talisman EVM provider detected - this is what you used for deployment!');
-        } else if (window.ethereum.isMetaMask) {
-          console.log('✅ MetaMask detected');
-        } else {
-          console.log('✅ Unknown EVM provider detected');
+        } catch (err: any) {
+        console.error("Failed to detect wallets:", err);
+        setShowInstallDialog(true);
+        setIsConnecting(false);
         }
-      }
-
-      setIsConnecting(false);
-      
-    } catch (err: any) {
-      console.error("Failed to detect wallets:", err);
-      setShowInstallDialog(true);
-      setIsConnecting(false);
-    }
-  };
+    };
 
   const connectToEvm = async () => {
     try {
       setIsConnecting(true);
       setError(null);
 
-      if (typeof window.ethereum === 'undefined') {
+      if (typeof window === 'undefined' || typeof window.ethereum === 'undefined') {
         throw new Error('No EVM wallet detected. Please install MetaMask or Talisman.');
       }
 
@@ -337,6 +369,11 @@ export default function TestContract() {
   };
 
   const switchToPaseo = async () => {
+     // Ensure we're on client side and have ethereum
+    if (typeof window === 'undefined' || !window.ethereum) {
+      throw new Error('Ethereum provider not available');
+    }
+
     try {
       console.log(`🔗 Attempting to switch to Paseo Asset Hub EVM (Chain ID: ${PASEO_CHAIN_ID})`);
       
