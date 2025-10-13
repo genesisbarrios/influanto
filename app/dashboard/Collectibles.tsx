@@ -68,9 +68,79 @@ const Collectibles = () => {
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [selectedWalletType, setSelectedWalletType] = useState<WalletType | null>(null);
 
+
    useEffect(() => {
     setMounted(true);
   }, []);
+
+
+  useEffect(() => {
+    if (mounted && typeof window !== 'undefined' && window.ethereum) {
+      checkMetaMaskConnection();
+    }
+  }, [mounted]);
+
+
+  // Fetch user profile on page load
+  useEffect(() => {
+    if (!mounted) return;
+
+    const fetchUserProfile = async () => {
+      try {
+        const { data } = await apiClient.get("/get-user");
+        setUserProfile(data);
+
+        if (data.walletAddress) {
+          // Try to determine wallet type from stored address
+          const walletType = data.walletAddress.startsWith('0x') ? 'evm' : 'polkadot';
+          setWallet({
+            address: data.walletAddress,
+            type: walletType,
+            name: walletType === 'evm' ? 'MetaMask' : 'Polkadot Wallet'
+          });
+          fetchNFTs();
+          if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem("connectedWallet", JSON.stringify({
+              address: data.walletAddress,
+              type: walletType
+            }));
+          }
+        } else {
+          const savedWallet = typeof window !== 'undefined' && window.localStorage ? localStorage.getItem("connectedWallet") : null;
+          if (savedWallet) {
+            try {
+              const walletData = JSON.parse(savedWallet);
+              setWallet(walletData);
+              fetchNFTs();
+            } catch {
+              // Fallback for old format
+              setWallet({
+                address: savedWallet,
+                type: savedWallet.startsWith('0x') ? 'evm' : 'polkadot'
+              });
+              fetchNFTs();
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch user profile:", err);
+      }
+    };
+    fetchUserProfile();
+  }, [mounted]);
+
+  if (!mounted) {
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading collectibles...</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
   // Wallet installation options
   const polkadotWalletOptions = [
@@ -139,61 +209,6 @@ const Collectibles = () => {
       console.error('Error checking MetaMask connection:', error);
     }
   };
-
-  useEffect(() => {
-    if (mounted && typeof window !== 'undefined' && window.ethereum) {
-      checkMetaMaskConnection();
-    }
-  }, [mounted]);
-
-
-  // Fetch user profile on page load
-  useEffect(() => {
-    if (!mounted) return;
-
-    const fetchUserProfile = async () => {
-      try {
-        const { data } = await apiClient.get("/get-user");
-        setUserProfile(data);
-
-        if (data.walletAddress) {
-          // Try to determine wallet type from stored address
-          const walletType = data.walletAddress.startsWith('0x') ? 'evm' : 'polkadot';
-          setWallet({
-            address: data.walletAddress,
-            type: walletType,
-            name: walletType === 'evm' ? 'MetaMask' : 'Polkadot Wallet'
-          });
-          fetchNFTs();
-          if (typeof window !== 'undefined' && window.localStorage) {
-            localStorage.setItem("connectedWallet", JSON.stringify({
-              address: data.walletAddress,
-              type: walletType
-            }));
-          }
-        } else {
-          const savedWallet = typeof window !== 'undefined' && window.localStorage ? localStorage.getItem("connectedWallet") : null;
-          if (savedWallet) {
-            try {
-              const walletData = JSON.parse(savedWallet);
-              setWallet(walletData);
-              fetchNFTs();
-            } catch {
-              // Fallback for old format
-              setWallet({
-                address: savedWallet,
-                type: savedWallet.startsWith('0x') ? 'evm' : 'polkadot'
-              });
-              fetchNFTs();
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch user profile:", err);
-      }
-    };
-    fetchUserProfile();
-  }, [mounted]);
 
   const detectWallets = async () => {
     setIsConnecting(true);
