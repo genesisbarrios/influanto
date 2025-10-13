@@ -6,7 +6,13 @@ import { faPlus, faMinus, faWallet, faExclamationTriangle, faTimes, faExternalLi
 import { web3Accounts, web3Enable, web3FromSource } from "@polkadot/extension-dapp";
 import type { InjectedAccountWithMeta } from '@polkadot/extension-inject/types';
 import { ethers } from 'ethers';
-import NFTCreationModal from "../../components/NFTCreationModal";
+import dynamic from 'next/dynamic';
+// Dynamically import NFTCreationModal to prevent SSR issues
+const NFTCreationModal = dynamic(() => import("../../components/NFTCreationModal"), {
+  ssr: false,
+  loading: () => <div>Loading modal...</div>
+});
+
 import apiClient from "@/libs/api";
 
 interface Collectible {
