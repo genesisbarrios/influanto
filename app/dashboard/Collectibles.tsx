@@ -81,7 +81,6 @@ const Collectibles = () => {
   // }, [mounted]);
 
 
-  // Fetch user profile on page load
   useEffect(() => {
     if (!mounted) return;
 
@@ -91,7 +90,6 @@ const Collectibles = () => {
         setUserProfile(data);
 
         if (data.walletAddress) {
-          // Try to determine wallet type from stored address
           const walletType = data.walletAddress.startsWith('0x') ? 'evm' : 'polkadot';
           setWallet({
             address: data.walletAddress,
@@ -99,6 +97,8 @@ const Collectibles = () => {
             name: walletType === 'evm' ? 'MetaMask' : 'Polkadot Wallet'
           });
           fetchNFTs();
+          
+          // Safe localStorage access
           if (typeof window !== 'undefined' && window.localStorage) {
             localStorage.setItem("connectedWallet", JSON.stringify({
               address: data.walletAddress,
@@ -106,27 +106,49 @@ const Collectibles = () => {
             }));
           }
         } else {
-          const savedWallet = typeof window !== 'undefined' && window.localStorage ? localStorage.getItem("connectedWallet") : null;
-          if (savedWallet) {
-            try {
-              const walletData = JSON.parse(savedWallet);
-              setWallet(walletData);
-              fetchNFTs();
-            } catch {
-              // Fallback for old format
-              setWallet({
-                address: savedWallet,
-                type: savedWallet.startsWith('0x') ? 'evm' : 'polkadot'
-              });
-              fetchNFTs();
+          // Safe localStorage access
+          if (typeof window !== 'undefined' && window.localStorage) {
+            const savedWallet = localStorage.getItem("connectedWallet");
+            if (savedWallet) {
+              try {
+                const walletData = JSON.parse(savedWallet);
+                setWallet(walletData);
+                fetchNFTs();
+              } catch {
+                setWallet({
+                  address: savedWallet,
+                  type: savedWallet.startsWith('0x') ? 'evm' : 'polkadot'
+                });
+                fetchNFTs();
+              }
             }
           }
         }
+        
+        // REMOVE THIS LINE - DON'T CHECK METAMASK HERE
+        // if (typeof window !== 'undefined' && window.ethereum) {
+        //   checkMetaMaskConnection();
+        // }
       } catch (err) {
         console.error("Failed to fetch user profile:", err);
       }
     };
+    
     fetchUserProfile();
+  }, [mounted]);
+
+  // ADD A SEPARATE useEffect FOR METAMASK CHECK - ONLY AFTER MOUNT
+  useEffect(() => {
+    if (!mounted) return;
+    
+    // Delay the MetaMask check to ensure it runs only on client
+    const timer = setTimeout(() => {
+      if (typeof window !== 'undefined' && window.ethereum) {
+        checkMetaMaskConnection();
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [mounted]);
 
   if (!mounted) {
