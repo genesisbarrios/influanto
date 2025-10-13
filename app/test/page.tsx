@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWallet, faTimes, faExternalLinkAlt, faExclamationTriangle, faCopy, faGavel, faUser } from "@fortawesome/free-solid-svg-icons";
 import { web3Accounts, web3Enable } from "@polkadot/extension-dapp";
 import type { InjectedAccountWithMeta } from '@polkadot/extension-inject/types';
-import { ethers } from 'ethers';
+import { ethers, parseEther } from 'ethers';
 
 // Contract configuration with better error handling
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS || '';
@@ -192,9 +192,9 @@ const isValidAddress = (address: string): boolean => {
 };
 
 // Helper function to parse ether (compatible with both v5 and v6)
-const parseEther = (value: string): bigint => {
+const parseEtherCompat = (value: string): bigint => {
   try {
-    return ethers.parseEther ? ethers.parseEther(value) : ethers.utils.parseEther(value);
+    return parseEther(value);
   } catch {
     return BigInt(value) * BigInt(10 ** 18);
   }
@@ -548,7 +548,7 @@ export default function TestContract() {
       message += `✅ CONTRACT FOUND!\n`;
       message += `The contract exists at this address.\n\n`;
       
-      const codeLength = methodsWithCode[0][1].codeLength;
+      const codeLength = (methodsWithCode[0][1] as { codeLength: number }).codeLength;
       message += `Code length: ${codeLength} bytes\n\n`;
       
       message += `Working verification methods:\n`;
@@ -647,7 +647,7 @@ const initializeContract = async () => {
         web3Provider = new ethers.BrowserProvider(window.ethereum);
         console.log('Using MetaMask provider');
       } catch {
-        web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+        web3Provider = new ethers.BrowserProvider(window.ethereum);
         console.log('Using legacy MetaMask provider');
       }
     }
@@ -1035,7 +1035,7 @@ const switchToMoonbeam = async () => {
       }
       
       setError(null);
-      const priceWei = parseEther("0.1");
+      const priceWei = parseEtherCompat("0.1");
       const tx = await contract.mint("QmTestHash123", priceWei, 10);
       
       console.log('Transaction sent:', tx.hash);
@@ -1059,7 +1059,7 @@ const switchToMoonbeam = async () => {
       }
       
       setError(null);
-      const priceWei = parseEther("0.1");
+      const priceWei = parseEtherCompat("0.1");
       const tx = await contract.buy(1, { value: priceWei });
       
       console.log('Transaction sent:', tx.hash);
@@ -1456,7 +1456,7 @@ const switchToMoonbeam = async () => {
         </div>
       )}
       
-      <h1 className="text-2xl font-bold mb-6">🎵 Music Collectibles - Hackathon Judge Test Page</h1>
+      <h1 className="text-2xl font-bold mb-6">🎵 Music Collectibles - Polkadot Moonbase Contract Test Page</h1>
       
       {/* Configuration Status */}
       <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -1645,7 +1645,7 @@ const switchToMoonbeam = async () => {
             <h4 className="font-medium text-yellow-800 mb-2">📋 Manual Network Switch Instructions:</h4>
             <div className="text-sm text-yellow-700 space-y-1">
             <p>1. Open MetaMask extension</p>
-            <p>2. Click the network dropdown (currently showing "{currentNetwork}")</p>
+            <p>2. Click the network dropdown (currently showing &apos;{currentNetwork}&apos;)</p>
             <p>3. Select &quot;Moonbase Alpha&quot; or click &quot;Add Network&quot; if not visible</p>
             <p>4. Use these network details if adding manually:</p>
             <div className="mt-2 p-2 bg-yellow-100 rounded text-xs font-mono">
@@ -1665,74 +1665,6 @@ const switchToMoonbeam = async () => {
       {wallet?.type === 'evm' && contract && (
         <div className="space-y-8">
           
-          {/* Hackathon Judge Functions */}
-          <div className="bg-white p-6 rounded-lg border-2 border-purple-200">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <FontAwesomeIcon icon={faGavel} className="text-purple-600" />
-              🏆 Hackathon Judge Functions
-            </h3>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Submit Score (Write) */}
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-3 text-purple-800">✍️ Submit Score (Write Function)</h4>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="number"
-                      placeholder="Track ID"
-                      value={judgeTrackId}
-                      onChange={(e) => setJudgeTrackId(e.target.value)}
-                      className="px-3 py-2 border rounded text-sm"
-                      min="1"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Score (0-100)"
-                      value={judgeScore}
-                      onChange={(e) => setJudgeScore(e.target.value)}
-                      className="px-3 py-2 border rounded text-sm"
-                      min="0"
-                      max="100"
-                    />
-                  </div>
-                  <button 
-                    onClick={testJudgeScore}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-medium"
-                  >
-                    🎯 Submit Score
-                  </button>
-                  <p className="text-xs text-purple-600">
-                    Submit a score (0-100) for a music track. This creates a transaction on the blockchain.
-                  </p>
-                </div>
-              </div>
-
-              {/* Read Score (Read) */}
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-3 text-blue-800">📊 Read Score (Read Function)</h4>
-                <div className="space-y-3">
-                  <input
-                    type="number"
-                    placeholder="Track ID to check"
-                    value={readTrackId}
-                    onChange={(e) => setReadTrackId(e.target.value)}
-                    className="w-full px-3 py-2 border rounded text-sm"
-                    min="1"
-                  />
-                  <button 
-                    onClick={testGetScore}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium"
-                  >
-                    📖 Read Score
-                  </button>
-                  <p className="text-xs text-blue-600">
-                    Read the current score for a track. This is a free call that doesn&apos;t cost gas.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Basic Contract Functions */}
           <div className="bg-white p-6 rounded-lg border">
@@ -1741,13 +1673,6 @@ const switchToMoonbeam = async () => {
               🎵 Basic Contract Functions
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button 
-                onClick={testGetNextId}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-              >
-                Get Next Track ID (Read)
-              </button>
-              
               <button 
                 onClick={testMint}
                 className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"

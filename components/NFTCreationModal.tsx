@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes, faUpload, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faTimes, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { useSession } from "next-auth/react";
 import apiClient from "@/libs/api";
 import { useContract } from '../hooks/useContract';
+import { ethers } from 'ethers';
 
 interface Track {
   id: string;
@@ -18,6 +19,8 @@ interface Track {
 }
 
 interface MusicNFT {
+  id?: number;
+  tokenId?: number;
   title: string;
   description?: string;
   image?: string;
@@ -28,13 +31,22 @@ interface MusicNFT {
   lyrics?: string;
   editionSize?: number;
   price?: number;
+  priceInWei?: string;
   metadataCID?: string;
+  metadataHash?: string;
   userId?: string;
   type: 'single' | 'album';
   trackCount?: number;
   tracks?: Track[];
   albumCID?: string;
   releaseDate?: string;
+  contractAddress?: string;
+  transactionHash?: string;
+  blockNumber?: number;
+  mintingStatus?: 'pending' | 'success' | 'failed';
+  creator?: string;
+  totalSupply?: number;
+  soldCount?: number;
 }
 
 interface NFTCreationModalProps {
@@ -60,6 +72,10 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
     contract,
     account,
     isConnected,
+    isLoading,
+    networkId,
+    connectWallet,
+    switchToMoonbeam,
     mintTrack,
     buyTrack,
     withdrawEarnings,
@@ -67,7 +83,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
     getPendingEarnings
   } = useContract();
   
-  // Common fields
+  // Form State
   const [type, setType] = useState<'single' | 'album'>('single');
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -76,7 +92,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
   const [genreInput, setGenreInput] = useState("");
   const [editionSize, setEditionSize] = useState<number | undefined>();
   const [priceUsd, setPriceUsd] = useState<number | undefined>();
-  const [dotUsdPrice, setDotUsdPrice] = useState<number>(0);
+  const [devUsdPrice, setDevUsdPrice] = useState<number>(0.05); // Moonbeam DEV price
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>("");
   const [releaseDate, setReleaseDate] = useState("");
@@ -94,41 +110,89 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
   // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
-      setType('single');
-      setTitle("");
-      setDescription("");
-      setArtist("");
-      setGenres([]);
-      setGenreInput("");
-      setEditionSize(undefined);
-      setPriceUsd(undefined);
-      setAudioFile(null);
-      setImageFile(null);
-      setBpm(undefined);
-      setLyrics("");
-      setAlbumCoverImage(null);
-      setTracks([]);
-      setReleaseDate("");
-      setUploadProgress("");
+      resetForm();
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  const resetForm = () => {
+    setType('single');
+    setTitle("");
+    setDescription("");
+    setArtist("");
+    setGenres([]);
+    setGenreInput("");
+    setEditionSize(undefined);
+    setPriceUsd(undefined);
+    setAudioFile(null);
+    setImageFile(null);
+    setBpm(undefined);
+    setLyrics("");
+    setAlbumCoverImage(null);
+    setTracks([]);
+    setReleaseDate("");
+    setUploadProgress("");
+  };
+
+  // Store NFT metadata in localStorage
+  const storeNFTMetadata = (tokenId: number, metadata: MusicNFT) => {
+    try {
+      localStorage.setItem(`nft_metadata_${tokenId}`, JSON.stringify(metadata));
+      
+      // Also store in user's NFT list
+      if (account) {
+        const userNFTsKey = `user_nfts_${account}`;
+        const existingNFTs = localStorage.getItem(userNFTsKey);
+        const nfts = existingNFTs ? JSON.parse(existingNFTs) : [];
+        
+        // Remove existing entry for this token if it exists
+        const filteredNFTs = nfts.filter((nft: MusicNFT) => nft.tokenId !== tokenId);
+        filteredNFTs.push(metadata);
+        
+        localStorage.setItem(userNFTsKey, JSON.stringify(filteredNFTs));
+      }
+    } catch (error) {
+      console.error('Error storing NFT metadata:', error);
+    }
+  };
+
+  // Add wallet connection handler
+  const handleConnectWallet = async () => {
+    try {
+      await connectWallet();
+    } catch (error: any) {
+      console.error('Failed to connect wallet:', error);
+      alert('Failed to connect wallet: ' + error.message);
+    }
+  };
+
+  // Add network switching handler
+  const handleSwitchNetwork = async () => {
+    try {
+      await switchToMoonbeam();
+    } catch (error: any) {
+      console.error('Failed to switch network:', error);
+      alert('Failed to switch network: ' + error.message);
+    }
+  };
 
   const handlePriceChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(e.target.value);
     setPriceUsd(value);
 
-    // Fetch DOT price for display purposes only
+    // Fetch DEV price for Moonbeam
     try {
       const resp = await fetch(
-        "https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=usd"
+        "https://api.coingecko.com/api/v3/simple/price?ids=moonbeam&vs_currencies=usd"
       );
       const data = await resp.json();
-      const price = data?.polkadot?.usd;
-      if (typeof price === "number") setDotUsdPrice(price);
+      const price = data?.moonbeam?.usd;
+      if (typeof price === "number") {
+        setDevUsdPrice(price);
+      }
     } catch (err) {
-      console.error("Failed to fetch DOT price:", err);
+      console.error("Failed to fetch DEV price:", err);
+      // Use fallback price
+      setDevUsdPrice(0.05);
     }
   };
 
@@ -154,45 +218,34 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
     setGenres(genres.filter((g) => g !== genre));
   };
 
-  // Album track management
-  const addTrack = () => {
-    const newTrack: Track = {
-      id: Date.now().toString(),
-      title: "",
-      audioFile: null,
-      trackNumber: tracks.length + 1,
-    };
-    setTracks([...tracks, newTrack]);
-  };
-
-  const removeTrack = (trackId: string) => {
-    const updatedTracks = tracks.filter(t => t.id !== trackId);
-    // Renumber tracks
-    const renumberedTracks = updatedTracks.map((track, index) => ({
-      ...track,
-      trackNumber: index + 1
-    }));
-    setTracks(renumberedTracks);
-  };
-
-  const updateTrack = (trackId: string, field: keyof Track, value: any) => {
-    setTracks(tracks.map(track => 
-      track.id === trackId ? { ...track, [field]: value } : track
-    ));
-  };
-
-  // Upload single track using apiClient
+  // Upload single track using apiClient with enhanced error handling
   const uploadSingleTrack = async () => {
     try {
-      setUploadProgress('Preparing single track upload...');
+      setUploadProgress('Validating files...');
+      
+      // Validate files
+      if (!audioFile) {
+        throw new Error('No audio file selected');
+      }
+
+      // Check file size (limit to 50MB for audio)
+      const maxSize = 50 * 1024 * 1024; // 50MB
+      if (audioFile.size > maxSize) {
+        throw new Error('Audio file too large. Maximum size is 50MB.');
+      }
+
+      if (imageFile && imageFile.size > 10 * 1024 * 1024) { // 10MB for images
+        throw new Error('Image file too large. Maximum size is 10MB.');
+      }
+
+      setUploadProgress('Preparing upload data...');
       
       const formData = new FormData();
-      formData.append('audioFile', audioFile!);
+      formData.append('audioFile', audioFile);
       if (imageFile) {
         formData.append('imageFile', imageFile);
       }
       
-      // Add metadata as JSON string
       const metadata = {
         title,
         description,
@@ -203,118 +256,163 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         editionSize: editionSize || 1,
         priceUsd,
         releaseDate,
-        userId: session!.user!.id
+        userId: session?.user?.id
       };
+      
+      console.log('📤 Uploading with metadata:', metadata);
       formData.append('metadata', JSON.stringify(metadata));
 
-      setUploadProgress('Uploading single track to IPFS...');
+      setUploadProgress('Uploading to IPFS...');
       
-      // Call API route using apiClient
       const response = await apiClient.post('/pinata/upload-single', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
 
-      if (!response.data.success) {
-        throw new Error(response.data.error || 'Upload failed');
+      console.log('📡 Full response object:', response);
+      console.log('📡 Response data:', response.data);
+
+      // FIX: The response.data IS the actual data, not a wrapper
+      // The API client already unwraps the response for us
+      if (!response.data) {
+        throw new Error('No response data received');
       }
 
-      return response.data.data;
-    } catch (error) {
-      console.error('Error uploading single track:', error);
-      throw error;
+      // The response.data contains the actual track data, which means success
+      console.log('✅ IPFS upload successful:', response.data);
+      setUploadProgress('IPFS upload completed successfully!');
+      
+      // Return the actual data (response.data IS the data)
+      return response.data;
+      
+    } catch (error: any) {
+      console.error('❌ Error in uploadSingleTrack:', error);
+      setUploadProgress('');
+      throw new Error(error.message || 'Upload failed');
     }
   };
 
-  // Upload album using apiClient
-  const uploadAlbumBundle = async () => {
+  // Mint NFT on blockchain using the contract with proper price conversion
+  const mintNFTOnContract = async (ipfsData: any) => {
     try {
-      setUploadProgress('Preparing album upload...');
+      setUploadProgress('Checking wallet connection...');
       
-      const formData = new FormData();
-      
-      // Add album cover
-      if (albumCoverImage) {
-        formData.append('albumCover', albumCoverImage);
+      // Enhanced connection checks
+      if (!isConnected) {
+        throw new Error('Wallet not connected. Please connect your wallet first.');
       }
       
-      // Add tracks
-      tracks.forEach((track, index) => {
-        if (track.audioFile) {
-          formData.append(`track_${index}_audio`, track.audioFile);
-        }
-        if (track.imageFile) {
-          formData.append(`track_${index}_image`, track.imageFile);
-        }
-      });
+      if (!account) {
+        throw new Error('No account detected. Please ensure your wallet is connected.');
+      }
       
-      // Add album metadata
-      const albumMetadata = {
-        title,
-        description,
-        artist,
-        genres,
-        tracks: tracks.map(track => ({
-          title: track.title,
-          artist: track.artist,
-          bpm: track.bpm,
-          lyrics: track.lyrics,
-          trackNumber: track.trackNumber
-        })),
-        editionSize: editionSize || 1,
+      if (!contract) {
+        throw new Error('Smart contract not loaded. Please check your network connection.');
+      }
+
+      console.log('🔍 Connection status:', {
+        isConnected,
+        account,
+        contractAddress: contract.target || contract.address,
+        network: window.ethereum?.networkVersion
+      });
+
+      setUploadProgress('Validating IPFS data...');
+      
+      // Use the metadata URL or hash from IPFS
+      const metadataHash = ipfsData.metadataCID || ipfsData.metadataHash || ipfsData.hash;
+      console.log('📋 IPFS Data received:', ipfsData);
+      console.log('🔗 Metadata hash:', metadataHash);
+      
+      if (!metadataHash) {
+        console.error('❌ No metadata hash found in IPFS data:', ipfsData);
+        throw new Error('No metadata hash from IPFS upload. Check IPFS data structure.');
+      }
+
+      setUploadProgress('Calculating price...');
+      
+      // Convert USD to DEV tokens properly for Moonbase Alpha
+      const priceInDev = priceUsd ? (priceUsd / devUsdPrice) : 0.1;
+      const priceInWei = ethers.parseEther(priceInDev.toString());
+      
+      console.log('💰 Price calculation:', {
         priceUsd,
-        releaseDate,
-        userId: session!.user!.id
-      };
-      formData.append('metadata', JSON.stringify(albumMetadata));
-
-      setUploadProgress('Uploading album bundle to IPFS...');
-
-      // Call API route using apiClient
-      const response = await apiClient.post('/pinata/upload-album', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+        devUsdPrice,
+        priceInDev,
+        priceInWei: priceInWei.toString(),
+        editionSize: editionSize || 1
       });
 
-      console.log('Full response object:', response);
-      console.log('Response status:', response.status);
-      console.log('Response data:', response.data);
-      console.log('Response data type:', typeof response.data);
+      setUploadProgress('Preparing blockchain transaction...');
 
-      // Check if response.data is already the data we want
-      const responseData = response.data;
-      
-      // Try different response structures
-      if (responseData && responseData.success) {
-        console.log('Using responseData.data:', responseData.data);
-        return responseData.data;
-      } else if (responseData && responseData.data) {
-        console.log('Using responseData.data directly:', responseData.data);
-        return responseData.data;
-      } else if (responseData && responseData.albumCID) {
-        console.log('Using responseData directly (no success field):', responseData);
-        return responseData;
-      } else {
-        console.error('Unexpected response structure:', responseData);
-        throw new Error('Unexpected response structure from server');
-      }
+      try {
+        // Check if we can call the contract
+        console.log('🔨 Calling mintTrack with parameters:', {
+          metadataHash,
+          price: priceInWei.toString(),
+          maxEditions: editionSize || 1
+        });
 
-    } catch (error) {
-      console.error('Error uploading album:', error);
-      
-      // Enhanced error logging
-      if (error instanceof Error) {
-        console.error('Error message:', error.message);
+        setUploadProgress('Sending transaction to blockchain...');
+        
+        // Call the mint function - make sure parameters match your contract
+        const result = await mintTrack(
+          metadataHash,
+          priceInWei,  // Use Wei instead of string
+          editionSize || 1
+        );
+
+        console.log('✅ Mint transaction result:', result);
+        setUploadProgress('NFT minted successfully!');
+        
+        return result;
+        
+      } catch (contractError: any) {
+        console.error('❌ Contract call failed:', contractError);
+        console.error('Contract error details:', {
+          code: contractError.code,
+          message: contractError.message,
+          data: contractError.data,
+          reason: contractError.reason,
+          stack: contractError.stack
+        });
+        
+        // Handle specific contract errors
+        if (contractError.code === -32603) {
+          throw new Error('Network error: Please check your internet connection and try again.');
+        } else if (contractError.code === 4001) {
+          throw new Error('Transaction cancelled by user.');
+        } else if (contractError.message?.includes('insufficient funds')) {
+          throw new Error('Insufficient DEV tokens for minting and gas fees. Please add more DEV to your wallet.');
+        } else if (contractError.message?.includes('user rejected')) {
+          throw new Error('Transaction cancelled by user.');
+        } else if (contractError.message?.includes('chain')) {
+          throw new Error('Wrong network. Please switch to Moonbase Alpha network.');
+        } else if (contractError.reason) {
+          throw new Error(`Contract error: ${contractError.reason}`);
+        }
+        
+        throw contractError;
       }
-      if (error.response) {
-        console.error('Error response:', error.response);
-        console.error('Error response data:', error.response.data);
-        console.error('Error response status:', error.response.status);
+      
+    } catch (error: any) {
+      console.error('❌ Minting failed:', error);
+      
+      // Better error messages for users
+      let userMessage = error.message || 'Unknown minting error';
+      
+      if (error.code === -32603) {
+        userMessage = 'Network connection error. Please check your internet and wallet connection.';
+      } else if (error.code === 4001) {
+        userMessage = 'Transaction cancelled by user.';
+      } else if (error.message?.includes('chain')) {
+        userMessage = 'Wrong network detected. Please switch to Moonbase Alpha network in your wallet.';
+      } else if (error.message?.includes('insufficient funds')) {
+        userMessage = 'Insufficient DEV tokens. Please add more DEV to your wallet for gas fees.';
       }
       
-      throw error;
+      throw new Error(userMessage);
     }
   };
 
@@ -329,8 +427,13 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
       return;
     }
 
-    if (type === 'album' && (tracks.length === 0 || tracks.some(t => !t.audioFile || !t.title))) {
-      alert("Please add at least one track with title and audio file for the album.");
+    if (!isConnected) {
+      alert("Please connect your wallet to mint NFTs on the blockchain.");
+      return;
+    }
+
+    if (networkId && networkId !== 1287) {
+      alert("Please switch to Moonbase Alpha network to mint NFTs.");
       return;
     }
 
@@ -340,80 +443,200 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
       const userId = session.user.id;
 
       if (type === 'single') {
-        // Handle single track upload
-        const singleData = await uploadSingleTrack();
-
-        // Mint on blockchain using the correct contract function
-        setUploadProgress('Minting NFT on blockchain...');
+        // Step 1: Upload to IPFS with detailed logging
+        console.log('🚀 Starting IPFS upload...');
+        const ipfsData = await uploadSingleTrack();
+        console.log('✅ IPFS upload result:', ipfsData);
+        
+        // Step 2: Mint on blockchain with better error handling
+        let mintResult = null;
+        let tokenId = null;
+        
         try {
-          const mintResult = await mintTrack(
-            singleData.metadataHash, // IPFS hash
-            priceUsd.toString(), // price in USD (will be converted to ETH/DEV)
-            editionSize || 1 // max editions
-          );
-
-          console.log('NFT minted on blockchain:', mintResult);
+          console.log('🔨 Starting blockchain mint...');
+          console.log('🔍 Contract details:', {
+            contract: !!contract,
+            contractAddress: contract?.target || contract?.address,
+            isConnected,
+            account,
+            networkId
+          });
+          
+          setUploadProgress('Minting NFT on blockchain...');
+          
+          mintResult = await mintNFTOnContract(ipfsData);
+          console.log('✅ Mint successful:', mintResult);
+          
+          // Extract token ID from mint result
+          if (mintResult && mintResult.tokenId) {
+            tokenId = mintResult.tokenId;
+          } else if (contract) {
+            // Get the latest token ID
+            try {
+              const nextId = await contract.nextId();
+              tokenId = Number(nextId) - 1;
+            } catch (tokenIdError) {
+              console.warn('Could not get token ID:', tokenIdError);
+              tokenId = Date.now(); // Fallback ID
+            }
+          }
+          
           setUploadProgress('NFT successfully created and minted!');
-        } catch (mintError) {
-          console.error('Blockchain minting failed:', mintError);
-          setUploadProgress('IPFS upload successful, blockchain minting pending...');
-          // Continue with the flow even if minting fails
+          
+        } catch (mintError: any) {
+          console.error('❌ Blockchain minting failed:', mintError);
+          console.error('Error details:', {
+            message: mintError.message,
+            code: mintError.code,
+            data: mintError.data,
+            name: mintError.name,
+            reason: mintError.reason
+          });
+          
+          setUploadProgress(`IPFS upload successful, but minting failed: ${mintError.message}`);
+          
+          // Show detailed error to user
+          alert(`IPFS upload successful!\n\nMinting failed: ${mintError.message}\n\nFiles are uploaded to IPFS. You can retry minting later.`);
         }
 
+        // Create NFT data object
         const nftData: MusicNFT = {
-          title: singleData.title,
-          description: singleData.description,
-          artist: singleData.artist,
-          genre: singleData.genre || genres.join(', '),
-          bpm: singleData.bpm,
-          lyrics: singleData.lyrics,
-          editionSize: singleData.editionSize,
-          price: singleData.price,
-          audio: singleData.audio,
-          image: singleData.image,
-          releaseDate: singleData.releaseDate,
-          metadataCID: singleData.metadataCID,
+          id: tokenId || Date.now(),
+          tokenId: tokenId || undefined,
+          title: ipfsData.title || title,
+          description: ipfsData.description || description,
+          artist: ipfsData.artist || artist,
+          genre: genres.join(', '),
+          bpm: ipfsData.bpm || bpm,
+          lyrics: ipfsData.lyrics || lyrics,
+          editionSize: ipfsData.editionSize || editionSize || 1,
+          price: priceUsd,
+          audio: ipfsData.audio,
+          image: ipfsData.image,
+          releaseDate: ipfsData.releaseDate || releaseDate,
+          metadataCID: ipfsData.metadataCID,
+          metadataHash: ipfsData.metadataHash,
           type: 'single',
-          userId
+          userId,
+          contractAddress: typeof contract?.target === 'string'
+            ? contract.target
+            : typeof contract?.address === 'string'
+              ? contract.address
+              : undefined,
+          transactionHash: mintResult?.transactionHash,
+          blockNumber: mintResult?.blockNumber,
+          mintingStatus: mintResult ? 'success' : 'failed',
+          creator: account || undefined
         };
 
+        // Store metadata if we have a token ID
+        if (tokenId) {
+          storeNFTMetadata(tokenId, nftData);
+        }
+
+        // Call the onCreate callback
         onCreate(nftData);
       }
 
       // Close modal after successful upload
       setTimeout(() => {
         onClose();
-      }, 1000);
+      }, 2000);
 
-    } catch (err) {
-      console.error("Error uploading NFT:", err);
+    } catch (err: any) {
+      console.error("❌ Error creating NFT:", err);
+      console.error('Full error object:', err);
+      
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       alert(`Failed to create NFT: ${errorMessage}`);
+      setUploadProgress('');
     } finally {
       setUploading(false);
-      setUploadProgress("");
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-4xl p-6 overflow-y-auto max-h-[90vh]">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-4xl p-6 overflow-y-auto max-h-[95vh]">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Create Music Collectible</h2>
-          <button onClick={onClose} disabled={uploading}>
+          <button onClick={onClose} disabled={uploading || isLoading}>
             <FontAwesomeIcon 
               icon={faTimes} 
-              className={`text-xl ${uploading ? 'text-gray-300' : 'text-gray-500 hover:text-gray-700'}`} 
+              className={`text-xl ${uploading || isLoading ? 'text-gray-300' : 'text-gray-500 hover:text-gray-700'}`} 
             />
           </button>
         </div>
 
-        {/* Contract Connection Status */}
+        {/* Wallet Connection Status */}
         {!isConnected && (
           <div className="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <div className="text-sm text-yellow-800">
-              ⚠️ Wallet not connected. NFT will be uploaded to IPFS but won&apos;t be minted on blockchain until wallet is connected.
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-yellow-800">
+                ⚠️ Wallet not connected. Please connect your wallet to mint NFTs on the blockchain.
+              </div>
+              <button
+                onClick={handleConnectWallet}
+                disabled={isLoading}
+                className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Connecting...' : 'Connect Wallet'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Wrong Network Warning */}
+        {isConnected && networkId && networkId !== 1287 && (
+          <div className="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-orange-800">
+                ⚠️ Wrong network detected. Please switch to Moonbase Alpha network (Chain ID: 1287).
+                <br />
+                <span className="text-xs">Current network: {networkId}</span>
+              </div>
+              <button
+                onClick={handleSwitchNetwork}
+                disabled={isLoading}
+                className="ml-4 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Switching...' : 'Switch Network'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Connected Status */}
+        {isConnected && account && networkId === 1287 && (
+          <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+            <div className="text-sm text-green-800">
+              ✅ Connected: {account.slice(0, 6)}...{account.slice(-4)} | Network: Moonbase Alpha
+              {contract && (
+                <span className="ml-2">
+                  | Contract: 
+                  {typeof (contract.target) === 'string'
+                    ? contract.target.slice(0, 6)
+                    : typeof (contract.address) === 'string'
+                      ? (contract.address as string).slice(0, 6)
+                      : ''}
+                  ...
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Loading Status */}
+        {isLoading && (
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+              <div className="text-sm text-blue-800">
+                Connecting to wallet and blockchain...
+              </div>
             </div>
           </div>
         )}
@@ -426,7 +649,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
               <div className="flex-1">
                 <div className="text-sm font-medium text-blue-800">{uploadProgress}</div>
                 <div className="text-xs text-blue-600 mt-1">
-                  Please don&apos;t close this window while uploading...
+                  Please don&apos;t close this window while processing...
                 </div>
               </div>
             </div>
@@ -442,30 +665,25 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
           </div>
         )}
 
-        {/* Rest of your component remains the same... */}
         {/* Type Selector */}
         <div className="mb-6">
           <label className="block text-gray-700 mb-2 font-medium">Type</label>
           <div className="flex gap-4">
             <button
               onClick={() => setType('single')}
-              disabled={uploading}
+              disabled={uploading || isLoading}
               className={`px-6 py-3 rounded-lg font-medium transition ${
                 type === 'single' 
                   ? 'bg-blue-600 text-white' 
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              } ${uploading || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               Single Track
             </button>
             <button
               onClick={() => setType('album')}
               disabled
-              className={`px-6 py-3 rounded-lg font-medium transition ${
-                type === 'album' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className="px-6 py-3 rounded-lg font-medium bg-gray-200 text-gray-500 cursor-not-allowed"
             >
               Album (Coming Soon)
             </button>
@@ -488,18 +706,23 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
                   onChange={(e) => setAudioFile(e.target.files ? e.target.files[0] : null)}
                   className="hidden"
                   id="audio-upload"
-                  disabled={uploading}
+                  disabled={uploading || isLoading}
                 />
-                <label htmlFor="audio-upload" className={`cursor-pointer text-blue-600 font-semibold text-sm text-center ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                <label htmlFor="audio-upload" className={`cursor-pointer text-blue-600 font-semibold text-sm text-center ${uploading || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   {audioFile ? (
                     <div>
                       <div className="text-green-600 font-medium">{audioFile.name}</div>
                       <div className="text-xs text-gray-500 mt-1">
                         {(audioFile.size / 1024 / 1024).toFixed(2)} MB
                       </div>
+                      {audioFile.size > 50 * 1024 * 1024 && (
+                        <div className="text-red-500 text-xs mt-1">
+                          File too large (max 50MB)
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    "Click to upload audio file"
+                    "Click to upload audio file (max 50MB)"
                   )}
                 </label>
               </div>
@@ -516,18 +739,23 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
                   onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)}
                   className="hidden"
                   id="image-upload"
-                  disabled={uploading}
+                  disabled={uploading || isLoading}
                 />
-                <label htmlFor="image-upload" className={`cursor-pointer text-blue-600 font-semibold text-sm text-center ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                <label htmlFor="image-upload" className={`cursor-pointer text-blue-600 font-semibold text-sm text-center ${uploading || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   {imageFile ? (
                     <div>
                       <div className="text-green-600 font-medium">{imageFile.name}</div>
                       <div className="text-xs text-gray-500 mt-1">
                         {(imageFile.size / 1024 / 1024).toFixed(2)} MB
                       </div>
+                      {imageFile.size > 10 * 1024 * 1024 && (
+                        <div className="text-red-500 text-xs mt-1">
+                          File too large (max 10MB)
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    "Click to upload cover image"
+                    "Click to upload cover image (max 10MB)"
                   )}
                 </label>
               </div>
@@ -546,7 +774,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
               placeholder={`Enter ${type} title`}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              disabled={uploading}
+              disabled={uploading || isLoading}
               className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
             />
           </div>
@@ -558,7 +786,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
               placeholder="Enter artist name"
               value={artist}
               onChange={(e) => setArtist(e.target.value)}
-              disabled={uploading}
+              disabled={uploading || isLoading}
               className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
             />
           </div>
@@ -571,7 +799,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
               min="1"
               value={editionSize || ""}
               onChange={(e) => setEditionSize(Number(e.target.value))}
-              disabled={uploading}
+              disabled={uploading || isLoading}
               className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
             />
           </div>
@@ -587,12 +815,12 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
               step="0.01"
               value={priceUsd || ""}
               onChange={handlePriceChange}
-              disabled={uploading}
+              disabled={uploading || isLoading}
               className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
             />
-            {priceUsd !== undefined && dotUsdPrice > 0 && (
+            {priceUsd !== undefined && devUsdPrice > 0 && (
               <p className="text-sm text-gray-600 mt-1">
-                ≈ {(priceUsd / dotUsdPrice).toFixed(4)} DOT (display only)
+                ≈ {(priceUsd / devUsdPrice).toFixed(4)} DEV | {(priceUsd * 0.0004).toFixed(6)} ETH
               </p>
             )}
           </div>
@@ -607,7 +835,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
                 max="300"
                 value={bpm || ""}
                 onChange={(e) => setBpm(Number(e.target.value))}
-                disabled={uploading}
+                disabled={uploading || isLoading}
                 className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
               />
             </div>
@@ -619,7 +847,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
               type="date"
               value={releaseDate}
               onChange={(e) => setReleaseDate(e.target.value)}
-              disabled={uploading}
+              disabled={uploading || isLoading}
               className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
             />
           </div>
@@ -634,12 +862,12 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
                 key={genre}
                 type="button"
                 onClick={() => toggleGenre(genre)}
-                disabled={uploading}
+                disabled={uploading || isLoading}
                 className={`px-3 py-1 rounded-full border text-sm transition ${
                   genres.includes(genre)
                     ? "bg-blue-600 text-white border-blue-600"
                     : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                } ${uploading || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {genre}
               </button>
@@ -657,7 +885,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
                   {g}
                   <button
                     onClick={() => removeGenre(g)}
-                    disabled={uploading}
+                    disabled={uploading || isLoading}
                     className="ml-2 text-blue-600 hover:text-blue-800 disabled:opacity-50"
                   >
                     ×
@@ -670,13 +898,13 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
               value={genreInput}
               onChange={(e) => setGenreInput(e.target.value)}
               onKeyDown={handleGenreKeyDown}
-              disabled={uploading}
+              disabled={uploading || isLoading}
               className="px-2 py-1 text-sm border-none focus:ring-0 focus:outline-none bg-transparent placeholder-gray-400 disabled:opacity-50 flex-1 min-w-[120px]"
             />
           </div>
         </div>
 
-        {/* Description and Lyrics (for singles) */}
+        {/* Description and Lyrics */}
         <div className="grid grid-cols-1 gap-5 mb-6">
           <div>
             <label className="block text-gray-700 mb-2 font-medium">Description</label>
@@ -684,7 +912,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
               placeholder={`Describe your ${type}...`}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              disabled={uploading}
+              disabled={uploading || isLoading}
               className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px] disabled:bg-gray-100"
             />
           </div>
@@ -696,7 +924,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
                 placeholder="Enter lyrics..."
                 value={lyrics}
                 onChange={(e) => setLyrics(e.target.value)}
-                disabled={uploading}
+                disabled={uploading || isLoading}
                 className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px] disabled:bg-gray-100"
               />
             </div>
@@ -707,23 +935,37 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            disabled={uploading}
+            disabled={uploading || isLoading}
             className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
-            disabled={uploading || !title || !session?.user?.id || !priceUsd}
+            disabled={
+              uploading || 
+              isLoading || 
+              !title || 
+              !session?.user?.id || 
+              !priceUsd || 
+              !audioFile || 
+              !isConnected || 
+              (networkId && networkId !== 1287) ||
+              (audioFile && audioFile.size > 50 * 1024 * 1024)
+            }
             className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {uploading ? 'Creating...' : `Create ${type === 'single' ? 'Single' : 'Album'}`}
+            {uploading ? 'Creating...' : isLoading ? 'Loading...' : `Create & Mint ${type === 'single' ? 'Single' : 'Album'}`}
           </button>
         </div>
 
         {/* Form validation hints */}
         <div className="mt-3 text-xs text-gray-500">
-          <span className="text-red-500">*</span> Required fields
+          <span className="text-red-500">*</span> Required fields | 
+          {!isConnected && ' Wallet connection required |'}
+          {isConnected && networkId !== 1287 && ' Moonbase Alpha network required |'}
+          {isConnected && networkId === 1287 && ' ✅ Ready to mint |'}
+          {' NFT minting on Moonbase Alpha'}
         </div>
       </div>
     </div>

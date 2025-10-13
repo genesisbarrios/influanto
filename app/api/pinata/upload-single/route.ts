@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
           groupId: group.id
         });
         
-        imageUrl = `${process.env.PINATA_GATEWAY}/ipfs/${imageUpload.IpfsHash}`;
+        imageUrl = `https://silver-legal-python-898.mypinata.cloud/files/${imageUpload.IpfsHash}`;
         console.log('Image uploaded:', imageUrl);
       }
 

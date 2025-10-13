@@ -798,8 +798,8 @@ const Collectibles: React.FC = () => {
           setCollectibles([
             ...collectibles,
             {
-              id: Date.now().toString(),
               ...newNFT,
+              id: Date.now().toString(),
               audioUrl: newNFT.audio ?? "",
               editionSize: typeof newNFT.editionSize === "number" ? newNFT.editionSize : 1,
               genres: Array.isArray(newNFT.genre)
@@ -808,7 +808,7 @@ const Collectibles: React.FC = () => {
                 ? [newNFT.genre]
                 : [],
               status: "created",
-            },
+            } as Collectible,
           ])
         }
       />
