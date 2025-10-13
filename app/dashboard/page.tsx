@@ -26,9 +26,8 @@ const DynamicCollectibles = nextDynamic(() => import('./Collectibles'), {
   )
 });
 
-
-// Rename this to avoid conflict with the imported 'dynamic'
-export const dynamicRoute = 'force-dynamic';
+// Change this line - use 'dynamic' not 'dynamicRoute'
+export const dynamic = 'force-dynamic';
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
@@ -41,7 +40,7 @@ export default function Dashboard() {
     'qr-code-generator': <QRCodeGenerator />,
     'curator-search': <CuratorSearch />,
     'community': <Community />,
-    'collectibles': <DynamicCollectibles />  // ✅ This is the only change needed
+    'collectibles': <DynamicCollectibles />
   };
 
   return (
