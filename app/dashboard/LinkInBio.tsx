@@ -745,7 +745,7 @@ const containerStyle = {
         className={`border rounded-lg p-2 ${!linkInBio?.bgImage ? "border-blue-500" : "border-gray-300"}`}
         onClick={() => {
           setLinkInBio({ ...linkInBio, bgImage: null });
-          // Immediately clear background
+          setBgImage(null); 
           document.body.style.backgroundImage = 'none';
         }}
         style={{ fontFamily: linkInBio?.font || 'inherit' }}
