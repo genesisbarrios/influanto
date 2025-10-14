@@ -1130,50 +1130,29 @@ export default function TestContract() {
           </div>
 
           {/* Show warning if Polkadot wallet is connected but we have an EVM contract */}
-          {wallet.type === 'polkadot' && CONTRACT_ADDRESS_EVM && (
+          {/* {wallet.type === 'polkadot' && CONTRACT_ADDRESS_EVM && (
             <div className="mb-4 p-4 bg-orange-50 rounded-lg border-2 border-orange-300">
-              <div className="flex items-start gap-3">
-                <span className="text-3xl">🔮⚡</span>
-                <div className="flex-1">
-                  <h4 className="font-bold text-orange-800 mb-2">Switch to Talisman EVM Mode</h4>
-                  <p className="text-sm text-orange-700 mb-3">
-                    You deployed your contract with <strong>Talisman EVM</strong>, but you&apos;re currently connected to <strong>Talisman Substrate</strong>. 
-                    To test your deployed contract at <code className="bg-white px-1 rounded font-mono">{CONTRACT_ADDRESS_EVM}</code>, 
-                    you need to switch to Talisman&apos;s EVM mode.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <div className="p-3 bg-red-50 rounded border border-red-200">
-                      <div className="text-xs font-medium text-red-800 mb-1">❌ Current Connection</div>
-                      <div className="text-sm text-red-700">Talisman Substrate → Polkadot parachains</div>
-                    </div>
-                    <div className="p-3 bg-green-50 rounded border border-green-200">
-                      <div className="text-xs font-medium text-green-800 mb-1">✅ Needed Connection</div>
-                      <div className="text-sm text-green-700">Talisman EVM → Your deployed contract</div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => {
-                        setWallet(null);
-                        setContract(null);
-                        setProvider(null);
-                        detectWallets();
-                      }}
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm font-medium"
-                    >
-                      🔄 Switch to Talisman EVM
-                    </button>
-                    <button 
-                      onClick={() => window.open('https://docs.talisman.xyz/', '_blank')}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm"
-                    >
-                      📖 Talisman Guide
-                    </button>
-                  </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => {
+                      setWallet(null);
+                      setContract(null);
+                      setProvider(null);
+                      detectWallets();
+                    }}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm font-medium"
+                  >
+                    🔄 Switch to Talisman EVM
+                  </button>
+                  <button 
+                    onClick={() => window.open('https://docs.talisman.xyz/', '_blank')}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm"
+                  >
+                    📖 Talisman Guide
+                  </button>
                 </div>
               </div>
-            </div>
-          )}
+          )} */}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             <button 
