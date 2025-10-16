@@ -174,6 +174,11 @@ export default function Synthfluanto() {
 
   const pressedKeysRef = useRef<Set<string>>(new Set());
 
+  const [showP5, setShowP5] = useState(false);
+    useEffect(() => {
+      setShowP5(true);
+    }, []);
+
   useEffect(() => {
         document.title = "Release Pages | Influanto";
         
@@ -840,7 +845,7 @@ useEffect(() => {
             </div>
           {/* Middle: Visualizer and Meter */}
           <div style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
-            <P5Wrapper sketch={visualizerSketch} />
+            {showP5 && <P5Wrapper sketch={visualizerSketch} />}
             <MeterBar level={meterLevel} />
           </div>
             {/* Envelope */}
