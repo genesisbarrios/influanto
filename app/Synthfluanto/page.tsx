@@ -1,5 +1,7 @@
 "use client";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Footer from "@/components/Footer";
@@ -175,9 +177,10 @@ export default function Synthfluanto() {
   const pressedKeysRef = useRef<Set<string>>(new Set());
 
   const [showP5, setShowP5] = useState(false);
-    useEffect(() => {
-      setShowP5(true);
-    }, []);
+
+  useEffect(() => {
+    setShowP5(true);
+  }, []);
 
   useEffect(() => {
         document.title = "Release Pages | Influanto";
