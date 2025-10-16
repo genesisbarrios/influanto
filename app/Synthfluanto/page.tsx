@@ -169,21 +169,24 @@ export default function Synthfluanto() {
   // --- Recording stream ref ---
   const streamRef = useRef<MediaStream | null>(null);
 
+  const pressedKeysRef = useRef<Set<string>>(new Set());
+
+
   // --- Synth/FX chain setup ---
   useEffect(() => {
-    try { synthRef.current?.dispose(); } catch {}
-    try { gainRef.current?.dispose(); } catch {}
-    try { hipassRef.current?.dispose(); } catch {}
-    try { lowpassRef.current?.dispose(); } catch {}
-    try { reverbRef.current?.dispose(); } catch {}
-    try { feedbackDelayRef.current?.dispose(); } catch {}
-    try { pingPongRef.current && typeof pingPongRef.current.dispose === "function" && pingPongRef.current.dispose(); } catch {}
-    try { distortionRef.current?.dispose(); } catch {}
-    try { chorusRef.current && typeof chorusRef.current.dispose === "function" && chorusRef.current.dispose(); } catch {}
-    try { tremoloRef.current && typeof tremoloRef.current.dispose === "function" && tremoloRef.current.dispose(); } catch {}
-    try { meterRef.current?.dispose(); } catch {}
-    try { fftRef.current?.dispose(); } catch {}
-    try { waveformRef.current?.dispose(); } catch {}
+    try { synthRef.current?.dispose(); } catch (e) {}
+    try { gainRef.current?.dispose(); } catch (e) {}
+    try { hipassRef.current?.dispose(); } catch (e) {}
+    try { lowpassRef.current?.dispose(); } catch (e) {}
+    try { reverbRef.current?.dispose(); } catch (e) {}
+    try { feedbackDelayRef.current?.dispose(); } catch (e) {}
+    try { pingPongRef.current && typeof pingPongRef.current.dispose === "function" && pingPongRef.current.dispose(); } catch (e) {}
+    try { distortionRef.current?.dispose(); } catch (e) {}
+    try { chorusRef.current && typeof chorusRef.current.dispose === "function" && chorusRef.current.dispose(); } catch (e) {}
+    try { tremoloRef.current && typeof tremoloRef.current.dispose === "function" && tremoloRef.current.dispose(); } catch (e) {}
+    try { meterRef.current?.dispose(); } catch (e) {}
+    try { fftRef.current?.dispose(); } catch (e) {}
+    try { waveformRef.current?.dispose(); } catch (e) {}
 
     let synth: Tone.PolySynth;
     switch (synthType) {
@@ -271,19 +274,19 @@ export default function Synthfluanto() {
     streamRef.current = null;
 
     return () => {
-      try { synth.dispose(); } catch {}
-      try { gainNode.dispose(); } catch {}
-      try { reverbNode.dispose(); } catch {}
-      try { feedbackDelayNode.dispose(); } catch {}
-      try { pingPongNode && typeof pingPongNode.dispose === "function" && pingPongNode.dispose(); } catch {}
-      try { distortionNode.dispose(); } catch {}
-      try { chorusNode && typeof chorusNode.dispose === "function" && chorusNode.dispose(); } catch {}
-      try { tremoloNode && typeof tremoloNode.dispose === "function" && tremoloNode.dispose(); } catch {}
-      try { lowpassFilter.dispose(); } catch {}
-      try { hipassFilter.dispose(); } catch {}
-      try { meter.dispose(); } catch {}
-      try { fft.dispose(); } catch {}
-      try { waveform.dispose(); } catch {}
+      try { synth.dispose(); } catch (e) {}
+      try { gainNode.dispose(); } catch (e) {}
+      try { reverbNode.dispose(); } catch (e) {}
+      try { feedbackDelayNode.dispose(); } catch (e) {}
+      try { pingPongNode && typeof pingPongNode.dispose === "function" && pingPongNode.dispose(); } catch (e) {}
+      try { distortionNode.dispose(); } catch (e) {}
+      try { chorusNode && typeof chorusNode.dispose === "function" && chorusNode.dispose(); } catch (e) {}
+      try { tremoloNode && typeof tremoloNode.dispose === "function" && tremoloNode.dispose(); } catch (e) {}
+      try { lowpassFilter.dispose(); } catch (e) {}
+      try { hipassFilter.dispose(); } catch (e) {}
+      try { meter.dispose(); } catch (e) {}
+      try { fft.dispose(); } catch (e) {}
+      try { waveform.dispose(); } catch (e) {}
     };
   }, [synthType, oscType, chorusFreq, chorusDepth, chorusWet, pingPongDelayTime, pingPongFeedback, feedbackDelayTime, feedbackDelayFeedback]);
 
@@ -394,7 +397,9 @@ export default function Synthfluanto() {
   // Stop button stops both recording and playback
   const stopAll = () => {
     if (recording) {
-      mediaRecorder?.stop();
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+      }
       setRecording(false);
     }
     if (playing && playbackAudioRef.current) {
@@ -596,29 +601,77 @@ export default function Synthfluanto() {
     };
   }, [synthType, oscType]);
 
-  useEffect(() => {
-    const keyMap: { [key: string]: string } = {
-      a: "C4", w: "C#4", s: "D4", e: "D#4", d: "E4",
-      f: "F4", t: "F#4", g: "G4", y: "G#4", h: "A4",
-      u: "A#4", j: "B4", k: "C5", o: "C#5", l: "D5", p: "D#5", ";": "E5",
-      "'": "F5"
-    };
-    const downHandler = (e: KeyboardEvent) => {
-      const note = keyMap[e.key.toLowerCase()];
-      if (note) playNote(note);
-    };
-    const upHandler = (e: KeyboardEvent) => {
-      const note = keyMap[e.key.toLowerCase()];
-      if (note) stopNote(note);
-    };
-    window.addEventListener("keydown", downHandler);
-    window.addEventListener("keyup", upHandler);
-    return () => {
-      window.removeEventListener("keydown", downHandler);
-      window.removeEventListener("keyup", upHandler);
-    };
-    // eslint-disable-next-line
-  }, [synthType, oscType]);
+
+// --- Keyboard support (robust fix for stuck notes) ---
+useEffect(() => {
+  const keyMap: { [key: string]: string } = {
+    a: "C4", w: "C#4", s: "D4", e: "D#4", d: "E4",
+    f: "F4", t: "F#4", g: "G4", y: "G#4", h: "A4",
+    u: "A#4", j: "B4", k: "C5", o: "C#5", l: "D5", p: "D#5", ";": "E5",
+    "'": "F5"
+  };
+
+  // Use a ref so the set persists across renders
+  // (already declared at top level: const pressedKeysRef = useRef<Set<string>>(new Set());)
+
+  // Always release all notes on any focus loss or tab switch
+  const releaseAll = () => {
+    // Release all notes in activeNotes, not just pressedKeysRef
+    setActiveNotes(prev => {
+      prev.forEach(note => {
+        synthRef.current?.triggerRelease(note);
+      });
+      return [];
+    });
+    pressedKeysRef.current.clear();
+  };
+
+  // Use a stable handler for visibilitychange
+  const visibilityHandler = () => {
+    if (document.visibilityState !== "visible") releaseAll();
+  };
+
+  // Use a stable handler for blur
+  const blurHandler = () => {
+    releaseAll();
+  };
+
+  // Use a stable handler for keydown
+  const downHandler = (e: KeyboardEvent) => {
+    if (e.repeat) return;
+    const key = e.key.toLowerCase();
+    const note = keyMap[key];
+    if (note && !pressedKeysRef.current.has(key)) {
+      pressedKeysRef.current.add(key);
+      playNote(note);
+    }
+  };
+
+  // Use a stable handler for keyup
+  const upHandler = (e: KeyboardEvent) => {
+    const key = e.key.toLowerCase();
+    const note = keyMap[key];
+    if (note && pressedKeysRef.current.has(key)) {
+      pressedKeysRef.current.delete(key);
+      stopNote(note);
+    }
+  };
+
+  window.addEventListener("keydown", downHandler);
+  window.addEventListener("keyup", upHandler);
+  window.addEventListener("blur", blurHandler);
+  document.addEventListener("visibilitychange", visibilityHandler);
+
+  // Defensive: release all notes on unmount
+  return () => {
+    window.removeEventListener("keydown", downHandler);
+    window.removeEventListener("keyup", upHandler);
+    window.removeEventListener("blur", blurHandler);
+    document.removeEventListener("visibilitychange", visibilityHandler);
+    releaseAll();
+  };
+// eslint-disable-next-line
+}, [playNote, stopNote, setActiveNotes]);
 
   // --- Piano keys from C2 to C6 ---
   function getFullPianoKeys() {
