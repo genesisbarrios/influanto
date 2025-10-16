@@ -7,11 +7,9 @@ import * as Tone from "tone";
 import nextDynamic from "next/dynamic";
 import Header from "@/components/Header";
 import { Stage, Layer, Line } from "react-konva";
+import { Suspense } from "react";
 
 type BlobPart = any; 
-
-// Dynamically import p5.js wrapper to avoid SSR issues
-//const P5Wrapper = nextDynamic(() => import("react-p5-wrapper").then(mod => mod.ReactP5Wrapper), { ssr: false });
 
 const SYNTH_TYPES = [
   { label: "Synth", value: "Synth" },
@@ -175,12 +173,6 @@ export default function Synthfluanto() {
   const streamRef = useRef<MediaStream | null>(null);
   const pressedKeysRef = useRef<Set<string>>(new Set());
 
-  // const [showP5, setShowP5] = useState(false);
-
-  // useEffect(() => {
-  //   setShowP5(true);
-  // }, []);
-  
   useEffect(() => {
         document.title = "Release Pages | Influanto";
         
@@ -723,39 +715,7 @@ useEffect(() => {
     }
   }
 
-  // --- P5.js waveform/fft sketch ---
-  // const visualizerSketch = useCallback((p: any) => {
-  //   p.setup = () => {
-  //     p.createCanvas(340, 120);
-  //   };
-  //   p.draw = () => {
-  //     p.background(245);
-  //     // Draw waveform
-  //     p.stroke(99, 102, 241);
-  //     p.noFill();
-  //     p.beginShape();
-  //     const waveform = waveformDataRef.current;
-  //     for (let i = 0; i < waveform.length; i++) {
-  //       const x = p.map(i, 0, waveform.length, 0, p.width);
-  //       const y = p.map(waveform[i], -1, 1, 0, p.height);
-  //       p.vertex(x, y);
-  //     }
-  //     p.endShape();
-
-  //     // Draw FFT bars
-  //     const fft = fftDataRef.current;
-  //     const barWidth = p.width / fft.length;
-  //     p.noStroke();
-  //     p.fill(180, 180, 255, 120);
-  //     for (let i = 0; i < fft.length; i++) {
-  //       const amp = fft[i];
-  //       const y = p.map(amp, -100, 0, p.height, 0);
-  //       p.rect(i * barWidth, y, barWidth - 2, p.height - y);
-  //     }
-  //   };
-  // }, []);
-
-
+  // --- Canvas waveform/fft visualizer ---
 function VisualizerSketch({ data }: { data: number[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -807,7 +767,7 @@ function VisualizerSketch({ data }: { data: number[] }) {
 }
 
   return (
-    <>
+   <Suspense fallback={<div>Loading...</div>}>
       <Header />
       <div
         style={{
@@ -871,14 +831,10 @@ function VisualizerSketch({ data }: { data: number[] }) {
               </div>
             </div>
           {/* Middle: Visualizer and Meter */}
-          {/* <div style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
-            {showP5 && <P5Wrapper sketch={visualizerSketch} />}
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
+            <VisualizerSketch data={waveformData} />
             <MeterBar level={meterLevel} />
-          </div> */}
-         <div style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
-          <VisualizerSketch data={waveformData} />
-          <MeterBar level={meterLevel} />
-        </div>
+          </div>
 
             {/* Envelope */}
             <div>
@@ -1142,7 +1098,7 @@ function VisualizerSketch({ data }: { data: number[] }) {
           100% { filter: drop-shadow(0 0 0px #ff4d4f); }
         }
       `}</style>
-    </>
+    </Suspense>
   );
 }
 
