@@ -425,23 +425,27 @@ export default function Synthfluanto() {
     return () => clearInterval(interval);
   }, [recording]);
 
-  const startRecording = () => {
-    const stream = setupStream();
-    const recorder = new MediaRecorder(stream);
-    const chunks: BlobPart[] = [];
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) chunks.push(e.data);
-    };
-    recorder.onstop = () => {
-      const blob = new Blob(chunks, { type: "audio/webm" });
-      setRecordedBlobs(prev => ({ ...prev, [currentMelody]: blob }));
-      setAudioUrl(URL.createObjectURL(blob));
-      setRecording(false);
-    };
-    recorder.start();
-    setMediaRecorder(recorder);
-    setRecording(true);
+const startRecording = () => {
+  const stream = setupStream();
+  if (!stream) {
+    alert("Audio stream is not available for recording.");
+    return;
+  }
+  const recorder = new MediaRecorder(stream);
+  const chunks: BlobPart[] = [];
+  recorder.ondataavailable = (e) => {
+    if (e.data.size > 0) chunks.push(e.data);
   };
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: "audio/webm" });
+    setRecordedBlobs(prev => ({ ...prev, [currentMelody]: blob }));
+    setAudioUrl(URL.createObjectURL(blob));
+    setRecording(false);
+  };
+  recorder.start();
+  setMediaRecorder(recorder);
+  setRecording(true);
+};
 
   // Stop button stops both recording and playback
   const stopAll = () => {
