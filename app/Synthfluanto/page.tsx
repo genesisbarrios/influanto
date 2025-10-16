@@ -7,7 +7,7 @@ import Header from "@/components/Header";
 type BlobPart = any; 
 
 // Dynamically import p5.js wrapper to avoid SSR issues
-const P5Wrapper = dynamic(() => import("react-p5-wrapper").then(mod => mod.ReactP5Wrapper || mod.default), { ssr: false });
+const P5Wrapper = dynamic(() => import("react-p5-wrapper").then(mod => mod.ReactP5Wrapper), { ssr: false });
 
 const SYNTH_TYPES = [
   { label: "Synth", value: "Synth" },
