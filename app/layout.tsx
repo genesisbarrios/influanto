@@ -5,6 +5,7 @@ import PlausibleProvider from "next-plausible";
 import { getSEOTags } from "@/libs/seo";
 import ClientLayout from "@/components/LayoutClient";
 import config from "@/config";
+export const revalidate = false;
 import "./globals.css";
 
 const font = Inter({ subsets: ["latin"] });
