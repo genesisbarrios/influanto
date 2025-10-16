@@ -1,13 +1,15 @@
 "use client";
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Footer from "@/components/Footer";
 import * as Tone from "tone";
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import Header from "@/components/Header";
 type BlobPart = any; 
 
 // Dynamically import p5.js wrapper to avoid SSR issues
-const P5Wrapper = dynamic(() => import("react-p5-wrapper").then(mod => mod.ReactP5Wrapper), { ssr: false });
+const P5Wrapper = nextDynamic(() => import("react-p5-wrapper").then(mod => mod.ReactP5Wrapper), { ssr: false });
 
 const SYNTH_TYPES = [
   { label: "Synth", value: "Synth" },
@@ -867,7 +869,7 @@ useEffect(() => {
         <div style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: "2rem",
+          gap: "1rem",
           width: "100%",
           margin: "2rem 0 0 0",
           justifyContent: "center"
