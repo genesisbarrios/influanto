@@ -374,8 +374,8 @@ return (
                 
         <p style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>{user.name}</p>
         <p style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>
-          {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} color="darkred" />{user.location}</span>}
-          {user.website && <a href={ user.website } target="_blank" style={{ color: textColor || "#333333" }}><FontAwesomeIcon icon={faGlobe} color="lightblue" /> Website</a>}
+          {user.location && <span ><FontAwesomeIcon icon={faLocation} color={linksColor} className='mr-2'/>{user.location}</span>}
+          {user.website && <a href={ user.website } target="_blank" style={{ color: textColor || "#333333" }} className='ml-2'><FontAwesomeIcon icon={faGlobe} color={linksColor} /> Website</a>}
         </p>
       
         <p style={{marginBottom:"2%", fontFamily: font || 'inherit', color: textColor || "#333333"}}>{user.bio}</p>
