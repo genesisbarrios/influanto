@@ -146,9 +146,11 @@ const ReleasePages = () => {
       const { data } = await apiClient.get("/get-release-pages", {
         params: { userId: userId },
       });
-      setReleasePages(data);
+      if(data != null ){
+        setReleasePages(data);
+      }
     } catch (e: any) {
-      console.error(e?.message);
+      console.log(e?.message);
       //setAlert(e?.message);
     }
   };
