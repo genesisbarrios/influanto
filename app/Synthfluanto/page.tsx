@@ -252,11 +252,11 @@ export default function Synthfluanto() {
         synth = new Tone.PolySynth(Tone.Synth);
     }
 
-    synth.set({
-      envelope: { attack, decay, sustain, release },
-      oscillator: { type: oscType as Tone.ToneOscillatorType },
-      portamento: glide
-    });
+   synth.set({
+    envelope: { attack, decay, sustain, release },
+    oscillator: { type: oscType } as any,
+    portamento: glide
+  });
 
     const hipassFilter = new Tone.Filter(hipass, "highpass");
     const lowpassFilter = new Tone.Filter(lowpass, "lowpass");
@@ -841,7 +841,7 @@ useEffect(() => {
             <div>
               <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Envelope</div>
               <div style={{ display: "flex", gap: 16 }}>
-                <SvgKnob label="Attack" min={0.001} max={2} step={0.001} value={attack} onChange={setAttack} displayValue={attack.toFixed(3) + "s"} />
+                <SvgKnob label="Attack" min={0.001} max={2} step={0.001} value={attack} onChange={setAttack} displayValue={attack.toFixed(2) + "s"} />
                 <SvgKnob label="Decay" min={0.01} max={2} step={0.01} value={decay} onChange={setDecay} displayValue={decay.toFixed(2) + "s"} />
                 <SvgKnob label="Sustain" min={0} max={1} step={0.01} value={sustain} onChange={setSustain} displayValue={sustain.toFixed(2)} />
                 <SvgKnob label="Release" min={0.01} max={4} step={0.01} value={release} onChange={setRelease} displayValue={release.toFixed(2) + "s"} />
@@ -851,7 +851,7 @@ useEffect(() => {
             <div>
               <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Volume + EQ</div>
               <div style={{ display: "flex", gap: 16 }}>
-                <SvgKnob label="Gain" min={0} max={1} step={0.01} value={gain} onChange={setGain} />
+                <SvgKnob label="Gain" min={0} max={1} step={0.01} value={gain} onChange={setGain} displayValue={gain.toFixed(2)} />
                 <SvgKnob label="Glide" min={0} max={1} step={0.01} value={glide} onChange={setGlide} displayValue={glide.toFixed(2) + "s"} />
                 <SvgKnob label="Hipass" min={20} max={5000} step={1} value={hipass} onChange={setHipass} displayValue={Math.round(hipass) + "Hz"} />
                 <SvgKnob label="Lowpass" min={20} max={20000} step={1} value={lowpass} onChange={setLowpass} displayValue={Math.round(lowpass) + "Hz"} />
@@ -872,24 +872,24 @@ useEffect(() => {
           <div>
             <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 8, fontSize: 18, letterSpacing: 2, textAlign: "center" }}>Reverb + Delay</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", justifyContent: "center" }}>
-              <SvgKnob label="Reverb" min={0} max={1} step={0.01} value={reverb} onChange={setReverb} />
+              <SvgKnob label="Reverb" min={0} max={1} step={0.01} value={reverb} onChange={setReverb} displayValue={reverb.toFixed(2)} />
               <SvgKnob label="FB Delay" min={0.01} max={1} step={0.01} value={feedbackDelayTime} onChange={setFeedbackDelayTime} displayValue={feedbackDelayTime.toFixed(2)} />
-              <SvgKnob label="FB Feedback" min={0} max={0.95} step={0.01} value={feedbackDelayFeedback} onChange={setFeedbackDelayFeedback} />
-              <SvgKnob label="FB Delay Wet" min={0} max={1} step={0.01} value={feedbackDelay} onChange={setFeedbackDelay} />
+              <SvgKnob label="FB Feedback" min={0} max={0.95} step={0.01} value={feedbackDelayFeedback} onChange={setFeedbackDelayFeedback} displayValue={feedbackDelayFeedback.toFixed(2)} />
+              <SvgKnob label="FB Delay Wet" min={0} max={1} step={0.01} value={feedbackDelay} onChange={setFeedbackDelay} displayValue={feedbackDelay.toFixed(2)} />
               <SvgKnob label="PP Delay" min={0.01} max={1} step={0.01} value={pingPongDelayTime} onChange={setPingPongDelayTime} displayValue={pingPongDelayTime.toFixed(2)} />
-              <SvgKnob label="PP Feedback" min={0} max={0.95} step={0.01} value={pingPongFeedback} onChange={setPingPongFeedback} />
-              <SvgKnob label="PingPong Wet" min={0} max={1} step={0.01} value={pingPong} onChange={setPingPong} />
+              <SvgKnob label="PP Feedback" min={0} max={0.95} step={0.01} value={pingPongFeedback} onChange={setPingPongFeedback} displayValue={pingPongFeedback.toFixed(2)} />
+              <SvgKnob label="PingPong Wet" min={0} max={1} step={0.01} value={pingPong} onChange={setPingPong} displayValue={pingPong.toFixed(2)} />
             </div>
           </div>
           {/* Right: Modulation */}
           <div>
             <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 8, fontSize: 18, letterSpacing: 2, textAlign: "center" }}>Modulation</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", justifyContent: "center" }}>
-              <SvgKnob label="Distortion" min={0} max={1} step={0.01} value={distortion} onChange={setDistortion} />
-              <SvgKnob label="Chorus Wet" min={0} max={1} step={0.01} value={chorusWet} onChange={setChorusWet} />
+              <SvgKnob label="Distortion" min={0} max={1} step={0.01} value={distortion} onChange={setDistortion} displayValue={distortion.toFixed(2)} />
+              <SvgKnob label="Chorus Wet" min={0} max={1} step={0.01} value={chorusWet} onChange={setChorusWet} displayValue={chorusWet.toFixed(2)} />
               <SvgKnob label="Chorus Freq" min={0.1} max={8} step={0.1} value={chorusFreq} onChange={setChorusFreq} displayValue={chorusFreq.toFixed(1) + "Hz"} />
-              <SvgKnob label="Chorus Depth" min={0} max={1} step={0.01} value={chorusDepth} onChange={setChorusDepth} />
-              <SvgKnob label="Tremolo" min={0} max={1} step={0.01} value={tremolo} onChange={setTremolo} />
+              <SvgKnob label="Chorus Depth" min={0} max={1} step={0.01} value={chorusDepth} onChange={setChorusDepth} displayValue={chorusDepth.toFixed(2)} />
+              <SvgKnob label="Tremolo" min={0} max={1} step={0.01} value={tremolo} onChange={setTremolo} displayValue={tremolo.toFixed(2)} />
               <SvgKnob label="Trem Freq" min={0.1} max={20} step={0.1} value={tremoloFreq} onChange={setTremoloFreq} displayValue={tremoloFreq.toFixed(1) + "Hz"} />
             </div>
           </div>
