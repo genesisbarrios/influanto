@@ -11,17 +11,24 @@ const calcDelayMs = (bpm: number, note: number) => {
 };
 
 const tools = [
+
   {
-    title: "Delay & Reverb Time Calculator",
-    description: "Calculate delay and reverb times for your song.",
-    href: "/Reverb-and-Delay-Calculator",
-    icon: "⏱️",
+    title: "Synthfluanto",
+    description: "Create and share your own melodies with our synth.",
+    href: "/Synthfluanto",
+    icon: "🎹",
   },
   {
     title: "Split Sheet Generator",
     description: "Create and export split sheets for your music collaborations.",
     href: "/Split-Sheet-Generator",
     icon: "📄",
+  },
+  {
+    title: "Delay & Reverb Time Calculator",
+    description: "Calculate delay and reverb times for your song.",
+    href: "/Reverb-and-Delay-Calculator",
+    icon: "⏱️",
   },
   {
     title: "BPM Calculator",
@@ -34,12 +41,6 @@ const tools = [
 //     description: "Convert WAV files to MP3 format easily.",
 //     href: "/MP3Converter",
 //     icon: "🎛️",
-//   },
-//   {
-//     title: "Synthfluanto",
-//     description: "Create and share your own melodies in our app.",
-//     href: "/Synthfluanto",
-//     icon: "🎹",
 //   },
   {
     title: "More Tools",
