@@ -785,7 +785,7 @@ useEffect(() => {
           justifyContent: "flex-start"
         }}
       >
-        <h1 className="text-3xl font-bold text-center mt-8 text-black">Synthfluanto</h1>
+        <h1 className="text-3xl font-bold text-right mt-8 mr-36 text-black">Synthfluanto</h1>
         {/* Controls Row: Synth/osc/envelope/eq left, visualizer right */}
         <div
           style={{
