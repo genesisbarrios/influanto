@@ -1,13 +1,13 @@
 "use client";
 export const dynamic = "force-dynamic";
-export const revalidate = false;
 export const fetchCache = "force-no-store";
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Footer from "@/components/Footer";
 import * as Tone from "tone";
 import nextDynamic from "next/dynamic";
 import Header from "@/components/Header";
+import { Stage, Layer, Line } from "react-konva";
+
 type BlobPart = any; 
 
 // Dynamically import p5.js wrapper to avoid SSR issues
@@ -173,63 +173,62 @@ export default function Synthfluanto() {
 
   // --- Recording stream ref ---
   const streamRef = useRef<MediaStream | null>(null);
-
   const pressedKeysRef = useRef<Set<string>>(new Set());
 
-  const [showP5, setShowP5] = useState(false);
-
-  useEffect(() => {
-    setShowP5(true);
-  }, []);
+  // const [showP5, setShowP5] = useState(false);
 
   // useEffect(() => {
-  //       document.title = "Release Pages | Influanto";
+  //   setShowP5(true);
+  // }, []);
+  
+  useEffect(() => {
+        document.title = "Release Pages | Influanto";
         
-  //       // Update meta description
-  //       let metaDescription = document.querySelector('meta[name="description"]');
-  //       if (!metaDescription) {
-  //         metaDescription = document.createElement('meta');
-  //         metaDescription.setAttribute('name', 'description');
-  //         document.head.appendChild(metaDescription);
-  //       }
-  //       metaDescription.setAttribute('content', 'Web Based Synthesizer - Synthfluanto by Influanto');
+        // Update meta description
+        let metaDescription = document.querySelector('meta[name="description"]');
+        if (!metaDescription) {
+          metaDescription = document.createElement('meta');
+          metaDescription.setAttribute('name', 'description');
+          document.head.appendChild(metaDescription);
+        }
+        metaDescription.setAttribute('content', 'Web Based Synthesizer - Synthfluanto by Influanto');
     
-  //       // Update og:title
-  //       let ogTitle = document.querySelector('meta[property="og:title"]');
-  //       if (!ogTitle) {
-  //         ogTitle = document.createElement('meta');
-  //         ogTitle.setAttribute('property', 'og:title');
-  //         document.head.appendChild(ogTitle);
-  //       }
-  //       ogTitle.setAttribute('content', 'Synthfluanto, the web based Synthesizer | Influanto');
+        // Update og:title
+        let ogTitle = document.querySelector('meta[property="og:title"]');
+        if (!ogTitle) {
+          ogTitle = document.createElement('meta');
+          ogTitle.setAttribute('property', 'og:title');
+          document.head.appendChild(ogTitle);
+        }
+        ogTitle.setAttribute('content', 'Synthfluanto, the web based Synthesizer | Influanto');
   
-  //       // Update og:description
-  //       let ogDescription = document.querySelector('meta[property="og:description"]');
-  //       if (!ogDescription) {
-  //         ogDescription = document.createElement('meta');
-  //         ogDescription.setAttribute('property', 'og:description');
-  //         document.head.appendChild(ogDescription);
-  //       }
-  //       ogDescription.setAttribute('content', 'Web Based Synthesizer - Synthfluanto by Influanto');
+        // Update og:description
+        let ogDescription = document.querySelector('meta[property="og:description"]');
+        if (!ogDescription) {
+          ogDescription = document.createElement('meta');
+          ogDescription.setAttribute('property', 'og:description');
+          document.head.appendChild(ogDescription);
+        }
+        ogDescription.setAttribute('content', 'Web Based Synthesizer - Synthfluanto by Influanto');
   
-  //       // Update twitter:title
-  //       let twitterTitle = document.querySelector('meta[name="twitter:title"]');
-  //       if (!twitterTitle) {
-  //         twitterTitle = document.createElement('meta');
-  //         twitterTitle.setAttribute('name', 'twitter:title');
-  //         document.head.appendChild(twitterTitle);
-  //       }
-  //       twitterTitle.setAttribute('content', 'Synthfluanto, the web based Synthesizer | Influanto');
+        // Update twitter:title
+        let twitterTitle = document.querySelector('meta[name="twitter:title"]');
+        if (!twitterTitle) {
+          twitterTitle = document.createElement('meta');
+          twitterTitle.setAttribute('name', 'twitter:title');
+          document.head.appendChild(twitterTitle);
+        }
+        twitterTitle.setAttribute('content', 'Synthfluanto, the web based Synthesizer | Influanto');
     
-  //       // Update twitter:description
-  //       let twitterDescription = document.querySelector('meta[name="twitter:description"]');
-  //       if (!twitterDescription) {
-  //         twitterDescription = document.createElement('meta');
-  //         twitterDescription.setAttribute('name', 'twitter:description');
-  //         document.head.appendChild(twitterDescription);
-  //       }
-  //       twitterDescription.setAttribute('content', 'Web Based Synthesizer - Synthfluanto by Influanto');
-  //     }, []);
+        // Update twitter:description
+        let twitterDescription = document.querySelector('meta[name="twitter:description"]');
+        if (!twitterDescription) {
+          twitterDescription = document.createElement('meta');
+          twitterDescription.setAttribute('name', 'twitter:description');
+          document.head.appendChild(twitterDescription);
+        }
+        twitterDescription.setAttribute('content', 'Web Based Synthesizer - Synthfluanto by Influanto');
+      }, []);
 
   // --- Synth/FX chain setup ---
   useEffect(() => {
@@ -725,62 +724,87 @@ useEffect(() => {
   }
 
   // --- P5.js waveform/fft sketch ---
-  const visualizerSketch = useCallback((p: any) => {
-    p.setup = () => {
-      p.createCanvas(340, 120);
-    };
-    p.draw = () => {
-      p.background(245);
-      // Draw waveform
-      p.stroke(99, 102, 241);
-      p.noFill();
-      p.beginShape();
-      const waveform = waveformDataRef.current;
-      for (let i = 0; i < waveform.length; i++) {
-        const x = p.map(i, 0, waveform.length, 0, p.width);
-        const y = p.map(waveform[i], -1, 1, 0, p.height);
-        p.vertex(x, y);
-      }
-      p.endShape();
+  // const visualizerSketch = useCallback((p: any) => {
+  //   p.setup = () => {
+  //     p.createCanvas(340, 120);
+  //   };
+  //   p.draw = () => {
+  //     p.background(245);
+  //     // Draw waveform
+  //     p.stroke(99, 102, 241);
+  //     p.noFill();
+  //     p.beginShape();
+  //     const waveform = waveformDataRef.current;
+  //     for (let i = 0; i < waveform.length; i++) {
+  //       const x = p.map(i, 0, waveform.length, 0, p.width);
+  //       const y = p.map(waveform[i], -1, 1, 0, p.height);
+  //       p.vertex(x, y);
+  //     }
+  //     p.endShape();
 
-      // Draw FFT bars
-      const fft = fftDataRef.current;
-      const barWidth = p.width / fft.length;
-      p.noStroke();
-      p.fill(180, 180, 255, 120);
-      for (let i = 0; i < fft.length; i++) {
-        const amp = fft[i];
-        const y = p.map(amp, -100, 0, p.height, 0);
-        p.rect(i * barWidth, y, barWidth - 2, p.height - y);
-      }
-    };
-  }, []);
+  //     // Draw FFT bars
+  //     const fft = fftDataRef.current;
+  //     const barWidth = p.width / fft.length;
+  //     p.noStroke();
+  //     p.fill(180, 180, 255, 120);
+  //     for (let i = 0; i < fft.length; i++) {
+  //       const amp = fft[i];
+  //       const y = p.map(amp, -100, 0, p.height, 0);
+  //       p.rect(i * barWidth, y, barWidth - 2, p.height - y);
+  //     }
+  //   };
+  // }, []);
+
+
+function VisualizerSketch({ data }: { data: number[] }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "#6366f1";
+    ctx.beginPath();
+    for (let i = 0; i < data.length; i++) {
+      const x = (i / data.length) * canvas.width;
+      const margin = 10;
+      const amplitude = 40; // scale up the waveform
+      const y = margin + ((1 - amplitude * data[i]) / 2) * (canvas.height - 2 * margin);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }, [data]);
+
+  return <canvas ref={canvasRef} width={340} height={120} />;
+}
 
   // --- Decibel Meter ---
   function MeterBar({ level }: { level: number }) {
-    // level is in dB, -60 (silent) to 0 (max)
-    const percent = Math.min(1, Math.max(0, (level + 60) / 60));
-    return (
+  const percent = Math.min(1, Math.max(0, (level + 60) / 60));
+  return (
+    <div style={{
+      width: 24,
+      height: 120,
+      background: "#e5e7eb",
+      borderRadius: 8,
+      border: "1px solid #bbb",
+      display: "flex",
+      alignItems: "flex-end",
+      margin: "0 10px"
+    }}>
       <div style={{
-        width: 24,
-        height: 120,
-        background: "#e5e7eb",
+        width: "100%",
+        height: `${percent * 100}%`,
+        background: percent > 0.8 ? "#ef4444" : percent > 0.5 ? "#facc15" : "#22d3ee",
         borderRadius: 8,
-        border: "1px solid #bbb",
-        display: "flex",
-        alignItems: "flex-end",
-        margin: "0 10px"
-      }}>
-        <div style={{
-          width: "100%",
-          height: `${percent * 100}%`,
-          background: percent > 0.8 ? "#ef4444" : percent > 0.5 ? "#facc15" : "#22d3ee",
-          borderRadius: 8,
-          transition: "height 0.1s"
-        }} />
-      </div>
-    );
-  }
+        transition: "height 0.1s"
+      }} />
+    </div>
+  );
+}
 
   return (
     <>
@@ -847,10 +871,15 @@ useEffect(() => {
               </div>
             </div>
           {/* Middle: Visualizer and Meter */}
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
+          {/* <div style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
             {showP5 && <P5Wrapper sketch={visualizerSketch} />}
             <MeterBar level={meterLevel} />
-          </div>
+          </div> */}
+         <div style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
+          <VisualizerSketch data={waveformData} />
+          <MeterBar level={meterLevel} />
+        </div>
+
             {/* Envelope */}
             <div>
               <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Envelope</div>
