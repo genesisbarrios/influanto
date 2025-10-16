@@ -11,7 +11,7 @@ import { Stage, Layer, Line } from "react-konva";
 type BlobPart = any; 
 
 // Dynamically import p5.js wrapper to avoid SSR issues
-const P5Wrapper = nextDynamic(() => import("react-p5-wrapper").then(mod => mod.ReactP5Wrapper), { ssr: false });
+//const P5Wrapper = nextDynamic(() => import("react-p5-wrapper").then(mod => mod.ReactP5Wrapper), { ssr: false });
 
 const SYNTH_TYPES = [
   { label: "Synth", value: "Synth" },
