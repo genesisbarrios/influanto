@@ -171,22 +171,70 @@ export default function Synthfluanto() {
 
   const pressedKeysRef = useRef<Set<string>>(new Set());
 
+  useEffect(() => {
+        document.title = "Release Pages | Influanto";
+        
+        // Update meta description
+        let metaDescription = document.querySelector('meta[name="description"]');
+        if (!metaDescription) {
+          metaDescription = document.createElement('meta');
+          metaDescription.setAttribute('name', 'description');
+          document.head.appendChild(metaDescription);
+        }
+        metaDescription.setAttribute('content', 'Web Based Synthesizer - Synthfluanto by Influanto');
+    
+        // Update og:title
+        let ogTitle = document.querySelector('meta[property="og:title"]');
+        if (!ogTitle) {
+          ogTitle = document.createElement('meta');
+          ogTitle.setAttribute('property', 'og:title');
+          document.head.appendChild(ogTitle);
+        }
+        ogTitle.setAttribute('content', 'Synthfluanto, the web based Synthesizer | Influanto');
+  
+        // Update og:description
+        let ogDescription = document.querySelector('meta[property="og:description"]');
+        if (!ogDescription) {
+          ogDescription = document.createElement('meta');
+          ogDescription.setAttribute('property', 'og:description');
+          document.head.appendChild(ogDescription);
+        }
+        ogDescription.setAttribute('content', 'Web Based Synthesizer - Synthfluanto by Influanto');
+  
+        // Update twitter:title
+        let twitterTitle = document.querySelector('meta[name="twitter:title"]');
+        if (!twitterTitle) {
+          twitterTitle = document.createElement('meta');
+          twitterTitle.setAttribute('name', 'twitter:title');
+          document.head.appendChild(twitterTitle);
+        }
+        twitterTitle.setAttribute('content', 'Synthfluanto, the web based Synthesizer | Influanto');
+    
+        // Update twitter:description
+        let twitterDescription = document.querySelector('meta[name="twitter:description"]');
+        if (!twitterDescription) {
+          twitterDescription = document.createElement('meta');
+          twitterDescription.setAttribute('name', 'twitter:description');
+          document.head.appendChild(twitterDescription);
+        }
+        twitterDescription.setAttribute('content', 'Web Based Synthesizer - Synthfluanto by Influanto');
+      }, []);
 
   // --- Synth/FX chain setup ---
   useEffect(() => {
-    try { synthRef.current?.dispose(); } catch (e) {}
-    try { gainRef.current?.dispose(); } catch (e) {}
-    try { hipassRef.current?.dispose(); } catch (e) {}
-    try { lowpassRef.current?.dispose(); } catch (e) {}
-    try { reverbRef.current?.dispose(); } catch (e) {}
-    try { feedbackDelayRef.current?.dispose(); } catch (e) {}
-    try { pingPongRef.current && typeof pingPongRef.current.dispose === "function" && pingPongRef.current.dispose(); } catch (e) {}
-    try { distortionRef.current?.dispose(); } catch (e) {}
-    try { chorusRef.current && typeof chorusRef.current.dispose === "function" && chorusRef.current.dispose(); } catch (e) {}
-    try { tremoloRef.current && typeof tremoloRef.current.dispose === "function" && tremoloRef.current.dispose(); } catch (e) {}
-    try { meterRef.current?.dispose(); } catch (e) {}
-    try { fftRef.current?.dispose(); } catch (e) {}
-    try { waveformRef.current?.dispose(); } catch (e) {}
+    try { synthRef.current?.dispose(); } catch (e) { /* ignore error */ }
+    try { gainRef.current?.dispose(); } catch (e) { /* ignore error */ }
+    try { hipassRef.current?.dispose(); } catch (e) { /* ignore error */ }
+    try { lowpassRef.current?.dispose(); } catch (e) { /* ignore error */ }
+    try { reverbRef.current?.dispose(); } catch (e) { /* ignore error */ }
+    try { feedbackDelayRef.current?.dispose(); } catch (e) { /* ignore error */ }
+    try { pingPongRef.current && typeof pingPongRef.current.dispose === "function" && pingPongRef.current.dispose(); } catch (e) { /* ignore error */ }
+    try { distortionRef.current?.dispose(); } catch (e) { /* ignore error */ }
+    try { chorusRef.current && typeof chorusRef.current.dispose === "function" && chorusRef.current.dispose(); } catch (e) { /* ignore error */ }
+    try { tremoloRef.current && typeof tremoloRef.current.dispose === "function" && tremoloRef.current.dispose(); } catch (e) { /* ignore error */ }
+    try { meterRef.current?.dispose(); } catch (e) { /* ignore error */ }
+    try { fftRef.current?.dispose(); } catch (e) { /* ignore error */ }
+    try { waveformRef.current?.dispose(); } catch (e) { /* ignore error */ }
 
     let synth: Tone.PolySynth;
     switch (synthType) {
@@ -274,19 +322,19 @@ export default function Synthfluanto() {
     streamRef.current = null;
 
     return () => {
-      try { synth.dispose(); } catch (e) {}
-      try { gainNode.dispose(); } catch (e) {}
-      try { reverbNode.dispose(); } catch (e) {}
-      try { feedbackDelayNode.dispose(); } catch (e) {}
-      try { pingPongNode && typeof pingPongNode.dispose === "function" && pingPongNode.dispose(); } catch (e) {}
-      try { distortionNode.dispose(); } catch (e) {}
-      try { chorusNode && typeof chorusNode.dispose === "function" && chorusNode.dispose(); } catch (e) {}
-      try { tremoloNode && typeof tremoloNode.dispose === "function" && tremoloNode.dispose(); } catch (e) {}
-      try { lowpassFilter.dispose(); } catch (e) {}
-      try { hipassFilter.dispose(); } catch (e) {}
-      try { meter.dispose(); } catch (e) {}
-      try { fft.dispose(); } catch (e) {}
-      try { waveform.dispose(); } catch (e) {}
+      try { synth.dispose(); } catch (e) { /* ignore error */ }
+      try { gainNode.dispose(); } catch (e) { /* ignore error */ }
+      try { reverbNode.dispose(); } catch (e) { /* ignore error */ }
+      try { feedbackDelayNode.dispose(); } catch (e) { /* ignore error */ }
+      try { pingPongNode && typeof pingPongNode.dispose === "function" && pingPongNode.dispose(); } catch (e) { /* ignore error */ }
+      try { distortionNode.dispose(); } catch (e) { /* ignore error */ }
+      try { chorusNode && typeof chorusNode.dispose === "function" && chorusNode.dispose(); } catch (e) { /* ignore error */ }
+      try { tremoloNode && typeof tremoloNode.dispose === "function" && tremoloNode.dispose(); } catch (e) { /* ignore error */ }
+      try { lowpassFilter.dispose(); } catch (e) { /* ignore error */ }
+      try { hipassFilter.dispose(); } catch (e) { /* ignore error */ }
+      try { meter.dispose(); } catch (e) { /* ignore error */ }
+      try { fft.dispose(); } catch (e) { /* ignore error */ }
+      try { waveform.dispose(); } catch (e) { /* ignore error */ }
     };
   }, [synthType, oscType, chorusFreq, chorusDepth, chorusWet, pingPongDelayTime, pingPongFeedback, feedbackDelayTime, feedbackDelayFeedback]);
 
