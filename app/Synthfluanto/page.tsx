@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Footer from "@/components/Footer";
 import * as Tone from "tone";
 import dynamic from "next/dynamic";
@@ -28,7 +28,16 @@ const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 
 function SineSVG() {
   return (
     <svg width="32" height="32" viewBox="0 0 32 32">
-      <polyline fill="none" stroke="#6366f1" strokeWidth="3" points="0,16 8,24 16,8 24,24 32,16" />
+      <path
+        d="M0,16
+           Q4,8 8,16
+           Q12,24 16,16
+           Q20,8 24,16
+           Q28,24 32,16"
+        fill="none"
+        stroke="#6366f1"
+        strokeWidth="3"
+      />
     </svg>
   );
 }
@@ -54,37 +63,127 @@ function SawtoothSVG() {
   );
 }
 
+// SVGs for transport controls
+function RecordSVG({ flashing }: { flashing?: boolean }) {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32">
+      <circle
+        cx="16"
+        cy="16"
+        r="12"
+        fill={flashing ? "#ff4d4f" : "#dc2626"}
+        style={flashing ? { filter: "drop-shadow(0 0 8px #ff4d4f)" } : {}}
+      />
+    </svg>
+  );
+}
+function PlaySVG() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32">
+      <polygon points="10,6 26,16 10,26" fill="#22c55e" />
+    </svg>
+  );
+}
+function StopSVG() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32">
+      <rect x="8" y="8" width="16" height="16" rx="3" fill="#dc2626" />
+    </svg>
+  );
+}
+function SaveSVG() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32">
+      <rect x="6" y="6" width="20" height="20" rx="3" fill="#22c55e" />
+      <rect x="10" y="10" width="12" height="8" rx="1" fill="#fff" />
+      <rect x="14" y="20" width="4" height="4" rx="1" fill="#fff" />
+    </svg>
+  );
+}
+
 export default function Synthfluanto() {
+  // --- Synth state ---
   const [synthType, setSynthType] = useState("Synth");
   const [oscType, setOscType] = useState("sine");
+  const [attack, setAttack] = useState(0.01);
   const [decay, setDecay] = useState(0.4);
+  const [sustain, setSustain] = useState(0.5);
+  const [release, setRelease] = useState(1);
   const [glide, setGlide] = useState(0); // portamento
-  const [gain, setGain] = useState(0.7);
+  const [gain, setGain] = useState(0.6);
   const [lowpass, setLowpass] = useState(20000); // Hz
   const [hipass, setHipass] = useState(20); // Hz
+
+  // FX - Reverb/Delay
   const [reverb, setReverb] = useState(0.2);
+  const [feedbackDelay, setFeedbackDelay] = useState(0); // wet
+  const [feedbackDelayTime, setFeedbackDelayTime] = useState(0.25); 
+  const [feedbackDelayFeedback, setFeedbackDelayFeedback] = useState(0.3); // 0-1
+  const [pingPong, setPingPong] = useState(0); // wet
+  const [pingPongDelayTime, setPingPongDelayTime] = useState(0.25); 
+  const [pingPongFeedback, setPingPongFeedback] = useState(0.3); // 0-1
+
+  // FX - Modulation
   const [distortion, setDistortion] = useState(0); // 0 to 1
-  const [chorus, setChorus] = useState(0); // 0 to 1
-  const [tremolo, setTremolo] = useState(0); // 0 to 1 (depth)
+  const [chorusWet, setChorusWet] = useState(0.5); // 0-1
+  const [chorusFreq, setChorusFreq] = useState(1.5); // Hz
+  const [chorusDepth, setChorusDepth] = useState(0.5); // 0-1
+  const [tremolo, setTremolo] = useState(0); // depth
   const [tremoloFreq, setTremoloFreq] = useState(5); // Hz
-  const [pingPong, setPingPong] = useState(0); // 0 to 1 (wet)
+
   const [activeNotes, setActiveNotes] = useState<string[]>([]);
   const [meterLevel, setMeterLevel] = useState(-60);
   const [fftData, setFftData] = useState<number[]>([]);
   const [waveformData, setWaveformData] = useState<number[]>([]);
 
-  // Refs for synth and FX
+  // --- Recording state ---
+  const [recording, setRecording] = useState(false);
+  const [recordedBlobs, setRecordedBlobs] = useState<{ [key: string]: Blob }>({});
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [currentMelody, setCurrentMelody] = useState("Melody 1");
+  const [melodyList, setMelodyList] = useState(["Melody 1"]);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [flash, setFlash] = useState(false);
+
+  // --- Playback audio ref for stop ---
+  const playbackAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // --- FX/filter/synth refs for parameter updates ---
   const synthRef = useRef<Tone.PolySynth | null>(null);
+  const gainRef = useRef<Tone.Gain | null>(null);
+  const hipassRef = useRef<Tone.Filter | null>(null);
+  const lowpassRef = useRef<Tone.Filter | null>(null);
+  const reverbRef = useRef<Tone.Reverb | null>(null);
+  const feedbackDelayRef = useRef<Tone.FeedbackDelay | null>(null);
+  const pingPongRef = useRef<Tone.PingPongDelay | null>(null);
+  const distortionRef = useRef<Tone.Distortion | null>(null);
+  const chorusRef = useRef<Tone.Chorus | null>(null);
+  const tremoloRef = useRef<Tone.Tremolo | null>(null);
   const meterRef = useRef<Tone.Meter | null>(null);
   const fftRef = useRef<Tone.FFT | null>(null);
   const waveformRef = useRef<Tone.Waveform | null>(null);
+  const waveformDataRef = useRef<number[]>([]);
+  const fftDataRef = useRef<number[]>([]);
 
-  // Setup synth and FX chain
+  // --- Recording stream ref ---
+  const streamRef = useRef<MediaStream | null>(null);
+
+  // --- Synth/FX chain setup ---
   useEffect(() => {
-    synthRef.current?.dispose();
-    meterRef.current?.dispose();
-    fftRef.current?.dispose();
-    waveformRef.current?.dispose();
+    try { synthRef.current?.dispose(); } catch {}
+    try { gainRef.current?.dispose(); } catch {}
+    try { hipassRef.current?.dispose(); } catch {}
+    try { lowpassRef.current?.dispose(); } catch {}
+    try { reverbRef.current?.dispose(); } catch {}
+    try { feedbackDelayRef.current?.dispose(); } catch {}
+    try { pingPongRef.current && typeof pingPongRef.current.dispose === "function" && pingPongRef.current.dispose(); } catch {}
+    try { distortionRef.current?.dispose(); } catch {}
+    try { chorusRef.current && typeof chorusRef.current.dispose === "function" && chorusRef.current.dispose(); } catch {}
+    try { tremoloRef.current && typeof tremoloRef.current.dispose === "function" && tremoloRef.current.dispose(); } catch {}
+    try { meterRef.current?.dispose(); } catch {}
+    try { fftRef.current?.dispose(); } catch {}
+    try { waveformRef.current?.dispose(); } catch {}
 
     let synth: Tone.PolySynth;
     switch (synthType) {
@@ -101,19 +200,31 @@ export default function Synthfluanto() {
         synth = new Tone.PolySynth(Tone.Synth);
     }
 
-    // Set envelope, oscillator type, and portamento (glide)
     synth.set({
-      envelope: { decay },
-      oscillator: { type: oscType },
+      envelope: { attack, decay, sustain, release },
+      oscillator: { type: oscType as Tone.ToneOscillatorType },
       portamento: glide
     });
 
     const hipassFilter = new Tone.Filter(hipass, "highpass");
     const lowpassFilter = new Tone.Filter(lowpass, "lowpass");
     const distortionNode = new Tone.Distortion(distortion);
-    const chorusNode = new Tone.Chorus(4, 2.5, chorus).start();
+    const chorusNode = new Tone.Chorus({
+      frequency: chorusFreq,
+      depth: chorusDepth,
+      wet: chorusWet
+    }).start();
     const tremoloNode = new Tone.Tremolo(tremoloFreq, tremolo).start();
-    const pingPongNode = new Tone.PingPongDelay("8n", pingPong);
+    const pingPongNode = new Tone.PingPongDelay({
+      delayTime: pingPongDelayTime,
+      feedback: pingPongFeedback,
+      wet: pingPong
+    });
+    const feedbackDelayNode = new Tone.FeedbackDelay({
+      delayTime: feedbackDelayTime,
+      feedback: feedbackDelayFeedback,
+      wet: feedbackDelay
+    });
     const reverbNode = new Tone.Reverb({ decay: reverb });
     const gainNode = new Tone.Gain(gain);
 
@@ -122,64 +233,330 @@ export default function Synthfluanto() {
     const fft = new Tone.FFT(64);
     const waveform = new Tone.Waveform(256);
 
-    // synth -> hipass -> lowpass -> distortion -> chorus -> tremolo -> pingpong -> reverb -> gain -> meter -> fft/waveform -> destination
-    synth.chain(
-      hipassFilter,
-      lowpassFilter,
-      distortionNode,
-      chorusNode,
-      tremoloNode,
-      pingPongNode,
-      reverbNode,
-      gainNode,
-      meter,
-      Tone.Destination
-    );
+    // Connect the chain: synth -> hipass -> lowpass -> distortion -> feedbackDelay -> pingPong -> reverb -> chorus -> tremolo -> gain
+    synth.connect(hipassFilter);
+    hipassFilter.connect(lowpassFilter);
+    lowpassFilter.connect(distortionNode);
+    distortionNode.connect(feedbackDelayNode);
+    feedbackDelayNode.connect(pingPongNode);
+    pingPongNode.connect(reverbNode);
+    reverbNode.connect(chorusNode);
+    chorusNode.connect(tremoloNode);
+    tremoloNode.connect(gainNode);
+
+    // Connect to destination
+    gainNode.connect(Tone.getContext().destination);
+
+    // Connect to meter/fft/waveform for visualization
+    gainNode.connect(meter);
     gainNode.connect(fft);
     gainNode.connect(waveform);
 
+    // Store refs for parameter updates
     synthRef.current = synth;
+    gainRef.current = gainNode;
+    hipassRef.current = hipassFilter;
+    lowpassRef.current = lowpassFilter;
+    reverbRef.current = reverbNode;
+    feedbackDelayRef.current = feedbackDelayNode;
+    pingPongRef.current = pingPongNode;
+    distortionRef.current = distortionNode;
+    chorusRef.current = chorusNode;
+    tremoloRef.current = tremoloNode;
     meterRef.current = meter;
     fftRef.current = fft;
     waveformRef.current = waveform;
 
-    return () => {
-      synth.dispose();
-      gainNode.dispose();
-      reverbNode.dispose();
-      distortionNode.dispose();
-      chorusNode.dispose();
-      tremoloNode.dispose();
-      pingPongNode.dispose();
-      lowpassFilter.dispose();
-      hipassFilter.dispose();
-      meter.dispose();
-      fft.dispose();
-      waveform.dispose();
-    };
-  }, [
-    synthType, oscType, decay, glide, gain, lowpass, hipass, reverb,
-    distortion, chorus, tremolo, tremoloFreq, pingPong
-  ]);
+    // Reset recording stream so it reconnects to new gain node
+    streamRef.current = null;
 
-  // Meter/FFT/Waveform polling
+    return () => {
+      try { synth.dispose(); } catch {}
+      try { gainNode.dispose(); } catch {}
+      try { reverbNode.dispose(); } catch {}
+      try { feedbackDelayNode.dispose(); } catch {}
+      try { pingPongNode && typeof pingPongNode.dispose === "function" && pingPongNode.dispose(); } catch {}
+      try { distortionNode.dispose(); } catch {}
+      try { chorusNode && typeof chorusNode.dispose === "function" && chorusNode.dispose(); } catch {}
+      try { tremoloNode && typeof tremoloNode.dispose === "function" && tremoloNode.dispose(); } catch {}
+      try { lowpassFilter.dispose(); } catch {}
+      try { hipassFilter.dispose(); } catch {}
+      try { meter.dispose(); } catch {}
+      try { fft.dispose(); } catch {}
+      try { waveform.dispose(); } catch {}
+    };
+  }, [synthType, oscType, chorusFreq, chorusDepth, chorusWet, pingPongDelayTime, pingPongFeedback, feedbackDelayTime, feedbackDelayFeedback]);
+
+  // --- Parameter updates ---
+  useEffect(() => {
+    if (synthRef.current) {
+      synthRef.current.set({
+        envelope: { attack, decay, sustain, release },
+        portamento: glide
+      });
+    }
+  }, [attack, decay, sustain, release, glide]);
+  useEffect(() => { if (gainRef.current) gainRef.current.gain.value = gain; }, [gain]);
+  useEffect(() => { if (lowpassRef.current) lowpassRef.current.frequency.value = lowpass; }, [lowpass]);
+  useEffect(() => { if (hipassRef.current) hipassRef.current.frequency.value = hipass; }, [hipass]);
+  useEffect(() => { if (reverbRef.current) reverbRef.current.decay = reverb; }, [reverb]);
+  useEffect(() => { if (distortionRef.current) distortionRef.current.distortion = distortion; }, [distortion]);
+  useEffect(() => {
+    if (chorusRef.current) {
+      chorusRef.current.frequency.value = chorusFreq;
+      chorusRef.current.depth = chorusDepth;
+      chorusRef.current.wet.value = chorusWet;
+    }
+  }, [chorusFreq, chorusDepth, chorusWet]);
+  useEffect(() => {
+    if (tremoloRef.current) {
+      tremoloRef.current.depth.value = tremolo;
+      tremoloRef.current.frequency.value = tremoloFreq;
+    }
+  }, [tremolo, tremoloFreq]);
+  useEffect(() => {
+    if (pingPongRef.current) {
+      pingPongRef.current.delayTime.value = pingPongDelayTime;
+      pingPongRef.current.feedback.value = pingPongFeedback;
+      pingPongRef.current.wet.value = pingPong;
+    }
+  }, [pingPong, pingPongDelayTime, pingPongFeedback]);
+  useEffect(() => {
+    if (feedbackDelayRef.current) {
+      feedbackDelayRef.current.delayTime.value = feedbackDelayTime;
+      feedbackDelayRef.current.feedback.value = feedbackDelayFeedback;
+      feedbackDelayRef.current.wet.value = feedbackDelay;
+    }
+  }, [feedbackDelay, feedbackDelayTime, feedbackDelayFeedback]);
+
+  // --- Meter/FFT/Waveform polling ---
   useEffect(() => {
     let raf: number;
     function update() {
       if (meterRef.current) setMeterLevel(meterRef.current.getValue() as number);
-      if (fftRef.current) setFftData(fftRef.current.getValue() as number[]);
-      if (waveformRef.current) setWaveformData(waveformRef.current.getValue() as number[]);
+      if (fftRef.current) {
+        const fft = fftRef.current.getValue() as unknown as number[];
+        setFftData(fft);
+        fftDataRef.current = fft;
+      }
+      if (waveformRef.current) {
+        const wave = waveformRef.current.getValue() as unknown as number[];
+        setWaveformData(wave);
+        waveformDataRef.current = wave;
+      }
       raf = requestAnimationFrame(update);
     }
     update();
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  // Play note (expects full note name, e.g. "C4", "D#5")
+  // --- Recording logic ---
+  const setupStream = useCallback(() => {
+    if (streamRef.current) return streamRef.current;
+    // @ts-ignore
+    const dest = Tone.getContext().rawContext.createMediaStreamDestination();
+    if (gainRef.current) gainRef.current.connect(dest);
+    streamRef.current = dest.stream;
+    return streamRef.current;
+  }, []);
+
+  // Flashing effect for record button
+  useEffect(() => {
+    if (!recording) {
+      setFlash(false);
+      return;
+    }
+    setFlash(true);
+    const interval = setInterval(() => {
+      setFlash(f => !f);
+    }, 500);
+    return () => clearInterval(interval);
+  }, [recording]);
+
+  const startRecording = () => {
+    const stream = setupStream();
+    const recorder = new MediaRecorder(stream);
+    const chunks: BlobPart[] = [];
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunks.push(e.data);
+    };
+    recorder.onstop = () => {
+      const blob = new Blob(chunks, { type: "audio/webm" });
+      setRecordedBlobs(prev => ({ ...prev, [currentMelody]: blob }));
+      setAudioUrl(URL.createObjectURL(blob));
+      setRecording(false);
+    };
+    recorder.start();
+    setMediaRecorder(recorder);
+    setRecording(true);
+  };
+
+  // Stop button stops both recording and playback
+  const stopAll = () => {
+    if (recording) {
+      mediaRecorder?.stop();
+      setRecording(false);
+    }
+    if (playing && playbackAudioRef.current) {
+      playbackAudioRef.current.pause();
+      playbackAudioRef.current.currentTime = 0;
+      setPlaying(false);
+    }
+  };
+
+  const playRecording = () => {
+    if (!audioUrl) return;
+    const audio = new Audio(audioUrl);
+    playbackAudioRef.current = audio;
+    setPlaying(true);
+    audio.onended = () => setPlaying(false);
+    audio.play();
+  };
+
+  // Save as .wav (or .mp3 fallback) using webm-to-wav conversion
+  const saveRecording = async () => {
+    const blob = recordedBlobs[currentMelody];
+    if (!blob) return;
+
+    // Try to decode and encode as WAV
+    try {
+      const arrayBuffer = await blob.arrayBuffer();
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+      // Encode WAV
+      const wavBuffer = encodeWAV(audioBuffer);
+      const wavBlob = new Blob([wavBuffer], { type: "audio/wav" });
+      const url = URL.createObjectURL(wavBlob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${currentMelody}.wav`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+    } catch (err) {
+      // Fallback: save as webm (or mp3 if browser supports)
+      const ext = blob.type.includes("mp3") ? "mp3" : "webm";
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${currentMelody}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+    }
+  };
+
+  // WAV encoding helper
+  function encodeWAV(audioBuffer: AudioBuffer) {
+    const numChannels = audioBuffer.numberOfChannels;
+    const sampleRate = audioBuffer.sampleRate;
+    const format = 1; // PCM
+    const bitDepth = 16;
+
+    let samples;
+    if (numChannels === 2) {
+      const left = audioBuffer.getChannelData(0);
+      const right = audioBuffer.getChannelData(1);
+      samples = interleave(left, right);
+    } else {
+      samples = audioBuffer.getChannelData(0);
+    }
+
+    const buffer = new ArrayBuffer(44 + samples.length * 2);
+    const view = new DataView(buffer);
+
+    /* RIFF identifier */
+    writeString(view, 0, 'RIFF');
+    /* file length */
+    view.setUint32(4, 36 + samples.length * 2, true);
+    /* RIFF type */
+    writeString(view, 8, 'WAVE');
+    /* format chunk identifier */
+    writeString(view, 12, 'fmt ');
+    /* format chunk length */
+    view.setUint32(16, 16, true);
+    /* sample format (raw) */
+    view.setUint16(20, format, true);
+    /* channel count */
+    view.setUint16(22, numChannels, true);
+    /* sample rate */
+    view.setUint32(24, sampleRate, true);
+    /* byte rate (sample rate * block align) */
+    view.setUint32(28, sampleRate * numChannels * bitDepth / 8, true);
+    /* block align (channel count * bytes per sample) */
+    view.setUint16(32, numChannels * bitDepth / 8, true);
+    /* bits per sample */
+    view.setUint16(34, bitDepth, true);
+    /* data chunk identifier */
+    writeString(view, 36, 'data');
+    /* data chunk length */
+    view.setUint32(40, samples.length * 2, true);
+
+    // Write PCM samples
+    floatTo16BitPCM(view, 44, samples);
+
+    return buffer;
+  }
+  function interleave(left: Float32Array, right: Float32Array) {
+    const length = left.length + right.length;
+    const result = new Float32Array(length);
+    let inputIndex = 0;
+    for (let index = 0; index < length;) {
+      result[index++] = left[inputIndex];
+      result[index++] = right[inputIndex];
+      inputIndex++;
+    }
+    return result;
+  }
+  function floatTo16BitPCM(output: DataView, offset: number, input: Float32Array) {
+    for (let i = 0; i < input.length; i++, offset += 2) {
+      let s = Math.max(-1, Math.min(1, input[i]));
+      output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    }
+  }
+  function writeString(view: DataView, offset: number, string: string) {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  }
+
+  const handleAddMelody = () => {
+    const nextNum = melodyList.length + 1;
+    const newMelody = `Melody ${nextNum}`;
+    setMelodyList(list => [...list, newMelody]);
+    setCurrentMelody(newMelody);
+    setAudioUrl(null);
+  };
+
+  useEffect(() => {
+    const sessionData = sessionStorage.getItem(`melody_${currentMelody}`);
+    if (sessionData) {
+      setAudioUrl(sessionData);
+    } else if (recordedBlobs[currentMelody]) {
+      setAudioUrl(URL.createObjectURL(recordedBlobs[currentMelody]));
+    } else {
+      setAudioUrl(null);
+    }
+  }, [currentMelody, recordedBlobs]);
+
+  // --- Note logic ---
   const playNote = async (noteName: string) => {
     await Tone.start();
-    setActiveNotes((prev) => [...prev, noteName]);
-    synthRef.current?.triggerAttack(noteName);
+    setActiveNotes((prev) => {
+      if (!prev.includes(noteName)) {
+        synthRef.current?.triggerAttack(noteName);
+        return [...prev, noteName];
+      }
+      return prev;
+    });
   };
 
   const stopNote = (noteName: string) => {
@@ -187,7 +564,7 @@ export default function Synthfluanto() {
     synthRef.current?.triggerRelease(noteName);
   };
 
-  // MIDI support only
+  // --- MIDI support ---
   useEffect(() => {
     let midiAccess: WebMidi.MIDIAccess | null = null;
     function onMIDIMessage(event: WebMidi.MIDIMessageEvent) {
@@ -221,10 +598,10 @@ export default function Synthfluanto() {
 
   useEffect(() => {
     const keyMap: { [key: string]: string } = {
-      a: "C3", w: "C#3", s: "D3", e: "D#3", d: "E3",
-      f: "F3", t: "F#3", g: "G3", y: "G#3", h: "A3",
-      u: "A#3", j: "B3", k: "C4", o: "C#4", l: "D4", p: "D#4", ";": "E4",
-      "'": "F4"
+      a: "C4", w: "C#4", s: "D4", e: "D#4", d: "E4",
+      f: "F4", t: "F#4", g: "G4", y: "G#4", h: "A4",
+      u: "A#4", j: "B4", k: "C5", o: "C#5", l: "D5", p: "D#5", ";": "E5",
+      "'": "F5"
     };
     const downHandler = (e: KeyboardEvent) => {
       const note = keyMap[e.key.toLowerCase()];
@@ -243,7 +620,7 @@ export default function Synthfluanto() {
     // eslint-disable-next-line
   }, [synthType, oscType]);
 
-  // Piano keys from C2 to C6
+  // --- Piano keys from C2 to C6 ---
   function getFullPianoKeys() {
     const keys = [];
     for (let octave = 2; octave <= 6; octave++) {
@@ -274,7 +651,7 @@ export default function Synthfluanto() {
   }
 
   // --- P5.js waveform/fft sketch ---
-  function visualizerSketch(p: any) {
+  const visualizerSketch = useCallback((p: any) => {
     p.setup = () => {
       p.createCanvas(340, 120);
     };
@@ -284,24 +661,26 @@ export default function Synthfluanto() {
       p.stroke(99, 102, 241);
       p.noFill();
       p.beginShape();
-      for (let i = 0; i < waveformData.length; i++) {
-        const x = p.map(i, 0, waveformData.length, 0, p.width);
-        const y = p.map(waveformData[i], -1, 1, 0, p.height);
+      const waveform = waveformDataRef.current;
+      for (let i = 0; i < waveform.length; i++) {
+        const x = p.map(i, 0, waveform.length, 0, p.width);
+        const y = p.map(waveform[i], -1, 1, 0, p.height);
         p.vertex(x, y);
       }
       p.endShape();
 
       // Draw FFT bars
-      const barWidth = p.width / fftData.length;
+      const fft = fftDataRef.current;
+      const barWidth = p.width / fft.length;
       p.noStroke();
       p.fill(180, 180, 255, 120);
-      for (let i = 0; i < fftData.length; i++) {
-        const amp = fftData[i];
+      for (let i = 0; i < fft.length; i++) {
+        const amp = fft[i];
         const y = p.map(amp, -100, 0, p.height, 0);
         p.rect(i * barWidth, y, barWidth - 2, p.height - y);
       }
     };
-  }
+  }, []);
 
   // --- Decibel Meter ---
   function MeterBar({ level }: { level: number }) {
@@ -331,7 +710,7 @@ export default function Synthfluanto() {
 
   return (
     <>
-      <Header></Header>
+      <Header />
       <div
         style={{
           minHeight: "80vh",
@@ -343,19 +722,29 @@ export default function Synthfluanto() {
         }}
       >
         <h1 className="text-3xl font-bold text-center mt-8 text-black">Synthfluanto</h1>
-        {/* Controls Row: 3 Segments */}
-        <div style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-start",
-          gap: "2rem",
-          padding: "2rem 0 0.5rem 0",
-          flexWrap: "wrap"
-        }}>
-          {/* Left: Synth & Oscillator */}
-          <div style={{ minWidth: 180, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-            {/* Synth Type */}
-            <div style={{ textAlign: "center" }}>
+        {/* Controls Row: Synth/osc/envelope/eq left, visualizer right */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "flex-start",
+            gap: "2rem",
+            padding: "2rem 0 0.5rem 0",
+            flexWrap: "wrap"
+          }}
+        >
+          {/* Left: Synth, Oscillator, Envelope, Volume+EQ */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "flex-end",
+              gap: 32,
+              flexWrap: "wrap"
+            }}
+          >
+            {/* Synth & Oscillator */}
+            <div>
               <div style={{ color: "#181b20", fontWeight: 600, marginBottom: 4 }}>Synth</div>
               <select
                 className="custom-select"
@@ -367,11 +756,8 @@ export default function Synthfluanto() {
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
               </select>
-            </div>
-            {/* Oscillator Type */}
-            <div style={{ textAlign: "center", marginTop: 8 }}>
-              <div style={{ color: "#181b20", fontWeight: 600, marginBottom: 4 }}>Oscillator</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+              <div style={{ color: "#181b20", fontWeight: 600, margin: "12px 0 4px 0" }}>Oscillator</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <select
                   value={oscType}
                   onChange={e => setOscType(e.target.value)}
@@ -381,72 +767,197 @@ export default function Synthfluanto() {
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
                 </select>
-                {/* SVG waveform */}
                 <span style={{ display: "inline-block" }}>
                   {OSC_TYPES.find(o => o.value === oscType)?.svg()}
                 </span>
               </div>
             </div>
+          {/* Middle: Visualizer and Meter */}
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
+            <P5Wrapper sketch={visualizerSketch} />
+            <MeterBar level={meterLevel} />
           </div>
-          {/* Middle: Meter and Visualizer */}
-          <div style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            minWidth: 380
-          }}>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 16 }}>
-              <P5Wrapper sketch={visualizerSketch} />
-              <MeterBar level={meterLevel} />
+            {/* Envelope */}
+            <div>
+              <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Envelope</div>
+              <div style={{ display: "flex", gap: 16 }}>
+                <SvgKnob label="Attack" min={0.001} max={2} step={0.001} value={attack} onChange={setAttack} displayValue={attack.toFixed(3) + "s"} />
+                <SvgKnob label="Decay" min={0.01} max={2} step={0.01} value={decay} onChange={setDecay} displayValue={decay.toFixed(2) + "s"} />
+                <SvgKnob label="Sustain" min={0} max={1} step={0.01} value={sustain} onChange={setSustain} displayValue={sustain.toFixed(2)} />
+                <SvgKnob label="Release" min={0.01} max={4} step={0.01} value={release} onChange={setRelease} displayValue={release.toFixed(2) + "s"} />
+              </div>
             </div>
-          </div>
-          {/* Right: All Knobs */}
-          <div style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 16
-          }}>
-            {/* Main Controls */}
-            <div style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "2rem",
-              flexWrap: "wrap"
-            }}>
-              <SvgKnob label="Glide" min={0} max={1} step={0.01} value={glide} onChange={setGlide} displayValue={glide.toFixed(2) + "s"} />
-              <SvgKnob label="Decay" min={0.01} max={1} step={0.01} value={decay} onChange={setDecay} />
-              <SvgKnob label="Gain" min={0} max={1} step={0.01} value={gain} onChange={setGain} />
-              <SvgKnob label="Lowpass" min={20} max={20000} step={1} value={lowpass} onChange={setLowpass} displayValue={Math.round(lowpass) + "Hz"} />
-              <SvgKnob label="Hipass" min={20} max={5000} step={1} value={hipass} onChange={setHipass} displayValue={Math.round(hipass) + "Hz"} />
-            </div>
-            {/* FX Row */}
-            <div style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              marginTop: "1rem",
-              marginBottom: "1rem"
-            }}>
-              <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 8, fontSize: 18, letterSpacing: 2 }}>FX</div>
-              <div style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "2rem"
-              }}>
-                <SvgKnob label="Reverb" min={0} max={1} step={0.01} value={reverb} onChange={setReverb} />
-                <SvgKnob label="Distortion" min={0} max={1} step={0.01} value={distortion} onChange={setDistortion} />
-                <SvgKnob label="Chorus" min={0} max={1} step={0.01} value={chorus} onChange={setChorus} />
-                <SvgKnob label="Tremolo" min={0} max={1} step={0.01} value={tremolo} onChange={setTremolo} />
-                <SvgKnob label="Trem Freq" min={0.1} max={20} step={0.1} value={tremoloFreq} onChange={setTremoloFreq} displayValue={tremoloFreq.toFixed(1) + "Hz"} />
-                <SvgKnob label="PingPong" min={0} max={1} step={0.01} value={pingPong} onChange={setPingPong} />
+            {/* Volume + EQ */}
+            <div>
+              <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Volume + EQ</div>
+              <div style={{ display: "flex", gap: 16 }}>
+                <SvgKnob label="Gain" min={0} max={1} step={0.01} value={gain} onChange={setGain} />
+                <SvgKnob label="Glide" min={0} max={1} step={0.01} value={glide} onChange={setGlide} displayValue={glide.toFixed(2) + "s"} />
+                <SvgKnob label="Hipass" min={20} max={5000} step={1} value={hipass} onChange={setHipass} displayValue={Math.round(hipass) + "Hz"} />
+                <SvgKnob label="Lowpass" min={20} max={20000} step={1} value={lowpass} onChange={setLowpass} displayValue={Math.round(lowpass) + "Hz"} />
               </div>
             </div>
           </div>
         </div>
-
+        {/* FX Grid */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "2rem",
+          width: "100%",
+          margin: "2rem 0 0 0",
+          justifyContent: "center"
+        }}>
+          {/* Left: Reverb + Delay */}
+          <div>
+            <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 8, fontSize: 18, letterSpacing: 2, textAlign: "center" }}>Reverb + Delay</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", justifyContent: "center" }}>
+              <SvgKnob label="Reverb" min={0} max={1} step={0.01} value={reverb} onChange={setReverb} />
+              <SvgKnob label="FB Delay" min={0.01} max={1} step={0.01} value={feedbackDelayTime} onChange={setFeedbackDelayTime} displayValue={feedbackDelayTime.toFixed(2)} />
+              <SvgKnob label="FB Feedback" min={0} max={0.95} step={0.01} value={feedbackDelayFeedback} onChange={setFeedbackDelayFeedback} />
+              <SvgKnob label="FB Delay Wet" min={0} max={1} step={0.01} value={feedbackDelay} onChange={setFeedbackDelay} />
+              <SvgKnob label="PP Delay" min={0.01} max={1} step={0.01} value={pingPongDelayTime} onChange={setPingPongDelayTime} displayValue={pingPongDelayTime.toFixed(2)} />
+              <SvgKnob label="PP Feedback" min={0} max={0.95} step={0.01} value={pingPongFeedback} onChange={setPingPongFeedback} />
+              <SvgKnob label="PingPong Wet" min={0} max={1} step={0.01} value={pingPong} onChange={setPingPong} />
+            </div>
+          </div>
+          {/* Right: Modulation */}
+          <div>
+            <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 8, fontSize: 18, letterSpacing: 2, textAlign: "center" }}>Modulation</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", justifyContent: "center" }}>
+              <SvgKnob label="Distortion" min={0} max={1} step={0.01} value={distortion} onChange={setDistortion} />
+              <SvgKnob label="Chorus Wet" min={0} max={1} step={0.01} value={chorusWet} onChange={setChorusWet} />
+              <SvgKnob label="Chorus Freq" min={0.1} max={8} step={0.1} value={chorusFreq} onChange={setChorusFreq} displayValue={chorusFreq.toFixed(1) + "Hz"} />
+              <SvgKnob label="Chorus Depth" min={0} max={1} step={0.01} value={chorusDepth} onChange={setChorusDepth} />
+              <SvgKnob label="Tremolo" min={0} max={1} step={0.01} value={tremolo} onChange={setTremolo} />
+              <SvgKnob label="Trem Freq" min={0.1} max={20} step={0.1} value={tremoloFreq} onChange={setTremoloFreq} displayValue={tremoloFreq.toFixed(1) + "Hz"} />
+            </div>
+          </div>
+        </div>
+        {/* Melody/Recording Controls - under FX, above piano */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 12,
+          margin: "2rem 0 0.5rem 0"
+        }}>
+          {/* Melody Dropdown */}
+          <select
+            value={currentMelody}
+            onChange={e => setCurrentMelody(e.target.value)}
+            style={{ borderRadius: 8, padding: "4px 12px", fontWeight: 600, fontSize: 16 }}
+          >
+            {melodyList.map(mel => (
+              <option key={mel} value={mel}>{mel}</option>
+            ))}
+          </select>
+          {/* Add Melody Button */}
+          <button
+            style={{
+              marginLeft: 4,
+              background: "#6366f1",
+              color: "#fff",
+              border: "none",
+              borderRadius: "50%",
+              width: 32,
+              height: 32,
+              fontSize: 22,
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+            title="Add Melody"
+            onClick={handleAddMelody}
+          >+</button>
+          {/* Record Button */}
+          <button
+            onClick={recording ? stopAll : startRecording}
+            style={{
+              marginLeft: 16,
+              background: "transparent",
+              border: "none",
+              borderRadius: "50%",
+              width: 40,
+              height: 40,
+              padding: 0,
+              cursor: "pointer",
+              outline: recording ? "2px solid #ef4444" : "none",
+              animation: recording ? "recordFlash 1s infinite" : "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+            title={recording ? "Stop Recording" : "Record"}
+          >
+            <RecordSVG flashing={recording && flash} />
+          </button>
+          {/* Play Button */}
+          <button
+            onClick={playRecording}
+            disabled={!audioUrl || playing || recording}
+            style={{
+              marginLeft: 8,
+              background: "transparent",
+              border: "none",
+              borderRadius: "50%",
+              width: 40,
+              height: 40,
+              padding: 0,
+              cursor: !audioUrl || playing || recording ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+            title="Play"
+          >
+            <PlaySVG />
+          </button>
+          {/* Stop Button */}
+          <button
+            onClick={stopAll}
+            disabled={(!playing && !recording)}
+            style={{
+              marginLeft: 8,
+              background: "transparent",
+              border: "none",
+              borderRadius: "50%",
+              width: 40,
+              height: 40,
+              padding: 0,
+              cursor: (!playing && !recording) ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+            title="Stop"
+          >
+            <StopSVG />
+          </button>
+          {/* Save Button */}
+          <button
+            onClick={saveRecording}
+            disabled={!audioUrl}
+            style={{
+              marginLeft: 8,
+              background: "transparent",
+              border: "none",
+              borderRadius: "50%",
+              width: 40,
+              height: 40,
+              padding: 0,
+              cursor: !audioUrl ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+            title="Save"
+          >
+            <SaveSVG />
+          </button>
+        </div>
         {/* Piano */}
         <div style={{
           display: "flex",
@@ -521,6 +1032,11 @@ export default function Synthfluanto() {
       <style>{`
         .pad:active {
           background: #a5b4fc !important;
+        }
+        @keyframes recordFlash {
+          0% { filter: drop-shadow(0 0 0px #ff4d4f); }
+          50% { filter: drop-shadow(0 0 12px #ff4d4f); }
+          100% { filter: drop-shadow(0 0 0px #ff4d4f); }
         }
       `}</style>
     </>
