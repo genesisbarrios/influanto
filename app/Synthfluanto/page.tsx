@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import * as Tone from "tone";
 import dynamic from "next/dynamic";
 import Header from "@/components/Header";
+type BlobPart = any; 
 
 // Dynamically import p5.js wrapper to avoid SSR issues
 const P5Wrapper = dynamic(() => import("react-p5-wrapper").then(mod => mod.ReactP5Wrapper || mod.default), { ssr: false });
@@ -601,26 +602,26 @@ export default function Synthfluanto() {
   }, [currentMelody, recordedBlobs]);
 
   // --- Note logic ---
-  const playNote = async (noteName: string) => {
-    await Tone.start();
-    setActiveNotes((prev) => {
-      if (!prev.includes(noteName)) {
-        synthRef.current?.triggerAttack(noteName);
-        return [...prev, noteName];
-      }
-      return prev;
-    });
-  };
+  const playNote = useCallback(async (noteName: string) => {
+  await Tone.start();
+  setActiveNotes((prev) => {
+    if (!prev.includes(noteName)) {
+      synthRef.current?.triggerAttack(noteName);
+      return [...prev, noteName];
+    }
+    return prev;
+  });
+}, []);
 
-  const stopNote = (noteName: string) => {
-    setActiveNotes((prev) => prev.filter(n => n !== noteName));
-    synthRef.current?.triggerRelease(noteName);
-  };
+const stopNote = useCallback((noteName: string) => {
+  setActiveNotes((prev) => prev.filter(n => n !== noteName));
+  synthRef.current?.triggerRelease(noteName);
+}, []);
 
   // --- MIDI support ---
   useEffect(() => {
-    let midiAccess: WebMidi.MIDIAccess | null = null;
-    function onMIDIMessage(event: WebMidi.MIDIMessageEvent) {
+    let midiAccess: any = null;
+    function onMIDIMessage(event: any) {
       const [status, noteNumber, velocity] = event.data;
       const noteOn = status === 144 && velocity > 0;
       const noteOff = status === 128 || (status === 144 && velocity === 0);
@@ -659,67 +660,25 @@ useEffect(() => {
     "'": "F5"
   };
 
-  // Use a ref so the set persists across renders
-  // (already declared at top level: const pressedKeysRef = useRef<Set<string>>(new Set());)
-
-  // Always release all notes on any focus loss or tab switch
-  const releaseAll = () => {
-    // Release all notes in activeNotes, not just pressedKeysRef
-    setActiveNotes(prev => {
-      prev.forEach(note => {
-        synthRef.current?.triggerRelease(note);
-      });
-      return [];
-    });
-    pressedKeysRef.current.clear();
-  };
-
-  // Use a stable handler for visibilitychange
-  const visibilityHandler = () => {
-    if (document.visibilityState !== "visible") releaseAll();
-  };
-
-  // Use a stable handler for blur
-  const blurHandler = () => {
-    releaseAll();
-  };
-
-  // Use a stable handler for keydown
   const downHandler = (e: KeyboardEvent) => {
     if (e.repeat) return;
-    const key = e.key.toLowerCase();
-    const note = keyMap[key];
-    if (note && !pressedKeysRef.current.has(key)) {
-      pressedKeysRef.current.add(key);
-      playNote(note);
-    }
+    const note = keyMap[e.key.toLowerCase()];
+    if (note) playNote(note);
   };
-
-  // Use a stable handler for keyup
   const upHandler = (e: KeyboardEvent) => {
-    const key = e.key.toLowerCase();
-    const note = keyMap[key];
-    if (note && pressedKeysRef.current.has(key)) {
-      pressedKeysRef.current.delete(key);
-      stopNote(note);
-    }
+    const note = keyMap[e.key.toLowerCase()];
+    if (note) stopNote(note);
   };
 
   window.addEventListener("keydown", downHandler);
   window.addEventListener("keyup", upHandler);
-  window.addEventListener("blur", blurHandler);
-  document.addEventListener("visibilitychange", visibilityHandler);
 
-  // Defensive: release all notes on unmount
   return () => {
     window.removeEventListener("keydown", downHandler);
     window.removeEventListener("keyup", upHandler);
-    window.removeEventListener("blur", blurHandler);
-    document.removeEventListener("visibilitychange", visibilityHandler);
-    releaseAll();
   };
 // eslint-disable-next-line
-}, [playNote, stopNote, setActiveNotes]);
+}, [synthType, oscType]);
 
   // --- Piano keys from C2 to C6 ---
   function getFullPianoKeys() {
