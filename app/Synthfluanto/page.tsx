@@ -623,6 +623,17 @@ const stopNote = useCallback((noteName: string) => {
   synthRef.current?.triggerRelease(noteName);
 }, []);
 
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 700);
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // --- MIDI support ---
   useEffect(() => {
     let midiAccess: any = null;
@@ -654,7 +665,6 @@ const stopNote = useCallback((noteName: string) => {
       }
     };
   }, [synthType, oscType]);
-
 
 // --- Keyboard support (robust fix for stuck notes) ---
 useEffect(() => {
@@ -720,16 +730,6 @@ useEffect(() => {
   }
   return keys;
 }
-
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    function handleResize() {
-      setIsMobile(window.innerWidth <= 700);
-    }
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const pianoKeys = isMobile ? getMobilePianoKeys() : getFullPianoKeys();
   const groupedKeys = [];
@@ -1063,7 +1063,8 @@ function VisualizerSketch({ data }: { data: number[] }) {
           userSelect: "none",
           overflowX: "auto",
           borderRadius: 8,
-          padding: "0 16px"
+          padding: "0 16px",
+          touchAction: "manipulation" // <-- add this line
         }}>
           <div style={{ display: "flex", position: "relative" }}>
             {groupedKeys.map((key, idx) => (
