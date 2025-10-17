@@ -860,34 +860,58 @@ useEffect(() => {
             }}
           >
             {/* Synth & Oscillator */}
-            <div>
-              <div style={{ color: "#181b20", fontWeight: 600, marginBottom: 4 }}>Synth</div>
+            <div
+              style={{
+              minWidth: isMobile ? 110 : 180,
+              maxWidth: isMobile ? 120 : 220,
+              padding: isMobile ? "2px 4px" : "8px 12px",
+              fontSize: isMobile ? 13 : 16,
+              marginRight: isMobile ? 4 : 12,
+              marginBottom: isMobile ? 0 : 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              boxSizing: "border-box"
+              }}
+            >
+              <div style={{ color: "#181b20", fontWeight: 600, marginBottom: 4, fontSize: isMobile ? 13 : 16 }}>Synth</div>
               <select
-                className="custom-select"
-                value={synthType}
-                onChange={e => setSynthType(e.target.value)}
-                style={{ borderRadius: 8, padding: 4 }}
+              className="custom-select"
+              value={synthType}
+              onChange={e => setSynthType(e.target.value)}
+              style={{
+                borderRadius: 8,
+                padding: isMobile ? "2px 4px" : 4,
+                fontSize: isMobile ? 13 : 16,
+                width: isMobile ? 90 : undefined
+              }}
               >
-                {SYNTH_TYPES.map(s => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
+              {SYNTH_TYPES.map(s => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+              </select>
+              <div style={{ color: "#181b20", fontWeight: 600, margin: isMobile ? "8px 0 2px 0" : "12px 0 4px 0", fontSize: isMobile ? 13 : 16 }}>Oscillator</div>
+              <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 8 }}>
+              <select
+                value={oscType}
+                onChange={e => setOscType(e.target.value)}
+                style={{
+                borderRadius: 8,
+                padding: isMobile ? "2px 4px" : 4,
+                fontWeight: 600,
+                fontSize: isMobile ? 13 : 16,
+                width: isMobile ? 90 : undefined
+                }}
+              >
+                {OSC_TYPES.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
               </select>
-              <div style={{ color: "#181b20", fontWeight: 600, margin: "12px 0 4px 0" }}>Oscillator</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <select
-                  value={oscType}
-                  onChange={e => setOscType(e.target.value)}
-                  style={{ borderRadius: 8, padding: 4, fontWeight: 600 }}
-                >
-                  {OSC_TYPES.map(o => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-                {!isMobile && (
-                  <span style={{ display: "inline-block" }}>
-                    {OSC_TYPES.find(o => o.value === oscType)?.svg()}
-                  </span>
-                )}
+              {!isMobile && (
+                <span style={{ display: "inline-block" }}>
+                {OSC_TYPES.find(o => o.value === oscType)?.svg()}
+                </span>
+              )}
               </div>
             </div>
           {/* Middle: Visualizer and Meter */}
