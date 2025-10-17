@@ -930,26 +930,39 @@ useEffect(() => {
             <VisualizerSketch data={waveformData} />
             <MeterBar level={meterLevel} />
           </div>
-
-            {/* Envelope */}
-            <div style={{textAlign: "center"}}>
-              <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Envelope</div>
-              <div style={{ display: "flex", gap: 16 }}>
-                <SvgKnob label="Attack" min={0.001} max={2} step={0.001} value={attack} onChange={setAttack} displayValue={attack.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
-                <SvgKnob label="Decay" min={0.01} max={2} step={0.01} value={decay} onChange={setDecay} displayValue={decay.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
-                <SvgKnob label="Sustain" min={0} max={1} step={0.01} value={sustain} onChange={setSustain} displayValue={sustain.toFixed(2)}  size={isMobile ? 50 : 56}/>
-                <SvgKnob label="Release" min={0.01} max={4} step={0.01} value={release} onChange={setRelease} displayValue={release.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
-              </div>
+          </div>
+          {/* Envelope */}
+          <div>
+            <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Envelope</div>
+            <div
+              style={{
+                display: "flex",
+                gap: 16,
+                justifyContent: "center", // <-- center knobs horizontally
+                width: isMobile ? "100%" : undefined
+              }}
+            >
+              <SvgKnob label="Attack" min={0.001} max={2} step={0.001} value={attack} onChange={setAttack} displayValue={attack.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
+              <SvgKnob label="Decay" min={0.01} max={2} step={0.01} value={decay} onChange={setDecay} displayValue={decay.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
+              <SvgKnob label="Sustain" min={0} max={1} step={0.01} value={sustain} onChange={setSustain} displayValue={sustain.toFixed(2)}  size={isMobile ? 50 : 56}/>
+              <SvgKnob label="Release" min={0.01} max={4} step={0.01} value={release} onChange={setRelease} displayValue={release.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
             </div>
-            {/* Volume + EQ */}
-            <div>
-              <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Volume + EQ</div>
-              <div style={{ display: "flex", gap: 16 }}>
-                <SvgKnob label="Gain" min={0} max={1} step={0.01} value={gain} onChange={setGain} displayValue={gain.toFixed(2)}  size={isMobile ? 50 : 56}/>
-                <SvgKnob label="Glide" min={0} max={1} step={0.01} value={glide} onChange={setGlide} displayValue={glide.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
-                <SvgKnob label="Hipass" min={20} max={5000} step={1} value={hipass} onChange={setHipass} displayValue={Math.round(hipass) + "Hz"}  size={isMobile ? 50 : 56}/>
-                <SvgKnob label="Lowpass" min={20} max={20000} step={1} value={lowpass} onChange={setLowpass} displayValue={Math.round(lowpass) + "Hz"}  size={isMobile ? 50 : 56}/>
-              </div>
+          </div>
+          {/* Volume + EQ */}
+          <div>
+            <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Volume + EQ</div>
+            <div
+              style={{
+                display: "flex",
+                gap: 16,
+                justifyContent: "center", // <-- center knobs horizontally
+                width: isMobile ? "100%" : undefined
+              }}
+            >
+              <SvgKnob label="Gain" min={0} max={1} step={0.01} value={gain} onChange={setGain} displayValue={gain.toFixed(2)}  size={isMobile ? 50 : 56}/>
+              <SvgKnob label="Glide" min={0} max={1} step={0.01} value={glide} onChange={setGlide} displayValue={glide.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
+              <SvgKnob label="Hipass" min={20} max={5000} step={1} value={hipass} onChange={setHipass} displayValue={Math.round(hipass) + "Hz"}  size={isMobile ? 50 : 56}/>
+              <SvgKnob label="Lowpass" min={20} max={20000} step={1} value={lowpass} onChange={setLowpass} displayValue={Math.round(lowpass) + "Hz"}  size={isMobile ? 50 : 56}/>
             </div>
           </div>
         </div>
