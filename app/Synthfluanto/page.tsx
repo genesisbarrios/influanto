@@ -174,7 +174,7 @@ export default function Synthfluanto() {
   const pressedKeysRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-        document.title = "Release Pages | Influanto";
+        document.title = "Synthfluanto, web based Synthesizer | Influanto";
         
         // Update meta description
         let metaDescription = document.querySelector('meta[name="description"]');
@@ -769,16 +769,19 @@ function VisualizerSketch({ data }: { data: number[] }) {
   return (
    <Suspense fallback={<div>Loading...</div>}>
       <Header />
-      <div
-        style={{
-          minHeight: "80vh",
-          width: "100%",
-          background: "#f9fafb",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-start"
-        }}
-      >
+     <div
+      style={{
+        minHeight: "80vh",
+        width: "100vw",
+        maxWidth: "100%",
+        background: "#f9fafb",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center", // center vertically
+        alignItems: "center",     // center horizontally
+        padding: "0 8px",         // add horizontal padding for mobile
+      }}
+    >
         <h1 className="text-3xl font-bold text-right mt-8 mr-36 text-black">Synthfluanto</h1>
         {/* Controls Row: Synth/osc/envelope/eq left, visualizer right */}
         <div
