@@ -948,6 +948,9 @@ useEffect(() => {
   } else {
     if (!audioUrl) return;
 
+    // Ensure AudioContext is started (required for mobile)
+    await Tone.start();
+
     // Use Tone.Player for playback so we can route to analysis nodes
     const player = new Tone.Player(audioUrl).toDestination();
 
