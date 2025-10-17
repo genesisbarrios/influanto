@@ -1135,7 +1135,7 @@ useEffect(() => {
   display: "flex",
   justifyContent: "center",
   alignItems: "flex-end",
-  margin: "3rem 0 2rem 0",
+  margin: "2rem 0 2rem 0",
   position: "relative",
   height: isMobile ? 126 : 140, // 90% of 140
   userSelect: "none",
