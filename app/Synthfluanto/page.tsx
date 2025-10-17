@@ -812,7 +812,9 @@ function VisualizerSketch({ data }: { data: number[] }) {
         padding: "0 8px",         // add horizontal padding for mobile
       }}
     >
-        <h1 className="text-3xl font-bold text-right mt-8 mr-36 text-black">Synthfluanto</h1>
+      <h1 className="text-3xl font-bold mt-8 mb-2 text-black" style={{ textAlign: "right", width: "80%" }}>
+        Synthfluanto
+      </h1>
         {/* Controls Row: Synth/osc/envelope/eq left, visualizer right */}
         <div
           style={{
@@ -1052,76 +1054,83 @@ function VisualizerSketch({ data }: { data: number[] }) {
             <SaveSVG />
           </button>
         </div>
-        {/* Piano */}
-        <div style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-end",
-          margin: "3rem 0 2rem 0",
-          position: "relative",
-          height: 140,
-          userSelect: "none",
-          overflowX: "auto",
-          borderRadius: 8,
-          padding: "0 16px",
-          touchAction: "manipulation" // <-- add this line
-        }}>
-          <div style={{ display: "flex", position: "relative" }}>
-            {groupedKeys.map((key, idx) => (
-              <div key={key.white.note + key.white.octave + idx} style={{ position: "relative", width: 42 }}>
-                {/* Black key */}
-                {key.black && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: 28,
-                      top: 0,
-                      width: 28,
-                      height: 80,
-                      background: activeNotes.includes(`${key.black.note}${key.black.octave}`) ? "#6366f1" : "#222",
-                      border: "1px solid #444",
-                      borderRadius: "0 0 4px 4px",
-                      zIndex: 2,
-                      display: "block",
-                      cursor: "pointer"
-                    }}
-                    onMouseDown={() => playNote(`${key.black!.note}${key.black!.octave}`)}
-                    onMouseUp={() => stopNote(`${key.black!.note}${key.black!.octave}`)}
-                    onMouseLeave={() => stopNote(`${key.black!.note}${key.black!.octave}`)}
-                    onTouchStart={e => { e.preventDefault(); playNote(`${key.black!.note}${key.black!.octave}`); }}
-                    onTouchEnd={e => { e.preventDefault(); stopNote(`${key.black!.note}${key.black!.octave}`); }}
-                  />
-                )}
-                {/* White key */}
+
+      {/* Piano */}
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-end",
+        margin: "3rem 0 2rem 0",
+        position: "relative",
+        height: isMobile ? 80 : 140, // smaller height on mobile
+        userSelect: "none",
+        overflowX: "auto",
+        borderRadius: 8,
+        padding: isMobile ? "0 4px" : "0 16px",
+        touchAction: "manipulation"
+      }}>
+        <div style={{ display: "flex", position: "relative" }}>
+          {groupedKeys.map((key, idx) => (
+            <div
+              key={key.white.note + key.white.octave + idx}
+              style={{
+                position: "relative",
+                width: isMobile ? 24 : 42 // smaller width on mobile
+              }}
+            >
+              {/* Black key */}
+              {key.black && (
                 <div
                   style={{
-                    width: 40,
-                    height: 120,
-                    background: activeNotes.includes(`${key.white.note}${key.white.octave}`) ? "#a5b4fc" : "#fff",
-                    border: "1px solid #bbb",
-                    borderRadius: "0 0 6px 6px",
-                    marginLeft: -1,
-                    zIndex: 1,
-                    position: "relative",
-                    display: "flex",
-                    alignItems: "flex-end",
-                    justifyContent: "center",
-                    fontWeight: 600,
-                    fontSize: 13,
+                    position: "absolute",
+                    left: isMobile ? 16 : 28, // adjust for smaller width
+                    top: 0,
+                    width: isMobile ? 16 : 28,
+                    height: isMobile ? 48 : 80,
+                    background: activeNotes.includes(`${key.black.note}${key.black.octave}`) ? "#6366f1" : "#222",
+                    border: "1px solid #444",
+                    borderRadius: "0 0 4px 4px",
+                    zIndex: 2,
+                    display: "block",
                     cursor: "pointer"
                   }}
-                  onMouseDown={() => playNote(`${key.white.note}${key.white.octave}`)}
-                  onMouseUp={() => stopNote(`${key.white.note}${key.white.octave}`)}
-                  onMouseLeave={() => stopNote(`${key.white.note}${key.white.octave}`)}
-                  onTouchStart={e => { e.preventDefault(); playNote(`${key.white.note}${key.white.octave}`); }}
-                  onTouchEnd={e => { e.preventDefault(); stopNote(`${key.white.note}${key.white.octave}`); }}
-                >
-                  {key.white.note}{key.white.octave}
-                </div>
+                  onMouseDown={() => playNote(`${key.black!.note}${key.black!.octave}`)}
+                  onMouseUp={() => stopNote(`${key.black!.note}${key.black!.octave}`)}
+                  onMouseLeave={() => stopNote(`${key.black!.note}${key.black!.octave}`)}
+                  onTouchStart={e => { e.preventDefault(); playNote(`${key.black!.note}${key.black!.octave}`); }}
+                  onTouchEnd={e => { e.preventDefault(); stopNote(`${key.black!.note}${key.black!.octave}`); }}
+                />
+              )}
+              {/* White key */}
+              <div
+                style={{
+                  width: isMobile ? 22 : 40,
+                  height: isMobile ? 72 : 120,
+                  background: activeNotes.includes(`${key.white.note}${key.white.octave}`) ? "#a5b4fc" : "#fff",
+                  border: "1px solid #bbb",
+                  borderRadius: "0 0 6px 6px",
+                  marginLeft: -1,
+                  zIndex: 1,
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "flex-end",
+                  justifyContent: "center",
+                  fontWeight: 600,
+                  fontSize: isMobile ? 9 : 13,
+                  cursor: "pointer"
+                }}
+                onMouseDown={() => playNote(`${key.white.note}${key.white.octave}`)}
+                onMouseUp={() => stopNote(`${key.white.note}${key.white.octave}`)}
+                onMouseLeave={() => stopNote(`${key.white.note}${key.white.octave}`)}
+                onTouchStart={e => { e.preventDefault(); playNote(`${key.white.note}${key.white.octave}`); }}
+                onTouchEnd={e => { e.preventDefault(); stopNote(`${key.white.note}${key.white.octave}`); }}
+              >
+                {key.white.note}{key.white.octave}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
+      </div>
       </div>
       <Footer />
       <style>{`
