@@ -866,7 +866,7 @@ function VisualizerSketch({ data }: { data: number[] }) {
               </div>
             </div>
           {/* Middle: Visualizer and Meter */}
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 8, width: isMobile ? "70%" : "auto" }}>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 8, width: isMobile ? "60%" : "auto" }}>
             <VisualizerSketch data={waveformData} />
             <MeterBar level={meterLevel} />
           </div>
