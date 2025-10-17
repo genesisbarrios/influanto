@@ -983,8 +983,8 @@ useEffect(() => {
               <SvgKnob label="FB Delay" min={0.01} max={1} step={0.01} value={feedbackDelayTime} onChange={setFeedbackDelayTime} displayValue={feedbackDelayTime.toFixed(2)}  size={isMobile ? 36 : 56}/>
               <SvgKnob label="FB Feedback" min={0} max={0.95} step={0.01} value={feedbackDelayFeedback} onChange={setFeedbackDelayFeedback} displayValue={feedbackDelayFeedback.toFixed(2)}  size={isMobile ? 36 : 56}/>
               <SvgKnob label="FB Delay Wet" min={0} max={1} step={0.01} value={feedbackDelay} onChange={setFeedbackDelay} displayValue={feedbackDelay.toFixed(2)}  size={isMobile ? 36 : 56}/>
-              <SvgKnob label="PP Delay" min={0.01} max={1} step={0.01} value={pingPongDelayTime} onChange={setPingPongDelayTime} displayValue={pingPongDelayTime.toFixed(2)}  size={isMobile ? 36 : 56}/>
-              <SvgKnob label="PingPong Wet" min={0} max={1} step={0.01} value={pingPong} onChange={setPingPong} displayValue={pingPong.toFixed(2)}  size={isMobile ? 36 : 56}/>
+              <SvgKnob label="PingPong Delay" min={0.01} max={1} step={0.01} value={pingPongDelayTime} onChange={setPingPongDelayTime} displayValue={pingPongDelayTime.toFixed(2)}  size={isMobile ? 36 : 56}/>
+              <SvgKnob label="PP Wet" min={0} max={1} step={0.01} value={pingPong} onChange={setPingPong} displayValue={pingPong.toFixed(2)}  size={isMobile ? 36 : 56}/>
               {/* Hide PP Feedback on mobile */}
               {!isMobile && (
                 <SvgKnob label="PP Feedback" min={0} max={0.95} step={0.01} value={pingPongFeedback} onChange={setPingPongFeedback} displayValue={pingPongFeedback.toFixed(2)}  size={56}/>
