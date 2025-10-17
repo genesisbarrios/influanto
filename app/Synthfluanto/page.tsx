@@ -769,7 +769,7 @@ function VisualizerSketch({ data }: { data: number[] }) {
     ctx.stroke();
   }, [data]);
 
-  return <canvas ref={canvasRef} width={isMobile ? 280 : 340} height={isMobile ? 100 : 120} />;
+  return <canvas ref={canvasRef} width={isMobile ? 240 : 340} height={isMobile ? 85 : 120} />;
 }
 
   // --- Decibel Meter ---
