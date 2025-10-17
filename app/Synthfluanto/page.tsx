@@ -796,28 +796,30 @@ useEffect(() => {
 
   // --- Decibel Meter ---
   function MeterBar({ level }: { level: number }) {
-  const percent = Math.min(1, Math.max(0, (level + 60) / 60));
-  return (
-    <div style={{
-      width: 24,
-      height: 120,
-      background: "#e5e7eb",
-      borderRadius: 8,
-      border: "1px solid #bbb",
-      display: "flex",
-      alignItems: "flex-end",
-      margin: "0 10px"
-    }}>
+    const percent = Math.min(1, Math.max(0, (level + 60) / 60));
+    const isMobile = typeof window !== "undefined" ? window.innerWidth <= 700 : false;
+    const height = isMobile ? 70 : 120;
+    return (
       <div style={{
-        width: "100%",
-        height: `${percent * 100}%`,
-        background: percent > 0.8 ? "#ef4444" : percent > 0.5 ? "#facc15" : "#22d3ee",
+        width: 24,
+        height,
+        background: "#e5e7eb",
         borderRadius: 8,
-        transition: "height 0.1s"
-      }} />
-    </div>
-  );
-}
+        border: "1px solid #bbb",
+        display: "flex",
+        alignItems: "flex-end",
+        margin: "0 10px"
+      }}>
+        <div style={{
+          width: "100%",
+          height: `${percent * 100}%`,
+          background: percent > 0.8 ? "#ef4444" : percent > 0.5 ? "#facc15" : "#22d3ee",
+          borderRadius: 8,
+          transition: "height 0.1s"
+        }} />
+      </div>
+    );
+  }
 
   return (
    <Suspense fallback={<div>Loading...</div>}>
@@ -835,7 +837,16 @@ useEffect(() => {
         padding: "0 8px",         // add horizontal padding for mobile
       }}
     >
-      <p className="text-3xl xs:text-sm font-bold mt-8 mb-2 text-black" style={{ textAlign: "right", width: "80%" }}>
+      <p
+        className="font-bold mt-8 mb-2 text-black"
+        style={{
+          textAlign: isMobile ? "center" : "right",
+          width: isMobile ? "80%" : "90%",
+          fontSize: isMobile ? 16 : 32,
+          marginTop: isMobile ? 12 : 32,
+          marginBottom: isMobile ? 6 : 8,
+        }}
+      >
         Synthfluanto
       </p>
         {/* Controls Row: Synth/osc/envelope/eq left, visualizer right */}
