@@ -932,7 +932,7 @@ useEffect(() => {
           </div>
 
             {/* Envelope */}
-            <div>
+            <div style={{textAlign: "center"}}>
               <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Envelope</div>
               <div style={{ display: "flex", gap: 16 }}>
                 <SvgKnob label="Attack" min={0.001} max={2} step={0.001} value={attack} onChange={setAttack} displayValue={attack.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
