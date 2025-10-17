@@ -746,31 +746,53 @@ useEffect(() => {
 
 
   // --- Canvas waveform/fft visualizer ---
-function VisualizerSketch({ data }: { data: number[] }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const isMobile = typeof window !== "undefined" ? window.innerWidth <= 700 : false;
+  function VisualizerSketch({ data }: { data: number[] }) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const isMobile = typeof window !== "undefined" ? window.innerWidth <= 700 : false;
+    const width = isMobile ? 220 : 340;
+    const height = isMobile ? 80 : 120;
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "#6366f1";
-    ctx.beginPath();
-    for (let i = 0; i < data.length; i++) {
-      const x = (i / data.length) * canvas.width;
-      const margin = 10;
-      const amplitude = 40;
-      const y = margin + ((1 - amplitude * data[i]) / 2) * (canvas.height - 2 * margin);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }, [data]);
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
+      ctx.scale(dpr, dpr);
 
-  return <canvas ref={canvasRef} width={isMobile ? 240 : 340} height={isMobile ? 85 : 120} />;
-}
+      ctx.clearRect(0, 0, width, height);
+      ctx.strokeStyle = "#6366f1";
+      ctx.beginPath();
+      for (let i = 0; i < data.length; i++) {
+        const x = (i / data.length) * width;
+        const margin = 10;
+        const amplitude = 40;
+        const y = margin + ((1 - amplitude * data[i]) / 2) * (height - 2 * margin);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }, [data, width, height]);
+
+    return (
+      <canvas
+        ref={canvasRef}
+        style={{
+          width: width,
+          height: height,
+          maxWidth: "100%",
+          display: "block",
+          borderRadius: 8,
+          background: "#fff"
+        }}
+      />
+    );
+  }
 
   // --- Decibel Meter ---
   function MeterBar({ level }: { level: number }) {
