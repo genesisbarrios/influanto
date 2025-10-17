@@ -1062,7 +1062,7 @@ function VisualizerSketch({ data }: { data: number[] }) {
         alignItems: "flex-end",
         margin: "3rem 0 2rem 0",
         position: "relative",
-        height: isMobile ? 80 : 140, // smaller height on mobile
+        height: isMobile ? 100 : 140, // smaller height on mobile
         userSelect: "none",
         overflowX: "auto",
         borderRadius: 8,
