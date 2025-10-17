@@ -67,19 +67,21 @@ function SawtoothSVG() {
 }
 
 // SVGs for transport controls
-function RecordSVG({ flashing }: { flashing?: boolean }) {
+function RecordSVG({ overdub }: { overdub?: boolean }) {
   return (
-    <svg width="32" height="32" viewBox="0 0 32 32">
-      <circle
-        cx="16"
-        cy="16"
-        r="12"
-        fill={flashing ? "#ff4d4f" : "#dc2626"}
-        style={flashing ? { filter: "drop-shadow(0 0 8px #ff4d4f)" } : {}}
-      />
-    </svg>
+    <span style={{ marginLeft: 16, display: "inline-block" }}>
+      <svg width="32" height="32" viewBox="0 0 32 32">
+        <circle
+          cx="16"
+          cy="16"
+          r={overdub ? 9 : 12} // smaller when pink
+          fill={overdub ? "#ff4dcb" : "#dc2626"}
+        />
+      </svg>
+    </span>
   );
 }
+
 function PlaySVG() {
   return (
     <svg width="32" height="32" viewBox="0 0 32 32">
@@ -94,13 +96,132 @@ function StopSVG() {
     </svg>
   );
 }
+
+function TrashSVG() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32">
+      {/* Lid */}
+      <rect x="10" y="7" width="12" height="4" rx="2" fill="#e11d74" />
+      {/* Lid handle */}
+      <rect x="14" y="5" width="4" height="2" rx="1" fill="#e11d74" />
+      {/* Body */}
+      <rect x="10" y="12" width="12" height="12" rx="2" fill="#e11d74" />
+      {/* Trash lines */}
+      <rect x="13" y="16" width="2" height="6" rx="1" fill="#fff" />
+      <rect x="17" y="16" width="2" height="6" rx="1" fill="#fff" />
+      {/* Top rim */}
+      <rect x="12" y="10" width="8" height="2" rx="1" fill="#fff" />
+    </svg>
+  );
+}
+
 function SaveSVG() {
   return (
     <svg width="32" height="32" viewBox="0 0 32 32">
-      <rect x="6" y="6" width="20" height="20" rx="3" fill="#22c55e" />
+      <rect x="6" y="6" width="20" height="20" rx="3" fill="#3f71cdff" />
       <rect x="10" y="10" width="12" height="8" rx="1" fill="#fff" />
       <rect x="14" y="20" width="4" height="4" rx="1" fill="#fff" />
     </svg>
+  );
+}
+
+function SynthFader({
+  label,
+  value,
+  onChange,
+  displayValue,
+  height = 70,
+  width = 32,
+  color = "#6366f1"
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  displayValue?: string;
+  height?: number;
+  width?: number;
+  color?: string;
+}) {
+  // Allowed rolloff values for Tone.js
+  const allowed = [-12, -24, -48, -96];
+  const min = Math.min(...allowed);
+  const max = Math.max(...allowed);
+
+  // percent = 0 at min (-96), percent = 1 at max (-12)
+  const percent = (value - min) / (max - min);
+  const knobY = 12 + (height - 24) * (1 - percent);
+
+  // Drag logic
+  const dragging = useRef(false);
+  const startY = useRef(0);
+  const startValue = useRef(value);
+
+  function handlePointerDown(e: React.PointerEvent) {
+    dragging.current = true;
+    startY.current = e.clientY;
+    startValue.current = value;
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+  }
+  function handlePointerMove(e: PointerEvent) {
+    if (!dragging.current) return;
+    const delta = startY.current - e.clientY;
+    let newValue = startValue.current + ((max - min) / (height - 24)) * delta;
+    // Snap to nearest allowed value
+    newValue = allowed.reduce((prev, curr) =>
+      Math.abs(curr - newValue) < Math.abs(prev - newValue) ? curr : prev
+    );
+    newValue = Math.max(min, Math.min(max, newValue));
+    onChange(Number(newValue));
+  }
+  function handlePointerUp() {
+    dragging.current = false;
+    window.removeEventListener("pointermove", handlePointerMove);
+    window.removeEventListener("pointerup", handlePointerUp);
+  }
+
+  return (
+    <div style={{ width, textAlign: "center", userSelect: "none" }}>
+      <div
+        style={{ cursor: "pointer", display: "inline-block" }}
+        onPointerDown={handlePointerDown}
+        tabIndex={0}
+        aria-label={label}
+      >
+        <svg width={width} height={height}>
+          {/* Fader track */}
+          <rect x={width / 2 - 3} y={12} width={6} height={height - 24} rx={3} fill="#e5e7eb" stroke="#bbb" strokeWidth={1.5} />
+          {/* Fader scale marks */}
+          {allowed.map((v, i) => {
+            const p = (v - min) / (max - min);
+            return (
+              <rect
+                key={v}
+                x={width / 2 - 8}
+                y={12 + (height - 24) * (1 - p) - 1}
+                width={16}
+                height={2}
+                fill="#bbb"
+              />
+            );
+          })}
+          {/* Fader knob */}
+          <rect
+            x={width / 2 - 10}
+            y={knobY - 7}
+            width={20}
+            height={14}
+            rx={4}
+            fill={color}
+            stroke="#222"
+            strokeWidth={2}
+            style={{ filter: "drop-shadow(0 1px 2px #2222)" }}
+          />
+        </svg>
+      </div>
+      <div style={{ fontWeight: 600, fontSize: 13, color: "#181b20", marginTop: 2 }}>{label}</div>
+      <div style={{ fontSize: 12, color, marginTop: 1 }}>{displayValue ?? value}</div>
+    </div>
   );
 }
 
@@ -157,6 +278,7 @@ export default function Synthfluanto() {
   const gainRef = useRef<Tone.Gain | null>(null);
   const hipassRef = useRef<Tone.Filter | null>(null);
   const lowpassRef = useRef<Tone.Filter | null>(null);
+  const [filterRolloff, setFilterRolloff] = useState(-24); // dB/octave, shared for both filters
   const reverbRef = useRef<Tone.Reverb | null>(null);
   const feedbackDelayRef = useRef<Tone.FeedbackDelay | null>(null);
   const pingPongRef = useRef<Tone.PingPongDelay | null>(null);
@@ -172,6 +294,7 @@ export default function Synthfluanto() {
   // --- Recording stream ref ---
   const streamRef = useRef<MediaStream | null>(null);
   const pressedKeysRef = useRef<Set<string>>(new Set());
+  
 
   useEffect(() => {
         document.title = "Synthfluanto, the online Synthesizer | Influanto";
@@ -382,6 +505,21 @@ export default function Synthfluanto() {
     }
   }, [feedbackDelay, feedbackDelayTime, feedbackDelayFeedback]);
 
+   useEffect(() => {
+  if (lowpassRef.current) {
+    lowpassRef.current.frequency.value = lowpass;
+    lowpassRef.current.rolloff = filterRolloff as Tone.FilterRollOff;
+    lowpassRef.current.Q.value = 4; // moderate resonance
+  }
+}, [lowpass, filterRolloff]);
+
+  useEffect(() => {
+    if (hipassRef.current) {
+      hipassRef.current.frequency.value = hipass;
+      hipassRef.current.rolloff = filterRolloff as Tone.FilterRollOff;
+    }
+  }, [hipass, filterRolloff]);
+
   // --- Meter/FFT/Waveform polling ---
   useEffect(() => {
     let raf: number;
@@ -426,12 +564,45 @@ export default function Synthfluanto() {
     return () => clearInterval(interval);
   }, [recording]);
 
-const startRecording = () => {
-  const stream = setupStream();
-  if (!stream) {
-    alert("Audio stream is not available for recording.");
-    return;
+const startRecording = async () => {
+  // Get the raw AudioContext from Tone.js
+  const audioCtx = Tone.getContext().rawContext;
+
+  // Create a MediaStreamDestination for recording
+  const dest = (audioCtx as AudioContext).createMediaStreamDestination();
+
+  // Connect synth output to the destination
+  if (gainRef.current) {
+    try {
+      gainRef.current.disconnect();
+    } catch (e) {}
+    gainRef.current.connect(dest);
+    gainRef.current.connect(audioCtx.destination); // so user hears output
   }
+
+  // If previous recording exists, decode and play it through the same context
+  let playbackSource: AudioBufferSourceNode | null = null;
+  if (audioUrl) {
+    try {
+      const response = await fetch(audioUrl);
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+      playbackSource = audioCtx.createBufferSource();
+      playbackSource.buffer = buffer;
+      playbackSource.connect(dest);
+      playbackSource.connect(audioCtx.destination); // so user hears it
+      playbackSource.start();
+      // Do not assign playbackSource to playbackAudioRef.current, as types are incompatible
+      // If you need to keep track of playbackSource, use a separate ref:
+      // playbackSourceRef.current = playbackSource;
+    } catch (err) {
+      console.error("Error decoding previous recording:", err);
+    }
+  }
+
+  // Start recording the mixed stream
+  const stream = dest.stream;
   const recorder = new MediaRecorder(stream);
   const chunks: BlobPart[] = [];
   recorder.ondataavailable = (e) => {
@@ -446,6 +617,16 @@ const startRecording = () => {
   recorder.start();
   setMediaRecorder(recorder);
   setRecording(true);
+
+  // When playback ends, stop recording
+  if (playbackSource) {
+    playbackSource.onended = () => {
+      if (recorder.state !== "inactive") {
+        recorder.stop();
+        setRecording(false);
+      }
+    };
+  }
 };
 
   // Stop button stops both recording and playback
@@ -463,14 +644,27 @@ const startRecording = () => {
     }
   };
 
-  const playRecording = () => {
-    if (!audioUrl) return;
-    const audio = new Audio(audioUrl);
-    playbackAudioRef.current = audio;
-    setPlaying(true);
-    audio.onended = () => setPlaying(false);
-    audio.play();
-  };
+  const clearRecording = () => {
+  // Stop playback if playing
+  if (playing && playbackAudioRef.current) {
+    playbackAudioRef.current.pause();
+    playbackAudioRef.current.currentTime = 0;
+    setPlaying(false);
+  }
+  // Stop recording if recording
+  if (recording && mediaRecorder && mediaRecorder.state !== "inactive") {
+    mediaRecorder.stop();
+    setRecording(false);
+  }
+  // Remove audioUrl for current melody
+  setAudioUrl(null);
+  setRecordedBlobs(prev => {
+    const copy = { ...prev };
+    delete copy[currentMelody];
+    return copy;
+  });
+  sessionStorage.removeItem(`melody_${currentMelody}`);
+};
 
   // Save as .wav (or .mp3 fallback) using webm-to-wav conversion
   const saveRecording = async () => {
@@ -744,6 +938,22 @@ useEffect(() => {
     }
   }
 
+  const handlePlayToggle = () => {
+    if (playing) {
+      if (playbackAudioRef.current) {
+        playbackAudioRef.current.pause();
+        playbackAudioRef.current.currentTime = 0;
+      }
+      setPlaying(false);
+    } else {
+      if (!audioUrl) return;
+      const audio = new Audio(audioUrl);
+      playbackAudioRef.current = audio;
+      setPlaying(true);
+      audio.onended = () => setPlaying(false);
+      audio.play();
+    }
+  };
 
   // --- Canvas waveform/fft visualizer ---
   function VisualizerSketch({ data }: { data: number[] }) {
@@ -793,6 +1003,54 @@ useEffect(() => {
       />
     );
   }
+
+function FrequencyBarVisualizer({ data }: { data: number[] }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isMobile = typeof window !== "undefined" ? window.innerWidth <= 700 : false;
+  const width = isMobile ? 200 : 340;
+  const height = isMobile ? 70 : 120;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Tone.FFT returns decibels, typically -100 to 0
+    const minDb = -100;
+    const maxDb = 0;
+    const barWidth = width / data.length;
+    for (let i = 0; i < data.length; i++) {
+      // Normalize dB to 0–1
+      const norm = Math.max(0, Math.min(1, (data[i] - minDb) / (maxDb - minDb)));
+      const barHeight = Math.min(norm * height * 2, height); // double the bar height, clamp to max height
+      ctx.fillStyle = `hsl(${220 - norm * 180}, 80%, 60%)`;
+      ctx.fillRect(i * barWidth, height - barHeight, barWidth - 2, barHeight);
+    }
+  }, [data, width, height]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        width: width,
+        height: height,
+        display: "block",
+        borderRadius: 8,
+        background: "transparent"
+      }}
+    />
+  );
+}
 
   // --- Decibel Meter ---
   function MeterBar({ level }: { level: number }) {
@@ -926,10 +1184,23 @@ useEffect(() => {
               </div>
             </div>
           {/* Middle: Visualizer and Meter */}
-          <div style={{ display: "flex", alignItems: "flex-end", gap: isMobile ? 8 : 12}}>
-            <VisualizerSketch data={waveformData} />
-            <MeterBar level={meterLevel} />
-          </div>
+       <div
+        style={{
+          position: "relative",
+          width: isMobile ? 200 : 340,
+          height: isMobile ? 70 : 120,
+          borderRadius: 8,
+          background: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden"
+        }}
+      >
+        <VisualizerSketch data={waveformData} />
+        <FrequencyBarVisualizer data={fftData} />
+      </div>
+      <MeterBar level={meterLevel} />
           </div>
           {/* Envelope */}
           <div>
@@ -963,6 +1234,16 @@ useEffect(() => {
               <SvgKnob label="Glide" min={0} max={1} step={0.01} value={glide} onChange={setGlide} displayValue={glide.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
               <SvgKnob label="Hipass" min={20} max={5000} step={1} value={hipass} onChange={setHipass} displayValue={Math.round(hipass) + "Hz"}  size={isMobile ? 50 : 56}/>
               <SvgKnob label="Lowpass" min={20} max={20000} step={1} value={lowpass} onChange={setLowpass} displayValue={Math.round(lowpass) + "Hz"}  size={isMobile ? 50 : 56}/>
+                  <SynthFader
+                    label="Rolloff"
+                    value={filterRolloff}
+                    onChange={setFilterRolloff}
+                    displayValue={`${filterRolloff}dB/oct`}
+                    height={70}
+                    width={32}
+                    color="#6366f1"
+                  />
+
             </div>
           </div>
         </div>
@@ -981,8 +1262,8 @@ useEffect(() => {
             <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", justifyContent: "center" }}>
               <SvgKnob label="Reverb" min={0} max={1} step={0.01} value={reverb} onChange={setReverb} displayValue={reverb.toFixed(2)}  size={isMobile ? 36 : 56}/>
               <SvgKnob label="FB Delay" min={0.01} max={1} step={0.01} value={feedbackDelayTime} onChange={setFeedbackDelayTime} displayValue={feedbackDelayTime.toFixed(2)}  size={isMobile ? 36 : 56}/>
-              <SvgKnob label="FB Feedback" min={0} max={0.95} step={0.01} value={feedbackDelayFeedback} onChange={setFeedbackDelayFeedback} displayValue={feedbackDelayFeedback.toFixed(2)}  size={isMobile ? 36 : 56}/>
               <SvgKnob label="FB Delay Wet" min={0} max={1} step={0.01} value={feedbackDelay} onChange={setFeedbackDelay} displayValue={feedbackDelay.toFixed(2)}  size={isMobile ? 36 : 56}/>
+              <SvgKnob label="FB Feedback" min={0} max={0.95} step={0.01} value={feedbackDelayFeedback} onChange={setFeedbackDelayFeedback} displayValue={feedbackDelayFeedback.toFixed(2)}  size={isMobile ? 36 : 56}/>
               <SvgKnob label="PingPong Delay" min={0.01} max={1} step={0.01} value={pingPongDelayTime} onChange={setPingPongDelayTime} displayValue={pingPongDelayTime.toFixed(2)}  size={isMobile ? 36 : 56}/>
               <SvgKnob label="PP Wet" min={0} max={1} step={0.01} value={pingPong} onChange={setPingPong} displayValue={pingPong.toFixed(2)}  size={isMobile ? 36 : 56}/>
               {/* Hide PP Feedback on mobile */}
@@ -1043,70 +1324,97 @@ useEffect(() => {
             title="Add Melody"
             onClick={handleAddMelody}
           >+</button>
-          {/* Record Button */}
-          <button
-            onClick={recording ? stopAll : startRecording}
-            style={{
-              marginLeft: 16,
-              background: "transparent",
-              border: "none",
-              borderRadius: "50%",
-              width: 40,
-              height: 40,
-              padding: 0,
-              cursor: "pointer",
-              outline: recording ? "2px solid #ef4444" : "none",
-              animation: recording ? "recordFlash 1s infinite" : "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-            title={recording ? "Stop Recording" : "Record"}
-          >
-            <RecordSVG flashing={recording && flash} />
-          </button>
+         {/* Record Button */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <button
+          onClick={recording ? stopAll : startRecording}
+          style={{
+            background: "transparent",
+            border: "none",
+            borderRadius: "50%",
+            width: 40,
+            height: 40,
+            padding: 0,
+            cursor: "pointer",
+            outline: recording ? "2px solid #ef4444" : "none",
+            animation: recording ? "recordFlash 1s infinite" : "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center"
+          }}
+          title={recording ? "Stop Recording" : "Record"}
+        >
+          <RecordSVG overdub={!!recordedBlobs[currentMelody] && !recording} />
+        </button>
+        {/* Layer label */}
+       {recordedBlobs[currentMelody] && !recording && (
+        <span
+          style={{
+            fontSize: 10,
+            color: "#e11d74",
+            fontWeight: 500,
+            marginTop: 0,
+            letterSpacing: 1,
+            textTransform: "uppercase",
+            width: "40px", // match button width
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            alignSelf: "center",
+            marginLeft: 16
+          }}
+        >
+          layer
+        </span>
+      )}
+      </div>
+
           {/* Play Button */}
-          <button
-            onClick={playRecording}
-            disabled={!audioUrl || playing || recording}
-            style={{
-              marginLeft: 8,
-              background: "transparent",
-              border: "none",
-              borderRadius: "50%",
-              width: 40,
-              height: 40,
-              padding: 0,
-              cursor: !audioUrl || playing || recording ? "not-allowed" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-            title="Play"
-          >
-            <PlaySVG />
-          </button>
-          {/* Stop Button */}
-          <button
-            onClick={stopAll}
-            disabled={(!playing && !recording)}
-            style={{
-              marginLeft: 8,
-              background: "transparent",
-              border: "none",
-              borderRadius: "50%",
-              width: 40,
-              height: 40,
-              padding: 0,
-              cursor: (!playing && !recording) ? "not-allowed" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-            title="Stop"
-          >
-            <StopSVG />
-          </button>
+         <button
+          onClick={handlePlayToggle}
+          disabled={!audioUrl || recording}
+          style={{
+            marginLeft: 8,
+            background: "transparent",
+            border: "none",
+            borderRadius: "50%",
+            width: 40,
+            height: 40,
+            padding: 0,
+            cursor: !audioUrl || recording ? "not-allowed" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+          title={playing ? "Stop" : "Play"}
+        >
+          {playing ? <StopSVG /> : <PlaySVG />}
+        </button>
+          {/* Clear Button */}
+            {audioUrl && (
+              <button
+                onClick={clearRecording}
+                disabled={recording || playing}
+                style={{
+                  marginLeft: 8,
+                  background: "transparent",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: 40,
+                  height: 40,
+                  padding: 0,
+                  cursor: recording || playing ? "not-allowed" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+                title="Clear"
+              >
+                <TrashSVG />
+              </button>
+            )}
+
           {/* Save Button */}
           <button
             onClick={saveRecording}
