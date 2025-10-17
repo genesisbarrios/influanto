@@ -725,7 +725,7 @@ useEffect(() => {
         isBlack: NOTE_NAMES[i].includes('#'),
         midi: 12 * (octave + 1) + i
       });
-      if (octave === 5 && NOTE_NAMES[i] === 'A') break;
+      if (octave === 5 && NOTE_NAMES[i] === 'E') break;
     }
   }
   return keys;
