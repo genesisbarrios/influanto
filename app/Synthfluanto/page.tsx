@@ -174,7 +174,7 @@ export default function Synthfluanto() {
   const pressedKeysRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-        document.title = "Synthfluanto, web based Synthesizer | Influanto";
+        document.title = "Synthfluanto, the online Synthesizer | Influanto";
         
         // Update meta description
         let metaDescription = document.querySelector('meta[name="description"]');
@@ -183,7 +183,7 @@ export default function Synthfluanto() {
           metaDescription.setAttribute('name', 'description');
           document.head.appendChild(metaDescription);
         }
-        metaDescription.setAttribute('content', 'Web Based Synthesizer - Synthfluanto by Influanto');
+        metaDescription.setAttribute('content', 'Online Synthesizer, Web Synthesizer, Free Synthesizer - Synthfluanto by Influanto');
     
         // Update og:title
         let ogTitle = document.querySelector('meta[property="og:title"]');
@@ -192,7 +192,7 @@ export default function Synthfluanto() {
           ogTitle.setAttribute('property', 'og:title');
           document.head.appendChild(ogTitle);
         }
-        ogTitle.setAttribute('content', 'Synthfluanto, the web based Synthesizer | Influanto');
+        ogTitle.setAttribute('content', 'Synthfluanto, the online Synthesizer | Influanto');
   
         // Update og:description
         let ogDescription = document.querySelector('meta[property="og:description"]');
@@ -201,7 +201,7 @@ export default function Synthfluanto() {
           ogDescription.setAttribute('property', 'og:description');
           document.head.appendChild(ogDescription);
         }
-        ogDescription.setAttribute('content', 'Web Based Synthesizer - Synthfluanto by Influanto');
+        ogDescription.setAttribute('content', 'Online Synthesizer - Synthfluanto by Influanto');
   
         // Update twitter:title
         let twitterTitle = document.querySelector('meta[name="twitter:title"]');
@@ -210,7 +210,7 @@ export default function Synthfluanto() {
           twitterTitle.setAttribute('name', 'twitter:title');
           document.head.appendChild(twitterTitle);
         }
-        twitterTitle.setAttribute('content', 'Synthfluanto, the web based Synthesizer | Influanto');
+        twitterTitle.setAttribute('content', 'Synthfluanto, the online Synthesizer | Influanto');
     
         // Update twitter:description
         let twitterDescription = document.querySelector('meta[name="twitter:description"]');
@@ -219,7 +219,7 @@ export default function Synthfluanto() {
           twitterDescription.setAttribute('name', 'twitter:description');
           document.head.appendChild(twitterDescription);
         }
-        twitterDescription.setAttribute('content', 'Web Based Synthesizer - Synthfluanto by Influanto');
+        twitterDescription.setAttribute('content', 'Online Synthesizer - Synthfluanto by Influanto');
       }, []);
 
   // --- Synth/FX chain setup ---
