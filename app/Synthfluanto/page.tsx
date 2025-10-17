@@ -945,12 +945,12 @@ useEffect(() => {
       playbackAudioRef.current.currentTime = 0;
     }
     setPlaying(false);
-    // Optionally disconnect player from analysis nodes here
   } else {
     if (!audioUrl) return;
 
     // Use Tone.Player for playback so we can route to analysis nodes
     const player = new Tone.Player(audioUrl).toDestination();
+
     // Connect to analysis nodes
     if (meterRef.current) player.connect(meterRef.current);
     if (fftRef.current) player.connect(fftRef.current);
@@ -958,11 +958,12 @@ useEffect(() => {
 
     setPlaying(true);
 
+    player.autostart = true;
+
     player.onstop = () => {
       setPlaying(false);
       player.dispose();
     };
-    player.start();
 
     // Store player ref if you want to stop it later
     playbackAudioRef.current = {
