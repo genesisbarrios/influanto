@@ -1011,7 +1011,7 @@ useEffect(() => {
           justifyContent: "center",
           gap: 12,
           margin: "2rem 0 0.5rem 0",
-          width: isMobile ? "90%" : "100%",
+          width: isMobile ? "95%" : "100%",
         }}>
           {/* Melody Dropdown */}
           <select
