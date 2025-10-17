@@ -749,8 +749,8 @@ useEffect(() => {
   function VisualizerSketch({ data }: { data: number[] }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isMobile = typeof window !== "undefined" ? window.innerWidth <= 700 : false;
-    const width = isMobile ? 220 : 340;
-    const height = isMobile ? 80 : 120;
+    const width = isMobile ? 200 : 340;
+    const height = isMobile ? 70 : 120;
 
     useEffect(() => {
       const canvas = canvasRef.current;
@@ -835,9 +835,9 @@ useEffect(() => {
         padding: "0 8px",         // add horizontal padding for mobile
       }}
     >
-      <h1 className="text-3xl sm:text-md font-bold mt-8 mb-2 text-black" style={{ textAlign: "right", width: "80%" }}>
+      <p className="text-3xl xs:text-sm font-bold mt-8 mb-2 text-black" style={{ textAlign: "right", width: "80%" }}>
         Synthfluanto
-      </h1>
+      </p>
         {/* Controls Row: Synth/osc/envelope/eq left, visualizer right */}
         <div
           style={{
@@ -866,7 +866,7 @@ useEffect(() => {
               maxWidth: isMobile ? 120 : 220,
               padding: isMobile ? "2px 4px" : "8px 12px",
               fontSize: isMobile ? 13 : 16,
-              marginRight: isMobile ? 4 : 12,
+              marginRight: isMobile ? 2 : 12,
               marginBottom: isMobile ? 0 : 0,
               display: "flex",
               flexDirection: "column",
