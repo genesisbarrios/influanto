@@ -813,7 +813,7 @@ function VisualizerSketch({ data }: { data: number[] }) {
         padding: "0 8px",         // add horizontal padding for mobile
       }}
     >
-      <h1 className="text-3xl font-bold mt-8 mb-2 text-black" style={{ textAlign: "right", width: "80%" }}>
+      <h1 className="text-3xl sm:text-2xl font-bold mt-8 mb-2 text-black" style={{ textAlign: "right", width: "80%" }}>
         Synthfluanto
       </h1>
         {/* Controls Row: Synth/osc/envelope/eq left, visualizer right */}
