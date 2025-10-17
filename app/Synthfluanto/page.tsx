@@ -938,22 +938,39 @@ useEffect(() => {
     }
   }
 
-  const handlePlayToggle = () => {
-    if (playing) {
-      if (playbackAudioRef.current) {
-        playbackAudioRef.current.pause();
-        playbackAudioRef.current.currentTime = 0;
-      }
-      setPlaying(false);
-    } else {
-      if (!audioUrl) return;
-      const audio = new Audio(audioUrl);
-      playbackAudioRef.current = audio;
-      setPlaying(true);
-      audio.onended = () => setPlaying(false);
-      audio.play();
+  const handlePlayToggle = async () => {
+  if (playing) {
+    if (playbackAudioRef.current) {
+      playbackAudioRef.current.pause();
+      playbackAudioRef.current.currentTime = 0;
     }
-  };
+    setPlaying(false);
+    // Optionally disconnect player from analysis nodes here
+  } else {
+    if (!audioUrl) return;
+
+    // Use Tone.Player for playback so we can route to analysis nodes
+    const player = new Tone.Player(audioUrl).toDestination();
+    // Connect to analysis nodes
+    if (meterRef.current) player.connect(meterRef.current);
+    if (fftRef.current) player.connect(fftRef.current);
+    if (waveformRef.current) player.connect(waveformRef.current);
+
+    setPlaying(true);
+
+    player.onstop = () => {
+      setPlaying(false);
+      player.dispose();
+    };
+    player.start();
+
+    // Store player ref if you want to stop it later
+    playbackAudioRef.current = {
+      pause: () => player.stop(),
+      currentTime: 0
+    } as any;
+  }
+};
 
   // --- Canvas waveform/fft visualizer ---
   function VisualizerSketch({ data }: { data: number[] }) {
