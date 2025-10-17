@@ -840,7 +840,7 @@ useEffect(() => {
       <p
         className="font-bold mt-8 mb-2 text-black"
         style={{
-          textAlign: isMobile ? "center" : "right",
+          textAlign: "right",
           width: isMobile ? "80%" : "90%",
           fontSize: isMobile ? 16 : 32,
           marginTop: isMobile ? 12 : 32,
@@ -935,20 +935,20 @@ useEffect(() => {
             <div>
               <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Envelope</div>
               <div style={{ display: "flex", gap: 16 }}>
-                <SvgKnob label="Attack" min={0.001} max={2} step={0.001} value={attack} onChange={setAttack} displayValue={attack.toFixed(2) + "s"}  size={isMobile ? 36 : 56}/>
-                <SvgKnob label="Decay" min={0.01} max={2} step={0.01} value={decay} onChange={setDecay} displayValue={decay.toFixed(2) + "s"}  size={isMobile ? 36 : 56}/>
-                <SvgKnob label="Sustain" min={0} max={1} step={0.01} value={sustain} onChange={setSustain} displayValue={sustain.toFixed(2)}  size={isMobile ? 36 : 56}/>
-                <SvgKnob label="Release" min={0.01} max={4} step={0.01} value={release} onChange={setRelease} displayValue={release.toFixed(2) + "s"}  size={isMobile ? 36 : 56}/>
+                <SvgKnob label="Attack" min={0.001} max={2} step={0.001} value={attack} onChange={setAttack} displayValue={attack.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
+                <SvgKnob label="Decay" min={0.01} max={2} step={0.01} value={decay} onChange={setDecay} displayValue={decay.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
+                <SvgKnob label="Sustain" min={0} max={1} step={0.01} value={sustain} onChange={setSustain} displayValue={sustain.toFixed(2)}  size={isMobile ? 50 : 56}/>
+                <SvgKnob label="Release" min={0.01} max={4} step={0.01} value={release} onChange={setRelease} displayValue={release.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
               </div>
             </div>
             {/* Volume + EQ */}
             <div>
               <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Volume + EQ</div>
               <div style={{ display: "flex", gap: 16 }}>
-                <SvgKnob label="Gain" min={0} max={1} step={0.01} value={gain} onChange={setGain} displayValue={gain.toFixed(2)}  size={isMobile ? 36 : 56}/>
-                <SvgKnob label="Glide" min={0} max={1} step={0.01} value={glide} onChange={setGlide} displayValue={glide.toFixed(2) + "s"}  size={isMobile ? 36 : 56}/>
-                <SvgKnob label="Hipass" min={20} max={5000} step={1} value={hipass} onChange={setHipass} displayValue={Math.round(hipass) + "Hz"}  size={isMobile ? 36 : 56}/>
-                <SvgKnob label="Lowpass" min={20} max={20000} step={1} value={lowpass} onChange={setLowpass} displayValue={Math.round(lowpass) + "Hz"}  size={isMobile ? 36 : 56}/>
+                <SvgKnob label="Gain" min={0} max={1} step={0.01} value={gain} onChange={setGain} displayValue={gain.toFixed(2)}  size={isMobile ? 50 : 56}/>
+                <SvgKnob label="Glide" min={0} max={1} step={0.01} value={glide} onChange={setGlide} displayValue={glide.toFixed(2) + "s"}  size={isMobile ? 50 : 56}/>
+                <SvgKnob label="Hipass" min={20} max={5000} step={1} value={hipass} onChange={setHipass} displayValue={Math.round(hipass) + "Hz"}  size={isMobile ? 50 : 56}/>
+                <SvgKnob label="Lowpass" min={20} max={20000} step={1} value={lowpass} onChange={setLowpass} displayValue={Math.round(lowpass) + "Hz"}  size={isMobile ? 50 : 56}/>
               </div>
             </div>
           </div>
@@ -1124,7 +1124,7 @@ useEffect(() => {
   alignItems: "flex-end",
   margin: "3rem 0 2rem 0",
   position: "relative",
-  height: isMobile ? 133 : 140, // 95% of 140
+  height: isMobile ? 126 : 140, // 90% of 140
   userSelect: "none",
   overflowX: "auto",
   borderRadius: 8,
@@ -1137,7 +1137,7 @@ useEffect(() => {
         key={key.white.note + key.white.octave + idx}
         style={{
           position: "relative",
-          width: isMobile ? 39.9 : 42 // 95% of 42
+          width: isMobile ? 37.8 : 42 // 90% of 42
         }}
       >
         {/* Black key */}
@@ -1145,10 +1145,10 @@ useEffect(() => {
           <div
             style={{
               position: "absolute",
-              left: isMobile ? 26.6 : 28, // 95% of 28
+              left: isMobile ? 25.2 : 28, // 90% of 28
               top: 0,
-              width: isMobile ? 26.6 : 28, // 95% of 28
-              height: isMobile ? 76 : 80, // 95% of 80
+              width: isMobile ? 25.2 : 28, // 90% of 28
+              height: isMobile ? 72 : 80, // 90% of 80
               background: activeNotes.includes(`${key.black.note}${key.black.octave}`) ? "#6366f1" : "#222",
               border: "1px solid #444",
               borderRadius: "0 0 4px 4px",
@@ -1166,8 +1166,8 @@ useEffect(() => {
         {/* White key */}
         <div
           style={{
-            width: isMobile ? 38 : 40, // 95% of 40
-            height: isMobile ? 114 : 120, // 95% of 120
+            width: isMobile ? 36 : 40, // 90% of 40
+            height: isMobile ? 108 : 120, // 90% of 120
             background: activeNotes.includes(`${key.white.note}${key.white.octave}`) ? "#a5b4fc" : "#fff",
             border: "1px solid #bbb",
             borderRadius: "0 0 6px 6px",
@@ -1178,7 +1178,7 @@ useEffect(() => {
             alignItems: "flex-end",
             justifyContent: "center",
             fontWeight: 600,
-            fontSize: isMobile ? 12.35 : 13, // 95% of 13
+            fontSize: isMobile ? 11.7 : 13, // 90% of 13
             cursor: "pointer"
           }}
           onMouseDown={() => playNote(`${key.white.note}${key.white.octave}`)}
