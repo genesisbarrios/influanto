@@ -575,7 +575,7 @@ const startRecording = async () => {
   if (gainRef.current) {
     try {
       gainRef.current.disconnect();
-    } catch (e) {}
+    } catch (e) { /* ignore error */ }
     gainRef.current.connect(dest);
     gainRef.current.connect(audioCtx.destination); // so user hears output
   }
