@@ -8,7 +8,7 @@ import apiClient from "@/libs/api";
 import { useSession, signOut } from "next-auth/react";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
-import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
+import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faDiscord, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobe, faLocation, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { set } from "mongoose";
@@ -32,6 +32,7 @@ const Profile =  () => {
   const [location, setLocation] = useState("");
   const [instagram, setInstagram] = useState("");
   const [twitter, setTwitter] = useState("");
+  const [discord, setDiscord] = useState("");
   const [facebook, setFacebook] = useState("");
   const [linkedin, setLinkedIn] = useState("");
   const [youtube, setYouTube] = useState("");
@@ -52,7 +53,6 @@ const Profile =  () => {
   const [pandora, setPandora] = useState("");
   const [youtubeMusic, setYouTubeMusic] = useState("");
   const [bandcamp, setBandcamp] = useState("");
-  const [soundxyz, setSoundxyz] = useState("");
   const [displayEmail, setDisplayEmail] = useState(Boolean);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -379,6 +379,14 @@ const handleTwitterChange = (e: any) => {
   }
 };
 
+const handleDiscordChange = (e: any) => {
+  const newValue = (e.currentTarget?.value ?? "").trim();
+  // Always update the state
+  setDiscord(newValue);
+  // clear any prior alerts
+  setAlertt("");
+};
+
 const handleFacebookChange = (e: any) => {
   const newValue = e.target.value;
   // Always update the state
@@ -471,10 +479,10 @@ const handlePatreonChange = (e: any) => {
 };
 
 const handleTelegramChange = (e: any) => {
-  const newValue = e.target.value;
-  // Always update the state
+  const newValue = (e.target?.value ?? "").trim();
+  // Always update the state so user can type / clear the field
   setTelegram(newValue);
-  
+
   // Validate only if there's a value
   if (newValue && !validateSocialHandle(newValue, "Telegram")) {
     // Error already set in validateSocialHandle function
@@ -484,7 +492,7 @@ const handleTelegramChange = (e: any) => {
 };
 
 const handleSubstackChange = (e: any) => {
-  const newValue = e.target.value;
+  const newValue = (e.target?.value ?? "").trim();
   // Always update the state
   setSubstack(newValue);
   
@@ -529,19 +537,6 @@ const handleSoundcloudChange = (e: any) => {
   
   // Validate only if there's a value
   if (newValue && !validateSocialHandle(newValue, "SoundCloud")) {
-    // Error already set in validateSocialHandle function
-  } else {
-    setAlertt("");
-  }
-};
-
-const handleSoundChange = (e: any) => {
-  const newValue = e.target.value;
-  // Always update the state
-  setSoundxyz(newValue);
-  
-  // Validate only if there's a value
-  if (newValue && !validateSocialHandle(newValue, "Sound.xyz")) {
     // Error already set in validateSocialHandle function
   } else {
     setAlertt("");
@@ -641,6 +636,7 @@ const handleYouTubeMusicChange = (e: any) => {
       setInstagram(data.instagram);
       setTwitter(data.twitter);
       setFacebook(data.facebook);
+      setDiscord(data.discord);
       setLinkedIn(data.linkedin);
       setYouTube(data.youtube);
       setTikTok(data.tiktok);
@@ -658,7 +654,6 @@ const handleYouTubeMusicChange = (e: any) => {
       setPandora(data.pandora);
       setYouTubeMusic(data.youtubeMusic);
       setBandcamp(data.bandcamp);
-      setSoundxyz(data.soundxyz);
       setUser(data);
   
     } catch (e) {
@@ -773,34 +768,33 @@ const handleYouTubeMusicChange = (e: any) => {
       const formData = new FormData();
       if (formName != null && formName != "") formData.append("name", formName);
       if (formUserName != null && formUserName != "") formData.append("username", formUserName);
-      if (formEmail != null && formEmail != "") formData.append("email", user?.email);
-      if (displayEmail != null) formData.append("displayEmail", displayEmail.toString());
-      if (location != null && location != "") formData.append("location", location);
-      if (website != null && website != "") formData.append("website", website);
-      if (bio != null && bio != "") formData.append("bio", bio);
-      if (instagram != null && instagram != "") formData.append("instagram", instagram);
-      if (twitter != null && twitter != "") formData.append("twitter", twitter);
-      if (facebook != null && facebook != "") formData.append("facebook", facebook);
-      if (linkedin != null && linkedin != "") formData.append("linkedin", linkedin);
-      if (youtube != null && youtube != "") formData.append("youtube", youtube);
-      if (tiktok != null && tiktok != "") formData.append("tiktok", tiktok);
-      if (github != null && github != "") formData.append("github", github);
-      if (patreon != null && patreon != "") formData.append("patreon", patreon);
-      if (substack != null && substack != "") formData.append("substack", substack);
-      if (telegram != null && telegram != "") formData.append("telegram", telegram);
-      if (etsy != null && etsy != "") formData.append("etsy", etsy);
-      if (spotify != null && spotify != "") formData.append("spotify", spotify);
-      if (appleMusic != null && appleMusic != "") formData.append("appleMusic", appleMusic);
-      if (tidal != null && tidal != "") formData.append("tidal", tidal);
-      if (amazonMusic != null && appleMusic != "") formData.append("amazonMusic", amazonMusic);
-      if (soundcloud != null && soundcloud != "") formData.append("soundcloud", soundcloud);
-      if (deezer != null && deezer != "") formData.append("deezer", deezer);
-      if (pandora != null && pandora != "") formData.append("pandora", pandora);
-      if (youtubeMusic != null && youtubeMusic != "") formData.append("youtubeMusic", youtubeMusic);
-      if (bandcamp != null && bandcamp != "") formData.append("bandcamp", bandcamp);
-      if (soundxyz != null && soundxyz != "") formData.append("soundxyz", soundxyz);
+      if (formEmail !== undefined && formEmail !== null) formData.append("email", user?.email);
+      if (displayEmail !== undefined && displayEmail !== null) formData.append("displayEmail", displayEmail.toString());
+      if (location !== undefined && location !== null) formData.append("location", location);
+      if (website !== undefined && website !== null) formData.append("website", website);
+      if (bio !== undefined && bio !== null) formData.append("bio", bio);
+      if (instagram !== undefined && instagram !== null) formData.append("instagram", instagram);
+      if (twitter !== undefined && twitter !== null) formData.append("twitter", twitter);
+      if (facebook !== undefined && facebook !== null) formData.append("facebook", facebook);
+      if (discord !== undefined && discord !== null) formData.append("discord", discord);
+      if (linkedin !== undefined && linkedin !== null) formData.append("linkedin", linkedin);
+      if (youtube !== undefined && youtube !== null) formData.append("youtube", youtube);
+      if (tiktok !== undefined && tiktok !== null) formData.append("tiktok", tiktok);
+      if (github !== undefined && github !== null) formData.append("github", github);
+      if (patreon !== undefined && patreon !== null) formData.append("patreon", patreon);
+      if (substack !== undefined && substack !== null) formData.append("substack", substack);
+      if (telegram !== undefined && telegram !== null) formData.append("telegram", telegram);
+      if (etsy !== undefined && etsy !== null) formData.append("etsy", etsy);
+      if (spotify !== undefined && spotify !== null) formData.append("spotify", spotify);
+      if (appleMusic !== undefined && appleMusic !== null) formData.append("appleMusic", appleMusic);
+      if (tidal !== undefined && tidal !== null) formData.append("tidal", tidal);
+      if (amazonMusic !== undefined && amazonMusic !== null) formData.append("amazonMusic", amazonMusic);
+      if (soundcloud !== undefined && soundcloud !== null) formData.append("soundcloud", soundcloud);
+      if (deezer !== undefined && deezer !== null) formData.append("deezer", deezer);
+      if (pandora !== undefined && pandora !== null) formData.append("pandora", pandora);
+      if (youtubeMusic !== undefined && youtubeMusic !== null) formData.append("youtubeMusic", youtubeMusic);
+      if (bandcamp !== undefined && bandcamp !== null) formData.append("bandcamp", bandcamp);
 
-  
       // Only append the image if it exists
       if (formImage) {
         formData.append("image", formImage);
@@ -883,6 +877,8 @@ const handleYouTubeMusicChange = (e: any) => {
             {user.tiktok && <a href={"https://tiktok.com/@" + user.tiktok } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faTiktok} /></a>}
             {user.twitter && <a href={"https://twitter.com/" + user.twitter } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTwitter} /></a>}
             {user.facebook && <a href={user.facebook } target="_blank" style={{marginRight:"10px", color:"blue"}}><FontAwesomeIcon icon={faFacebook} /></a>}
+            {user.discord && <a href={user.discord } target="_blank" style={{marginRight:"10px", color:"purple"}}><FontAwesomeIcon icon={faDiscord} /></a>}
+            {user.etsy && <a href={"https://etsy.com/shop/" + user.etsy } target="_blank" style={{marginRight:"10px", color:"brown"}}><FontAwesomeIcon icon={faEtsy} /></a> }
             {user.youtube && <a href={"https://youtube.com/@" + user.youtube } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faYoutube} /></a>}
             {user.telegram && <a href={"https://t.me/" + user.telegram } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTelegram} /></a>}
             {user.linkedin && <a href={"https://linkedin.com/" + user.linkedin } target="_blank" style={{marginRight:"10px", color:"darkblue"}}><FontAwesomeIcon icon={faLinkedin} /></a>}
@@ -901,7 +897,6 @@ const handleYouTubeMusicChange = (e: any) => {
             {user.deezer && <a href={"https://deezer.com/" + user.deezer } target="_blank" style={{marginRight:"10px", color:"purple"}}><FontAwesomeIcon icon={faDeezer} /></a>}
             {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{marginRight:"10px", color:"darkblue", display:"inline-block"}}><img src="/pandora.png" width={16}/></a>}
             {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
-            {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
             
             <br></br>
             {alertMsg && <div className="alert mt-10 w-1/2 m-auto">{alertMsg}</div>}
@@ -1111,6 +1106,15 @@ const handleYouTubeMusicChange = (e: any) => {
               value={twitter || ""}
               onChange={(e) => handleTwitterChange(e)} 
             />
+
+            <label style={{display:"block"}}>Discord</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="link"
+              value={discord || ""}
+              onChange={(e) => handleDiscordChange(e)} 
+            />
           
             <label style={{display:"block"}}>FaceBook</label> 
             <input 
@@ -1138,16 +1142,8 @@ const handleYouTubeMusicChange = (e: any) => {
               value={etsy || ""}
               onChange={(e) => handleEtsyChange(e)} 
             />
-            
-            <label style={{display:"block"}}>Patreon</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="handle"
-              value={patreon || ""}
-              onChange={(e) => handlePatreonChange(e)} 
-            />
           </div>
+
           <div className="w-full lg:w-1/2 p-2">
           <label style={{display:"block"}}>TikTok</label> 
             <input 
@@ -1192,6 +1188,14 @@ const handleYouTubeMusicChange = (e: any) => {
               placeholder="handle"
               value={substack || ""}
               onChange={(e) => handleSubstackChange(e)} 
+            />
+              <label style={{display:"block"}}>Patreon</label> 
+            <input 
+              type="text" 
+              className="input mb-2 w-3/4" 
+              placeholder="handle"
+              value={patreon || ""}
+              onChange={(e) => handlePatreonChange(e)} 
             />
             <br />
           </div>
@@ -1288,15 +1292,6 @@ const handleYouTubeMusicChange = (e: any) => {
               placeholder="Artist ID"
               value={deezer || ""}
               onChange={(e) => handleDeezerChange(e)} 
-            />
-            <br />
-            <label>Sound.xyz</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="handle"
-              value={soundxyz || ""}
-              onChange={(e) => handleSoundChange(e)} 
             />
             <br />
           </div>

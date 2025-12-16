@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
     },
+    discord: {
+      type: String,
+      lowercase: true,
+    },
     telegram: {
       type: String,
       lowercase: true,
@@ -88,10 +92,6 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
     },
     bandcamp:{
-      type: String,
-      lowercase: true,
-    },
-    soundxyz:{
       type: String,
       lowercase: true,
     },
