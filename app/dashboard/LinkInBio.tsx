@@ -122,6 +122,18 @@ const fetchAvailableProducts = async () => {
     setLinks([...links, { url: "", name: "" }]);
   };
 
+ // Reorder helpers
+ const moveLink = (fromIndex: number, toIndex: number) => {
+   if (toIndex < 0 || toIndex >= links.length) return;
+   const newLinks = [...links];
+   const [item] = newLinks.splice(fromIndex, 1);
+   newLinks.splice(toIndex, 0, item);
+   setLinks(newLinks);
+ };
+
+ const moveLinkUp = (index: number) => moveLink(index, index - 1);
+ const moveLinkDown = (index: number) => moveLink(index, index + 1);
+
   const updateLink = (index: number, field: any, value: any) => {
     const newLinks = [...links];
     newLinks[index][field] = value;
@@ -193,6 +205,11 @@ const fetchAvailableProducts = async () => {
     const imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/v${result.info.version}/${result.info.public_id}.png`; // Fixed URL construction
     updateLink(index, 'image', imageUrl); // Save the image URL to the links array
     console.log('Image URL saved to link:', imageUrl);
+    try {
+      document.body.style.overflow = '';
+    } catch (err) {
+      /* ignore */
+    }
   };
 
   useEffect(() => {
@@ -599,102 +616,107 @@ const containerStyle = {
       <h1 style={{ fontFamily: linkInBio?.font || 'inherit' }}>Edit Links</h1>
         <div className="flex flex-wrap w-full">
           <div className="w-full lg:w-full p-2">
-           {links.map((link:any, index:number) => (
+            {links.map((link:any, index:number) => (
               <div key={index} className="mb-4" style={{
                 fontFamily: linkInBio?.font || 'inherit'
               }}>
-                  <label style={{ 
-                    display: "block",
-                    fontFamily: linkInBio?.font || 'inherit'
-                  }}>
-                    Link {index + 1}
-                  {isYouTubeLink(index, link.url) && (
-                  <div>
-                    <label style={{ fontFamily: linkInBio?.font || 'inherit' }}>
-                      Display Video:
-                      <input
-                        type="checkbox" 
-                        className="mr-2"
-                        checked={link.displayVideo || false}
-                        onChange={(e) => updateYouTubeLinkOptions(index, e.target.checked)}
-                      />
-                    </label>
-                  </div>
-                )}
-                    {link.image && (
-                      <img src={link.image} alt={`Link ${index + 1} thumbnail`} style={{ width: "30px", height: "30px", borderRadius: "50%", marginLeft: "10px" }} />
-                    )}
-                  </label>
+                <label style={{ display: "block", fontFamily: linkInBio?.font || 'inherit' }}>
+            Link {index + 1}
+            {isYouTubeLink(index, link.url) && (
+              <div>
+                <label style={{ fontFamily: linkInBio?.font || 'inherit' }}>
+                  Display Video:
                   <input
-                      type="text"
-                      className="input mt-2 mb-2 w-3/4"
-                      placeholder="URL"
-                      value={link.url}
-                      onChange={(e) => updateLink(index, 'url', e.target.value)}
-                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
+                    type="checkbox" 
+                    className="mr-2"
+                    checked={link.displayVideo || false}
+                    onChange={(e) => updateYouTubeLinkOptions(index, e.target.checked)}
                   />
-                  <input
-                      type="text"
-                      className="input mb-2 w-3/4"
-                      placeholder="Name"
-                      value={link.name}
-                      onChange={(e) => updateLink(index, 'name', e.target.value)}
-                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                  />
-                  <br></br>
-                   {isYouTubeLink(index, link.url) && (
-                    <div>
-                        <label style={{ fontFamily: linkInBio?.font || 'inherit' }}>
-                            Display Video:
-                            <input
-                                type="checkbox" className="mr-2"
-                                checked={link.displayVideo || false}
-                                onChange={(e) => updateYouTubeLinkOptions(index, e.target.checked)}
-                            />
-                        </label>
-                    </div>
-                )}
-                {!isYouTubeLink(index, link.url) && !link.image && 
-                  <CldUploadWidget
-                    uploadPreset="LinkInBioThumbnail"
-                    options={{ folder: `user_${user.id}_links`, publicId: `link_${index}_thumbnail` }}
-                    onSuccess={(result: any) => {
-                      console.log('Upload callback triggered');
-                      handleImageUpload(index, result);
-                    }}
-                  >
-                    {({ open }: { open: () => void }) => (
-                    <button 
-                      type="button" 
-                      onClick={() => open()} 
-                      className="btn btn-primary btn-sm btn-narrow"
-                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                    >
-                      Upload Image
-                    </button>
-                    )}
-                  </CldUploadWidget>
-                }
-                   <button
-                      type="button"
-                      className="btn btn-alert btn-sm btn-narrow ml-2"
-                      onClick={() => removeLink(index)}
-                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                  >
-                      Remove
-                  </button>
+                </label>
               </div>
-              
-          ))}
-        
+            )}
+            {link.image && (
+              <img src={link.image} alt={`Link ${index + 1} thumbnail`} style={{ width: "30px", height: "30px", borderRadius: "50%", marginLeft: "10px" }} />
+            )}
+          </label>
+          <input
+            type="text"
+            className="input mt-2 mb-2 w-3/4"
+            placeholder="URL"
+            value={link.url}
+            onChange={(e) => updateLink(index, 'url', e.target.value)}
+            style={{ fontFamily: linkInBio?.font || 'inherit' }}
+          />
+          <input
+            type="text"
+            className="input mb-2 w-3/4"
+            placeholder="Name"
+            value={link.name}
+            onChange={(e) => updateLink(index, 'name', e.target.value)}
+            style={{ fontFamily: linkInBio?.font || 'inherit' }}
+          />
+          <br />
+          {/* Upload / Remove / Reorder controls */}
+          {!isYouTubeLink(index, link.url) && !link.image && 
+            <CldUploadWidget
+              uploadPreset="LinkInBioThumbnail"
+              options={{ folder: `user_${user.id}_links`, publicId: `link_${index}_thumbnail` }}
+              onSuccess={(result: any) => {
+                console.log('Upload callback triggered');
+                handleImageUpload(index, result);
+              }}
+            >
+              {({ open }: { open: () => void }) => (
+              <button 
+                type="button" 
+                onClick={() => open()} 
+                className="btn btn-primary btn-sm btn-narrow"
+                style={{ fontFamily: linkInBio?.font || 'inherit' }}
+              >
+                Upload Image
+              </button>
+              )}
+            </CldUploadWidget>
+          }
           <button
-              type="button"
-              className="btn btn-primary btn-sm btn-narrow"
-              onClick={addLink}
-              style={{ fontFamily: linkInBio?.font || 'inherit' }}
+            type="button"
+            className="btn btn-alert btn-sm btn-narrow ml-2"
+            onClick={() => removeLink(index)}
+            style={{ fontFamily: linkInBio?.font || 'inherit' }}
           >
-              Add Link
+            Remove
           </button>
+        {/* Reorder buttons */}
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm btn-narrow ml-2"
+          onClick={() => moveLinkUp(index)}
+          disabled={index === 0}
+          title="Move up"
+          style={{ fontFamily: linkInBio?.font || 'inherit' }}
+        >
+          ↑
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm btn-narrow ml-1"
+          onClick={() => moveLinkDown(index)}
+          disabled={index === links.length - 1}
+          title="Move down"
+          style={{ fontFamily: linkInBio?.font || 'inherit' }}
+        >
+          ↓
+        </button>
+        </div>
+      ))}
+    <button
+        type="button"
+        className="btn btn-primary btn-sm btn-narrow"
+        onClick={addLink}
+        style={{ fontFamily: linkInBio?.font || 'inherit' }}
+    >
+        Add Link
+    </button>
 
 {/************ Styles ************/}
 
