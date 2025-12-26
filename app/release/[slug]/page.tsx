@@ -838,7 +838,17 @@ const renderMerchSection = () => {
           )}
           {tidal && (
             <a href={`https://tidal.com/${user.tidal}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faGlobe} style={{ fontSize: "24px", color: linksColor || "white" }} />
+               <img
+              src="/tidal.png"
+              alt="Tidal"
+              style={{
+                width: 24,
+                height: 20,
+                margin: "0 auto",
+                borderRadius:"15%",
+                backgroundColor: linksColor || "white" 
+              }}
+            />
             </a>
           )}
           {deezer && (

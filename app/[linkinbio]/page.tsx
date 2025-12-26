@@ -390,7 +390,22 @@ return (
           {user.telegram && <a href={"https://t.me/" + user.telegram } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTelegram} /></a>}
           {user.linkedin && <a href={"https://linkedin.com/" + user.linkedin } target="_blank" style={{marginRight:"10px", color:"darkblue"}}><FontAwesomeIcon icon={faLinkedin} /></a>}
           {user.github && <a href={"https://github.com/" + user.github } target="_blank" style={{marginRight:"10px"}}><FontAwesomeIcon icon={faGithub} /></a>}
-          {user.patreon && <a href={"https://patreon.com/" + user.patreon } target="_blank" style={{marginRight:"10px", color:"black"}}><FontAwesomeIcon icon={faPatreon} /></a>}
+           {user.patreon && (
+            <a href={"https://patreon.com/" + user.patreon } target="_blank" style={{marginRight:"10px", textDecoration: 'none'}}>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 18,
+                height: 18,
+                borderRadius: '50%',
+                backgroundColor: '#fff',
+                boxSizing: 'border-box'
+              }}>
+                <FontAwesomeIcon icon={faPatreon} color="black" />
+              </span>
+            </a>
+          )}
           {user.substack && <a href={"https://substack.com/" + user.substack } target="_blank" style={{display:"inline-block"}}><img src="/substack.png" width={16}/></a>}
           {displayEmail && <a href={`mailto:${user.email}`} style={{ color: textColor || "#333333" }}><FontAwesomeIcon icon={faEnvelope} color="grey" /></a>}
         </div>
@@ -400,7 +415,35 @@ return (
         <div style={{ fontFamily: font || 'inherit', color: textColor || "#333333", marginBottom:"2%" }}>
           {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{marginRight:"10px", color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
           {user.appleMusic && <a href={"https://music.apple.com/" + user.appleMusic } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
-          {user.tidal && <a href={"https://tidal.com/" + user.tidal } target="_blank" style={{marginRight:"10px", color:"black", display:"inline-block"}}><img src="/tidal.png" width={16}/></a>}
+          {user.tidal && (
+                      <a href={"https://tidal.com/" + user.tidal } target="_blank" style={{marginRight:"10px", textDecoration: 'none'}}>
+                        <span style={{
+                           display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: 18,
+                            height: 18,
+                            borderRadius: "50%",
+                            backgroundColor: "#fff",
+                            boxSizing: "border-box",
+                            lineHeight: 0, // remove inline baseline space
+                            overflow: "hidden",
+                            padding: 2,
+                        }}>
+                          <img
+                          src="/tidal.png"
+                          alt="Tidal"
+                          style={{
+                            display: "block",
+                            width: 12,
+                            height: 12,
+                            objectFit: "contain",
+                            margin: "0 auto",
+                          }}
+                        />
+                        </span>
+                      </a>
+                    )}
           {user.youtubeMusic && <a href={"https://music.youtube.com/channel/" + user.youtubeMusic } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faSquareYoutube} /></a>}
           {user.amazonMusic && <a href={"https://music.amazon.com/" + user.amazonMusic } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faAmazon} /></a>}
           {user.soundcloud && <a href={"https://soundcloud.com/" + user.soundcloud } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faSoundcloud} /></a>}
