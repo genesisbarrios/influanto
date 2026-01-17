@@ -202,7 +202,7 @@ const fetchAvailableProducts = async () => {
   const handleImageUpload = (index: number, result: any) => {
     console.log('handle upload triggered');
     console.log('Upload result:', result);
-    const imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/v${result.info.version}/${result.info.public_id}.png`; // Fixed URL construction
+    const imageUrl = result.info.secure_url || `https://res.cloudinary.com/${cloudName}/image/upload/v${result.info.version}/${result.info.public_id}.${result.info.format}`;
     updateLink(index, 'image', imageUrl); // Save the image URL to the links array
     console.log('Image URL saved to link:', imageUrl);
     try {
@@ -629,7 +629,7 @@ const containerStyle = {
                   <input
                     type="checkbox" 
                     className="mr-2"
-                    checked={link.displayVideo || false}
+                    checked={link.displayVideo || true}
                     onChange={(e) => updateYouTubeLinkOptions(index, e.target.checked)}
                   />
                 </label>
@@ -1118,7 +1118,7 @@ const containerStyle = {
   </div>
 )}
 
-  {alert && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alert}</div>}
+  {alert && <div className="alert mt-5 w-100" style={{backgroundColor:"darkgrey", border:"1px darkgrey solid"}}>{alert}</div>}
       <div style={{textAlign:"center"}}>
       <button
         className="btn btn-alert btn-block btn-sm btn-narrow"
