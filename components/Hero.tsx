@@ -1,7 +1,7 @@
 import Image from "next/image";
 import TestimonialsAvatars from "./TestimonialsAvatars";
 import config from "@/config";
-import image from "@/app/homepage.jpg";
+import image from "@/app/homepage.png";
 import ButtonGetInfluanto from "./ButtonGetInfluanto";
 
 const Hero = () => {
@@ -10,22 +10,22 @@ const Hero = () => {
       <div className="flex flex-col gap-10 lg:gap-14 items-center justify-center text-center lg:text-left lg:items-start">
 
         <h1 className="font-extrabold text-4xl lg:text-6xl tracking-tight md:-mb-4">
-         The all in one marketing platform for content creators by content creators.
+         The all in one marketing platform for artists and musicians.
         </h1>
         <p className="text-lg opacity-80 leading-relaxed">
           The platform with all you need to market and promote your music.
         </p>
         <p className="text-lg opacity-80 leading-relaxed">
-          Link In Bio, Release Pages, FREE QR Code Generator, and Playlist Curator Search.
+          Link In Bio, Release Pages, QR Code Generator, and Playlist Curator Search.
         </p>
         <p className="text-lg opacity-80 leading-relaxed">
-          Coming Soon: Send bulk comments and DMs to your supporters on social media.
+          Free Musician Tools: Split Sheet Generator, Delay & Reverb Calculator, BPM Calculator + more.
         </p>
         <ButtonGetInfluanto />
 
         <TestimonialsAvatars priority={true} />
       </div>
-      <div className="lg:w-full">
+      <div className="medium:w-full">
         <Image
           src={image}
           alt="artist image"

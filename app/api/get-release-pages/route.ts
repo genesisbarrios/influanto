@@ -20,8 +20,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
       if (pages == null || pages.length === 0) {
         return NextResponse.json(
-          { error: "No Pages Created Yet.. Create Your First Release Page!", data: null },
-          { status: 404 }
+          { message: "No Pages Created Yet.. Create Your First Release Page!", data: null },
+          { status: 200 }
         );
       }
       return NextResponse.json(

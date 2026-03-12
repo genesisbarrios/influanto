@@ -6,13 +6,12 @@ import React, { useState } from 'react';
 import Profile from './Profile';
 import LinkInBio from './LinkInBio';
 import QRCodeGenerator from './QRCodeGenerator';
-import PitchToSpotify from './PitchToSpotify';
+import CuratorSearch from './CuratorSearch';
 import Community from './Community';
 import ReleasePage from './ReleasePage';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/next-auth";
 import User from "@/models/User";
-import ButtonAccount from '@/components/ButtonAccount';
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
@@ -23,15 +22,15 @@ export default function Dashboard() {
     'link-in-bio': <LinkInBio />,
     'release-page': <ReleasePage />,
     'qr-code-generator': <QRCodeGenerator />,
-    'pitch-to-spotify': <PitchToSpotify />,
+    'curator-search': <CuratorSearch />,
     'community': <Community />
   };
 
   return (
     <div className="flex min-h-screen bg-base-200">
       {/* Sidebar menu */}
-      <aside className="w-1/4 sm:w-1/3 p-4 bg-base-100 sm:w-1/3 sm:p-8 xs:pr-8">
-        <ul className="menu bg-base-100 w-full p-2 rounded-box text-[0.8em] md:text-base lg:text-lg">
+      <aside className="w-1/4 sm:w-1/3 p-0.5 sm:p-4 bg-base-100 sm:p-8">
+        <ul className="menu bg-base-100 w-full p-2 rounded-box text-xs sm:text-sm md:text-base lg:text-lg">
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('profile')}>Profile</button>
           </li>
@@ -45,7 +44,7 @@ export default function Dashboard() {
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('qr-code-generator')}>QR Codes</button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('pitch-to-spotify')}>Curator Search</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('curator-search')}>Curator Search</button>
           </li>
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('community')}>Community</button>

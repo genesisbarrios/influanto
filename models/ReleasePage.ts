@@ -43,6 +43,13 @@ const releasePageSchema = new mongoose.Schema(
     linksColor: {
       type: String,
     },
+    font:{
+      type: String,
+    },
+   selectedProducts: {
+      type: [String], // Array of strings
+      default: []
+    },
   },
   {
     timestamps: true,

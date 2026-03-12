@@ -90,14 +90,20 @@ const Pricing = () => {
                   </ul>
                 )}
                 <div className="space-y-2 mx-auto">
-                   {/* {plan.priceId && <ButtonCheckout priceId={plan.priceId} />} */}
+                  {plan.priceId && (
+                    <>
+                      <ButtonCheckout priceId={plan.priceId} />
+                        <p className="flex items-center justify-center text-sm text-center text-base-content/80 font-medium relative">
+                        Start with a 14-day free trial. Cancel anytime!
+                        </p>
+                    </>
+                  )}        
 
-                  {/* {!plan.priceId &&  */}
-                  <ButtonGetInfluanto/> 
-                  {/* } */}
-                  <p className="flex items-center justify-center text-sm text-center text-base-content/80 font-medium relative">
-                    Pay once. Access forever.
-                  </p>
+                  {!plan.priceId && (
+                    <ButtonGetInfluanto />
+                    
+                  )}
+                 
                 </div>
               </div>
             </div>

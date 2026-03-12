@@ -106,6 +106,7 @@ export async function POST(req: Request) {
     user.substack = formData.get("substack") as string || user.substack;
     user.telegram = formData.get("telegram") as string || user.telegram;
     user.etsy = formData.get("etsy") as string || user.etsy;
+    user.discord = formData.get("discord") as string || user.discord;
     user.spotify = formData.get("spotify") as string || user.spotify;
     user.appleMusic = formData.get("appleMusic") as string || user.appleMusic;
     user.tidal = formData.get("tidal") as string || user.tidal;
@@ -115,7 +116,6 @@ export async function POST(req: Request) {
     user.pandora = formData.get("pandora") as string || user.pandora;
     user.youtubeMusic = formData.get("youtubeMusic") as string || user.youtubeMusic;
     user.bandcamp = formData.get("bandcamp") as string || user.bandcamp;
-    user.soundxyz = formData.get("soundxyz") as string || user.soundxyz;
 
     await user.save();
 

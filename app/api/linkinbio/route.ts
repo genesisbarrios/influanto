@@ -19,54 +19,74 @@ export async function POST(req: NextRequest) {
 
   // Parse the incoming JSON body
   const body = await req.json();
-  console.log("Updating LinkInBio for user:", userId, body);
+  console.log("🔍 Updating LinkInBio for user:", userId);
+  console.log("🔍 Selected products received:", body.selectedProducts);
 
   try {
-    // Ensure links are included in the request and are in the correct format
-    const updatePayload: any = {
-      userId,
-      ...(body.bgColor && { bgColor: body.bgColor }), // Map bgColor to backgroundColor
-      ...(body.textColor && { textColor: body.textColor }), // Map textColor to textColor
-      ...(body.linksColor && { linksColor: body.linksColor }), // Map linksColor to linksColor
-    };
-
-    // Check if 'links' is an array and add it to the updatePayload
-    if (Array.isArray(body.links)) {
-      updatePayload.links = body.links;
-    } else {
-      console.log("No valid links provided or links are not in the correct format");
+    // First, let's see what's currently in the database
+    const existingDoc = await LinkInBio.findOne({ userId });
+    console.log("🔍 Existing document:", existingDoc ? "Found" : "Not found");
+    if (existingDoc) {
+      console.log("🔍 Current selectedProducts in DB:", existingDoc.selectedProducts);
     }
 
-    console.log("Update Payload:", updatePayload); // Debugging line to check the payload
-
-    let newLinkInBio = await LinkInBio.findOne({ userId });
-
-    if (newLinkInBio) {
-      // Update the existing document
-      newLinkInBio.bgColor = body.bgColor;
-      newLinkInBio.textColor = body.textColor;
-      newLinkInBio.linksColor = body.linksColor;
-      newLinkInBio.links = body.links;
-    
-      await newLinkInBio.save();
-    } else {
-      // Create a new document if none exists
-       newLinkInBio = new LinkInBio({
+    // Step 1: Update all the regular fields first
+    const regularUpdateData = {
+      $set: {
         userId,
         bgColor: body.bgColor,
         textColor: body.textColor,
         linksColor: body.linksColor,
         links: body.links,
-      });
+        cardBgColor: body.cardBgColor,
+        font: body.font,
+        bgImage: body.bgImage,
+      }
+    };
+
+    console.log("🔍 Updating regular fields...");
+    const updatedDoc = await LinkInBio.findOneAndUpdate(
+      { userId }, 
+      regularUpdateData,
+      { 
+        upsert: true, 
+        new: true,
+        runValidators: false
+      }
+    );
+
+    // Step 2: Force update selectedProducts using raw MongoDB collection
+    const selectedProductsToSave = body.selectedProducts || [];
+    console.log("🔍 Force updating selectedProducts using raw MongoDB:", selectedProductsToSave);
     
-      await newLinkInBio.save();
-    }
+    const rawUpdateResult = await LinkInBio.collection.updateOne(
+      { userId: updatedDoc.userId },
+      { 
+        $set: { 
+          selectedProducts: selectedProductsToSave 
+        } 
+      }
+    );
     
-    return NextResponse.json({ data:  newLinkInBio }, { status: 200 });
+    console.log("🔍 Raw update result:", rawUpdateResult);
+
+    // Step 3: Verify the update worked
+    const rawDoc = await LinkInBio.collection.findOne({ userId: updatedDoc.userId });
+    console.log("🔍 RAW MONGODB - selectedProducts after force update:", rawDoc?.selectedProducts);
+
+    // Step 4: Get the final document through Mongoose
+    const finalDoc = await LinkInBio.findOne({ userId });
+    console.log("🔍 Final Mongoose document - selectedProducts:", finalDoc?.selectedProducts);
+    
+    return NextResponse.json({ data: finalDoc }, { status: 200 });
     
   } catch (error) {
     // Handle errors and log them
-    console.error("Error updating LinkInBio:", error);
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+    console.error("❌ Error updating LinkInBio:", error);
+    console.error("❌ Error stack:", error.stack);
+    return NextResponse.json({ 
+      error: "Something went wrong", 
+      details: error.message 
+    }, { status: 500 });
   }
 }

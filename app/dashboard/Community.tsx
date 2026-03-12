@@ -26,6 +26,7 @@ const Community = () => {
         user.name !== null &&
         user.name !== "" &&
         user.bio !== null && 
+        user.bio !== undefined &&
         user.bio !== ""   
       );
       setUsers(filteredUsers);
@@ -43,6 +44,56 @@ const Community = () => {
       getUsers();
     }
   }, [users]);
+
+
+    useEffect(() => {
+      document.title = "Community | Influanto";
+
+      // Update meta description
+      let metaDescription = document.querySelector('meta[name="description"]');
+      if (!metaDescription) {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        document.head.appendChild(metaDescription);
+      }
+      metaDescription.setAttribute('content', 'Community | Influanto.');
+      
+      // Update og:title
+      let ogTitle = document.querySelector('meta[property="og:title"]');
+      if (!ogTitle) {
+        ogTitle = document.createElement('meta');
+        ogTitle.setAttribute('property', 'og:title');
+        document.head.appendChild(ogTitle);
+      }
+      ogTitle.setAttribute('content', 'Community | Influanto');
+
+      // Update og:description
+      let ogDescription = document.querySelector('meta[property="og:description"]');
+      if (!ogDescription) {
+        ogDescription = document.createElement('meta');
+        ogDescription.setAttribute('property', 'og:description');
+        document.head.appendChild(ogDescription);
+      }
+      ogDescription.setAttribute('content', 'The all in one music marketing tool.');
+      
+      // Update twitter:title
+      let twitterTitle = document.querySelector('meta[name="twitter:title"]');
+      if (!twitterTitle) {
+        twitterTitle = document.createElement('meta');
+        twitterTitle.setAttribute('name', 'twitter:title');
+        document.head.appendChild(twitterTitle);
+      }
+      twitterTitle.setAttribute('content', 'Community | Influanto');
+
+      // Update twitter:description
+      let twitterDescription = document.querySelector('meta[name="twitter:description"]');
+      if (!twitterDescription) {
+        twitterDescription = document.createElement('meta');
+        twitterDescription.setAttribute('name', 'twitter:description');
+        document.head.appendChild(twitterDescription);
+      }
+      twitterDescription.setAttribute('content', 'The all in one music marketing tool.');
+    }, []);
 
   if (!users) {
     return <div>Loading...</div>;
@@ -68,7 +119,7 @@ const Community = () => {
                   />
                   <h3 className="text-sm text-blue-500 font-semibold">{user.name}</h3>
                 </div>
-                <p className="text-xs text-gray-500 mb-2">{user.bio || "No bio available"}</p>
+                <p className="text-xs text-gray-500 mb-2">  {user.bio && user.bio.length > 60 ? user.bio.slice(0, 60) + "..." : user.bio}</p>
                 <div className="flex justify-center space-x-3">
                   {user.instagram && (
                     <a href={user.instagram} target="_blank" rel="noopener noreferrer">

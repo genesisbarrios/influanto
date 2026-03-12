@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "target": "es2018",
     "lib": [
       "dom",
       "dom.iterable",
@@ -28,7 +29,8 @@
         "name": "next"
       }
     ],
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "typeRoots": ["./types", "./node_modules/@types"]
   },
   "include": [
     "next-env.d.ts",

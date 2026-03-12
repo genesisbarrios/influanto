@@ -6,12 +6,12 @@ const config = {
   appName: "influanto",
   // REQUIRED: a short description of your app for SEO tags (can be overwritten)
   appDescription:
-    "The all in one marketing platform for content creators by content creators.",
+    "The all in one marketing platform for artists and musicians.",
   // REQUIRED (no https://, not trialing slash at the end, just the naked domain)
   domainName: "influanto.com",
   crisp: {
     // Crisp website ID. IF YOU DON'T USE CRISP: just remove this => Then add a support email in this config file (mailgun.supportEmail) otherwise customer support won't work.
-    id: "",
+    id: "04e1381d-3c21-45f4-8205-81bca626cc91",
     // Hide Crisp by default, except on route "/". Crisp is toggled with <ButtonSupport/>. If you want to show Crisp on every routes, just remove this below
     onlyShowOnRoutes: ["/"],
   },
@@ -36,16 +36,17 @@ const config = {
           {
             name: "Link In Bio Page",
           },
-          { name: "Release Pages (3)" },
+          { name: "Release Pages (10)" },
           { name: "Playlist Pitching" },
           { name: "QR Code Generator" },
         ],
       },
       {
-        priceId:
-          process.env.NODE_ENV === "development"
-            ? "price_1PTHqhHYk9DUtBP3l9IFqCPx"
-            : "price_1PTHqhHYk9DUtBP3l9IFqCPx", 
+        priceId: "price_1Rxb4IHYk9DUtBP3UrdhTmAl", 
+          // process.env.NODE_ENV === "development"
+          //   ? "price_1PTHqhHYk9DUtBP3l9IFqCPx"
+          //   : "prod_StNpQhydjH8pQO", 
+
         // This plan will look different on the pricing page, it will be highlighted. You can only have one plan with isFeatured: true
         isFeatured: true,
         name: "Influanto Pro",
@@ -56,11 +57,11 @@ const config = {
           {
             name: "Link in Bio Page",
           },
-          { name: "Release Pages (10)" },
+          { name: "Release Pages (50)" },
           { name: "Extra Styling Features" },
           { name: "Playlist Pitching" },
           { name: "Advanced QR Code Generator" },
-          { name: "Bulk Comments and DMs" },
+          // { name: "Bulk Comments and DMs" },
         ],
       },
     ],

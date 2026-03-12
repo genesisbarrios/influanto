@@ -90,7 +90,7 @@ export const renderSchemaTags = () => {
             "@type": "Person",
             name: "Genesis Barrios",
           },
-          datePublished: "2023-08-01",
+          datePublished: "2024-08-01",
           applicationCategory: "MarketingApplication",
           aggregateRating: {
             "@type": "AggregateRating",
@@ -100,7 +100,7 @@ export const renderSchemaTags = () => {
           offers: [
             {
               "@type": "Offer",
-              price: "4.99",
+              price: "7.99",
               priceCurrency: "USD",
             },
           ],

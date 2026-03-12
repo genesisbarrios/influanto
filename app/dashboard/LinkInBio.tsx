@@ -12,6 +12,7 @@ const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-3
 import Head from 'next/head';
 import { text } from "stream/consumers";
 import { CldUploadWidget } from 'next-cloudinary';
+import PrintifyProducts from '@/components/PrintifyProducts';
 
 const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
@@ -19,6 +20,7 @@ const LinkInBio =  () => {
   const {data, status} = useSession();
   const [user, setUser] = useState<any>();
   const [bgColor, setBgColor] = useState<any>();
+  const [bgImage, setBgImage] = useState<any>();
   const [textColor, setTextColor] = useState <any>();
   const [linksColor, setLinksColor] = useState <any>();
   const [linkInBio, setLinkInBio] = useState<any>();
@@ -31,6 +33,77 @@ const LinkInBio =  () => {
   const [headerImage, setHeaderImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
+  const [showProducts, setShowProducts] = useState(false);
+  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+
+useEffect(() => {
+  if (isEditing && user?.printifyShopId) {
+    fetchAvailableProducts();
+  }
+}, [isEditing, user?.printifyShopId]);
+
+// Add this useEffect to ensure products are loaded when editing and we have selected products
+useEffect(() => {
+  if (isEditing && user?.printifyShopId && selectedProductIds.length > 0 && availableProducts.length === 0) {
+    console.log('🔍 Fetching products because we have selected products but no available products');
+    fetchAvailableProducts();
+  }
+}, [isEditing, user?.printifyShopId, selectedProductIds.length, availableProducts.length]);
+
+useEffect(() => {
+  if (linkInBio?.selectedProducts) {
+    setSelectedProductIds(linkInBio.selectedProducts);
+  }
+}, [linkInBio?.selectedProducts]);
+
+const fetchAvailableProducts = async () => {
+  console.log('🔍 Starting fetch...');
+  console.log('🔍 User ID:', user?.id);
+  console.log('🔍 Full URL:', `/api/products/${user.id}`);
+  
+  setIsLoadingProducts(true);
+  try {
+    const url = `/api/products/${user.id}`;
+    console.log('📞 Fetching:', url);
+    
+    const response = await fetch(url);
+    
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response ok:', response.ok);
+    
+    if (response.ok) {
+      const products = await response.json();
+      console.log('✅ Products received:', products);
+      setAvailableProducts(products);
+    } else {
+      const errorText = await response.text();
+      console.error('❌ Error response:', errorText);
+    }
+  } catch (error) {
+    console.error('❌ Network error:', error);
+  } finally {
+    setIsLoadingProducts(false);
+  }
+};
+
+  const toggleProductSelection = (productId: string) => {
+    setSelectedProductIds(prev => {
+      if (prev.includes(productId)) {
+        // Remove product
+        return prev.filter(id => id !== productId);
+      } else if (prev.length < 10) {
+        // Add product (max 10)
+        return [...prev, productId];
+      } else {
+        // Show alert when trying to select more than 10
+        setAlertt('Maximum 10 products can be selected');
+        setTimeout(() => setAlertt(''), 3000);
+        return prev;
+      }
+    });
+  };
 
   const getUser = async () => {
     try {
@@ -48,6 +121,18 @@ const LinkInBio =  () => {
   const addLink = () => {
     setLinks([...links, { url: "", name: "" }]);
   };
+
+ // Reorder helpers
+ const moveLink = (fromIndex: number, toIndex: number) => {
+   if (toIndex < 0 || toIndex >= links.length) return;
+   const newLinks = [...links];
+   const [item] = newLinks.splice(fromIndex, 1);
+   newLinks.splice(toIndex, 0, item);
+   setLinks(newLinks);
+ };
+
+ const moveLinkUp = (index: number) => moveLink(index, index - 1);
+ const moveLinkDown = (index: number) => moveLink(index, index + 1);
 
   const updateLink = (index: number, field: any, value: any) => {
     const newLinks = [...links];
@@ -117,9 +202,14 @@ const LinkInBio =  () => {
   const handleImageUpload = (index: number, result: any) => {
     console.log('handle upload triggered');
     console.log('Upload result:', result);
-    const imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/v${result.info.version}/${result.info.public_id}.png`; // Fixed URL construction
+    const imageUrl = result.info.secure_url || `https://res.cloudinary.com/${cloudName}/image/upload/v${result.info.version}/${result.info.public_id}.${result.info.format}`;
     updateLink(index, 'image', imageUrl); // Save the image URL to the links array
     console.log('Image URL saved to link:', imageUrl);
+    try {
+      document.body.style.overflow = '';
+    } catch (err) {
+      /* ignore */
+    }
   };
 
   useEffect(() => {
@@ -134,32 +224,117 @@ const LinkInBio =  () => {
     
   }, [links]);
 
+  // Add this useEffect after your existing ones (around line 50)
+// Fetch products for display in non-editing view
+useEffect(() => {
+  if (!isEditing && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0) {
+    fetchAvailableProducts();
+  }
+}, [user?.printifyShopId, linkInBio?.selectedProducts, isEditing]);
 
   const getLinks = async () => {
-    try {
-      const { data } = await apiClient.get("/get-links");
-      setLinkInBio(data);
-      setBgColor(data.bgColor);
-      setTextColor(data.textColor);
-      setLinksColor(data.linksColor);
-      setLinks(data.links)
-    } catch (e) {
-      //console.error(e?.message);
-      setAlertt(e?.message);
-    } 
+  try {
+    const { data } = await apiClient.get("/get-links");
+    setLinkInBio(data);
+    setBgColor(data.bgColor);
+    setBgImage(data.bgImage);
+    setTextColor(data.textColor);
+    setLinksColor(data.linksColor);
+    setLinks(data.links);
+    // Fix: Make sure selectedProducts is loaded from the API response
+    if (data.selectedProducts && Array.isArray(data.selectedProducts)) {
+      setSelectedProductIds(data.selectedProducts);
+    }
+  } catch (e) {
+    //console.error(e?.message);
+    setAlertt(e?.message);
+  } 
+}
+
+  useEffect(() => {
+  if (linkInBio?.font) {
+    document.documentElement.style.setProperty('--preview-font', linkInBio.font);
   }
+  
+  return () => {
+    // Cleanup on unmount
+    document.documentElement.style.removeProperty('--preview-font');
+    document.body.style.backgroundColor = '';
+  };
+}, [linkInBio?.font, bgColor]);
+
+// Add another useEffect for real-time background color changes
+useEffect(() => {
+  if (bgColor) {
+    document.body.style.backgroundColor = bgColor;
+  }
+}, [bgColor]); // This will trigger whenever bgColor changes
+
+useEffect(() => {
+    document.title = "Link In Bio | Influanto";
+    
+    // Update meta description
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 'Link In Bio - Create a personalized landing page for your social media links powered by Influanto.');
+
+    // Update og:title
+    let ogTitle = document.querySelector('meta[property="og:title"]');
+    if (!ogTitle) {
+      ogTitle = document.createElement('meta');
+      ogTitle.setAttribute('property', 'og:title');
+      document.head.appendChild(ogTitle);
+    }
+    ogTitle.setAttribute('content', 'Link In Bio | Influanto');
+
+    // Update og:description
+    let ogDescription = document.querySelector('meta[property="og:description"]');
+    if (!ogDescription) {
+      ogDescription = document.createElement('meta');
+      ogDescription.setAttribute('property', 'og:description');
+      document.head.appendChild(ogDescription);
+    }
+    ogDescription.setAttribute('content', 'All your links on one page. Free Link In Bio Tool powered by Influanto.');
+
+    // Update twitter:title
+    let twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    if (!twitterTitle) {
+      twitterTitle = document.createElement('meta');
+      twitterTitle.setAttribute('name', 'twitter:title');
+      document.head.appendChild(twitterTitle);
+    }
+    twitterTitle.setAttribute('content', 'Link In Bio | Influanto');
+
+    // Update twitter:description
+    let twitterDescription = document.querySelector('meta[name="twitter:description"]');
+    if (!twitterDescription) {
+      twitterDescription = document.createElement('meta');
+      twitterDescription.setAttribute('name', 'twitter:description');
+      document.head.appendChild(twitterDescription);
+    }
+    twitterDescription.setAttribute('content', 'Share your links easily. Free Link In Bio Tool powered by Influanto.');
+  }, []);
 
   const handleEditLinkInBio = async (e:any) => {
     e.preventDefault();
     console.log('Edit Link In Bio');
+    console.log('Selected Product IDs being sent:', selectedProductIds);
     console.log(links);
 
     try {
       const { data } = await apiClient.post("/linkinbio", {
         bgColor: bgColor,
+        bgImage: bgImage,
         textColor: textColor,
         linksColor: linksColor,
-        links: links
+        links: links,
+        font: linkInBio?.font,
+        cardBgColor: linkInBio?.cardBgColor,
+        selectedProducts: selectedProductIds
       });
 
       console.log(data);
@@ -173,13 +348,15 @@ const LinkInBio =  () => {
     }
   }
 
-  const containerStyle = {
-    width: "100%",
-    maxWidth: "400px", // Limit width on larger screens
-    margin: "0 auto", // Center the container
-    padding: "10px", // Add padding to prevent content from touching edges
-  };
-  
+const containerStyle = {
+  width: "100%",
+  maxWidth: "480px", // Fixed pixel value instead of viewport units
+  margin: "0 auto",
+  fontFamily: linkInBio?.font || 'inherit',
+  backgroundColor: linkInBio?.cardBgColor || 'white',
+  boxSizing: "border-box" as const,
+  overflow: "hidden",
+};
 
    // Check if user data is not yet loaded
   if (!data) {
@@ -187,203 +364,794 @@ const LinkInBio =  () => {
   }else{
     if (!isEditing){
     return (
-      <>
-      <Head>
-        <title>Influanto | FREE Link In Bio Tool</title>
-        <meta name="description" content="FREE Link In Bio Tool" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:title" content="FREE Link In Bio Tool" />
-        <meta property="og:description" content="Generate and manage your Link In Bio easily." />
-        <meta name="twitter:title" content="Link In Bio Tool" />
-        <meta name="twitter:description" content="Generate and manage your Link In Bio easily." />
-      </Head>
-      <div className="p-4 bg-white shadow rounded-md text-black">
-         <div className="w-full flex justify-between items-center">
-            <h2 className="text-2xl font-bold mb-2">Link In Bio</h2>
-            <button 
-              className="btn btn-primary btn-sm btn-narrow"
-              style={{margin:"0 2%"}}
-              onClick={() => setEditing(true)}>
-              Edit
-            </button>
-          </div>
-          <br></br>
-        <div style={{margin:"0 auto", textAlign:"center", color: textColor }}>
-          <img src={data.user.image ?? fallbackImageUrl} onError={(e) => e.currentTarget.src = fallbackImageUrl} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline" }} alt="Avatar" />
-          <p>{data.user.name}</p>
-          <br></br>
-          {links && user && (
-            <div>
-                {links.map((link:any, index:number) => (
-                  link.url && link.name && (
-                    <div key={index} className="p-2 border rounded-lg mb-2" style={{display:"flex", alignItems: 'center', justifyContent: 'center'}}>
-                      {isYouTubeLinkCheck(link.url) ? (
-                        <iframe
-                            width="560"
-                            height="315"
-                            src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}`}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                        ></iframe> ) : (
-                        <>
-                          {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
-                          <a href={link.url} target="_blank" rel="noopener noreferrer" style={{color: linksColor}}>{link.name}</a>
-                        </>
-                      )}
-                </div>
-                  )
-                ))}
-                <br />
-                <a
-                    className="btn btn-primary btn-block btn-lg btn-narrow"
-                    style={{ width: "auto", display: "inline" }}
-                    href={`https://influanto.com/${user.username}`}
-                >
-                    Visit
-                </a>
-            </div>
-        )}
+       <>
+     <div 
+        className="mx-auto bg-white shadow rounded-md text-black"
+        style={{
+          width: "calc(100% - 16px)", // Always leave 8px margin on each side
+          maxWidth: "480px", // Fixed max width
+          padding: "0.5rem 1rem", // Responsive padding
+          fontFamily: linkInBio?.font || 'inherit',
+          backgroundColor: linkInBio?.cardBgColor || 'white',
+          boxSizing: "border-box",
+          overflow: "hidden"
+        }}
+      >
+       <div className="w-full flex justify-between items-center">
+          <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Link In Bio</h2>
+          <button 
+            className="btn btn-primary btn-sm btn-narrow"
+            style={{
+              margin:"0 2%",
+              fontFamily: linkInBio?.font || 'inherit'
+            }}
+            onClick={() => setEditing(true)}>
+            Edit
+          </button>
         </div>
-        {alert && <div className="alert mt-5 w-full">{alert}</div>}
-      </div>
-  </>
-    );
-  }else{
-    return (
-      <div className="p-4 bg-white shadow rounded-md"  style={containerStyle}>
-        <h2 className="text-xl sm:text-2xl font-bold mb-2 inline">Link In Bio</h2>
-        <form>
-        <h1>Edit Links</h1>
-          <div className="flex flex-wrap w-full">
-            <div className="w-full lg:w-full p-2">
-             {links.map((link:any, index:number) => (
-                <div key={index} className="mb-4">
-                    <label style={{ display: "block" }}>
-                      Link {index + 1}
-                      {isYouTubeLinkCheck(link.url) && (
-                        <div>
-                            <iframe
-                                width="100%"
-                                height="auto"
-                                src={`https://www.youtube.com/embed/` +  getYouTubeVideoId(link.url)}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            ></iframe>
-                        </div>
+        <br></br>
+      <div style={{
+        margin:"0 auto", 
+        textAlign:"center", 
+        color: textColor,
+        fontFamily: linkInBio?.font || 'inherit'
+      }}>
+        <img src={data.user.image ?? fallbackImageUrl} onError={(e) => e.currentTarget.src = fallbackImageUrl} style={{ borderRadius: '50%', width:"100px", height:"100px", display:"inline" }} alt="Avatar" />
+        <p style={{ fontFamily: linkInBio?.font || 'inherit' }}>{data.user.name}</p>
+        <br></br>
+        {links && user && (
+          <div>
+              {links.map((link:any, index:number) => (
+                link.url && link.name && (
+                  <div key={index} className="p-2 border rounded-lg mb-2" style={{
+                    display:"flex", 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    backgroundColor: linkInBio?.cardBgColor || 'transparent',
+                    fontFamily: linkInBio?.font || 'inherit'
+                  }}>
+                    {isYouTubeLinkCheck(link.url) ? (
+                      <iframe
+                          width="100%"
+                          height="200"
+                          style={{maxWidth: "100%"}}
+                          src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}`}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                      ></iframe> ) : (
+                      <>
+                        {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
+                        <a href={link.url} target="_blank" rel="noopener noreferrer" style={{
+                          color: linksColor,
+                          fontFamily: linkInBio?.font || 'inherit'
+                        }}>{link.name}</a>
+                      </>
                     )}
-                      {link.image && (
-                        <img src={link.image} alt={`Link ${index + 1} thumbnail`} style={{ width: "30px", height: "30px", borderRadius: "50%", marginLeft: "10px" }} />
-                      )}
-                    </label>
-                    <input
-                        type="text"
-                        className="input mt-2 mb-2 mr-4 w-3/4"
-                        placeholder="URL"
-                        value={link.url}
-                        onChange={(e) => updateLink(index, 'url', e.target.value)}
-                    />
-                    <input
-                        type="text"
-                        className="input mb-2 w-3/4"
-                        placeholder="Name"
-                        value={link.name}
-                        onChange={(e) => updateLink(index, 'name', e.target.value)}
-                    />
-                    <br></br>
-                     {isYouTubeLink(index, link.url) && (
-                      <div>
-                          <label>
-                              Display Video:
-                              <input
-                                  type="checkbox" className="mr-2"
-                                  defaultChecked={link.displayVideo || false}
-                                  checked={link.displayVideo || false}
-                                  onChange={(e) => updateYouTubeLinkOptions(index, e.target.checked)}
-                              />
-                          </label>
+              </div>
+                )
+              ))}
+
+    {/* MERCH SECTION */}
+    {user?.hasAccess && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
+      <div style={{ 
+        marginTop: "24px", 
+        marginBottom: "16px", 
+        width: "100%"
+      }}>
+        <h3 style={{
+          fontSize: "18px",
+          fontWeight: "600",
+          marginBottom: "12px",
+          textAlign: "center",
+          color: textColor,
+          fontFamily: linkInBio?.font || 'inherit'
+        }}>
+          Merch
+        </h3>
+        
+        {/* Responsive Grid Container */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(80px, 1fr))", // Responsive grid
+          gap: "8px",
+          width: "100%",
+          maxWidth: "100%",
+          padding: "0 4px"
+        }}>
+          {linkInBio.selectedProducts.map((productId: string) => {
+            const product = availableProducts.find(p => p.id === productId);
+            if (!product) {
+              console.log('❌ Product not found for ID:', productId);
+              return null;
+            }
+            
+            const productUrl = product.url || '#';
+            
+            return (
+              <div 
+                key={productId}
+                style={{ 
+                  width: "100%", // Take full grid cell width
+                  minWidth: "80px",
+                  maxWidth: "120px", // Prevent cards from getting too large
+                  margin: "0 auto" // Center in grid cell
+                }}
+              >
+                <a 
+                  href={productUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'block',
+                    padding: '6px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    backgroundColor: linkInBio?.cardBgColor || 'rgba(255,255,255,0.1)',
+                    textDecoration: 'none',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    transition: 'transform 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "scale(1.02)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "scale(1)";
+                  }}
+                >
+                  {/* Product Image */}
+                  <div style={{ 
+                    width: "100%", 
+                    height: "60px",
+                    borderRadius: "6px", 
+                    overflow: "hidden", 
+                    backgroundColor: "#f0f0f0", 
+                    marginBottom: "6px" 
+                  }}>
+                    {product.images && product.images.length > 0 && product.images[0] ? (
+                      <img
+                        src={product.images[0]}
+                        alt={product.title}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover"
+                        }}
+                        onError={(e) => {
+                          console.log('❌ Image failed to load:', product.images[0]);
+                          e.currentTarget.src = `https://via.placeholder.com/80x60/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
+                        }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "linear-gradient(45deg, #e3f2fd, #f3e5f5)"
+                      }}>
+                        <span style={{ color: "#999", fontSize: "12px" }}>📦</span>
                       </div>
-                  )}
-                  {!isYouTubeLink(index, link.url) && !link.image && 
-                    <CldUploadWidget
-                      uploadPreset="LinkInBioThumbnail" // Ensure this matches your Cloudinary preset
-                      options={{ folder: `user_${user.id}_links`, publicId: `link_${index}_thumbnail` }} // Adjusted folder and publicId
-                      onSuccess={(result: any) => {
-                        console.log('Upload callback triggered'); // Log to confirm callback is triggered
-                        handleImageUpload(index, result);
-                      }}
-                    >
-                      {({ open }: { open: () => void }) => (
-                      <button type="button" onClick={() => open()} className="btn btn-primary btn-sm mr-2">
-                        Upload Image
-                      </button>
-                      )}
-                    </CldUploadWidget>
-                  }
-                     <button
-                        type="button"
-                        className="btn btn-alert btn-sm"
-                        onClick={() => removeLink(index)}
-                    >
-                        Remove
-                    </button>
-                </div>
-                
-            ))}
-          
-            <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={addLink}
+                    )}
+                  </div>
+                  
+                  {/* Product Info */}
+                  <div>
+                    <div style={{
+                      fontSize: "10px",
+                      fontWeight: "500",
+                      marginBottom: "3px",
+                      color: textColor,
+                      fontFamily: linkInBio?.font || 'inherit',
+                      lineHeight: '1.2',
+                      height: '2.4em',
+                      overflow: 'hidden',
+                      wordWrap: 'break-word',
+                      textAlign: 'center'
+                    }}>
+                      {product.title && product.title.length > 12 
+                        ? `${product.title.substring(0, 12)}...` 
+                        : product.title || 'Product'
+                      }
+                    </div>
+                    <div style={{
+                      fontSize: "10px",
+                      fontWeight: "bold",
+                      textAlign: "center",
+                      color: linksColor,
+                      fontFamily: linkInBio?.font || 'inherit'
+                    }}>
+                      ${product.variants?.[0]?.price || product.price || 'N/A'}
+                    </div>
+                  </div>
+                </a>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    )}  
+              <br />
+              <a
+                  className="btn btn-primary btn-block btn-lg btn-narrow"
+                  style={{ 
+                    width: "auto", 
+                    display: "inline",
+                    fontFamily: linkInBio?.font || 'inherit'
+                  }}
+                  href={`https://influanto.com/${user.username}`}
+              >
+                  Visit
+              </a>
+
+          </div>
+      )}
+      </div>
+      {alert && <div className="alert mt-5 w-full">{alert}</div>}
+    </div>
+    
+</>
+)}else{
+  return (
+  
+<div 
+  className="shadow rounded-md mx-auto" 
+  style={{
+    width: "calc(100% - 16px)", // Always leave 8px margin on each side
+    maxWidth: "600px", // Fixed max width for editing (was 60px!)
+    padding: "1rem",
+    fontFamily: linkInBio?.font || 'inherit',
+    backgroundColor: linkInBio?.cardBgColor || 'white',
+    boxSizing: "border-box",
+    overflow: "hidden"
+  }}
+>
+      <div className="w-full flex flex-wrap">
+        <h2 className="text-xl sm:text-2xl font-bold mb-2 inline" style={{
+          fontFamily: linkInBio?.font || 'inherit'
+        }}>Link In Bio</h2>
+        <br></br>
+      <form>
+      <h1 style={{ fontFamily: linkInBio?.font || 'inherit' }}>Edit Links</h1>
+        <div className="flex flex-wrap w-full">
+          <div className="w-full lg:w-full p-2">
+            {links.map((link:any, index:number) => (
+              <div key={index} className="mb-4" style={{
+                fontFamily: linkInBio?.font || 'inherit'
+              }}>
+                <label style={{ display: "block", fontFamily: linkInBio?.font || 'inherit' }}>
+            Link {index + 1}
+            {isYouTubeLink(index, link.url) && (
+              <div>
+                <label style={{ fontFamily: linkInBio?.font || 'inherit' }}>
+                  Display Video:
+                  <input
+                    type="checkbox" 
+                    className="mr-2"
+                    checked={link.displayVideo || true}
+                    onChange={(e) => updateYouTubeLinkOptions(index, e.target.checked)}
+                  />
+                </label>
+              </div>
+            )}
+            {link.image && (
+              <img src={link.image} alt={`Link ${index + 1} thumbnail`} style={{ width: "30px", height: "30px", borderRadius: "50%", marginLeft: "10px" }} />
+            )}
+          </label>
+          <input
+            type="text"
+            className="input mt-2 mb-2 w-3/4"
+            placeholder="URL"
+            value={link.url}
+            onChange={(e) => updateLink(index, 'url', e.target.value)}
+            style={{ fontFamily: linkInBio?.font || 'inherit' }}
+          />
+          <input
+            type="text"
+            className="input mb-2 w-3/4"
+            placeholder="Name"
+            value={link.name}
+            onChange={(e) => updateLink(index, 'name', e.target.value)}
+            style={{ fontFamily: linkInBio?.font || 'inherit' }}
+          />
+          <br />
+          {/* Upload / Remove / Reorder controls */}
+          {!isYouTubeLink(index, link.url) && !link.image && 
+            <CldUploadWidget
+              uploadPreset="LinkInBioThumbnail"
+              options={{ folder: `user_${user.id}_links`, publicId: `link_${index}_thumbnail` }}
+              onSuccess={(result: any) => {
+                console.log('Upload callback triggered');
+                handleImageUpload(index, result);
+              }}
             >
-                Add Link
+              {({ open }: { open: () => void }) => (
+              <button 
+                type="button" 
+                onClick={() => open()} 
+                className="btn btn-primary btn-sm btn-narrow"
+                style={{ fontFamily: linkInBio?.font || 'inherit' }}
+              >
+                Upload Image
+              </button>
+              )}
+            </CldUploadWidget>
+          }
+          <button
+            type="button"
+            className="btn btn-alert btn-sm btn-narrow ml-2"
+            onClick={() => removeLink(index)}
+            style={{ fontFamily: linkInBio?.font || 'inherit' }}
+          >
+            Remove
+          </button>
+        {/* Reorder buttons */}
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm btn-narrow ml-2"
+          onClick={() => moveLinkUp(index)}
+          disabled={index === 0}
+          title="Move up"
+          style={{ fontFamily: linkInBio?.font || 'inherit' }}
+        >
+          ↑
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm btn-narrow ml-1"
+          onClick={() => moveLinkDown(index)}
+          disabled={index === links.length - 1}
+          title="Move down"
+          style={{ fontFamily: linkInBio?.font || 'inherit' }}
+        >
+          ↓
+        </button>
+        </div>
+      ))}
+    <button
+        type="button"
+        className="btn btn-primary btn-sm btn-narrow"
+        onClick={addLink}
+        style={{ fontFamily: linkInBio?.font || 'inherit' }}
+    >
+        Add Link
+    </button>
+
+{/************ Styles ************/}
+
+<h1 className="mt-8 mb-2 w-full" style={{
+  fontFamily: linkInBio?.font || 'inherit'
+}}>Colors:</h1>
+
+<div className="w-full"> 
+  {/* Color Pickers Row */}
+  <div className="flex justify-center items-center gap-4 mb-4 flex-wrap">
+    <div className="flex items-center gap-1">
+      <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Text</span>
+      <input
+        type="color"
+        value={textColor}
+        onChange={(e) => setTextColor(e.target.value)}
+        className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer"
+      />
+    </div>
+    <div className="flex items-center gap-1">
+      <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Links</span>
+      <input
+        type="color"
+        value={linksColor}
+        onChange={(e) => setLinksColor(e.target.value)}
+        className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer"
+      />
+    </div>
+    <div className="flex items-center gap-1">
+      <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>BG</span>
+      <input
+        type="color"
+        value={bgColor}
+        onChange={(e) => setBgColor(e.target.value)}
+        className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer"
+      />
+    </div>
+  </div>
+
+  {/* Background Image Selector */}
+  <div className="mb-3 w-full">
+    <label className="block mb-3 font-medium" style={{
+      fontFamily: linkInBio?.font || 'inherit'
+    }}>Background Image:</label>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 justify-items-center max-w-lg mx-auto">
+      <button
+        type="button"
+        className={`border rounded-lg p-2 ${!linkInBio?.bgImage ? "border-blue-500" : "border-gray-300"}`}
+        onClick={() => {
+          setLinkInBio({ ...linkInBio, bgImage: null });
+          setBgImage(null); 
+          document.body.style.backgroundImage = 'none';
+        }}
+        style={{ fontFamily: linkInBio?.font || 'inherit' }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ 
+            width: 60, 
+            height: 60, 
+            backgroundColor: '#f0f0f0', 
+            borderRadius: 8, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            fontSize: '10px', 
+            marginBottom: 4 
+          }}>
+            None
+          </div>
+        </div>
+      </button>
+      {[
+        "https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg",
+        "https://images.pexels.com/photos/3308588/pexels-photo-3308588.jpeg",
+        "https://images.pexels.com/photos/2832382/pexels-photo-2832382.jpeg",
+        "https://images.pexels.com/photos/7598077/pexels-photo-7598077.jpeg",
+        "https://images.pexels.com/photos/7630061/pexels-photo-7630061.jpeg",
+        "https://images.pexels.com/photos/1292998/pexels-photo-1292998.jpeg",
+        "https://images.pexels.com/photos/6788581/pexels-photo-6788581.jpeg"
+      ].map((img, idx) => (
+        <button
+          key={idx}
+          type="button"
+          className={`border rounded-lg p-2 ${linkInBio?.bgImage === img ? "border-blue-500 border-2" : "border-gray-300"}`}
+          onClick={() => {
+            setLinkInBio({ ...linkInBio, bgImage: img });
+            setBgImage(img);
+          }}
+        >
+          <img 
+            src={img} 
+            alt={`bg-${idx}`} 
+            style={{ 
+              width: 60, 
+              height: 60, 
+              objectFit: "cover", 
+              borderRadius: 6 
+            }} 
+          />
+        </button>
+      ))}
+    </div>
+  </div>
+
+  {user.hasAccess && (
+    <>
+      {/* Premium Styling Options */}
+      <div className="mt-4 w-full">
+        <h2 className="text-md font-semibold mb-2" style={{
+          fontFamily: linkInBio?.font || 'inherit'
+        }}>Premium Styles</h2>
+        
+        <div className="flex justify-center items-center gap-6 flex-wrap">
+          {/* Card Background Color */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm" style={{
+              fontFamily: linkInBio?.font || 'inherit'
+            }}>Card BG:</label>
+            <input
+              type="color"
+              value={linkInBio?.cardBgColor || "#ffffff"}
+              onChange={e => setLinkInBio({ ...linkInBio, cardBgColor: e.target.value })}
+              className="w-8 h-8 border border-gray-300 rounded-lg cursor-pointer"
+            />
+          </div>
+
+          {/* Font Picker */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm" style={{
+              fontFamily: linkInBio?.font || 'inherit'
+            }}>Font:</label>
+            <select
+              value={linkInBio?.font || "sans-serif"}
+              onChange={e => setLinkInBio({ ...linkInBio, font: e.target.value })}
+              className="input w-40"
+              style={{ fontFamily: linkInBio?.font || 'inherit' }}
+            >
+              <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
+              <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
+              <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
+              <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
+              <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </>
+  )}
+</div>
+</div>
+</div>
+
+  {/* PRODUCT SELECTION SECTION - ONLY IN EDITING VIEW */}
+{user?.hasAccess && user?.printifyShopId && (
+  <div className="mt-8 w-full border-t pt-6">
+    {/* Center the title on mobile */}
+    <div className="mb-4 text-center">
+      <h2 className="text-md font-semibold" style={{
+        fontFamily: linkInBio?.font || 'inherit'
+      }}>
+        🛍️ Select Products from Printify (Max 10)
+      </h2>
+    </div>
+    
+    {isLoadingProducts ? (
+      <div className="text-center py-8" style={{
+        fontFamily: linkInBio?.font || 'inherit'
+      }}>
+        <div className="animate-pulse mx-auto max-w-sm">
+          <div className="h-64 bg-gray-200 rounded-lg"></div>
+        </div>
+        <p className="mt-4 text-gray-600">Loading your products...</p>
+      </div>
+    ) : availableProducts.length > 0 ? (
+      <>
+       {/* Selection Summary - Responsive width */}
+      <div className="bg-gray-50 rounded-lg p-2 sm:p-4 mb-4 mx-auto" style={{
+        maxWidth: '100%', // Full width on desktop
+        width: '100%'
+      }}>
+        <div className="flex justify-between items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+            <span className="text-xs sm:text-sm font-medium text-gray-700" style={{
+              fontFamily: linkInBio?.font || 'inherit'
+            }}>
+              {selectedProductIds.length}/10 selected
+            </span>
+            {selectedProductIds.length === 10 && (
+              <span className="text-xs text-orange-600" style={{
+                fontFamily: linkInBio?.font || 'inherit'
+              }}>
+                Max reached
+              </span>
+            )}
+          </div>
+          
+          {selectedProductIds.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedProductIds([])}
+              className="btn btn-sm btn-alert text-xs px-2 py-1"
+              style={{
+                fontSize: '11px',
+                fontFamily: linkInBio?.font || 'inherit'
+              }}
+            >
+              Clear
             </button>
-            <h1 style={{display:"block"}} className="mt-8 mb-2">Styles</h1>
-            <div className="flex flex-wrap w-full"> 
-               <h2 style={{display:"block"}} className="mr-2">BG</h2>
-               <input
-                  type="color"
-                  value={bgColor}
-                  onChange={(e) => setBgColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2 style={{display:"block"}} className="ml-2 mr-2">Text</h2>
-               <input
-                  type="color"
-                  value={textColor}
-                  onChange={(e) => setTextColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2 style={{display:"block"}} className="ml-2 mr-2">Links</h2>
-               <input
-                  type="color"
-                  value={linksColor}
-                  onChange={(e) => setLinksColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-             </div>
+          )}
+        </div>
+      </div>
+
+        {/* Mobile-Friendly Products Grid - Responsive container */}
+        <div className="mx-auto" style={{
+          maxWidth: '100%', // Full width on desktop
+          width: '100%'
+        }}>
+          <div className="border border-gray-300 rounded-lg overflow-hidden">
+            <div className="max-h-96 overflow-y-auto">
+              {/* Mobile: Card Layout, Desktop: Table Layout */}
+              <div className="md:hidden">
+                {/* Mobile Card Layout */}
+                <div className="space-y-3 p-3">
+                  {availableProducts.map((product: any) => (
+                    <div 
+                      key={product.id}
+                      className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                        selectedProductIds.includes(product.id) 
+                          ? 'bg-blue-50 border-blue-500' 
+                          : 'bg-white border-gray-200 hover:bg-gray-50'
+                      }`}
+                      onClick={() => toggleProductSelection(product.id)}
+                    >
+                      <div className="flex items-start gap-3">
+                        {/* Checkbox */}
+                        <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-1 ${
+                          selectedProductIds.includes(product.id)
+                            ? 'bg-blue-500 border-blue-500'
+                            : 'bg-white border-gray-300'
+                        }`}>
+                          {selectedProductIds.includes(product.id) && (
+                            <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                            </svg>
+                          )}
+                        </div>
+
+                        {/* Product Image */}
+                        <div className="w-12 h-12 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                          {product.images && product.images.length > 0 && product.images[0] ? (
+                            <img
+                              src={product.images[0]}
+                              alt={product.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = `https://via.placeholder.com/48x48/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                              <span className="text-gray-400 text-xs">📦</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 leading-tight" style={{
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            {product.title && product.title.length > 40 
+                              ? `${product.title.substring(0, 40)}...` 
+                              : product.title || 'Untitled Product'
+                            }
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1" style={{
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            {product.variants?.length || 1} variant{(product.variants?.length || 1) > 1 ? 's' : ''}
+                          </div>
+                          <div className="text-sm font-semibold text-green-600 mt-1" style={{
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            ${product.variants?.[0]?.price || 'N/A'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Desktop Table Layout */}
+              <div className="hidden md:block">
+                <table className="w-full">
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {availableProducts.map((product: any) => (
+                      <tr 
+                        key={product.id}
+                        className={`cursor-pointer transition-colors hover:bg-gray-50 ${
+                          selectedProductIds.includes(product.id) 
+                            ? 'bg-blue-50 border-l-4 border-blue-500' 
+                            : ''
+                        }`}
+                        onClick={() => toggleProductSelection(product.id)}
+                      >
+                        {/* Selection Checkbox */}
+                        <td className="px-2 py-2">
+                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                            selectedProductIds.includes(product.id)
+                              ? 'bg-blue-500 border-blue-500'
+                              : 'bg-white border-gray-300'
+                          }`}>
+                            {selectedProductIds.includes(product.id) && (
+                              <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                              </svg>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Product Image */}
+                        <td className="px-2 py-2">
+                          <div className="w-10 h-10 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                            {product.images && product.images.length > 0 && product.images[0] ? (
+                              <img
+                                src={product.images[0]}
+                                alt={product.title}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.src = `https://via.placeholder.com/40x40/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`;
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                                <span className="text-gray-400 text-xs">📦</span>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Product Name */}
+                        <td className="px-2 py-3">
+                          <div className="text-sm font-medium text-gray-900" style={{
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            {product.title && product.title.length > 60 
+                              ? `${product.title.substring(0, 60)}...` 
+                              : product.title || 'Untitled Product'
+                            }
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1" style={{
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            {product.variants?.length || 1} variant{(product.variants?.length || 1) > 1 ? 's' : ''}
+                          </div>
+                        </td>
+
+                        {/* Price */}
+                        <td className="px-2 py-2">
+                          <div className="text-sm font-semibold text-green-600" style={{
+                            fontFamily: linkInBio?.font || 'inherit'
+                          }}>
+                            ${product.variants?.[0]?.price || 'N/A'}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
-          <br />
-          <button 
-            className="btn btn-primary btn-block btn-sm btn-narrow"
-            style={{width:"35%", display:"inline", margin:"2% 0"}}
-            onClick={(e) => handleEditLinkInBio(e)} 
-            type="submit">
-            Submit
-        </button> 
-        <button
-          className="btn btn-alert btn-block btn-sm btn-narrow"
-          style={{ width: "35%", display: "inline", margin: "2% 5%" }}
-          onClick={() => setEditing(false)}> {/* Changed to setEditing(false) to handle cancel */}
-          Cancel
-        </button>
-        </form>
+          {/* Footer with product count */}
+          <div className="text-xs text-gray-500 mt-2 text-center" style={{
+            fontFamily: linkInBio?.font || 'inherit'
+          }}>
+            Showing {availableProducts.length} products • Scroll to see more
+          </div>
+        </div>
+      </>
+    ) : (
+      <div className="mx-auto" style={{
+        maxWidth: '100%', // Full width on desktop
+        width: '100%'
+      }}>
+        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg" style={{
+          fontFamily: linkInBio?.font || 'inherit'
+        }}>
+          <div className="text-4xl text-gray-400 mb-2">🏪</div>
+          <h3 className="text-lg font-medium text-gray-700 mb-1">No Products Found</h3>
+          <p className="text-sm text-gray-500">
+            Make sure your Printify store has published products.
+          </p>
+        </div>
       </div>
-   
-      );
-    }   
-  }
+    )}
+  </div>
+)}
+
+  {alert && <div className="alert mt-5 w-100" style={{backgroundColor:"darkgrey", border:"1px darkgrey solid"}}>{alert}</div>}
+      <div style={{textAlign:"center"}}>
+      <button
+        className="btn btn-alert btn-block btn-sm btn-narrow"
+        style={{ 
+          width: "35%", 
+          display: "inline", 
+          margin: "2% 5%",
+          fontFamily: linkInBio?.font || 'inherit'
+        }}
+        onClick={() => setEditing(false)}>
+        Cancel
+      </button>
+       <button 
+          className="btn btn-primary btn-block btn-sm btn-narrow"
+          style={{
+            width:"35%", 
+            display:"inline", 
+            margin:"8% 0 0",
+            fontFamily: linkInBio?.font || 'inherit'
+          }}
+          onClick={(e) => handleEditLinkInBio(e)} 
+          type="submit">
+          Submit
+      </button>
+      </div>
+
+      </form>
+      </div>
+    </div>
+ 
+    );
+  }   
+}
 };
 
 export default LinkInBio;

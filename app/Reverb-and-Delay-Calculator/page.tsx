@@ -4,7 +4,6 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 
-
 const noteOptions = [
   { label: "Whole (1/1)", value: 4 },
   { label: "Half (1/2)", value: 2 },
@@ -36,33 +35,110 @@ export default function ReverbandDelay() {
   const [preDelayOption, setPreDelayOption] = useState<"1/32" | "1/64">("1/64");
   const [delay1Bar, setDelay1Bar] = useState<string>(calcDelayMs(bpm, 4));
 
+  // Add this useEffect to update delay1Bar when BPM changes
+  useEffect(() => {
+    setDelay1Bar(calcDelayMs(bpm, 4));
+  }, [bpm]);
+
+  useEffect(() => {
+    document.title = "Delay & Reverb Calculator | Influanto";
+    
+    // Update meta description
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more');
+    
+    // Update og:title
+    let ogTitle = document.querySelector('meta[property="og:title"]');
+    if (!ogTitle) {
+      ogTitle = document.createElement('meta');
+      ogTitle.setAttribute('property', 'og:title');
+      document.head.appendChild(ogTitle);
+    }
+    ogTitle.setAttribute('content', 'FREE Musician Tools | Influanto');
+    
+    // Update og:description
+    let ogDescription = document.querySelector('meta[property="og:description"]');
+    if (!ogDescription) {
+      ogDescription = document.createElement('meta');
+      ogDescription.setAttribute('property', 'og:description');
+      document.head.appendChild(ogDescription);
+    }
+    ogDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more');
+
+    // Update twitter:card
+    let twitterCard = document.querySelector('meta[name="twitter:card"]');
+    if (!twitterCard) {
+      twitterCard = document.createElement('meta');
+      twitterCard.setAttribute('name', 'twitter:card');
+      document.head.appendChild(twitterCard);
+    }
+    // Update twitter:title
+    let twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    if (!twitterTitle) {
+      twitterTitle = document.createElement('meta');
+      twitterTitle.setAttribute('name', 'twitter:title');
+      document.head.appendChild(twitterTitle);
+    }
+    twitterTitle.setAttribute('content', 'FREE Musician Tools | Influanto');
+
+    // Update twitter:description
+    let twitterDescription = document.querySelector('meta[name="twitter:description"]');
+    if (!twitterDescription) {
+      twitterDescription = document.createElement('meta');
+      twitterDescription.setAttribute('name', 'twitter:description');
+      document.head.appendChild(twitterDescription);
+    }
+    twitterDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more');
+    twitterCard.setAttribute('content', 'summary_large_image');
+  }, []);
+
   return (
     <>  
-    <Suspense>
+      <Suspense>
         <Header />
-    </Suspense>
-    <div style={{ display: "flex", minHeight: "80vh", width: "100%", color: "#181b20" }}>
+      </Suspense>
+    <div 
+      id="delay-bg"
+      style={{ 
+        display: "flex", 
+        flexDirection: "column",
+        minHeight: "80vh", 
+        width: "100%", 
+        color: "#181b20" 
+      }}
+    >
       {/* Left: Calculator */}
       <div
         style={{
-          width: "70%",
           padding: "2rem",
           background: "#f9fafb",
-          borderRight: "1px solid #e5e7eb",
           color: "#181b20",
           display: "flex",
           flexDirection: "column"
         }}
+        className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
       >
-        <div style={{ display: "flex", width: "100%", marginBottom: "1.5rem" }}>
-          <div style={{ width: "50%" }}>
+        <div style={{ display: "flex", flexDirection: "column", width: "100%", marginBottom: "1.5rem" }}>
+          <div style={{ width: "100%", marginBottom: "1rem" }}>
             <h2 className="text-2xl font-bold mb-4" style={{color: "#181b20"}}>Delay & Reverb Time Calculator</h2>
             <p style={{color: "#181b20"}}>
               Enter your song&apos;s BPM and select a note value to calculate delay times. If the provided settings do not fit your needs you can also tweak them. As long as you use values that divide into the total reverb time.
             </p>
           </div>
-          <div style={{ width: "50%", display: "flex", alignItems: "flex-end", gap: "20px" }}>
-            <div>
+          <div style={{ 
+            width: "100%", 
+            display: "flex", 
+            flexDirection: "row",
+            gap: "15px",
+            alignItems: "flex-end",
+            flexWrap: "wrap"
+          }} className="sm:justify-start justify-center">
+            <div style={{ minWidth: "120px", flex: "1 1 auto" }}>
               <label className="block mb-2 font-semibold" style={{color: "#181b20"}}>BPM</label>
               <input
                 type="number"
@@ -71,16 +147,28 @@ export default function ReverbandDelay() {
                 value={bpm}
                 onChange={e => setBpm(Number(e.target.value))}
                 className="input"
-                style={{ width: "120px", padding: "0.5rem", fontSize: "1rem", color: "white" }}
+                style={{ 
+                  width: "100%", 
+                  maxWidth: "120px",
+                  padding: "0.5rem", 
+                  fontSize: "1rem", 
+                  color: "white" 
+                }}
               />
             </div>
-            <div>
+            <div style={{ minWidth: "140px", flex: "1 1 auto" }}>
               <label className="block mb-2 font-semibold" style={{color: "#181b20"}}>Reverb Pre-Delay</label>
               <select
                 value={preDelayOption}
                 onChange={e => setPreDelayOption(e.target.value as "1/32" | "1/64")}
                 className="input"
-                style={{ width: "120px", padding: "0.5rem", fontSize: "1rem", color: "white" }}
+                style={{ 
+                  width: "100%", 
+                  maxWidth: "140px",
+                  padding: "0.5rem", 
+                  fontSize: "1rem", 
+                  color: "white" 
+                }}
               >
                 <option value="1/32">1/32 Note</option>
                 <option value="1/64">1/64 Note</option>
@@ -100,16 +188,16 @@ export default function ReverbandDelay() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td style={{background: "#2a4d89", padding: "8px", border: "1px solid #444" }}>Hall (2 Bars)</td>
-                  <td style={{ padding: "8px", border: "1px solid #444" }}>{calculateReverbPreDelay(bpm, 8).toFixed(2) + " ms"}</td>
-                  <td style={{ padding: "8px", border: "1px solid #444" }}>{(Number(delay1Bar) * 2).toFixed(2)} ms</td>
-                </tr>
-                <tr>
-                  <td style={{background: "#2a4d89",padding: "8px", border: "1px solid #444" }}>Large Room (1 Bar)</td>
-                  <td style={{ padding: "8px", border: "1px solid #444" }}>{calculateReverbPreDelay(bpm, 16).toFixed(2) + " ms"}</td>
-                  <td style={{ padding: "8px", border: "1px solid #444" }}>{delay1Bar} ms</td>
-                </tr>
+             <tr>
+              <td style={{background: "#2a4d89", padding: "8px", border: "1px solid #444" }}>Hall (2 Bars)</td>
+              <td style={{ padding: "8px", border: "1px solid #444" }}>{calculateReverbPreDelay(bpm, 8).toFixed(2) + " ms"}</td>
+              <td style={{ padding: "8px", border: "1px solid #444" }}>{(Number(calcDelayMs(bpm, 4)) * 2).toFixed(2)} ms</td>
+            </tr>
+            <tr>
+              <td style={{background: "#2a4d89",padding: "8px", border: "1px solid #444" }}>Large Room (1 Bar)</td>
+              <td style={{ padding: "8px", border: "1px solid #444" }}>{calculateReverbPreDelay(bpm, 16).toFixed(2) + " ms"}</td>
+              <td style={{ padding: "8px", border: "1px solid #444" }}>{calcDelayMs(bpm, 4)} ms</td>
+            </tr>
                 <tr>
                   <td style={{background: "#2a4d89", padding: "8px", border: "1px solid #444" }}>Small Room (1/2 Note)</td>
                   <td style={{ padding: "8px", border: "1px solid #444" }}>{calculateReverbPreDelay(bpm, 32).toFixed(2)} ms</td>
@@ -186,7 +274,6 @@ export default function ReverbandDelay() {
       {/* Right: Sign up and info */}
       <div
         style={{
-          width: "30%",
           padding: "2rem",
           display: "flex",
           flexDirection: "column",
@@ -195,6 +282,7 @@ export default function ReverbandDelay() {
           background: "#fff",
           color: "#181b20"
         }}
+        className="w-full sm:w-1/4 p-8"
       >
         <h3 className="text-xl font-bold mb-4" style={{color: "#181b20"}}>Join Influanto</h3>
         <button
@@ -215,11 +303,22 @@ export default function ReverbandDelay() {
         </button>
         <div style={{ color: "#181b20", textAlign: "center" }}>
           <p>
-            Get access to more tools, save your settings, and connect with other musicians and producers.
+            Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.
           </p>
         </div>
       </div>
     </div>
+    <style>{`
+      #delay-bg {
+        background: #638bcf !important;
+      }
+      
+      @media (min-width: 640px) {
+        #delay-bg {
+          flex-direction: row !important;
+        }
+      }
+    `}</style>
      
     <Footer></Footer>
     </>

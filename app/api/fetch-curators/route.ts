@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
         let offset = 0;
         let hasMore = true;
 
-        while (hasMore && playlists.length < 20) {  // Fetch until we have at least 100 playlists or no more results
+        while (hasMore && playlists.length < 20) {  // Fetch until we have at least 20 playlists or no more results
             const response = await axios.get(`${SPOTIFY_API_URL}&offset=${offset}`, {
                 headers: {
                     Authorization: `Bearer ${AUTH_TOKEN}`,
@@ -119,14 +119,16 @@ export async function GET(req: NextRequest) {
                     playlistCoverImage: playlistCoverImage || null, // Return the playlist cover image if available
                     email: email || null
                 };
-            });
+            })
+            // IMPORTANT: Filter out curators with no contact links BEFORE returning
+            ?.filter((playlist: any) => playlist.externalUrl || playlist.email);
 
             playlists = playlists.concat(newPlaylists);
             offset += 50;
             hasMore = newPlaylists.length > 0;
         }
 
-        console.log(playlists);
+        console.log('Filtered playlists with contact info:', playlists.length);
 
         return NextResponse.json({ playlists }, { status: 200 });
     } catch (error) {

@@ -4,9 +4,6 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import jsPDF from "jspdf";
-// Remove Mantine/Grid imports
-// import { MantineProvider } from "@mantine/core";
-// import { Row, Col, Container } from "react-grid-system";
 
 export default function SplitSheetTemplate() {
 
@@ -51,132 +48,296 @@ export default function SplitSheetTemplate() {
     });
   };
 
+  useEffect(() => {
+    document.title = "Split Sheet Generator | Influanto";
+    
+    // Update meta description
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 'Split Sheet Generator - Create professional split sheets for your music collaborations powered by Influanto.');
+    
+    // Update og:title
+    let ogTitle = document.querySelector('meta[property="og:title"]');
+    if (!ogTitle) {
+      ogTitle = document.createElement('meta');
+      ogTitle.setAttribute('property', 'og:title');
+      document.head.appendChild(ogTitle);
+    }
+    ogTitle.setAttribute('content', 'Split Sheet Generator | Influanto');
+    
+    // Update og:description
+    let ogDescription = document.querySelector('meta[property="og:description"]');
+    if (!ogDescription) {
+      ogDescription = document.createElement('meta');
+      ogDescription.setAttribute('property', 'og:description');
+      document.head.appendChild(ogDescription);
+    }
+    ogDescription.setAttribute('content', 'Fill out and save your Split Sheets easily. Free musician tools by Influanto.');
+    
+    // Update twitter:title
+    let twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    if (!twitterTitle) {
+      twitterTitle = document.createElement('meta');
+      twitterTitle.setAttribute('name', 'twitter:title');
+      document.head.appendChild(twitterTitle);
+    }
+    twitterTitle.setAttribute('content', 'Split Sheet Generator | Influanto');
+    
+    // Update twitter:description
+    let twitterDescription = document.querySelector('meta[name="twitter:description"]');
+    if (!twitterDescription) {
+      twitterDescription = document.createElement('meta');
+      twitterDescription.setAttribute('name', 'twitter:description');
+      document.head.appendChild(twitterDescription);
+    }
+    twitterDescription.setAttribute('content', 'Generate and share your Split Sheets easily. Free musician tools by Influanto.');
+  }, []);
+
   const addContributor = () => setContributors([...contributors, { name: "", role: "", ownership: "", contact: "" }]);
   const removeContributor = (idx: number) => setContributors(contributors.filter((_, i) => i !== idx));
 
   const addPublishing = () => setPublishing([...publishing, { contributorName: "", publisher: "", percent: "" }]);
   const removePublishing = (idx: number) => setPublishing(publishing.filter((_, i) => i !== idx));
+  
 
-  const handleDownloadPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text("SPLIT SHEET AGREEMENT", 10, 15);
-    doc.setFontSize(12);
-    doc.text(`Song Title: ${form.songTitle}`, 10, 30);
-    doc.text(`Date of Creation: ${form.date}`, 10, 40);
-    doc.text(`Artist(s): ${form.artists}`, 10, 50);
+const handleDownloadPDF = () => {
+  const doc = new jsPDF();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  let currentY = 0;
 
-    // Primary Contributors Table
-    doc.text("Primary Contributors:", 10, 60);
+  // Add Influanto branding at the top right
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100);
+  const brandingText = "influanto";
+  const pageWidthTop = doc.internal.pageSize.getWidth();
+  const textWidth = doc.getTextWidth(brandingText);
+  const brandingX = pageWidthTop - textWidth - 10;
+  doc.text(brandingText, brandingX, 10);
+  
+  doc.setFontSize(16);
+  doc.setTextColor(0);
+  doc.text("SPLIT SHEET AGREEMENT", 10, 15);
+  doc.setFontSize(12);
+  doc.text(`Song Title: ${form.songTitle}`, 10, 30);
+  doc.text(`Date of Creation: ${form.date}`, 10, 40);
+  doc.text(`Artist(s): ${form.artists}`, 10, 50);
 
-    // Table headers
-    let contributorsTableY = 65;
-    doc.setFillColor(243, 244, 246);
-    doc.rect(10, contributorsTableY, 40, 8, "F"); // Name
-    doc.rect(50, contributorsTableY, 30, 8, "F"); // Role
-    doc.rect(80, contributorsTableY, 40, 8, "F"); // Ownership %
-    doc.rect(120, contributorsTableY, 70, 8, "F"); // Contact
-    doc.setTextColor(0);
-    doc.text("Name", 12, contributorsTableY + 6);
-    doc.text("Role", 52, contributorsTableY + 6);
-    doc.text("Ownership %", 82, contributorsTableY + 6);
-    doc.text("Contact", 122, contributorsTableY + 6);
+  // Primary Contributors Table
+  doc.text("Primary Contributors:", 10, 60);
+  currentY = 65;
 
-    // Table rows
-    let contributorsRowY = contributorsTableY + 8;
-    contributors.forEach((c) => {
-      doc.rect(10, contributorsRowY, 40, 8);
-      doc.rect(50, contributorsRowY, 30, 8);
-      doc.rect(80, contributorsRowY, 40, 8);
-      doc.rect(120, contributorsRowY, 70, 8);
-      doc.text(c.name || "", 12, contributorsRowY + 6);
-      doc.text(c.role || "", 52, contributorsRowY + 6);
-      doc.text(c.ownership || "", 82, contributorsRowY + 6);
-      doc.text(c.contact || "", 122, contributorsRowY + 6);
-      contributorsRowY += 8;
-    });
+  // Table headers
+  doc.setFillColor(243, 244, 246);
+  doc.rect(10, currentY, 40, 8, "F");
+  doc.rect(50, currentY, 50, 8, "F");
+  doc.rect(100, currentY, 15, 8, "F");
+  doc.rect(115, currentY, 75, 8, "F");
+  doc.setTextColor(0);
+  doc.text("Name", 12, currentY + 6);
+  doc.text("Role", 52, currentY + 6);
+  doc.text("Own %", 102, currentY + 6);
+  doc.text("Contact", 117, currentY + 6);
 
-    // Publishing Details Table
-    let pubStartY = contributorsRowY + 10;
-    doc.text("Publishing Details:", 10, pubStartY);
+  currentY += 8;
 
-    // Table headers
-    let publishingTableY = pubStartY + 5;
-    doc.setFillColor(243, 244, 246);
-    doc.rect(10, publishingTableY, 60, 8, "F"); // Contributor Name
-    doc.rect(70, publishingTableY, 70, 8, "F"); // Publisher
-    doc.rect(140, publishingTableY, 50, 8, "F"); // Publishing %
-    doc.setTextColor(0);
-    doc.text("Contributor Name", 12, publishingTableY + 6);
-    doc.text("Publisher", 72, publishingTableY + 6);
-    doc.text("Publishing %", 142, publishingTableY + 6);
+  // Table rows with page break logic
+  contributors.forEach((c, index) => {
+    const nameLines = Math.ceil((c.name || "").length / 18) || 1;
+    const roleLines = Math.ceil((c.role || "").length / 25) || 1;
+    const contactLines = Math.ceil((c.contact || "").length / 32) || 1;
+    const rowHeight = Math.max(nameLines, roleLines, contactLines) * 8;
+    
+    // Check if we need a new page
+    if (currentY + rowHeight > pageHeight - 20) {
+      doc.addPage();
+      currentY = 20; // Start from top of new page
+      
+      // Re-add table headers on new page
+      doc.setFillColor(243, 244, 246);
+      doc.rect(10, currentY, 40, 8, "F");
+      doc.rect(50, currentY, 50, 8, "F");
+      doc.rect(100, currentY, 15, 8, "F");
+      doc.rect(115, currentY, 75, 8, "F");
+      doc.setTextColor(0);
+      doc.text("Name", 12, currentY + 6);
+      doc.text("Role", 52, currentY + 6);
+      doc.text("Own %", 102, currentY + 6);
+      doc.text("Contact", 117, currentY + 6);
+      currentY += 8;
+    }
+    
+    doc.rect(10, currentY, 40, rowHeight);
+    doc.rect(50, currentY, 50, rowHeight);
+    doc.rect(100, currentY, 15, rowHeight);
+    doc.rect(115, currentY, 75, rowHeight);
 
-    // Table rows
-    let publishingRowY = publishingTableY + 8;
-    publishing.forEach((p) => {
-      doc.rect(10, publishingRowY, 60, 8);
-      doc.rect(70, publishingRowY, 70, 8);
-      doc.rect(140, publishingRowY, 50, 8);
-      doc.text(p.contributorName || "", 12, publishingRowY + 6);
-      doc.text(p.publisher || "", 72, publishingRowY + 6);
-      doc.text(p.percent || "", 142, publishingRowY + 6);
-      publishingRowY += 8;
-    });
+    doc.text(c.name || "", 12, currentY + 6, { maxWidth: 38 });
+    doc.text(c.role || "", 52, currentY + 6, { maxWidth: 48 });
+    doc.text(c.ownership || "", 102, currentY + 6, { maxWidth: 13 });
+    doc.text(c.contact || "", 117, currentY + 6, { maxWidth: 73 });
+    
+    currentY += rowHeight;
+  });
 
-    let termsY = pubStartY + 10 + publishing.length * 8 + 10;
-    doc.text("Agreement Terms:", 10, termsY);
+  // Publishing Details Table
+  currentY += 10;
+  
+  // Check if we need a new page for publishing section
+  if (currentY + 50 > pageHeight - 20) {
+    doc.addPage();
+    currentY = 20;
+  }
+  
+  doc.text("Publishing Details:", 10, currentY);
+  currentY += 5;
 
-    // Add the agreement terms as plain text, with extra space after Ownership Percentages
-    let agreementY = termsY + 10;
-    const agreementTerms = [
-      "Ownership Percentages: Each contributor listed above agrees to the ownership percentages of the composition and master recording as indicated in this Split Sheet.",
-      "", // blank line for extra space
-      "Royalty Distribution: All royalties and revenues earned from the exploitation of the song will be distributed according to the ownership percentages specified in this document.",
-      "", // blank line for extra space
-      "Rights and Licensing: Each contributor retains the right to license their share of the song unless otherwise agreed upon in a separate agreement.",
-      "", // blank line for extra space
-      `Dispute Resolution: Any disputes that arise concerning the ownership or distribution of royalties will be resolved through mediation or arbitration under the laws of [${form.stateCountry || "FL / USA"}].`,
-      "", // blank line for extra space
-      "Signatures: By signing below, all parties agree to the terms outlined in this Split Sheet and acknowledge that their contributions to the song are accurately reflected."
-    ];
-    agreementTerms.forEach((text, i) => {
-      if (text === "") {
-        agreementY += 5; // Add extra space for the blank line
-      } else {
-        doc.text(text, 15, agreementY, { maxWidth: 180 });
-        agreementY += 10;
+  // Publishing table headers
+  doc.setFillColor(243, 244, 246);
+  doc.rect(10, currentY, 60, 8, "F");
+  doc.rect(70, currentY, 70, 8, "F");
+  doc.rect(140, currentY, 50, 8, "F");
+  doc.setTextColor(0);
+  doc.text("Contributor Name", 12, currentY + 6);
+  doc.text("Publisher", 72, currentY + 6);
+  doc.text("Publishing %", 142, currentY + 6);
+  currentY += 8;
+
+  // Publishing rows with page break logic
+  publishing.forEach((p) => {
+    const contributorNameLines = Math.ceil((p.contributorName || "").length / 25) || 1;
+    const publisherLines = Math.ceil((p.publisher || "").length / 30) || 1;
+    const percentLines = Math.ceil((p.percent || "").length / 20) || 1;
+    const rowHeight = Math.max(contributorNameLines, publisherLines, percentLines) * 8;
+    
+    // Check if we need a new page
+    if (currentY + rowHeight > pageHeight - 10) {
+      doc.addPage();
+      currentY = 20;
+      
+      // Re-add publishing headers on new page
+      doc.setFillColor(243, 244, 246);
+      doc.rect(10, currentY, 60, 8, "F");
+      doc.rect(70, currentY, 70, 8, "F");
+      doc.rect(140, currentY, 50, 8, "F");
+      doc.setTextColor(0);
+      doc.text("Contributor Name", 12, currentY + 6);
+      doc.text("Publisher", 72, currentY + 6);
+      doc.text("Publishing %", 142, currentY + 6);
+      currentY += 8;
+    }
+    
+    doc.rect(10, currentY, 60, rowHeight);
+    doc.rect(70, currentY, 70, rowHeight);
+    doc.rect(140, currentY, 50, rowHeight);
+
+    doc.text(p.contributorName || "", 12, currentY + 6, { maxWidth: 58 });
+    doc.text(p.publisher || "", 72, currentY + 6, { maxWidth: 68 });
+    doc.text(p.percent || "", 142, currentY + 6, { maxWidth: 48 });
+    
+    currentY += rowHeight;
+  });
+
+  // Agreement Terms
+  currentY += 10;
+  
+  // Check if we need a new page for agreement terms
+  if (currentY + 100 > pageHeight - 20) {
+    doc.addPage();
+    currentY = 20;
+  }
+  
+  doc.text("Agreement Terms:", 10, currentY);
+  currentY += 10;
+
+  const agreementTerms = [
+    "Ownership Percentages: Each contributor listed above agrees to the ownership percentages of the composition and master recording as indicated in this Split Sheet.",
+    "Royalty Distribution: All royalties and revenues earned from the exploitation of the song will be distributed according to the ownership percentages specified in this document.",
+    "Rights and Licensing: Each contributor retains the right to license their share of the song unless otherwise agreed upon in a separate agreement.",
+    `Dispute Resolution: Any disputes that arise concerning the ownership or distribution of royalties will be resolved through mediation or arbitration under the laws of [${form.stateCountry || "FL / USA"}].`,
+    "Signatures: By signing below, all parties agree to the terms outlined in this Split Sheet and acknowledge that their contributions to the song are accurately reflected."
+  ];
+
+  agreementTerms.forEach((text) => {
+    if (text === "") {
+      currentY += 5;
+    } else {
+      // Check if we need a new page
+      if (currentY + 20 > pageHeight - 20) {
+        doc.addPage();
+        currentY = 20;
       }
-    });
+      doc.text(text, 15, currentY, { maxWidth: 180 });
+      currentY += 15;
+    }
+  });
 
-    // Draw the signatures table
-    let tableY = agreementY + 5;
-    doc.setFontSize(12);
-    doc.text("Signatures:", 10, tableY);
-    tableY += 5;
+ // ...existing code...
 
-    // Table headers
-    doc.setFillColor(243, 244, 246);
-    doc.rect(10, tableY, 60, 8, "F");
-    doc.rect(70, tableY, 60, 8, "F");
-    doc.rect(130, tableY, 60, 8, "F");
-    doc.setTextColor(0);
-    doc.text("Name", 12, tableY + 6);
-    doc.text("Signature", 72, tableY + 6);
-    doc.text("Date", 132, tableY + 6);
+  // Signatures table
+  currentY += 5;
+  
+  // Check if we need a new page for signatures - calculate actual space needed
+  const signatureHeaderHeight = 8;
+  const totalSignatureRows = contributors.length;
+  const averageRowHeight = 15; // Average height per signature row
+  const totalSignatureSpace = signatureHeaderHeight + (totalSignatureRows * averageRowHeight) + 10; // Add 10 for padding
+  
+  if (currentY + totalSignatureSpace > pageHeight - 20) {
+    doc.addPage();
+    currentY = 20;
+  }
+  
+  doc.setFontSize(12);
+  doc.text("Signatures:", 10, currentY);
+  currentY += 5;
 
-    // Table rows
-    let rowY = tableY + 8;
-    contributors.forEach((c) => {
-      doc.rect(10, rowY, 60, 8);
-      doc.rect(70, rowY, 60, 8);
-      doc.rect(130, rowY, 60, 8);
-      doc.text(c.name || "", 12, rowY + 6);
-      // Signature and Date cells left blank
-      rowY += 8;
-    });
+  // Signature table headers
+  doc.setFillColor(243, 244, 246);
+  doc.rect(10, currentY, 60, 8, "F");
+  doc.rect(70, currentY, 60, 8, "F");
+  doc.rect(130, currentY, 60, 8, "F");
+  doc.setTextColor(0);
+  doc.text("Name", 12, currentY + 6);
+  doc.text("Signature", 72, currentY + 6);
+  doc.text("Date", 132, currentY + 6);
+  currentY += 8;
 
-    doc.save(`${form.songTitle + " SplitSheet " + form.date + " influanto" || "split-sheet"}.pdf`);
-  };
+  // Signature rows
+  contributors.forEach((c) => {
+    const nameLines = Math.ceil((c.name || "").length / 25) || 1;
+    const rowHeight = Math.max(nameLines * 8, 15); // Increased minimum from 12 to 15
+    
+    // Check if we need a new page for individual rows
+    if (currentY + rowHeight > pageHeight - 20) {
+      doc.addPage();
+      currentY = 20;
+      
+      // Re-add signature headers on new page
+      doc.setFillColor(243, 244, 246);
+      doc.rect(10, currentY, 60, 8, "F");
+      doc.rect(70, currentY, 60, 8, "F");
+      doc.rect(130, currentY, 60, 8, "F");
+      doc.setTextColor(0);
+      doc.text("Name", 12, currentY + 6);
+      doc.text("Signature", 72, currentY + 6);
+      doc.text("Date", 132, currentY + 6);
+      currentY += 8;
+    }
+    
+    doc.rect(10, currentY, 60, rowHeight);
+    doc.rect(70, currentY, 60, rowHeight);
+    doc.rect(130, currentY, 60, rowHeight);
+    
+    doc.text(c.name || "", 12, currentY + 6, { maxWidth: 58 });
+    currentY += rowHeight;
+  });
+
+  doc.save(`${form.songTitle + " SplitSheet " + form.date + " influanto" || "split-sheet"}.pdf`);
+};
 
   return (
     <>
@@ -184,8 +345,10 @@ export default function SplitSheetTemplate() {
         <Header />
       </Suspense>
       <div
+        id="split-sheet-bg"
         style={{
           display: "flex",
+          flexDirection: "column",
           minHeight: "80vh",
           width: "100%",
           textAlign: "center",
@@ -194,20 +357,19 @@ export default function SplitSheetTemplate() {
       >
         <div
           style={{
-            width: "70%",
             padding: "2rem",
             background: "#f9fafb",
-            borderRight: "1px solid #e5e7eb",
             display: "flex",
             flexDirection: "column",
             alignItems: "start"
           }}
+          className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
         >
           <h1 className="text-3xl font-bold mb-4" style={{ color: "#181b20" }}>
-            Split Sheet Template
+            Split Sheet Generator
           </h1>
           <form
-            style={{ maxWidth: 600, width: "100%", textAlign: "left" }}
+            style={{ width: "100%", textAlign: "left" }}
             onSubmit={e => { e.preventDefault(); handleDownloadPDF(); }}
           >
             <label>Song Title:</label>
@@ -266,50 +428,50 @@ export default function SplitSheetTemplate() {
 
             <label>Primary Contributors:</label>
             {contributors.map((c, idx) => (
-              <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <div key={idx} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }} className="contributor-row">
                 <input
                   placeholder="Name"
                   value={c.name}
                   onChange={e => handleContributorChange(idx, "name", e.target.value)}
                   style={{
-                    flex: 2,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem", color:"white"
                   }}
+                  className="w-full sm:flex-2"
                 />
                 <input
                   placeholder="Role"
                   value={c.role}
                   onChange={e => handleContributorChange(idx, "role", e.target.value)}
                   style={{
-                    flex: 1,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem", color:"white"
                   }}
+                  className="w-full sm:flex-1"
                 />
                 <input
                   placeholder="Ownership %"
                   value={c.ownership}
                   onChange={e => handleContributorChange(idx, "ownership", e.target.value)}
                   style={{
-                    flex: 1,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
-                    padding: "0.5rem", color:"white"
+                    padding: "0.5rem", color:"white",
                   }}
+                  className="w-full sm:flex-1"
                 />
                 <input
                   placeholder="Contact Info"
                   value={c.contact}
                   onChange={e => handleContributorChange(idx, "contact", e.target.value)}
                   style={{
-                    flex: 2,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem", color:"white"
                   }}
+                  className="w-full sm:flex-2"
                 />
                 <button
                   type="button"
@@ -320,6 +482,7 @@ export default function SplitSheetTemplate() {
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem"
                   }}
+                  className="w-full sm:w-auto"
                 >✕</button>
               </div>
             ))}
@@ -338,39 +501,39 @@ export default function SplitSheetTemplate() {
 
 
             {publishing.map((p, idx) => (
-              <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <div key={idx} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }} className="publishing-row">
                 <input
                   placeholder="Contributor Name"
                   value={p.contributorName}
                   onChange={e => handlePublishingChange(idx, "contributorName", e.target.value)}
                   style={{
-                    flex: 2,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem", color:"white"
                   }}
+                  className="w-full sm:flex-2"
                 />
                 <input
                   placeholder="Publisher"
                   value={p.publisher}
                   onChange={e => handlePublishingChange(idx, "publisher", e.target.value)}
                   style={{
-                    flex: 2,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem", color:"white"
                   }}
+                  className="w-full sm:flex-2"
                 />
                 <input
                   placeholder="Publishing %"
                   value={p.percent}
                   onChange={e => handlePublishingChange(idx, "percent", e.target.value)}
                   style={{
-                    flex: 1,
                     borderRadius: 8,
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem", color:"white"
                   }}
+                  className="w-full sm:flex-1"
                 />
                 <button
                   type="button"
@@ -381,6 +544,7 @@ export default function SplitSheetTemplate() {
                     border: "1px solid #cbd5e1",
                     padding: "0.5rem"
                   }}
+                  className="w-full sm:w-auto"
                 >✕</button>
               </div>
             ))}
@@ -441,7 +605,6 @@ export default function SplitSheetTemplate() {
         </div>
         <div
           style={{
-            width: "30%",
             padding: "2rem",
             background: "#fff",
             display: "flex",
@@ -449,7 +612,9 @@ export default function SplitSheetTemplate() {
             alignItems: "center",
             justifyContent: "center"
           }}
+          className="w-full sm:w-1/4 p-8"
         >
+            <h3 className="text-xl font-bold mb-4" style={{color: "#181b20"}}>Join Influanto</h3>
           <button
             className="btn btn-primary"
             style={{
@@ -468,11 +633,31 @@ export default function SplitSheetTemplate() {
           </button>
           <div style={{ textAlign: "center" }}>
             <p>
-              Get access to more tools, save your settings, and connect with other musicians and producers.
+               Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.
             </p>
           </div>
         </div>
       </div>
+      <style>{`
+        #split-sheet-bg {
+          background: #638bcf !important;
+        }
+        
+        @media (min-width: 640px) {
+          #split-sheet-bg {
+            flex-direction: row !important;
+          }
+          .contributor-row, .publishing-row {
+            flex-direction: row !important;
+          }
+          .sm\\:flex-2 {
+            flex: 2;
+          }
+          .sm\\:flex-1 {
+            flex: 1;
+          }
+        }
+      `}</style>
       <Footer />
     </>
   );

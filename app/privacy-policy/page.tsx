@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSEOTags } from "@/libs/seo";
 import config from "@/config";
+import { useEffect } from "react";
 
 // - Website: https://influanto.com
 // - Name: influanto
@@ -21,6 +22,7 @@ export const metadata = getSEOTags({
 });
 
 const PrivacyPolicy = () => {
+  
   return (
     <main className="max-w-xl mx-auto">
       <div className="p-5">

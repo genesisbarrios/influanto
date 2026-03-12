@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
     },
+    discord: {
+      type: String,
+      lowercase: true,
+    },
     telegram: {
       type: String,
       lowercase: true,
@@ -91,10 +95,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
     },
-    soundxyz:{
-      type: String,
-      lowercase: true,
-    },
     youtubeMusic:{
       type: String,
       lowercase: true,
@@ -131,6 +131,27 @@ const userSchema = new mongoose.Schema(
     hasAccess: {
       type: Boolean,
       default: false,
+    },
+    //printify related fields
+    printifyShopId: {
+      type: String,
+      default: null,
+       required: false,
+    },
+    printifyConnected: {
+      type: Boolean,
+      default: false,
+       required: false,
+    },
+    printifyStoreUrl: {
+      type: String,
+      default: null,
+       required: false,
+    },
+    printifyStoreName: {
+      type: String,
+      default: null,
+       required: false,
     },
   },
   {

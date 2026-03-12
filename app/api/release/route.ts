@@ -23,52 +23,83 @@ export async function POST(req: NextRequest) {
 
   try {
     // Extract the id from the body if provided
-    const { id, bgColor, textColor, linksColor, links, name, description, video, image } = body;
+    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, font } = body;
+// Replace the updatePayload section with this:
 
-    // Prepare the update payload
-    const updatePayload: any = {
-      userId,
-      ...(bgColor && { bgColor }),
-      ...(textColor && { textColor }),
-      ...(linksColor && { linksColor }),
-      ...(name && { name }),
-      ...(image && { image }),
-      ...(description && { description }),
-      ...(video && { video }),
-      ...(Array.isArray(links) && { links }),
-    };
+// Prepare the update payload
+const updatePayload: any = {
+  userId,
+  ...(bgColor && { bgColor }),
+  ...(textColor && { textColor }),
+  ...(linksColor && { linksColor }),
+  ...(name && { name }),
+  ...(image && { image }),
+  ...(description && { description }),
+  ...(font && { font: font }),
+  ...(video && { video }),
+  ...(Array.isArray(links) && { links }),
+};
+console.log("Update Payload:", updatePayload); // Debugging line to check the payload
+console.log("Selected Products in payload:", updatePayload.selectedProducts); // Add this debug line
 
-    console.log("Update Payload:", updatePayload); // Debugging line to check the payload
+let releasePage;
 
-    let releasePage;
+if (id) {
+  // If an id is provided, attempt to find and update the existing document
+  releasePage = await ReleasePage.findOneAndUpdate(
+    { _id: id },
+    updatePayload,
+    { new: true } // Return the updated document
+  );
+  
+  console.log("Updated release page:", releasePage); // Add debug log
+  
+// Replace the raw update section with this native MongoDB approach:
 
-    if (id) {
-      // If an id is provided, attempt to find and update the existing document
-      releasePage = await ReleasePage.findOneAndUpdate(
-        { _id: id, userId },
-        updatePayload,
-        { new: true } // Return the updated document
-      );
-    }
+if (releasePage && selectedProducts !== undefined) {
+  console.log("🔄 Using native MongoDB driver...");
+  console.log("- Selected Products:", selectedProducts);
+  
+  const { ObjectId } = require('mongodb');
+  
+  const result = await ReleasePage.collection.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { selectedProducts: selectedProducts || [] } }
+  );
+  
+  console.log("✅ Native update result:", result);
+  
+  // Verify with native query
+  const doc = await ReleasePage.collection.findOne({ _id: new ObjectId(id) });
+  console.log("✅ Native query selectedProducts:", doc?.selectedProducts);
+  
+  // Return the document using Mongoose
+  releasePage = await ReleasePage.findById(id).lean();
+}
 
-    if (!releasePage) {
-      // If no id is provided or the document doesn't exist, create a new one
-      releasePage = new ReleasePage({
-        userId,
-        bgColor,
-        textColor,
-        linksColor,
-        links,
-        video,
-        image,
-        description,
-        name
-      });
+}
 
-      await releasePage.save();
-    }
+if (!releasePage) {
+  // If no id is provided or the document doesn't exist, create a new one
+  releasePage = new ReleasePage({
+    userId,
+    bgColor,
+    textColor,
+    linksColor,
+    font,
+    links,
+    video,
+    image,
+    description,
+    name,
+    selectedProducts: selectedProducts || [] // Ensure it's always an array
+  });
 
-    return NextResponse.json({ data: releasePage }, { status: 200 });
+  await releasePage.save();
+  console.log("Created new release page:", releasePage); // Add debug log
+}
+
+return NextResponse.json({ data: releasePage }, { status: 200 });
   } catch (error) {
     // Handle errors and log them
     console.error("Error updating or creating ReleasePage:", error);
