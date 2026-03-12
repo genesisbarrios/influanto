@@ -21,9 +21,7 @@ const Hero = () => {
         <p className="text-lg opacity-80 leading-relaxed">
           Coming Soon: Send bulk comments and DMs to your supporters on social media.
         </p>
-        <a href="/api/auth/signin">
-          <ButtonGetInfluanto />
-        </a>
+        <ButtonGetInfluanto />
 
         <TestimonialsAvatars priority={true} />
       </div>
