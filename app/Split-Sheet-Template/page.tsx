@@ -1,12 +1,14 @@
 "use client";
-import React from "react";
+import React, { Suspense } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export default function SplitSheetTemplate() {
   return (
     <div className="min-h-screen bg-base-100">
-      <Header />
+      <Suspense fallback={null}>
+        <Header />
+      </Suspense>
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-bold text-center mb-8">Split Sheet Template</h1>
