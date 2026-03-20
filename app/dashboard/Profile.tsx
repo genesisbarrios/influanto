@@ -903,35 +903,30 @@ const handleYouTubeMusicChange = (e: any) => {
             
             <br></br>
 
-            {user?.hasAccess && (
-              <>
-                
-                {/* Show connection status if connected */}
-                {user?.printifyShopId && (
-                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-green-800">
-                          ✅ Printify Store Connected
-                        </div>
-                        <div className="text-xs text-green-600 mt-1">
-                          Store: {user.printifyStoreName || 'Connected Store'}<br/>
-                          Shop ID: {user.printifyShopId}
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => handleDisconnect()}
-                        className="text-xs text-red-600 hover:text-red-800 underline"
-                      >
-                        Disconnect
-                      </button>
+            {/* Show connection status if connected */}
+            {user?.printifyShopId && (
+              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-medium text-green-800">
+                      ✅ Printify Store Connected
+                    </div>
+                    <div className="text-xs text-green-600 mt-1">
+                      Store: {user.printifyStoreName || 'Connected Store'}<br/>
+                      Shop ID: {user.printifyShopId}
                     </div>
                   </div>
-                )}
-                
-                <PrintifyIntegration user={user} />
-              </>
+                  <button 
+                    onClick={() => handleDisconnect()}
+                    className="text-xs text-red-600 hover:text-red-800 underline"
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              </div>
             )}
+            
+            <PrintifyIntegration user={user} />
            
 
           {/* Premium Sign Up - Enhanced aesthetic version */}
@@ -963,12 +958,6 @@ const handleYouTubeMusicChange = (e: any) => {
                   <span className="text-green-600 text-xs">✓</span>
                 </span>
                 <span>More Release Pages</span>
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-700">
-                <span className="flex-shrink-0 w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 text-xs">✓</span>
-                </span>
-                <span>Printify Merch Integration</span>
               </div>
             </div>
 

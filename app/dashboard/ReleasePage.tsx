@@ -634,12 +634,6 @@ const removeCustomLink = (index: number) => {
         return;
       }
 
-      // Validate selected products (if any)
-      if (selectedProductIds.length > 0 && !userData?.hasAccess) {
-        setAlert("Merch integration is only available for premium users.");
-        return;
-      }
-
       const dataToSend = {
         ...editingPage,
         bgColor,
@@ -699,8 +693,8 @@ const removeCustomLink = (index: number) => {
 
   // Render merch section component
   const renderMerchSection = () => {
-    if (!userData?.hasAccess || !userData?.printifyShopId) {
-      return (
+    return (
+      <>
         <div className="mb-4 p-4 bg-blue-50 rounded-md">
           <h4 className="font-bold mb-2 text-blue-800" style={{
             fontFamily: font || 'inherit'
@@ -708,96 +702,96 @@ const removeCustomLink = (index: number) => {
           <p className="text-blue-600 text-sm" style={{
             fontFamily: font || 'inherit'
           }}>
-            {!userData?.hasAccess 
-              ? "Upgrade to Premium to add merch to your release pages" 
-              : "Connect your Printify store to add merch products"
+            {!userData?.printifyShopId 
+              ? "Connect your Printify store to your Profile to add merch to your release pages" 
+              : "Your Printify store is connected. Select products to feature below."
             }
           </p>
         </div>
-      );
-    }
 
-    return (
-      <div className="mb-4" style={{ fontFamily: font || 'inherit' }}>
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="font-bold" style={{ fontFamily: font || 'inherit' }}>Merch Products</h4>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={() => setShowMerchSection(!showMerchSection)}
-            style={{ fontFamily: font || 'inherit' }}
-          >
-            {showMerchSection ? 'Hide Products' : 'Select Products'}
-          </button>
-        </div>
-        
-        {selectedProductIds.length > 0 && (
-          <div className="mb-2 text-sm text-gray-600" style={{ fontFamily: font || 'inherit' }}>
-            {selectedProductIds.length} product{selectedProductIds.length !== 1 ? 's' : ''} selected
-          </div>
-        )}
-
-        {showMerchSection && (
-          <div className="border rounded-md p-4 bg-gray-50" style={{ fontFamily: font || 'inherit' }}>
-            {isLoadingProducts ? (
-              <div className="text-center py-4">
-                <div className="animate-pulse" style={{ fontFamily: font || 'inherit' }}>Loading products...</div>
-              </div>
-            ) : availableProducts.length === 0 ? (
-              <div className="text-center py-4 text-gray-600" style={{ fontFamily: font || 'inherit' }}>
-                No products found. Make sure your Printify store has products.
-              </div>
-            ) : (
-              <div className="max-h-96 overflow-y-auto">
-                <div className="grid grid-cols-1 gap-2">
-                  {availableProducts.map((product: any) => (
-                    <div
-                      key={product.id}
-                      className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
-                        selectedProductIds.includes(product.id) 
-                          ? 'bg-blue-50 border-blue-500' 
-                          : 'bg-white border-gray-200'
-                      }`}
-                      onClick={() => toggleProductSelection(product.id)}
-                      style={{ fontFamily: font || 'inherit' }}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedProductIds.includes(product.id)}
-                          onChange={() => toggleProductSelection(product.id)}
-                          className="form-checkbox h-4 w-4"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        
-                        {product.images && product.images[0] && (
-                          <img
-                            src={product.images[0]}
-                            alt={product.title}
-                            className="w-12 h-12 object-cover rounded"
-                            onError={(e) => {
-                              e.currentTarget.src = 'https://via.placeholder.com/48x48/4ecdc4/ffffff?text=P';
-                            }}
-                          />
-                        )}
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate" style={{ fontFamily: font || 'inherit' }}>
-                            {product.title || 'Untitled Product'}
-                          </div>
-                          <div className="text-xs text-gray-500" style={{ fontFamily: font || 'inherit' }}>
-                            ${product.variants?.[0]?.price || product.price || 'N/A'}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+        {userData?.printifyShopId && (
+          <>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-bold" style={{ fontFamily: font || 'inherit' }}>Merch Products</h4>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setShowMerchSection(!showMerchSection)}
+                style={{ fontFamily: font || 'inherit' }}
+              >
+                {showMerchSection ? 'Hide Products' : 'Select Products'}
+              </button>
+            </div>
+            
+            {selectedProductIds.length > 0 && (
+              <div className="mb-2 text-sm text-gray-600" style={{ fontFamily: font || 'inherit' }}>
+                {selectedProductIds.length} product{selectedProductIds.length !== 1 ? 's' : ''} selected
               </div>
             )}
-          </div>
+
+            {showMerchSection && (
+              <div className="border rounded-md p-4 bg-gray-50" style={{ fontFamily: font || 'inherit' }}>
+                {isLoadingProducts ? (
+                  <div className="text-center py-4">
+                    <div className="animate-pulse" style={{ fontFamily: font || 'inherit' }}>Loading products...</div>
+                  </div>
+                ) : availableProducts.length === 0 ? (
+                  <div className="text-center py-4 text-gray-600" style={{ fontFamily: font || 'inherit' }}>
+                    No products found. Make sure your Printify store has products.
+                  </div>
+                ) : (
+                  <div className="max-h-96 overflow-y-auto">
+                    <div className="grid grid-cols-1 gap-2">
+                      {availableProducts.map((product: any) => (
+                        <div
+                          key={product.id}
+                          className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
+                            selectedProductIds.includes(product.id) 
+                              ? 'bg-blue-50 border-blue-500' 
+                              : 'bg-white border-gray-200'
+                          }`}
+                          onClick={() => toggleProductSelection(product.id)}
+                          style={{ fontFamily: font || 'inherit' }}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              checked={selectedProductIds.includes(product.id)}
+                              onChange={() => toggleProductSelection(product.id)}
+                              className="form-checkbox h-4 w-4"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            
+                            {product.images && product.images[0] && (
+                              <img
+                                src={product.images[0]}
+                                alt={product.title}
+                                className="w-12 h-12 object-cover rounded"
+                                onError={(e) => {
+                                  e.currentTarget.src = 'https://via.placeholder.com/48x48/4ecdc4/ffffff?text=P';
+                                }}
+                              />
+                            )}
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate" style={{ fontFamily: font || 'inherit' }}>
+                                {product.title || 'Untitled Product'}
+                              </div>
+                              <div className="text-xs text-gray-500" style={{ fontFamily: font || 'inherit' }}>
+                                ${product.variants?.[0]?.price || product.price || 'N/A'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
-      </div>
+      </>
     );
   };
 

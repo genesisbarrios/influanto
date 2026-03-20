@@ -432,7 +432,7 @@ const containerStyle = {
               ))}
 
     {/* MERCH SECTION */}
-    {user?.hasAccess && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
+    { user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
       <div style={{ 
         marginTop: "24px", 
         marginBottom: "16px", 
@@ -870,7 +870,16 @@ const containerStyle = {
 </div>
 
   {/* PRODUCT SELECTION SECTION - ONLY IN EDITING VIEW */}
-{user?.hasAccess && user?.printifyShopId && (
+  <div className="mb-4 p-4 bg-blue-50 rounded-md">
+        <h4 className="font-bold mb-2 text-blue-800">Merch Integration</h4>
+        <p className="text-blue-600 text-sm">
+          {!user?.printifyShopId 
+            ? "Connect your Printify store to your Profile to add merch to your release pages" 
+            : "Your Printify store is connected. Select products to feature below."
+          }
+        </p>
+      </div>
+{user?.printifyShopId && (
   <div className="mt-8 w-full border-t pt-6">
     {/* Center the title on mobile */}
     <div className="mb-4 text-center">
