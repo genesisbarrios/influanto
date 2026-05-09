@@ -41,6 +41,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               gtag('config', 'G-Y8YZX4PWTB');
           `,
         }}/>
+        <script src="https://analytics.ahrefs.com/analytics.js" data-key="V99pP2dI1JT1hXRZGzOaIQ" async></script>
         </head>
       )}
       <body>
