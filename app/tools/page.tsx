@@ -11,18 +11,17 @@ const calcDelayMs = (bpm: number, note: number) => {
 };
 
 const tools = [
-
+   {
+    title: "Split Sheet Generator",
+    description: "Create and export split sheets for your music collaborations.",
+    href: "/Split-Sheet-Generator",
+    icon: "📄",
+  },
   {
     title: "Synthfluanto",
     description: "Create and share your own melodies with our synth.",
     href: "/Synthfluanto",
     icon: "🎹",
-  },
-  {
-    title: "Split Sheet Generator",
-    description: "Create and export split sheets for your music collaborations.",
-    href: "/Split-Sheet-Generator",
-    icon: "📄",
   },
   {
     title: "Delay & Reverb Time Calculator",
