@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import posthog from "posthog-js";
 
 // Import or define your components here
 import Profile from './Profile';
@@ -15,6 +16,11 @@ import User from "@/models/User";
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
+
+  const handleTabSwitch = (tab: string) => {
+    setActiveComponent(tab);
+    posthog.capture("dashboard_tab_switched", { tab });
+  };
 
   // Components mapping
   const components: any = {
@@ -32,22 +38,22 @@ export default function Dashboard() {
       <aside className="w-1/4 sm:w-1/3 p-0.5 sm:p-4 bg-base-100 sm:p-8">
         <ul className="menu bg-base-100 w-full p-2 rounded-box text-xs sm:text-sm md:text-base lg:text-lg">
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('profile')}>Profile</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('profile')}>Profile</button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('link-in-bio')}>Link in Bio</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('link-in-bio')}>Link in Bio</button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('release-page')}>Release Pages</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('release-page')}>Release Pages</button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('qr-code-generator')}>QR Codes</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('qr-code-generator')}>QR Codes</button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('curator-search')}>Curator Search</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('curator-search')}>Curator Search</button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('community')}>Community</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('community')}>Community</button>
           </li>
         </ul>
       </aside>

@@ -6,6 +6,7 @@ import { getSEOTags } from "@/libs/seo";
 import ClientLayout from "@/components/LayoutClient";
 import config from "@/config";
 import { Analytics } from "@vercel/analytics/next"
+import { PostHogProvider } from "@/app/providers";
 import "./globals.css";
 
 
@@ -46,10 +47,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       )}
       <body>
         {/* ClientLayout contains all the client wrappers (Crisp chat support, toast messages, tooltips, etc.) */}
-        <ClientLayout>
-          {children}
-          <Analytics />
-        </ClientLayout>
+        <PostHogProvider>
+          <ClientLayout>
+            {children}
+            <Analytics />
+          </ClientLayout>
+        </PostHogProvider>
       </body>
     </html>
   );

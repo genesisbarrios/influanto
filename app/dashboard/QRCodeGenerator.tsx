@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import apiClient from "@/libs/api";
 import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
+import posthog from "posthog-js";
 
 // Define a TypeScript interface for the user prop to ensure type safety
 interface User {
@@ -191,6 +192,11 @@ const addQRCode = async () => {
     });
 
     console.log(data);
+    posthog.capture("qr_code_created", {
+      name: newName,
+      dot_style: dotStyle,
+      is_premium: !!user?.hasAccess,
+    });
     setAlert("✅ QR Code saved successfully");
     setShowCreateView(false);
     
@@ -211,6 +217,7 @@ const addQRCode = async () => {
     getQrCodes();
   } catch (e: any) {
     console.error('Create QR error:', e);
+    posthog.captureException(e);
     const errorMessage = e?.response?.data?.message || e?.message || "Failed to create QR code.";
     setAlert(`❌ ${errorMessage}`);
   } finally {
@@ -412,6 +419,7 @@ useEffect(() => {
         extension: format
       });
 
+      posthog.capture("qr_code_downloaded", { name: code.name, format });
       setAlert(`✅ QR code downloaded as ${format.toUpperCase()}`);
     } catch (error) {
       console.error('Download error:', error);
@@ -424,12 +432,14 @@ useEffect(() => {
       const response = await apiClient.delete(`/delete-code`, {
         data: { id }
       });
-      
+
+      posthog.capture("qr_code_deleted", { qr_code_id: id });
       setQRCodes(qrCodes.filter((code: any) => code._id !== id));
       setAlert("QR Code deleted successfully.");
-      
+
     } catch (e: any) {
       console.error('Delete error:', e);
+      posthog.captureException(e);
       const errorMessage = e?.response?.data?.error || e?.response?.data?.message || "An error occurred while deleting the QR Code.";
       setAlert(errorMessage);
     }

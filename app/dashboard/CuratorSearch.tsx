@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import posthog from "posthog-js";
 
 const PitchToSpotify: React.FC = () => {
   useEffect(() => {
@@ -94,8 +95,13 @@ const PitchToSpotify: React.FC = () => {
       }
       const data = await res.json();
       setPlaylists(data.playlists || []);
+      posthog.capture("curator_searched", {
+        genre: trimmed,
+        results_count: (data.playlists || []).length,
+      });
     } catch (err) {
       console.error('fetchPlaylists error', err);
+      posthog.captureException(err);
       setPlaylists([]);
     } finally {
       setLoading(false);

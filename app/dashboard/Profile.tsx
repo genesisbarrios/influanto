@@ -6,6 +6,7 @@ import User from "@/models/User";
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
 import { useSession, signOut } from "next-auth/react";
+import posthog from "posthog-js";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faDiscord, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
@@ -812,10 +813,12 @@ const handleYouTubeMusicChange = (e: any) => {
   
     } catch (error) {
       console.error("Error:", error.response || error.message);
+      posthog.captureException(error);
       setAlertt(error?.message || "An unknown error occurred");
     } finally {
       setIsLoading(false);
       setEditing(false);
+      posthog.capture("profile_updated");
       setAlertt("Profile updated successfully");
     }
   };

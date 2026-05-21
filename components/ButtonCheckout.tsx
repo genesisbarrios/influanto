@@ -3,6 +3,7 @@
 import { useState } from "react";
 import apiClient from "@/libs/api";
 import config from "@/config";
+import posthog from "posthog-js";
 
 // This component is used to create Stripe Checkout Sessions
 // It calls the /api/stripe/create-checkout route with the priceId, successUrl and cancelUrl
@@ -20,6 +21,8 @@ const ButtonCheckout = ({
   const handlePayment = async () => {
     setIsLoading(true);
 
+    posthog.capture("checkout_started", { price_id: priceId, mode });
+
     try {
       const { url }: { url: string } = await apiClient.post(
         "/stripe/create-checkout",
@@ -34,6 +37,7 @@ const ButtonCheckout = ({
       window.location.href = url;
     } catch (e) {
       console.error(e);
+      posthog.captureException(e);
     }
 
     setIsLoading(false);

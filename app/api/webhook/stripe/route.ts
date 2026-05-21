@@ -5,6 +5,7 @@ import connectMongo from "@/libs/mongoose";
 import configFile from "@/config";
 import User from "@/models/User";
 import { findCheckoutSession } from "@/libs/stripe";
+import { getPostHogClient } from "@/libs/posthog-server";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY is not defined in the environment variables");
@@ -93,6 +94,20 @@ export async function POST(req: NextRequest) {
         user.hasAccess = true;
         await user.save();
 
+        // Track subscription completion in PostHog
+        const posthog = getPostHogClient();
+        posthog.capture({
+          distinctId: user._id.toString(),
+          event: "subscription_completed",
+          properties: {
+            price_id: priceId,
+            plan_name: plan.name,
+            customer_id: customerId,
+            email: customer.email,
+          },
+        });
+        await posthog.shutdown();
+
         // Extra: send email with user link, product page, etc...
         // try {
         //   await sendEmail(...);
@@ -130,6 +145,18 @@ export async function POST(req: NextRequest) {
         // Revoke access to your product
         user.hasAccess = false;
         await user.save();
+
+        // Track subscription cancellation in PostHog
+        const posthogCancel = getPostHogClient();
+        posthogCancel.capture({
+          distinctId: user._id.toString(),
+          event: "subscription_cancelled",
+          properties: {
+            customer_id: subscription.customer,
+            price_id: stripeObject.items?.data[0]?.price?.id ?? null,
+          },
+        });
+        await posthogCancel.shutdown();
 
         break;
       }

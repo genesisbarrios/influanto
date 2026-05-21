@@ -5,6 +5,7 @@ import apiClient from "@/libs/api";
 import { useSession } from "next-auth/react";
 import { CldUploadWidget } from 'next-cloudinary';
 import { debounce } from "lodash";
+import posthog from "posthog-js";
 
 const ReleasePages = () => {
   const { data, status } = useSession();
@@ -643,7 +644,14 @@ const removeCustomLink = (index: number) => {
         selectedProducts: selectedProductIds,
       };
 
+      const isNew = !editingPage?._id;
       await apiClient.post(`/release/`, dataToSend);
+
+      if (isNew) {
+        posthog.capture("release_page_created", { page_name: editingPage?.name });
+      } else {
+        posthog.capture("release_page_saved", { page_name: editingPage?.name, page_id: editingPage?._id });
+      }
 
       setEditingPage(null);
       setCreatePage(false);
@@ -651,7 +659,8 @@ const removeCustomLink = (index: number) => {
       getReleasePages(data?.user?.id);
       setAlert("Release page saved successfully!");
     } catch (e: any) {
-      console.error('❌ Save error:', e?.message); 
+      console.error('❌ Save error:', e?.message);
+      posthog.captureException(e);
       setAlert(e?.response?.data?.message || e?.message || "Failed to save release page.");
     }
   };

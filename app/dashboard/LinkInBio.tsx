@@ -6,6 +6,7 @@ import linkInBioSchema from "@/models/LinkInBio";
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
 import { useSession, signOut } from "next-auth/react";
+import posthog from "posthog-js";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
@@ -338,9 +339,11 @@ useEffect(() => {
       });
 
       console.log(data);
+      posthog.capture("link_in_bio_saved", { links_count: links.length });
       setAlertt("Link In Bio updated successfully");
     } catch (e) {
       //console.error(e?.message);
+      posthog.captureException(e);
       setAlertt(e?.message);
     } finally {
       setIsLoading(false);
