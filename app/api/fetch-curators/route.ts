@@ -95,18 +95,20 @@ export async function GET(req: NextRequest) {
                 },
             });
 
-            const newPlaylists = response.data.playlists?.items
-            ?.filter((playlist: any) => playlist !== null) // Remove null entries
-            ?.filter((playlist: any) => playlist?.description != null) // Remove empty descriptions
-            ?.filter((playlist: any) => playlist?.description.toLowerCase().includes('ig') || playlist?.description.toLowerCase().includes('instagram') || playlist?.description.toLowerCase().includes('tiktok')  || playlist?.description.toLowerCase().includes('contact')  || playlist?.description.toLowerCase().includes('email')  || playlist?.description.toLowerCase().includes('e-mail')) 
-            ?.filter((playlist: any) => playlist?.owner?.external_urls?.spotify) // Check if the owner has a Spotify profile
-            ?.map((playlist: any) => {
+            const rawItems: any[] = response.data.playlists?.items ?? [];
+
+            const newPlaylists = rawItems
+            .filter((playlist: any) => playlist !== null) // Remove null entries
+            .filter((playlist: any) => playlist?.description != null) // Remove empty descriptions
+            .filter((playlist: any) => playlist?.description.toLowerCase().includes('ig') || playlist?.description.toLowerCase().includes('instagram') || playlist?.description.toLowerCase().includes('tiktok')  || playlist?.description.toLowerCase().includes('contact')  || playlist?.description.toLowerCase().includes('email')  || playlist?.description.toLowerCase().includes('e-mail'))
+            .filter((playlist: any) => playlist?.owner?.external_urls?.spotify) // Check if the owner has a Spotify profile
+            .map((playlist: any) => {
                 // Keep the original description unchanged, but parse social links
                 const description = playlist?.description || '';
                 const { externalUrl, cleanedDescription, email } = parseSocialLinks(description);
 
                 // Get the playlist cover image if available
-                const playlistCoverImage = playlist?.images?.[0]?.url || null; 
+                const playlistCoverImage = playlist?.images?.[0]?.url || null;
 
                 return {
                     name: playlist?.name || 'Unknown Playlist',
@@ -121,11 +123,11 @@ export async function GET(req: NextRequest) {
                 };
             })
             // IMPORTANT: Filter out curators with no contact links BEFORE returning
-            ?.filter((playlist: any) => playlist.externalUrl || playlist.email);
+            .filter((playlist: any) => playlist.externalUrl || playlist.email);
 
             playlists = playlists.concat(newPlaylists);
             offset += 50;
-            hasMore = newPlaylists.length > 0;
+            hasMore = rawItems.length > 0; // base pagination on raw Spotify page size, not filtered count
         }
 
         console.log('Filtered playlists with contact info:', playlists.length);

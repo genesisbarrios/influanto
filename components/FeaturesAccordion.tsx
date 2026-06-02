@@ -47,8 +47,8 @@ const features = [
     ),
   },
   {
-    title: "Playlist Curator Search Tool",
-    description: "Use our Curator Search Tool to find and contact Playlist Curators!",
+    title: "Outreach / Contacts / Email Campaigns",
+    description: "Use our Outreach Dashboard to manage your contacts, and send email campaigns to your fans.",
     type: "image",
     path: playlist,
     alt: "A computer",
