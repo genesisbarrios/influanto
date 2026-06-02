@@ -13,24 +13,18 @@ const SettingsDropdown = () => {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
-
   const handleBilling = async () => {
     setIsLoading(true);
-
     try {
       const { url }: { url: string } = await apiClient.post(
         "/stripe/create-portal",
-        {
-          returnUrl: window.location.href,
-        }
+        { returnUrl: window.location.href }
       );
-
       window.location.href = url;
     } catch (e) {
       console.error(e);
       alert("Failed to open billing portal. Please try again.");
     }
-
     setIsLoading(false);
   };
 
@@ -40,10 +34,8 @@ const SettingsDropdown = () => {
 
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
-
     try {
       await apiClient.delete("/account");
-      // Redirect to homepage after successful deletion
       window.location.href = "/";
     } catch (e) {
       console.error(e);
@@ -55,8 +47,8 @@ const SettingsDropdown = () => {
 
   return (
     <>
-      <Popover className="relative z-10 inline-block">
-        {({ open }) => (
+      <Popover className="inline-block">
+        {({ open, close }) => (
           <>
             <Popover.Button className="btn btn-ghost btn-sm">
               <svg
@@ -72,7 +64,7 @@ const SettingsDropdown = () => {
                 />
               </svg>
               Settings
-              {(isLoading || isDeleting) ? (
+              {isLoading || isDeleting ? (
                 <span className="loading loading-spinner loading-xs"></span>
               ) : (
                 <svg
@@ -80,7 +72,7 @@ const SettingsDropdown = () => {
                   viewBox="0 0 20 20"
                   fill="currentColor"
                   className={`w-4 h-4 duration-200 opacity-50 ${
-                    open ? "transform rotate-180 " : ""
+                    open ? "transform rotate-180" : ""
                   }`}
                 >
                   <path
@@ -91,7 +83,7 @@ const SettingsDropdown = () => {
                 </svg>
               )}
             </Popover.Button>
-            
+
             <Transition
               enter="transition duration-100 ease-out"
               enterFrom="transform scale-95 opacity-0"
@@ -100,21 +92,35 @@ const SettingsDropdown = () => {
               leaveFrom="transform scale-100 opacity-100"
               leaveTo="transform scale-95 opacity-0"
             >
-              <Popover.Panel className="absolute right-0 z-10 mt-2 w-48 transform">
+              {/* 
+                Key fix: on mobile we use a fixed full-width bottom sheet style,
+                on sm+ we use the standard absolute dropdown anchored to the right.
+              */}
+             <Popover.Panel
+              className="
+                fixed inset-x-2 bottom-4 z-[9999]
+                sm:absolute sm:inset-auto sm:bottom-auto sm:right-0 sm:top-full sm:mt-2 sm:w-48
+              "
+            >
+              <div
+                className="fixed inset-0 z-[-1] sm:hidden"
+                onClick={() => close()}
+              />
+
                 <div className="overflow-hidden rounded-xl shadow-xl ring-1 ring-base-content ring-opacity-5 bg-base-100 p-1">
                   <div className="space-y-0.5 text-sm">
-                    
+
                     {/* Billing Button */}
                     <button
-                      className="flex items-center gap-2 hover:bg-base-300 duration-200 py-1.5 px-4 w-full rounded-lg font-medium"
-                      onClick={handleBilling}
+                      className="flex items-center gap-2 hover:bg-base-300 duration-200 py-3 px-4 w-full rounded-lg font-medium text-base sm:py-1.5 sm:text-sm"
+                      onClick={() => { close(); handleBilling(); }}
                       disabled={isLoading || isDeleting}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 20 20"
                         fill="currentColor"
-                        className="w-5 h-5"
+                        className="w-5 h-5 flex-shrink-0"
                       >
                         <path
                           fillRule="evenodd"
@@ -127,15 +133,15 @@ const SettingsDropdown = () => {
 
                     {/* Delete Account Button */}
                     <button
-                      className="flex items-center gap-2 hover:bg-error/20 hover:text-error duration-200 py-1.5 px-4 w-full rounded-lg font-medium text-error"
-                      onClick={handleDeleteAccountClick}
+                      className="flex items-center gap-2 hover:bg-error/20 hover:text-error duration-200 py-3 px-4 w-full rounded-lg font-medium text-error text-base sm:py-1.5 sm:text-sm"
+                      onClick={() => { close(); handleDeleteAccountClick(); }}
                       disabled={isLoading || isDeleting}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 20 20"
                         fill="currentColor"
-                        className="w-5 h-5"
+                        className="w-5 h-5 flex-shrink-0"
                       >
                         <path
                           fillRule="evenodd"
@@ -145,7 +151,15 @@ const SettingsDropdown = () => {
                       </svg>
                       Delete Account
                     </button>
-                    
+
+                    {/* Cancel / close row — mobile only */}
+                    <button
+                      className="sm:hidden flex items-center justify-center gap-2 duration-200 py-3 px-4 w-full rounded-lg font-medium text-base text-base-content/60 border-t border-base-200 mt-1 pt-3"
+                      onClick={() => close()}
+                    >
+                      Cancel
+                    </button>
+
                   </div>
                 </div>
               </Popover.Panel>
@@ -156,9 +170,9 @@ const SettingsDropdown = () => {
 
       {/* Delete Account Confirmation Modal */}
       <Transition appear show={showDeleteModal}>
-        <Dialog 
-          as="div" 
-          className="relative z-50" 
+        <Dialog
+          as="div"
+          className="relative z-50"
           onClose={() => setShowDeleteModal(false)}
         >
           <Transition.Child
@@ -201,12 +215,12 @@ const SettingsDropdown = () => {
                     </svg>
                     Delete Account
                   </Dialog.Title>
-                  
+
                   <div className="mt-2">
                     <p className="text-sm text-base-content/70 mb-4">
                       Are you absolutely sure you want to delete your account? This action cannot be undone.
                     </p>
-                    
+
                     <div className="bg-error/10 border border-error/20 rounded-lg p-3 mb-4">
                       <p className="text-sm text-error font-medium mb-2">
                         This will permanently delete:
