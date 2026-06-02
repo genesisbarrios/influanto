@@ -18,6 +18,66 @@ const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-3
 import { useRouter } from 'next/navigation'; 
 import { usePathname, useSearchParams } from 'next/navigation'
 
+// ─── Hero Patterns ───────────────────────────────────────────────────────────
+
+const PATTERNS = [
+  {
+    name: "Topography",
+    id: "topography",
+    paths: `<path d='M20 0 C20 11 11 20 0 20 C-11 20 -20 11 -20 0 C-20 -11 -11 -20 0 -20 C11 -20 20 -11 20 0 Z M0 16 C8.8 16 16 8.8 16 0 C16 -8.8 8.8 -16 0 -16 C-8.8 -16 -16 -8.8 -16 0 C-16 8.8 -8.8 16 0 16 Z' transform='translate(20 20)' fill='none' stroke='COLOR' stroke-width='1'/>`,
+    width: 40, height: 40,
+  },
+  {
+    name: "Chevron",
+    id: "chevron",
+    paths: `<path d='M0 11 L7 0 L14 11' fill='none' stroke='COLOR' stroke-width='1.5'/><path d='M0 22 L7 11 L14 22' fill='none' stroke='COLOR' stroke-width='1.5'/>`,
+    width: 14, height: 22,
+  },
+  {
+    name: "Dots",
+    id: "dots",
+    paths: `<circle cx='3' cy='3' r='2' fill='COLOR'/>`,
+    width: 10, height: 10,
+  },
+  {
+    name: "Cross",
+    id: "cross",
+    paths: `<path d='M5 0 L5 10 M0 5 L10 5' stroke='COLOR' stroke-width='1.5' stroke-linecap='round'/>`,
+    width: 10, height: 10,
+  },
+  {
+    name: "Diagonal",
+    id: "diagonal",
+    paths: `<path d='M-1 1 L1 -1 M0 10 L10 0 M9 11 L11 9' stroke='COLOR' stroke-width='1'/>`,
+    width: 10, height: 10,
+  },
+  {
+    name: "Hexagons",
+    id: "hexagons",
+    paths: `<path d='M10 0 L20 5.77 L20 17.32 L10 23.09 L0 17.32 L0 5.77 Z' fill='none' stroke='COLOR' stroke-width='1'/>`,
+    width: 20, height: 23,
+  },
+  {
+    name: "Waves",
+    id: "waves",
+    paths: `<path d='M0 5 Q5 0 10 5 Q15 10 20 5' fill='none' stroke='COLOR' stroke-width='1.5'/>`,
+    width: 20, height: 10,
+  },
+  {
+    name: "Triangles",
+    id: "triangles",
+    paths: `<path d='M0 10 L5 0 L10 10 Z' fill='COLOR'/>`,
+    width: 10, height: 10,
+  },
+];
+
+function buildPatternUrl(pattern: typeof PATTERNS[0], fgColor: string, opacity: number) {
+  const encodedColor = fgColor.replace('#', '%23');
+  const pathsWithColor = pattern.paths.replace(/COLOR/g, encodedColor);
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${pattern.width}' height='${pattern.height}'><g opacity='${opacity}'>${pathsWithColor}</g></svg>`;
+  return `url("data:image/svg+xml,${svg}")`;
+}
+
 const LinkInBioPage =  () => {
   const router = useRouter();
   const [user, setUser] = useState<any>();
@@ -296,8 +356,28 @@ useEffect(() => {
       document.body.style.backgroundColor = bgColor;
     }
     
-    // Apply background image
-    if (bgImage) {
+    // Apply pattern if bgMode is 'pattern'
+    if (linkInBio?.bgMode === 'pattern') {
+      const p = PATTERNS.find(p => p.id === (linkInBio?.patternId || PATTERNS[0].id)) || PATTERNS[0];
+      document.body.style.backgroundImage = buildPatternUrl(
+        p,
+        linkInBio?.patternFg || '#000000',
+        linkInBio?.patternOpacity ?? 0.5
+      );
+      document.body.style.backgroundColor = linkInBio?.patternBg || '#ffffff';
+      document.body.style.backgroundSize = '';
+      document.body.style.backgroundPosition = '';
+    }
+    // Apply custom uploaded background
+    else if (linkInBio?.bgMode === 'upload' && linkInBio?.bgImageCustom) {
+      document.body.style.backgroundImage = `url('${linkInBio.bgImageCustom}')`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundRepeat = 'no-repeat';
+      document.body.style.backgroundAttachment = 'fixed';
+    }
+    // Apply regular background image
+    else if (bgImage) {
       document.body.style.backgroundImage = `url(${bgImage})`;
       document.body.style.backgroundSize = 'cover';
       document.body.style.backgroundPosition = 'center';
@@ -324,7 +404,7 @@ useEffect(() => {
       document.body.style.fontFamily = "";
       document.documentElement.style.removeProperty('--page-font');
     };
-  }, [bgColor, bgImage, font]);
+  }, [bgColor, bgImage, font, linkInBio?.bgMode, linkInBio?.patternId, linkInBio?.patternFg, linkInBio?.patternBg, linkInBio?.patternOpacity, linkInBio?.bgImageCustom]);
   
    // Check if user data is not yet loaded
   if (!user) {

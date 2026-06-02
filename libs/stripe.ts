@@ -107,9 +107,11 @@ export const createCheckout = async ({
       throw new Error("Stripe session URL is null.");
     }
     return stripeSession.url;
-  } catch (e) {
-    console.error(e);
-    throw new Error("Failed to create checkout session.");
+  } catch (error) {
+    console.error(error);
+    const message =
+      error?.message || error?.toString() || "Failed to create checkout session.";
+    throw new Error(`Failed to create checkout session. ${message}`);
   }
 };
 

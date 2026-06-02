@@ -41,6 +41,12 @@ export async function POST(req: NextRequest) {
         cardBgColor: body.cardBgColor,
         font: body.font,
         bgImage: body.bgImage,
+        bgMode: body.bgMode,
+        bgImageCustom: body.bgImageCustom,
+        patternId: body.patternId,
+        patternFg: body.patternFg,
+        patternBg: body.patternBg,
+        patternOpacity: body.patternOpacity,
       }
     };
 
