@@ -142,6 +142,10 @@ export async function POST(req: NextRequest) {
         );
         const user = await User.findOne({ customerId: subscription.customer });
 
+        // Never revoke access for lifetime (one-time payment) plans
+        const userPlan = configFile.stripe.plans.find((p) => p.priceId === user.priceId);
+        if (userPlan?.mode === "payment") break;
+
         // Revoke access to your product
         user.hasAccess = false;
         await user.save();
