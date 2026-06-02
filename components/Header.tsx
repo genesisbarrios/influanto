@@ -185,7 +185,7 @@ const Header = () => {
             </div>
             <div className="divider"></div>
             {/* Your CTA on small screens */}
-            <div className="flex flex-col">{cta}</div>
+            <div className="flex flex-col">{data ? ctaAuth : cta}</div>
           </div>
         </div>
       </div>
