@@ -14,111 +14,70 @@ import Head from 'next/head';
 import { text } from "stream/consumers";
 import { CldUploadWidget } from 'next-cloudinary';
 import PrintifyProducts from '@/components/PrintifyProducts';
+import * as HeroPatterns from 'hero-patterns';
 
 const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
 // ─── Hero Patterns ───────────────────────────────────────────────────────────
 
-const PATTERNS = [
-  {
-    name: "Topography",
-    id: "topography",
-    paths: `<path d='M20 0 C20 11 11 20 0 20 C-11 20 -20 11 -20 0 C-20 -11 -11 -20 0 -20 C11 -20 20 -11 20 0 Z M0 16 C8.8 16 16 8.8 16 0 C16 -8.8 8.8 -16 0 -16 C-8.8 -16 -16 -8.8 -16 0 C-16 8.8 -8.8 16 0 16 Z' transform='translate(20 20)' fill='none' stroke='COLOR' stroke-width='1'/>`,
-    width: 40, height: 40,
-  },
-  {
-    name: "Chevron",
-    id: "chevron",
-    paths: `<path d='M0 11 L7 0 L14 11' fill='none' stroke='COLOR' stroke-width='1.5'/><path d='M0 22 L7 11 L14 22' fill='none' stroke='COLOR' stroke-width='1.5'/>`,
-    width: 14, height: 22,
-  },
-  {
-    name: "Dots",
-    id: "dots",
-    paths: `<circle cx='3' cy='3' r='2' fill='COLOR'/>`,
-    width: 10, height: 10,
-  },
-  {
-    name: "Cross",
-    id: "cross",
-    paths: `<path d='M5 0 L5 10 M0 5 L10 5' stroke='COLOR' stroke-width='1.5' stroke-linecap='round'/>`,
-    width: 10, height: 10,
-  },
-  {
-    name: "Diagonal",
-    id: "diagonal",
-    paths: `<path d='M-1 1 L1 -1 M0 10 L10 0 M9 11 L11 9' stroke='COLOR' stroke-width='1'/>`,
-    width: 10, height: 10,
-  },
-  {
-    name: "Hexagons",
-    id: "hexagons",
-    paths: `<path d='M10 0 L20 5.77 L20 17.32 L10 23.09 L0 17.32 L0 5.77 Z' fill='none' stroke='COLOR' stroke-width='1'/>`,
-    width: 20, height: 23,
-  },
-  {
-    name: "Waves",
-    id: "waves",
-    paths: `<path d='M0 5 Q5 0 10 5 Q15 10 20 5' fill='none' stroke='COLOR' stroke-width='1.5'/>`,
-    width: 20, height: 10,
-  },
-  {
-    name: "Triangles",
-    id: "triangles",
-    paths: `<path d='M0 10 L5 0 L10 10 Z' fill='COLOR'/>`,
-    width: 10, height: 10,
-  },
-];
+type PatternFn = (color: string, opacity: number) => string;
+const HP = HeroPatterns as Record<string, PatternFn>;
+const PATTERN_IDS = Object.keys(HP);
 
-function buildPatternUrl(pattern: typeof PATTERNS[0], fgColor: string, opacity: number) {
-  const encodedColor = fgColor.replace('#', '%23');
-  const pathsWithColor = pattern.paths.replace(/COLOR/g, encodedColor);
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${pattern.width}' height='${pattern.height}'><g opacity='${opacity}'>${pathsWithColor}</g></svg>`;
-  return `url("data:image/svg+xml,${svg}")`;
+function toTitleCase(str: string) {
+  return str.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase());
+}
+
+function buildPatternUrl(patternId: string, fgColor: string, opacity: number) {
+  const fn = HP[patternId];
+  if (!fn) return 'none';
+  return fn(fgColor, opacity);
 }
 
 function HeroPatternPicker({ linkInBio, setLinkInBio }: { linkInBio: any; setLinkInBio: any }) {
   const patternFg = linkInBio?.patternFg || '#000000';
   const patternBg = linkInBio?.patternBg || '#ffffff';
   const patternOpacity = linkInBio?.patternOpacity ?? 0.5;
-  const selectedPattern = linkInBio?.patternId || PATTERNS[0].id;
+  const selectedPattern = linkInBio?.patternId || PATTERN_IDS[0];
 
   const update = (key: string, val: any) =>
     setLinkInBio((prev: any) => ({ ...prev, [key]: val }));
 
-  const currentPattern = PATTERNS.find(p => p.id === selectedPattern) || PATTERNS[0];
-
   return (
     <div className="space-y-4">
-      {/* Pattern Grid */}
-      <div className="grid grid-cols-4 gap-2">
-        {PATTERNS.map((p) => {
-          const previewUrl = buildPatternUrl(p, patternFg, patternOpacity);
-          return (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => update('patternId', p.id)}
-              className={`border-2 rounded-lg p-1 flex flex-col items-center gap-1 transition-colors ${
-                selectedPattern === p.id
-                  ? 'border-blue-500'
-                  : 'border-gray-200 hover:border-gray-400'
-              }`}
-            >
-              <div
-                style={{
-                  width: 56,
-                  height: 40,
-                  borderRadius: 6,
-                  overflow: 'hidden',
-                  backgroundColor: patternBg,
-                  backgroundImage: previewUrl,
-                }}
-              />
-              <span style={{ fontSize: 9, color: '#555' }}>{p.name}</span>
-            </button>
-          );
-        })}
+      {/* Scrollable 3-column pattern grid */}
+      <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-2">
+        <div className="grid grid-cols-3 gap-2">
+          {PATTERN_IDS.map((patternId) => {
+            const previewUrl = buildPatternUrl(patternId, patternFg, patternOpacity);
+            return (
+              <button
+                key={patternId}
+                type="button"
+                onClick={() => update('patternId', patternId)}
+                className={`border-2 rounded-lg p-1 flex flex-col items-center gap-1 transition-colors ${
+                  selectedPattern === patternId
+                    ? 'border-blue-500'
+                    : 'border-gray-200 hover:border-gray-400'
+                }`}
+              >
+                <div
+                  style={{
+                    width: '100%',
+                    height: 44,
+                    borderRadius: 6,
+                    overflow: 'hidden',
+                    backgroundColor: patternBg,
+                    backgroundImage: previewUrl,
+                  }}
+                />
+                <span style={{ fontSize: 9, color: '#555', textAlign: 'center', lineHeight: 1.2 }}>
+                  {toTitleCase(patternId)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Controls */}
@@ -163,7 +122,7 @@ function HeroPatternPicker({ linkInBio, setLinkInBio }: { linkInBio: any; setLin
             width: '100%',
             height: '100%',
             backgroundColor: patternBg,
-            backgroundImage: buildPatternUrl(currentPattern, patternFg, patternOpacity),
+            backgroundImage: buildPatternUrl(selectedPattern, patternFg, patternOpacity),
           }}
         />
       </div>
@@ -175,9 +134,9 @@ function HeroPatternPicker({ linkInBio, setLinkInBio }: { linkInBio: any; setLin
 
 function applyBodyBackground(linkInBio: any, bgImage: any, bgColor: any) {
   if (linkInBio?.bgMode === 'pattern') {
-    const p = PATTERNS.find(p => p.id === (linkInBio?.patternId || PATTERNS[0].id)) || PATTERNS[0];
+    const patternId = linkInBio?.patternId || PATTERN_IDS[0];
     document.body.style.backgroundImage = buildPatternUrl(
-      p,
+      patternId,
       linkInBio?.patternFg || '#000000',
       linkInBio?.patternOpacity ?? 0.5
     );
@@ -796,7 +755,7 @@ const LinkInBio = () => {
 
               <div className="w-full">
                 {/* Color Pickers Row */}
-                <div className="flex justify-center items-center gap-4 mb-4 flex-wrap">
+                <div className="flex justify-center items-center gap-4 mb-3 flex-wrap">
                   <div className="flex items-center gap-1">
                     <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Text</span>
                     <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)}
@@ -812,6 +771,31 @@ const LinkInBio = () => {
                     <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)}
                       className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer" />
                   </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Card BG</span>
+                    <input type="color" value={linkInBio?.cardBgColor || "#ffffff"}
+                      onChange={e => setLinkInBio({ ...linkInBio, cardBgColor: e.target.value })}
+                      className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer" />
+                  </div>
+                </div>
+
+                {/* Font Row */}
+                <div className="flex items-center mb-4">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Font:</label>
+                    <select
+                      value={linkInBio?.font || "sans-serif"}
+                      onChange={e => setLinkInBio({ ...linkInBio, font: e.target.value })}
+                      className="input w-40"
+                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
+                    >
+                      <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
+                      <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
+                      <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
+                      <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
+                      <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
+                    </select>
+                  </div>
                 </div>
 
                 {/* ── Background Section ── */}
@@ -821,7 +805,8 @@ const LinkInBio = () => {
                   </label>
 
                   {/* Tab switcher */}
-                  <div className="flex gap-1 mb-3 bg-gray-100 rounded-lg p-1 w-fit">
+                  <div className="flex justify-center mb-3">
+                    <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
                     {[
                       { id: 'image', label: '🖼 Stock' },
                       { id: 'upload', label: '⬆️ Upload' },
@@ -841,6 +826,7 @@ const LinkInBio = () => {
                         {tab.label}
                       </button>
                     ))}
+                    </div>
                   </div>
 
                   {/* Tab: Stock Images */}
@@ -943,40 +929,6 @@ const LinkInBio = () => {
                   )}
                 </div>
 
-                {/* Premium Styling Options */}
-                {user.hasAccess && (
-                  <div className="mt-4 w-full">
-                    <h2 className="text-md font-semibold mb-2" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
-                      Premium Styles
-                    </h2>
-                    <div className="flex justify-center items-center gap-6 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        <label className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Card BG:</label>
-                        <input
-                          type="color"
-                          value={linkInBio?.cardBgColor || "#ffffff"}
-                          onChange={e => setLinkInBio({ ...linkInBio, cardBgColor: e.target.value })}
-                          className="w-8 h-8 border border-gray-300 rounded-lg cursor-pointer"
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <label className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Font:</label>
-                        <select
-                          value={linkInBio?.font || "sans-serif"}
-                          onChange={e => setLinkInBio({ ...linkInBio, font: e.target.value })}
-                          className="input w-40"
-                          style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                        >
-                          <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
-                          <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
-                          <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
-                          <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
-                          <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
