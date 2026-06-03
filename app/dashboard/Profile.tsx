@@ -16,6 +16,7 @@ import { set } from "mongoose";
 import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
 import PrintifyIntegration from "@/components/PrintifyIntegration";
+import LinkInBioAnalytics from "@/components/LinkInBioAnalytics";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import SettingsDropdown from "@/components/SettingsDropdown";
 
@@ -905,6 +906,8 @@ const handleYouTubeMusicChange = (e: any) => {
             {alertMsg && <div className="alert mt-10 w-1/2 m-auto">{alertMsg}</div>}
             
             <br></br>
+
+            <LinkInBioAnalytics />
 
             {/* Show connection status if connected */}
             {user?.printifyShopId && (

@@ -349,6 +349,17 @@ useEffect(() => {
       fetchAvailableProducts();
     }
   }, [user?.id, user?.printifyShopId, linkInBio?.selectedProducts]);
+
+  // Track page visit once user data is loaded
+  useEffect(() => {
+    if (user && userName) {
+      fetch('/api/analytics/linkinbio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: userName }),
+      }).catch(() => {});
+    }
+  }, [user?.id]);
   
   useEffect(() => {
     // Apply background color

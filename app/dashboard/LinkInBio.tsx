@@ -473,7 +473,6 @@ const LinkInBio = () => {
           className="mx-auto bg-white shadow rounded-md text-black"
           style={{
             width: "calc(100% - 16px)",
-            maxWidth: "480px",
             padding: "0.5rem 1rem",
             fontFamily: linkInBio?.font || 'inherit',
             backgroundColor: linkInBio?.cardBgColor || 'white',
@@ -635,7 +634,6 @@ const LinkInBio = () => {
       className="shadow rounded-md mx-auto"
       style={{
         width: "calc(100% - 16px)",
-        maxWidth: "600px",
         padding: "1rem",
         fontFamily: linkInBio?.font || 'inherit',
         backgroundColor: linkInBio?.cardBgColor || 'white',

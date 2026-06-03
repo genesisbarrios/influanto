@@ -35,8 +35,8 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-screen bg-base-200">
       {/* Sidebar menu */}
-      <aside className="w-1/4 sm:w-1/3 p-0.5 sm:p-4 bg-base-100 sm:p-8">
-        <ul className="menu bg-base-100 w-full p-2 rounded-box text-xs sm:text-sm md:text-base lg:text-lg">
+      <aside className="w-1/4 sm:w-1/5 lg:w-[180px] p-0.5 sm:p-4 bg-base-100 shrink-0">
+        <ul className="menu bg-base-100 w-full p-2 rounded-box text-xs sm:text-sm md:text-base">
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('profile')}>Profile</button>
           </li>
@@ -59,8 +59,8 @@ export default function Dashboard() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 p-8 pb-24">
-        <section className="max-w-xl mx-auto space-y-8">
+      <main className="flex-1 p-4 sm:p-8 pb-24 min-w-0">
+        <section className="max-w-5xl mx-auto space-y-8">
           {/* Render the active component */}
           {components[activeComponent]}
         </section>
