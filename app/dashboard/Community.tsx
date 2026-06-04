@@ -1,8 +1,5 @@
 "use client"
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/libs/next-auth";
-import User from "@/models/User";
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
 import { useSession, signOut } from "next-auth/react";

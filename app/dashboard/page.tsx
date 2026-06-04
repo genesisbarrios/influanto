@@ -10,9 +10,6 @@ import QRCodeGenerator from './QRCodeGenerator';
 import CuratorSearch from './CuratorSearch';
 import Community from './Community';
 import ReleasePage from './ReleasePage';
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/libs/next-auth";
-import User from "@/models/User";
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');

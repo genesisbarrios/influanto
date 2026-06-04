@@ -1,49 +1,29 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from "next";
-import User from "@/models/User";
-import { getServerSession } from "next-auth/next";
-import connectMongo from "@/libs/mongoose";
-import { authOptions } from "@/libs/next-auth";
 import { NextResponse } from "next/server";
-import { NextRequest } from 'next/server';
-import { useSession, signOut } from "next-auth/react";
+import { NextRequest } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/libs/next-auth";
+import supabase, { mapUser } from "@/libs/supabase";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions);
- 
-  if (session) {
-    await connectMongo();
-    console.log('session user id');
-    console.log(session.user.id);
-    const id = session.user.id;
+  if (!session) {
+    return NextResponse.json({ error: "Please Sign In." }, { status: 401 });
+  }
 
-    try {
-      const user = await User.findOne({_id: id});
-      console.log(user);
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select()
+      .eq("id", session.user.id)
+      .single();
 
-      if (!user) {
-        return NextResponse.json(
-          { error: "User Not Found" },
-          { status: 404 }
-        );
-      }
-      return NextResponse.json(
-        { data: user},
-        { status: 200 }
-      );
-
-    } catch (e) {
-      console.error(e);
-      return NextResponse.json(
-        { error: "Something went wrong" },
-        { status: 500 }
-      );
+    if (error || !data) {
+      return NextResponse.json({ error: "User Not Found" }, { status: 404 });
     }
-  } else {
-    // Not Signed in
-    return NextResponse.json(
-      { error: "Please Sign In." },
-      { status: 401 }
-    );
+
+    return NextResponse.json({ data: mapUser(data) }, { status: 200 });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

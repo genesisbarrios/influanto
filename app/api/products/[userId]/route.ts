@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectMongo from "@/libs/mongoose";
-import User from "@/models/User";
+import supabase, { mapUser } from "@/libs/supabase";
 
 export async function GET(
   request: NextRequest,
@@ -15,12 +14,11 @@ export async function GET(
       return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
     }
 
-    await connectMongo();
-    const user = await User.findById(userId);
-    
-    if (!user) {
+    const { data: userRow } = await supabase.from("users").select().eq("id", userId).single();
+    if (!userRow) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+    const user = mapUser(userRow)!;
 
     // First, try to get products from Printify API if user has access
     if (user.printifyAccessToken && user.printifyShopId) {

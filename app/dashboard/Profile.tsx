@@ -1,8 +1,5 @@
 "use client"
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/libs/next-auth";
-import User from "@/models/User";
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
 import { useSession, signOut } from "next-auth/react";
@@ -12,7 +9,7 @@ import ButtonEdit from "@/components/ButtonEdit";
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faDiscord, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobe, faLocation, faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { set } from "mongoose";
+
 import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
 import PrintifyIntegration from "@/components/PrintifyIntegration";

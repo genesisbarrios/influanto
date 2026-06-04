@@ -1,78 +1,62 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import User from "@/models/User";
-import Codes from "@/models/Codes";
+import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { NextResponse } from "next/server";
 import { authOptions } from "@/libs/next-auth";
-import { NextRequest } from 'next/server';
-import connectMongo from "@/libs/mongoose";
+import supabase, { mapQRCodes } from "@/libs/supabase";
 
-export async function POST(req: NextRequest, { params }: { params: { slug: string } }) {
-    await connectMongo();
-    const session = await getServerSession(authOptions);
+export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Please Sign In." }, { status: 401 });
+  }
 
-    if (session) {
-        try {
-            const id = session.user.id;
-            console.log(id);
+  const userId = session.user.id;
 
-            const user = await User.findOne({ _id: id });
+  try {
+    const {
+      link, name, color, dotStyle, cornerSquareStyle, cornerDotStyle,
+      cornerSquareColor, cornerDotColor, transparentBg, bgColor, size,
+    } = await req.json();
 
-            if (!user) {
-                return NextResponse.json(
-                    { error: "User not found." },
-                    { status: 404 }
-                );
-            } else {
-                try {
-                    // Extract the `link`, `name`, and `color` from the request body
-                    const { link, name, color, dotStyle, cornerSquareStyle, cornerDotStyle, cornerSquareColor, cornerDotColor, transparentBg, bgColor, size } = await req.json();
-
-                    if (!link) {
-                        return NextResponse.json(
-                            { error: "Link is required." },
-                            { status: 400 }
-                        );
-                    }
-
-                    // Retrieve the Codes document associated with the user
-                    let existingCodes = await Codes.findOne({ userId: user._id });
-
-                    // If no codes exist for the user, initialize a new document
-                    if (!existingCodes) {
-                        existingCodes = new Codes({
-                            userId: user._id,
-                            codes: [],
-                        });
-                    }
-
-                    // Push the new code to the `codes` array with color
-                    existingCodes.codes.push({ name: name, url: link, color: color, dotStyle, cornerSquareStyle, cornerDotStyle, cornerSquareColor, cornerDotColor, transparentBg, bgColor, size: size || 300 });
-
-                    // Save the updated Codes document
-                    await existingCodes.save();
-
-                    // Return the updated codes list
-                    return NextResponse.json(
-                        {
-                            data: { user: user, codes: existingCodes.codes },
-                        },
-                        { status: 200 }
-                    );
-                } catch (e) {
-                    console.error(e);
-                    return NextResponse.json(
-                        { error: "Something went wrong." },
-                        { status: 500 }
-                    );
-                }
-            }
-        } catch (e) {
-            console.error(e);
-            return NextResponse.json(
-                { error: "Something went wrong." },
-                { status: 500 }
-            );
-        }
+    if (!link) {
+      return NextResponse.json({ error: "Link is required." }, { status: 400 });
     }
+
+    const { data: existing } = await supabase
+      .from("qr_codes")
+      .select("codes")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const currentCodes: any[] = existing?.codes ?? [];
+    const newCode = {
+      id: crypto.randomUUID(),
+      url: link,
+      name,
+      color,
+      dotStyle,
+      cornerSquareStyle,
+      cornerDotStyle,
+      cornerSquareColor,
+      cornerDotColor,
+      transparentBg,
+      bgColor,
+      size: size || 300,
+    };
+
+    const { data, error } = await supabase
+      .from("qr_codes")
+      .upsert(
+        { user_id: userId, codes: [...currentCodes, newCode] },
+        { onConflict: "user_id" }
+      )
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({ data: mapQRCodes(data) }, { status: 200 });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+  }
 }

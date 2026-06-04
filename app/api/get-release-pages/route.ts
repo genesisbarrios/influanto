@@ -1,44 +1,36 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
-import ReleasePage from "@/models/ReleasePage";
 import { getServerSession } from "next-auth/next";
-import connectMongo from "@/libs/mongoose";
 import { authOptions } from "@/libs/next-auth";
+import supabase, { mapReleasePage } from "@/libs/supabase";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (session) {
-    await connectMongo();
-    const id = session.user.id;
-    console.log("User ID:", id);
+  if (!session) {
+    return NextResponse.json({ error: "Please Sign In." }, { status: 401 });
+  }
 
-    try {
-      // Use find instead of findAll to retrieve the matching codes
-      const pages = await ReleasePage.find({ userId: id });
-      console.log("Release Pages:", pages);
+  try {
+    const { data, error } = await supabase
+      .from("release_pages")
+      .select()
+      .eq("user_id", session.user.id);
 
-      if (pages == null || pages.length === 0) {
-        return NextResponse.json(
-          { message: "No Pages Created Yet.. Create Your First Release Page!", data: null },
-          { status: 200 }
-        );
-      }
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
       return NextResponse.json(
-        { data: pages },
+        { message: "No Pages Created Yet.. Create Your First Release Page!", data: null },
         { status: 200 }
       );
-    } catch (e) {
-      console.error(e);
-      return NextResponse.json(
-        { error: "Nothing Found.. Create Your First Release Page!", data: null },
-        { status: 500 }
-      );
     }
-  } else {
+
+    return NextResponse.json({ data: data.map(mapReleasePage) }, { status: 200 });
+  } catch (e) {
+    console.error(e);
     return NextResponse.json(
-      { error: "Please Sign In." },
-      { status: 401 }
+      { error: "Nothing Found.. Create Your First Release Page!", data: null },
+      { status: 500 }
     );
   }
 }

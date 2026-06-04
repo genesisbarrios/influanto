@@ -1,62 +1,51 @@
-import { NextResponse } from "next/server";
-import { NextRequest } from "next/server";
-import Codes from "@/models/Codes";
+import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
-import connectMongo from "@/libs/mongoose";
 import { authOptions } from "@/libs/next-auth";
+import supabase from "@/libs/supabase";
 
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  
-  if (session) {
-    await connectMongo();
-    const userId = session.user.id; // Assuming the session contains the user ID
-    const { id } = await req.json();  // Get the QR code ID to delete
-    console.log("User ID:", userId);
-    console.log("QR Code ID to delete:", id);
+  if (!session) {
+    return NextResponse.json({ error: "Please Sign In." }, { status: 401 });
+  }
 
-    try {
-      // Find the user by userId
-      const usersCodes = await Codes.findOne({ userId: userId });
+  const { id } = await req.json();
+  const userId = session.user.id;
 
-      if (!usersCodes) {
-        return NextResponse.json(
-          { error: "User not found." },
-          { status: 404 }
-        );
-      }
+  try {
+    const { data: existing } = await supabase
+      .from("qr_codes")
+      .select("codes")
+      .eq("user_id", userId)
+      .maybeSingle();
 
-      // Find the index of the QR code in the codes array
-      const codeIndex = usersCodes.codes.findIndex((code: any) => code._id.toString() === id);
+    if (!existing) {
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
+    }
 
-      if (codeIndex === -1) {
-        return NextResponse.json(
-          { error: "QR Code not found in user's codes array or you don't have permission to delete it." },
-          { status: 404 }
-        );
-      }
+    const codes = existing.codes as any[];
+    // Support both new UUID `id` field and legacy MongoDB `_id` strings
+    const updatedCodes = codes.filter(
+      (c) => c.id !== id && c._id?.toString() !== id
+    );
 
-      // Remove the QR code from the array
-      usersCodes.codes.splice(codeIndex, 1);
-
-      // Save the updated user document
-      await usersCodes.save();
-
+    if (updatedCodes.length === codes.length) {
       return NextResponse.json(
-        { message: "QR Code deleted successfully." },
-        { status: 200 }
-      );
-    } catch (e) {
-      console.error(e);
-      return NextResponse.json(
-        { error: "Something went wrong" },
-        { status: 500 }
+        { error: "QR Code not found or you don't have permission to delete it." },
+        { status: 404 }
       );
     }
-  } else {
-    return NextResponse.json(
-      { error: "Please Sign In." },
-      { status: 401 }
-    );
+
+    const { error } = await supabase
+      .from("qr_codes")
+      .update({ codes: updatedCodes })
+      .eq("user_id", userId);
+
+    if (error) throw error;
+
+    return NextResponse.json({ message: "QR Code deleted successfully." }, { status: 200 });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

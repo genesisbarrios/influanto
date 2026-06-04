@@ -20,6 +20,7 @@
     "@mdx-js/loader": "^2.3.0",
     "@mdx-js/react": "^2.3.0",
     "@next/mdx": "^13.5.6",
+    "@supabase/supabase-js": "^2.107.0",
     "@types/formidable": "^3.4.5",
     "@types/lodash": "^4.17.16",
     "@types/multer": "^2.0.0",
@@ -82,11 +83,14 @@
     "@types/react-color": "^3.0.13",
     "@types/react-dom": "^18.2.23",
     "@types/react-syntax-highlighter": "^15.5.11",
+    "@types/ws": "^8.18.1",
     "autoprefixer": "^10.4.19",
     "daisyui": "^4.10.1",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
-    "typescript": "^5.4.3"
+    "tsx": "^4.22.4",
+    "typescript": "^5.4.3",
+    "ws": "^8.21.0"
   },
   "overrides": {
     "qr-code-styling": {

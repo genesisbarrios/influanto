@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
-import connectMongo from "@/libs/mongoose";
-import LinkInBioVisit from "@/models/LinkInBioVisit";
-import User from "@/models/User";
+import supabase from "@/libs/supabase";
 
 function getDevice(ua: string): "mobile" | "tablet" | "desktop" | "unknown" {
   if (!ua) return "unknown";
@@ -67,14 +65,18 @@ export async function POST(req: NextRequest) {
     const ua = req.headers.get("user-agent") || "";
     if (isBot(ua)) return NextResponse.json({ ok: true });
 
-    await connectMongo();
-    const user = await User.findOne({ username });
+    const { data: user } = await supabase
+      .from("users")
+      .select("id")
+      .eq("username", username)
+      .single();
+
     if (!user) return NextResponse.json({ ok: false }, { status: 404 });
 
-    await LinkInBioVisit.create({
-      userId: user._id,
+    await supabase.from("link_in_bio_visits").insert({
+      user_id: user.id,
       country: req.headers.get("x-vercel-ip-country") || "Unknown",
-      countryCode: req.headers.get("x-vercel-ip-country") || "",
+      country_code: req.headers.get("x-vercel-ip-country") || "",
       city: req.headers.get("x-vercel-ip-city") || "",
       device: getDevice(ua),
       browser: getBrowser(ua),
@@ -90,22 +92,27 @@ export async function POST(req: NextRequest) {
 }
 
 // GET — return aggregated analytics for the signed-in user
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "Please Sign In." }, { status: 401 });
   }
 
   try {
-    await connectMongo();
     const userId = session.user.id;
-
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const [recentVisits, allVisits] = await Promise.all([
-      LinkInBioVisit.find({ userId, createdAt: { $gte: thirtyDaysAgo } }).lean(),
-      LinkInBioVisit.find({ userId }).lean(),
+    const [{ data: recentVisits }, { data: allVisits }] = await Promise.all([
+      supabase
+        .from("link_in_bio_visits")
+        .select("created_at")
+        .eq("user_id", userId)
+        .gte("created_at", thirtyDaysAgo.toISOString()),
+      supabase
+        .from("link_in_bio_visits")
+        .select("country, device, browser, os, referrer")
+        .eq("user_id", userId),
     ]);
 
     // Visits per day — last 30 days, fill zero gaps
@@ -115,8 +122,8 @@ export async function GET(req: NextRequest) {
       d.setDate(d.getDate() - i);
       dayMap.set(d.toISOString().slice(0, 10), 0);
     }
-    for (const v of recentVisits) {
-      const key = new Date((v as any).createdAt).toISOString().slice(0, 10);
+    for (const v of recentVisits ?? []) {
+      const key = new Date((v as any).created_at).toISOString().slice(0, 10);
       if (dayMap.has(key)) dayMap.set(key, dayMap.get(key)! + 1);
     }
     const visitsByDay = Array.from(dayMap.entries()).map(([date, count]) => ({
@@ -126,7 +133,7 @@ export async function GET(req: NextRequest) {
 
     const aggregate = (field: string) => {
       const map = new Map<string, number>();
-      for (const v of allVisits) {
+      for (const v of allVisits ?? []) {
         const val = (v as any)[field] || "Unknown";
         map.set(val, (map.get(val) || 0) + 1);
       }
@@ -142,7 +149,7 @@ export async function GET(req: NextRequest) {
       visitsByBrowser: aggregate("browser"),
       visitsByOS: aggregate("os"),
       visitsByReferrer: aggregate("referrer").slice(0, 10),
-      total: allVisits.length,
+      total: (allVisits ?? []).length,
     });
   } catch (error) {
     console.error("Analytics GET error:", error);

@@ -1,30 +1,18 @@
-// Create app/api/account/route.js
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
-import connectMongo from "@/libs/mongoose";
-import User from "@/models/User";
-import Codes from "@/models/Codes";
-import LinkInBio from "@/models/LinkInBio";
-import ReleasePage from "@/models/ReleasePage";
-import Account from "@/models/Account";
+import supabase from "@/libs/supabase";
 
 export async function DELETE() {
   try {
     const session = await getServerSession(authOptions);
-
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectMongo();
-    
-    // Delete user and all associated data
-    await Codes.deleteMany({ userId: session.user.id });
-    await LinkInBio.deleteMany({ userId: session.user.id });
-    await ReleasePage.deleteMany({ userId: session.user.id });
-    await Account.deleteMany({ userId: session.user.id });
-    await User.findByIdAndDelete(session.user.id);
+    // CASCADE DELETE handles all related tables automatically
+    const { error } = await supabase.from("users").delete().eq("id", session.user.id);
+    if (error) throw error;
 
     return NextResponse.json({ message: "Account deleted successfully" });
   } catch (error) {
