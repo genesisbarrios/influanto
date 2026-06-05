@@ -81,6 +81,8 @@ export function mapLinkInBio(row: any) {
     selectedProducts: row.selected_products ?? [],
     links: row.links ?? [],
     brandLogoUrl: row.brand_logo_url ?? null,
+    newsletterEnabled: row.newsletter_enabled ?? false,
+    newsletterFields: row.newsletter_fields ?? ["name", "email"],
   };
 }
 
@@ -99,6 +101,8 @@ export function mapReleasePage(row: any) {
     linksColor: row.links_color,
     font: row.font,
     selectedProducts: row.selected_products ?? [],
+    newsletterEnabled: row.newsletter_enabled ?? false,
+    newsletterFields: row.newsletter_fields ?? ["name", "email"],
   };
 }
 
@@ -108,5 +112,41 @@ export function mapQRCodes(row: any) {
     id: row.id,
     userId: row.user_id,
     codes: row.codes ?? [],
+  };
+}
+
+export function mapNewsletter(row: any) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    userId: row.user_id,
+    title: row.title ?? "",
+    subject: row.subject ?? "",
+    template: row.template ?? "blank",
+    image: row.image ?? "",
+    description: row.description ?? "",
+    links: row.links ?? [],
+    bgColor: row.bg_color ?? "",
+    textColor: row.text_color ?? "",
+    linksColor: row.links_color ?? "",
+    html: row.html ?? "",
+    status: row.status ?? "draft",
+    lastSentAt: row.last_sent_at ?? null,
+    createdAt: row.created_at ?? null,
+  };
+}
+
+export function mapOutreachContact(row: any) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    userId: row.user_id,
+    name: row.name ?? "",
+    email: row.email ?? "",
+    phone: row.phone ?? "",
+    instagram: row.instagram ?? "",
+    tiktok: row.tiktok ?? "",
+    source: row.source ?? "manual",
+    createdAt: row.created_at ?? null,
   };
 }

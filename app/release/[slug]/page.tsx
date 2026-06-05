@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare } from "@fortawesome/free-brands-svg-icons";
 import { faGlobe } from "@fortawesome/free-solid-svg-icons";
 import { usePathname } from 'next/navigation'
+import NewsletterSignup from "@/components/NewsletterSignup";
 
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
@@ -907,6 +908,19 @@ const renderMerchSection = () => {
             </a>
           )}
         </div>
+
+        {/* ── Newsletter signup ── */}
+        {releasePage?.newsletterEnabled && (
+          <div className="mt-8 px-4">
+            <NewsletterSignup
+              username={userName}
+              source="release_page"
+              fields={releasePage.newsletterFields}
+              textColor={textColor}
+              linksColor={linksColor}
+            />
+          </div>
+        )}
 
         {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
       </div>

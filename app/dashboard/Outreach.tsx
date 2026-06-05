@@ -1,0 +1,524 @@
+"use client";
+/* eslint-disable */
+import React, { useEffect, useState } from "react";
+import apiClient from "@/libs/api";
+import ButtonCheckout from "@/components/ButtonCheckout";
+import config from "@/config";
+import posthog from "posthog-js";
+import { renderNewsletterHtml } from "@/libs/newsletter-html";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface NLLink { name: string; url: string }
+interface Newsletter {
+  id: string; title: string; subject: string; template: string;
+  image: string; description: string; links: NLLink[];
+  bgColor: string; textColor: string; linksColor: string;
+  html: string; status: "draft" | "sent"; lastSentAt: string | null; createdAt: string;
+}
+interface Contact { id: string; name: string; email: string; phone: string; instagram: string; tiktok: string; source: string }
+
+const TEMPLATES = [
+  { key: "blank", icon: "📝", label: "Blank", desc: "Start from scratch" },
+  { key: "song_release", icon: "🎵", label: "Song Release", desc: "Announce a new single" },
+  { key: "album_release", icon: "💿", label: "Album Release", desc: "Announce a new album" },
+  { key: "music_video_release", icon: "🎬", label: "Music Video", desc: "Announce a new video" },
+];
+
+const TEMPLATE_SEED: Record<string, { title: string; subject: string; description: string }> = {
+  blank: { title: "", subject: "", description: "" },
+  song_release: { title: "My New Single is Out Now", subject: "🎵 New single out now!", description: "I just released a new song — give it a listen and let me know what you think!" },
+  album_release: { title: "My New Album Has Arrived", subject: "💿 My new album is here!", description: "My new album is finally out. Stream it now on your favorite platform." },
+  music_video_release: { title: "Watch My New Music Video", subject: "🎬 New music video!", description: "I just dropped a brand new music video — watch it now!" },
+};
+
+const blankNewsletter = (template: string): Partial<Newsletter> => {
+  const seed = TEMPLATE_SEED[template] ?? TEMPLATE_SEED.blank;
+  return {
+    template,
+    title: seed.title,
+    subject: seed.subject,
+    description: seed.description,
+    image: "",
+    links: template === "blank" ? [] : [{ name: "", url: "" }],
+    bgColor: "#0f0f12",
+    textColor: "#ffffff",
+    linksColor: "#4f46e5",
+    status: "draft",
+  };
+};
+
+// ─── Send dialog ──────────────────────────────────────────────────────────────
+
+function SendDialog({ newsletterId, contacts, onClose, onSent }: { newsletterId: string; contacts: Contact[]; onClose: () => void; onSent: () => void }) {
+  const [selected, setSelected] = useState<string[]>([]);
+  const [sending, setSending] = useState(false);
+  const [alert, setAlert] = useState("");
+
+  const toggle = (id: string) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const allSelected = contacts.length > 0 && selected.length === contacts.length;
+  const selectAll = () => setSelected(contacts.map(c => c.id));
+  const deselectAll = () => setSelected([]);
+
+  const send = async () => {
+    if (!selected.length) { setAlert("Select at least one contact"); return; }
+    setSending(true);
+    try {
+      await apiClient.post(`/outreach/${newsletterId}/send`, { contactIds: selected });
+      posthog.capture("newsletter_sent", { count: selected.length });
+      onSent();
+    } catch (e: any) {
+      setAlert(e?.response?.data?.error || "Failed to send");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+        <div className="px-5 py-4 border-b flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">Send Newsletter</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Select contacts to email</p>
+          </div>
+          {contacts.length > 0 && (
+            <div className="flex gap-1">
+              <button className="btn btn-xs btn-outline" onClick={selectAll} disabled={allSelected}>Select all</button>
+              <button className="btn btn-xs btn-outline" onClick={deselectAll} disabled={selected.length === 0}>Deselect all</button>
+            </div>
+          )}
+        </div>
+        <div className="p-5 max-h-72 overflow-y-auto">
+          {contacts.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-6">No contacts yet. Add contacts first.</p>
+          ) : contacts.map((c) => (
+            <label key={c.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+              <input type="checkbox" className="checkbox checkbox-sm" checked={selected.includes(c.id)} onChange={() => toggle(c.id)} />
+              <div>
+                <p className="text-sm font-medium">{c.name || c.email}</p>
+                <p className="text-xs text-gray-400">{c.email}</p>
+              </div>
+            </label>
+          ))}
+        </div>
+        {alert && <p className="mx-5 text-xs text-red-500">{alert}</p>}
+        <div className="px-5 pb-5 flex justify-end gap-2 mt-2">
+          <button className="btn btn-sm" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary btn-sm" disabled={sending || !selected.length} onClick={send}>
+            {sending ? "Sending…" : `Send to ${selected.length || ""} contact${selected.length !== 1 ? "s" : ""}`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
+export default function Outreach() {
+  const [user, setUser] = useState<any>(null);
+  const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [view, setView] = useState<"list" | "pick" | "form" | "contacts">("list");
+  const [editing, setEditing] = useState<Partial<Newsletter> | null>(null);
+  const [sendDialog, setSendDialog] = useState<string | null>(null);
+  const [contactForm, setContactForm] = useState<Partial<Contact>>({});
+  const [editingContact, setEditingContact] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [alert, setAlert] = useState("");
+
+  // Populate-from sources
+  const [releasePages, setReleasePages] = useState<any[]>([]);
+  const [linkInBioLinks, setLinkInBioLinks] = useState<NLLink[]>([]);
+
+  useEffect(() => {
+    apiClient.get("/get-user").then(r => setUser(r.data)).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!user?.hasAccess) return;
+    loadNewsletters();
+    loadContacts();
+    // Silent loads (plain fetch) so the global apiClient toasts don't fire when empty
+    fetch("/api/get-release-pages").then(r => r.json()).then(j => setReleasePages(Array.isArray(j?.data) ? j.data : [])).catch(() => {});
+    fetch("/api/get-links").then(r => r.json()).then(j => setLinkInBioLinks(Array.isArray(j?.data?.links) ? j.data.links : [])).catch(() => {});
+  }, [user?.hasAccess]);
+
+  const loadNewsletters = async () => {
+    try { const r = await apiClient.get("/outreach"); setNewsletters(r.data ?? []); } catch {}
+  };
+  const loadContacts = async () => {
+    try { const r = await apiClient.get("/outreach-contacts"); setContacts(r.data ?? []); } catch {}
+  };
+
+  // ── Builder helpers ──────────────────────────────────────────────────────────
+
+  const nl = editing ?? blankNewsletter("blank");
+  const setNl = (patch: Partial<Newsletter>) => setEditing(prev => ({ ...(prev ?? blankNewsletter("blank")), ...patch }));
+  const links = (nl.links ?? []) as NLLink[];
+  const setLink = (i: number, patch: Partial<NLLink>) =>
+    setNl({ links: links.map((l, idx) => idx === i ? { ...l, ...patch } : l) });
+
+  const populateFrom = (value: string) => {
+    if (!value) return;
+    if (value === "link-in-bio") {
+      setNl({ links: linkInBioLinks.map(l => ({ name: l.name || "", url: l.url || "" })) });
+      setAlert("✅ Pulled links from your Link in Bio");
+      return;
+    }
+    const rp = releasePages.find(p => String(p.id) === value);
+    if (rp) {
+      setNl({
+        image: rp.image || nl.image || "",
+        description: rp.description || nl.description || "",
+        links: (rp.links ?? []).map((l: any) => ({ name: l.name || "", url: l.url || "" })),
+        bgColor: rp.bgColor || nl.bgColor,
+        textColor: rp.textColor || nl.textColor,
+        linksColor: rp.linksColor || nl.linksColor,
+      });
+      setAlert(`✅ Pulled content from "${rp.name}"`);
+    }
+  };
+
+  // ── Save ──────────────────────────────────────────────────────────────────────
+
+  const handleSave = async () => {
+    if (!nl.title?.trim()) { setAlert("Give your newsletter a title"); return; }
+    setIsLoading(true);
+    try {
+      const payload = {
+        title: nl.title, subject: nl.subject, template: nl.template,
+        image: nl.image, description: nl.description, links: nl.links,
+        bgColor: nl.bgColor, textColor: nl.textColor, linksColor: nl.linksColor,
+      };
+      if ((nl as any).id) {
+        await apiClient.put(`/outreach/${(nl as any).id}`, payload);
+      } else {
+        await apiClient.post("/outreach", payload);
+        posthog.capture("newsletter_created", { template: nl.template });
+      }
+      await loadNewsletters();
+      setView("list");
+      setEditing(null);
+      setAlert("");
+    } catch (e: any) {
+      setAlert(e?.response?.data?.error || "Save failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this newsletter?")) return;
+    try {
+      await apiClient.delete(`/outreach/${id}`);
+      setNewsletters(newsletters.filter(n => n.id !== id));
+    } catch { setAlert("Delete failed"); }
+  };
+
+  // ── Contacts ────────────────────────────────────────────────────────────────
+
+  const handleSaveContact = async () => {
+    if (!contactForm.email?.trim()) { setAlert("Email is required"); return; }
+    try {
+      if (editingContact) {
+        const r = await apiClient.put(`/outreach-contacts/${editingContact}`, contactForm);
+        setContacts(contacts.map(c => c.id === editingContact ? r.data : c));
+      } else {
+        const r = await apiClient.post("/outreach-contacts", contactForm);
+        setContacts(prev => [r.data, ...prev.filter(c => c.id !== r.data.id)]);
+      }
+      setContactForm({}); setEditingContact(null); setAlert("");
+    } catch (e: any) {
+      setAlert(e?.response?.data?.error || "Save failed");
+    }
+  };
+
+  const handleDeleteContact = async (id: string) => {
+    try {
+      await apiClient.delete(`/outreach-contacts/${id}`);
+      setContacts(contacts.filter(c => c.id !== id));
+    } catch { setAlert("Delete failed"); }
+  };
+
+  // ── Premium gate ───────────────────────────────────────────────────────────────
+
+  if (user && !user.hasAccess) {
+    return (
+      <div className="p-6 bg-white shadow rounded-md text-black">
+        <h2 className="text-xl font-bold mb-2">Outreach</h2>
+        <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 border border-blue-200 rounded-xl shadow-lg text-center">
+          <div className="text-4xl mb-3">📣</div>
+          <h3 className="text-lg font-bold text-gray-800 mb-2">Outreach is a Premium Feature</h3>
+          <p className="text-sm text-gray-600 mb-4">Build email newsletters, collect fans from your pages, and send release announcements to your audience.</p>
+          <ButtonCheckout mode="subscription" priceId={config.stripe.plans[1].priceId} />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Template picker ─────────────────────────────────────────────────────────
+
+  if (view === "pick") {
+    return (
+      <div className="p-4 bg-white shadow rounded-md text-black">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">Choose a Template</h2>
+          <button className="btn btn-sm" onClick={() => setView("list")}>← Back</button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
+          {TEMPLATES.map(t => (
+            <button key={t.key}
+              onClick={() => { setEditing(blankNewsletter(t.key)); setView("form"); setAlert(""); }}
+              className="text-left border border-gray-200 rounded-xl p-4 hover:border-indigo-400 hover:bg-indigo-50 transition-colors">
+              <div className="text-3xl mb-2">{t.icon}</div>
+              <div className="font-semibold">{t.label}</div>
+              <div className="text-xs text-gray-500">{t.desc}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Contacts view ─────────────────────────────────────────────────────────
+
+  if (view === "contacts") {
+    const sourceBadge = (s: string) => {
+      const map: Record<string, { label: string; cls: string }> = {
+        manual: { label: "Manual", cls: "badge-ghost" },
+        link_in_bio: { label: "Link in Bio", cls: "badge-info" },
+        release_page: { label: "Release Page", cls: "badge-success" },
+      };
+      const b = map[s] ?? map.manual;
+      return <span className={`badge badge-xs ${b.cls}`}>{b.label}</span>;
+    };
+
+    return (
+      <div className="p-4 bg-white shadow rounded-md text-black">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">Contacts</h2>
+          <button className="btn btn-sm" onClick={() => { setView("list"); setContactForm({}); setEditingContact(null); setAlert(""); }}>← Back</button>
+        </div>
+
+        {/* Add / edit contact form */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+          <h3 className="font-semibold text-sm mb-3">{editingContact ? "Edit Contact" : "Add Contact"}</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1">Name</label>
+              <input className="input input-sm input-bordered w-full" placeholder="Full name" value={contactForm.name ?? ""} onChange={e => setContactForm(p => ({ ...p, name: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Email *</label>
+              <input className="input input-sm input-bordered w-full" type="email" placeholder="email@example.com" value={contactForm.email ?? ""} onChange={e => setContactForm(p => ({ ...p, email: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Phone</label>
+              <input className="input input-sm input-bordered w-full" placeholder="Optional" value={contactForm.phone ?? ""} onChange={e => setContactForm(p => ({ ...p, phone: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Instagram</label>
+              <input className="input input-sm input-bordered w-full" placeholder="@handle" value={contactForm.instagram ?? ""} onChange={e => setContactForm(p => ({ ...p, instagram: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">TikTok</label>
+              <input className="input input-sm input-bordered w-full" placeholder="@handle" value={contactForm.tiktok ?? ""} onChange={e => setContactForm(p => ({ ...p, tiktok: e.target.value }))} />
+            </div>
+          </div>
+          {alert && <p className="text-xs text-red-500 mt-2">{alert}</p>}
+          <div className="flex gap-2 mt-3">
+            <button className="btn btn-primary btn-sm" onClick={handleSaveContact}>{editingContact ? "Update" : "Add Contact"}</button>
+            {editingContact && <button className="btn btn-sm" onClick={() => { setEditingContact(null); setContactForm({}); }}>Cancel</button>}
+          </div>
+        </div>
+
+        {/* Contacts list */}
+        {contacts.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-8">No contacts yet — add them above or collect them from your pages</p>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {contacts.map(c => (
+              <div key={c.id} className="flex items-center justify-between py-3 gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium text-sm flex items-center gap-2 flex-wrap">{c.name || "—"} {sourceBadge(c.source)}</p>
+                  <p className="text-xs text-gray-400 truncate">{c.email}{c.phone ? ` · ${c.phone}` : ""}{c.instagram ? ` · IG ${c.instagram}` : ""}{c.tiktok ? ` · TT ${c.tiktok}` : ""}</p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button className="btn btn-xs btn-outline" onClick={() => { setEditingContact(c.id); setContactForm({ name: c.name, email: c.email, phone: c.phone, instagram: c.instagram, tiktok: c.tiktok }); }}>Edit</button>
+                  <button className="btn btn-xs btn-error" onClick={() => handleDeleteContact(c.id)}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Builder (create / edit) ─────────────────────────────────────────────────
+
+  if (view === "form") {
+    const previewHtml = renderNewsletterHtml({
+      title: nl.title, template: nl.template, image: nl.image, description: nl.description,
+      links: links, bgColor: nl.bgColor, textColor: nl.textColor, linksColor: nl.linksColor,
+    }, { senderName: user?.name || "You" });
+
+    return (
+      <div className="p-4 bg-white shadow rounded-md text-black">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">{(nl as any).id ? "Edit Newsletter" : "New Newsletter"}</h2>
+          <button className="btn btn-sm" onClick={() => { setView("list"); setEditing(null); setAlert(""); }}>← Back</button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Editor */}
+          <div className="space-y-4">
+            {/* Populate from */}
+            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3">
+              <label className="block text-xs font-semibold mb-1 text-indigo-700">Populate content from</label>
+              <select className="select select-sm select-bordered w-full" defaultValue="" onChange={e => { populateFrom(e.target.value); e.target.value = ""; }}>
+                <option value="">Choose a source…</option>
+                {linkInBioLinks.length > 0 && <option value="link-in-bio">Link in Bio ({linkInBioLinks.length} links)</option>}
+                {releasePages.map(p => <option key={p.id} value={String(p.id)}>Release Page: {p.name}</option>)}
+              </select>
+              <p className="text-[11px] text-indigo-400 mt-1">Pulls image, description &amp; links — you can edit after.</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Title *</label>
+              <input className="input input-bordered w-full" placeholder="Newsletter title (shown in the email)" value={nl.title ?? ""} onChange={e => setNl({ title: e.target.value })} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Email Subject</label>
+              <input className="input input-bordered w-full" placeholder="Subject line recipients see" value={nl.subject ?? ""} onChange={e => setNl({ subject: e.target.value })} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Header Image URL</label>
+              <input className="input input-bordered w-full" placeholder="https://…/cover.jpg" value={nl.image ?? ""} onChange={e => setNl({ image: e.target.value })} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Description</label>
+              <textarea className="textarea textarea-bordered w-full" rows={4} placeholder="Tell your fans what's new…" value={nl.description ?? ""} onChange={e => setNl({ description: e.target.value })} />
+            </div>
+
+            {/* Links */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium">Links</label>
+                <button type="button" className="btn btn-xs btn-outline" onClick={() => setNl({ links: [...links, { name: "", url: "" }] })}>+ Add Link</button>
+              </div>
+              <div className="space-y-2">
+                {links.map((l, i) => (
+                  <div key={i} className="flex gap-2">
+                    <input className="input input-sm input-bordered flex-1" placeholder="Label (e.g. Spotify)" value={l.name} onChange={e => setLink(i, { name: e.target.value })} />
+                    <input className="input input-sm input-bordered flex-1" placeholder="https://…" value={l.url} onChange={e => setLink(i, { url: e.target.value })} />
+                    <button type="button" className="btn btn-xs btn-error" onClick={() => setNl({ links: links.filter((_, idx) => idx !== i) })}>✕</button>
+                  </div>
+                ))}
+                {links.length === 0 && <p className="text-xs text-gray-400">No links yet</p>}
+              </div>
+            </div>
+
+            {/* Colors */}
+            <div className="grid grid-cols-3 gap-3">
+              {([["bgColor", "Background"], ["textColor", "Text"], ["linksColor", "Buttons"]] as const).map(([key, label]) => (
+                <div key={key}>
+                  <label className="block text-xs font-medium mb-1">{label}</label>
+                  <input type="color" className="w-full h-9 rounded border border-gray-200 cursor-pointer" value={(nl as any)[key] || "#000000"} onChange={e => setNl({ [key]: e.target.value } as any)} />
+                </div>
+              ))}
+            </div>
+
+            {alert && <p className={`text-sm ${alert.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
+
+            <div className="flex gap-3 flex-wrap">
+              <button className="btn btn-primary" disabled={isLoading} onClick={handleSave}>{isLoading ? "Saving…" : "Save"}</button>
+              <button className="btn" onClick={() => { setView("list"); setEditing(null); setAlert(""); }}>Cancel</button>
+            </div>
+          </div>
+
+          {/* Live preview */}
+          <div>
+            <p className="text-xs font-semibold text-gray-500 mb-2">Email Preview</p>
+            <div className="border border-gray-200 rounded-xl overflow-hidden" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── List view ────────────────────────────────────────────────────────────────
+
+  const statusBadge = (s: string) => (
+    <span className={`badge badge-sm ${s === "sent" ? "badge-success" : "badge-ghost"}`}>{s}</span>
+  );
+
+  return (
+    <div className="p-4 bg-white shadow rounded-md text-black">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <h2 className="text-xl font-bold">Outreach</h2>
+        <div className="flex gap-2">
+          <button className="btn btn-sm btn-outline" onClick={() => { setView("contacts"); setAlert(""); }}>
+            Contacts ({contacts.length})
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setView("pick"); setAlert(""); }}>
+            + New Newsletter
+          </button>
+        </div>
+      </div>
+
+      <p className="text-sm text-gray-500 mb-4">Create email newsletters and send them to contacts you collect from your Link in Bio and Release pages.</p>
+
+      {alert && <p className={`text-sm mb-3 ${alert.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
+
+      {newsletters.length === 0 ? (
+        <div className="text-center py-16 text-gray-400">
+          <div className="text-5xl mb-3">📣</div>
+          <p className="font-medium text-gray-600">No newsletters yet</p>
+          <p className="text-sm mt-1">Hit <strong>+ New Newsletter</strong> to create your first one</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {newsletters.map(n => (
+            <div key={n.id} className="border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors">
+              <div className="flex items-start justify-between gap-2 flex-wrap">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-base">{n.title || "Untitled"}</h3>
+                    {statusBadge(n.status)}
+                    <span className="badge badge-xs badge-outline">{TEMPLATES.find(t => t.key === n.template)?.label ?? n.template}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {n.subject && <span>{n.subject} · </span>}
+                    {(n.links?.length ?? 0)} link{(n.links?.length ?? 0) !== 1 ? "s" : ""}
+                    {n.lastSentAt && <span> · sent {new Date(n.lastSentAt).toLocaleDateString()}</span>}
+                  </p>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <button className="btn btn-xs btn-outline" onClick={() => { setEditing(n); setView("form"); setAlert(""); }}>Edit</button>
+                  <button className="btn btn-xs btn-info text-white" onClick={() => { setSendDialog(n.id); setAlert(""); }}>{n.status === "sent" ? "Resend" : "Send"}</button>
+                  <button className="btn btn-xs btn-error" onClick={() => handleDelete(n.id)}>Delete</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {sendDialog && (
+        <SendDialog
+          newsletterId={sendDialog}
+          contacts={contacts}
+          onClose={() => setSendDialog(null)}
+          onSent={async () => {
+            setSendDialog(null);
+            setAlert("✅ Newsletter sent!");
+            await loadNewsletters();
+          }}
+        />
+      )}
+    </div>
+  );
+}

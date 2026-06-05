@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   try {
-    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, font } = body;
+    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, font, newsletterEnabled, newsletterFields } = body;
 
     if (id) {
       const updates: Record<string, any> = { user_id: userId };
@@ -27,6 +27,8 @@ export async function POST(req: NextRequest) {
       if (video !== undefined) updates.video = video;
       if (Array.isArray(links)) updates.links = links;
       if (selectedProducts !== undefined) updates.selected_products = selectedProducts ?? [];
+      if (newsletterEnabled !== undefined) updates.newsletter_enabled = newsletterEnabled;
+      if (newsletterFields !== undefined) updates.newsletter_fields = newsletterFields ?? ["name", "email"];
 
       const { data, error } = await supabase
         .from("release_pages")
@@ -54,6 +56,8 @@ export async function POST(req: NextRequest) {
         description,
         name,
         selected_products: selectedProducts ?? [],
+        newsletter_enabled: newsletterEnabled ?? false,
+        newsletter_fields: newsletterFields ?? ["name", "email"],
       })
       .select()
       .single();

@@ -3,8 +3,11 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase from "@/libs/supabase";
 import { sendEmail } from "@/libs/resend";
+import config from "@/config";
 
-const APP_URL = process.env.NEXTAUTH_URL || "https://influanto.com";
+// Build emailed links from the canonical domain — NEXTAUTH_URL can be localhost
+// in some environments, which would break the sign/login links in the email.
+const APP_URL = `https://${config.domainName}`;
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);

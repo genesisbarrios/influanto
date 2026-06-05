@@ -180,6 +180,8 @@ const LinkInBio = () => {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
+  const [newsletterEnabled, setNewsletterEnabled] = useState(false);
+  const [newsletterFields, setNewsletterFields] = useState<string[]>(["name", "email"]);
 
   // ── Effects ────────────────────────────────────────────────────────────────
 
@@ -324,9 +326,17 @@ const LinkInBio = () => {
         setSelectedProductIds(data.selectedProducts);
       }
       setBrandLogoUrl(data.brandLogoUrl || "");
+      setNewsletterEnabled(!!data.newsletterEnabled);
+      setNewsletterFields(Array.isArray(data.newsletterFields) ? data.newsletterFields : ["name", "email"]);
     } catch (e) {
       setAlertt(e?.message);
     }
+  };
+
+  // ── Newsletter signup helpers ───────────────────────────────────────────────
+
+  const toggleNewsletterField = (field: string) => {
+    setNewsletterFields(prev => prev.includes(field) ? prev.filter(f => f !== field) : [...prev, field]);
   };
 
   // ── Link helpers ───────────────────────────────────────────────────────────
@@ -446,6 +456,8 @@ const LinkInBio = () => {
         patternBg: linkInBio?.patternBg,
         patternOpacity: linkInBio?.patternOpacity,
         brandLogoUrl: brandLogoUrl || null,
+        newsletterEnabled: newsletterEnabled,
+        newsletterFields: newsletterFields.includes("email") ? newsletterFields : [...newsletterFields, "email"],
       });
       posthog.capture("link_in_bio_saved", { links_count: links.length });
       setAlertt("Link In Bio updated successfully");
@@ -1007,6 +1019,28 @@ const LinkInBio = () => {
                 : "Your Printify store is connected. Select products to feature below."
               }
             </p>
+          </div>
+
+          {/* ── Newsletter Signup ── */}
+          <div className="mb-4 p-4 bg-indigo-50 rounded-md border border-indigo-100">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" className="checkbox checkbox-sm" checked={newsletterEnabled} onChange={e => setNewsletterEnabled(e.target.checked)} />
+              <span className="font-bold text-indigo-800">📣 Collect newsletter signups</span>
+            </label>
+            <p className="text-indigo-600 text-sm mt-1">Show a signup form on your public page so fans can join your Outreach contacts.</p>
+            {newsletterEnabled && (
+              <div className="mt-3">
+                <p className="text-xs font-semibold text-indigo-700 mb-2">Fields to collect (email is always required):</p>
+                <div className="flex flex-wrap gap-3">
+                  {[["name", "Name"], ["phone", "Phone"], ["instagram", "Instagram"], ["tiktok", "TikTok"]].map(([key, label]) => (
+                    <label key={key} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                      <input type="checkbox" className="checkbox checkbox-xs" checked={newsletterFields.includes(key)} onChange={() => toggleNewsletterField(key)} />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── Product Selection ── */}

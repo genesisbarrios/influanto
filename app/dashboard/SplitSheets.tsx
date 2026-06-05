@@ -107,6 +107,24 @@ function downloadSheetPDF(sheet: Partial<SplitSheet>) {
     y += h;
   });
 
+  // Agreement terms (matches the on-screen preview and emailed version)
+  y += 10;
+  if (y + 30 > pageHeight - 20) { doc.addPage(); y = 20; }
+  doc.setFontSize(12); doc.setTextColor(0);
+  doc.text("Agreement Terms:", 10, y); y += 6;
+  doc.setFontSize(10); doc.setTextColor(60);
+  const termsText =
+    `Each contributor agrees to the ownership percentages of the composition and master recording specified above. ` +
+    `All royalties will be distributed accordingly. Dispute resolution under the laws of ${sheet.stateCountry || "[State/Country]"}. ` +
+    `By signing, all parties acknowledge their contributions are accurately reflected.`;
+  const termsLines = doc.splitTextToSize(termsText, 190);
+  termsLines.forEach((line: string) => {
+    if (y + 6 > pageHeight - 20) { doc.addPage(); y = 20; }
+    doc.text(line, 10, y);
+    y += 6;
+  });
+  doc.setTextColor(0);
+
   doc.save(`${sheet.title||"split-sheet"}_${sheet.date||""}_influanto.pdf`);
 }
 

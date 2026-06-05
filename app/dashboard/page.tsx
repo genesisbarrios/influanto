@@ -11,6 +11,7 @@ import CuratorSearch from './CuratorSearch';
 import Community from './Community';
 import ReleasePage from './ReleasePage';
 import SplitSheets from './SplitSheets';
+import Outreach from './Outreach';
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
@@ -27,6 +28,7 @@ export default function Dashboard() {
     'release-page': <ReleasePage />,
     'qr-code-generator': <QRCodeGenerator />,
     'split-sheets': <SplitSheets />,
+    'outreach': <Outreach />,
     // 'curator-search': <CuratorSearch />,
     'community': <Community />
   };
@@ -53,7 +55,12 @@ export default function Dashboard() {
           </li> */}
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('split-sheets')}>
-              Split Sheets ✨
+              Split Sheets
+            </button>
+          </li>
+          <li>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('outreach')}>
+              Outreach 
             </button>
           </li>
           <li>

@@ -33,6 +33,8 @@ export async function POST(req: NextRequest) {
           links: body.links ?? [],
           selected_products: body.selectedProducts ?? [],
           brand_logo_url: body.brandLogoUrl ?? null,
+          newsletter_enabled: body.newsletterEnabled ?? false,
+          newsletter_fields: body.newsletterFields ?? ["name", "email"],
         },
         { onConflict: "user_id" }
       )
