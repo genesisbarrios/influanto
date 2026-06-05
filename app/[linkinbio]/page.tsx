@@ -5,6 +5,7 @@ import apiClient from "@/libs/api";
 import MetaPixel, { trackLinkClick, trackStreamingClick, trackMerchClick } from "@/components/MetaPixel";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
+import NewsletterSignup from "@/components/NewsletterSignup";
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobe, faLocation, faEnvelope } from "@fortawesome/free-solid-svg-icons";
@@ -769,6 +770,19 @@ return (
               src={linkInBio.brandLogoUrl}
               alt="Brand logo"
               style={{ maxHeight: "60px", maxWidth: "160px", objectFit: "contain" }}
+            />
+          </div>
+        )}
+
+        {/* ── Newsletter signup ── */}
+        {linkInBio?.newsletterEnabled && (
+          <div className="mt-8 px-4">
+            <NewsletterSignup
+              username={userName}
+              source="link_in_bio"
+              fields={linkInBio.newsletterFields}
+              textColor={textColor}
+              linksColor={linksColor}
             />
           </div>
         )}

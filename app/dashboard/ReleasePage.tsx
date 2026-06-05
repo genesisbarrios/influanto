@@ -188,12 +188,14 @@ const ReleasePages = () => {
       links: [], 
       image: "", 
       video: "", 
-      bgColor, 
-      linksColor, 
+      bgColor,
+      linksColor,
       textColor,
       font,
-      selectedProducts: []
-    }); 
+      selectedProducts: [],
+      newsletterEnabled: false,
+      newsletterFields: ["name", "email"]
+    });
     setCreatePage(true);
     setSelectedProductIds([]);
   };
@@ -637,6 +639,7 @@ const removeCustomLink = (index: number) => {
         return;
       }
 
+      const nlFields: string[] = Array.isArray(editingPage?.newsletterFields) ? editingPage.newsletterFields : ["name", "email"];
       const dataToSend = {
         ...editingPage,
         bgColor,
@@ -644,6 +647,8 @@ const removeCustomLink = (index: number) => {
         linksColor,
         font,
         selectedProducts: selectedProductIds,
+        newsletterEnabled: !!editingPage?.newsletterEnabled,
+        newsletterFields: nlFields.includes("email") ? nlFields : [...nlFields, "email"],
       };
 
       const isNew = !editingPage?._id;
@@ -1034,7 +1039,33 @@ const removeCustomLink = (index: number) => {
                   </select>
                 </div>
               </div>
-            
+
+            {/* Newsletter signup */}
+            <div className="mt-4 w-full p-4 bg-indigo-50 rounded-md border border-indigo-100">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" className="checkbox checkbox-sm" checked={!!editingPage?.newsletterEnabled} onChange={e => setEditingPage({ ...editingPage, newsletterEnabled: e.target.checked })} />
+                <span className="font-bold text-indigo-800">📣 Collect newsletter signups</span>
+              </label>
+              <p className="text-indigo-600 text-sm mt-1">Show a signup form on this release page so fans can join your Outreach contacts.</p>
+              {editingPage?.newsletterEnabled && (
+                <div className="mt-3">
+                  <p className="text-xs font-semibold text-indigo-700 mb-2">Fields to collect (email is always required):</p>
+                  <div className="flex flex-wrap gap-3">
+                    {[["name", "Name"], ["phone", "Phone"], ["instagram", "Instagram"], ["tiktok", "TikTok"]].map(([key, label]) => {
+                      const fields: string[] = Array.isArray(editingPage?.newsletterFields) ? editingPage.newsletterFields : ["name", "email"];
+                      return (
+                        <label key={key} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                          <input type="checkbox" className="checkbox checkbox-xs" checked={fields.includes(key)}
+                            onChange={() => setEditingPage({ ...editingPage, newsletterFields: fields.includes(key) ? fields.filter(f => f !== key) : [...fields, key] })} />
+                          {label}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-end">
               <button
                 className="btn btn-primary btn-sm mr-2"
@@ -1309,6 +1340,32 @@ const removeCustomLink = (index: number) => {
             </div>
 
             {renderMerchSection()}
+
+            {/* Newsletter signup */}
+            <div className="mt-4 w-full p-4 bg-indigo-50 rounded-md border border-indigo-100">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" className="checkbox checkbox-sm" checked={!!editingPage?.newsletterEnabled} onChange={e => setEditingPage({ ...editingPage, newsletterEnabled: e.target.checked })} />
+                <span className="font-bold text-indigo-800">📣 Collect newsletter signups</span>
+              </label>
+              <p className="text-indigo-600 text-sm mt-1">Show a signup form on this release page so fans can join your Outreach contacts.</p>
+              {editingPage?.newsletterEnabled && (
+                <div className="mt-3">
+                  <p className="text-xs font-semibold text-indigo-700 mb-2">Fields to collect (email is always required):</p>
+                  <div className="flex flex-wrap gap-3">
+                    {[["name", "Name"], ["phone", "Phone"], ["instagram", "Instagram"], ["tiktok", "TikTok"]].map(([key, label]) => {
+                      const fields: string[] = Array.isArray(editingPage?.newsletterFields) ? editingPage.newsletterFields : ["name", "email"];
+                      return (
+                        <label key={key} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                          <input type="checkbox" className="checkbox checkbox-xs" checked={fields.includes(key)}
+                            onChange={() => setEditingPage({ ...editingPage, newsletterFields: fields.includes(key) ? fields.filter(f => f !== key) : [...fields, key] })} />
+                          {label}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="flex justify-end">
               <button
