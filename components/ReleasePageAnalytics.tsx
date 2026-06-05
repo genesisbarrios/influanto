@@ -88,7 +88,7 @@ export default function ReleasePageAnalytics({ releasePageId, releasePageName }:
     setLoading(true);
     apiClient
       .get(`/analytics/release?releasePageId=${releasePageId}`)
-      .then((res) => setData(res.data))
+      .then((res: any) => setData(res))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [releasePageId]);
