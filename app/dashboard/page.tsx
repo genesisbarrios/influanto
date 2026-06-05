@@ -10,6 +10,7 @@ import QRCodeGenerator from './QRCodeGenerator';
 import CuratorSearch from './CuratorSearch';
 import Community from './Community';
 import ReleasePage from './ReleasePage';
+import SplitSheets from './SplitSheets';
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
@@ -25,6 +26,7 @@ export default function Dashboard() {
     'link-in-bio': <LinkInBio />,
     'release-page': <ReleasePage />,
     'qr-code-generator': <QRCodeGenerator />,
+    'split-sheets': <SplitSheets />,
     // 'curator-search': <CuratorSearch />,
     'community': <Community />
   };
@@ -49,6 +51,11 @@ export default function Dashboard() {
           {/* <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('curator-search')}>Curator Search</button>
           </li> */}
+          <li>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('split-sheets')}>
+              Split Sheets ✨
+            </button>
+          </li>
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('community')}>Community</button>
           </li>

@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
           pattern_opacity: body.patternOpacity,
           links: body.links ?? [],
           selected_products: body.selectedProducts ?? [],
+          brand_logo_url: body.brandLogoUrl ?? null,
         },
         { onConflict: "user_id" }
       )

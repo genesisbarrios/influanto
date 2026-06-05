@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
 import { useSession } from "next-auth/react";
+import ReleasePageAnalytics from "@/components/ReleasePageAnalytics";
 import { CldUploadWidget } from 'next-cloudinary';
 import { debounce } from "lodash";
 import posthog from "posthog-js";
@@ -25,6 +26,7 @@ const ReleasePages = () => {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [showMerchSection, setShowMerchSection] = useState(false);
+  const [expandedAnalytics, setExpandedAnalytics] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -1055,47 +1057,67 @@ const removeCustomLink = (index: number) => {
           </div>
         ) : !editingPage ? (
           <div className="grid grid-cols-1 gap-4">
-            {Array.isArray(releasePages) && releasePages.map((page: any) => (
-              <div
-                key={page.id || page._id}
-                className="relative rounded-lg overflow-hidden shadow-lg"
-                style={{
-                  backgroundImage: `url(${page.image})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  height: "200px",
-                  fontFamily: page.font || 'inherit'  // Apply the page's font to preview
-                }}
-              >
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white">
-                  <h3 className="text-lg font-bold" style={{ fontFamily: page.font || 'inherit' }}>{page.name}</h3>
-                  <p className="text-sm" style={{ fontFamily: page.font || 'inherit' }}>{page.description}</p>
-                  <div className="flex space-x-2 mt-2">
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => handleEdit(page)}
-                      style={{ fontFamily: page.font || 'inherit' }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => window.location.href = `/release/${page.name}`}
-                      style={{ fontFamily: page.font || 'inherit' }}
-                    >
-                      Visit
-                    </button>
-                    <button
-                      className="btn btn-alert btn-sm"
-                      onClick={() => handleDelete(page.id || page._id)}
-                      style={{ fontFamily: page.font || 'inherit' }}
-                    >
-                      Delete
-                    </button>
+            {Array.isArray(releasePages) && releasePages.map((page: any) => {
+              const pageId = page.id || page._id;
+              const analyticsOpen = expandedAnalytics === pageId;
+              return (
+                <div key={pageId}>
+                  {/* Page card */}
+                  <div
+                    className="relative rounded-lg overflow-hidden shadow-lg"
+                    style={{
+                      backgroundImage: `url(${page.image})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      height: "200px",
+                      fontFamily: page.font || 'inherit',
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white">
+                      <h3 className="text-lg font-bold" style={{ fontFamily: page.font || 'inherit' }}>{page.name}</h3>
+                      <p className="text-sm" style={{ fontFamily: page.font || 'inherit' }}>{page.description}</p>
+                      <div className="flex space-x-2 mt-2 flex-wrap justify-center gap-y-1">
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => handleEdit(page)}
+                          style={{ fontFamily: page.font || 'inherit' }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => window.location.href = `/release/${page.name}`}
+                          style={{ fontFamily: page.font || 'inherit' }}
+                        >
+                          Visit
+                        </button>
+                        <button
+                          className="btn btn-sm"
+                          style={{ backgroundColor: analyticsOpen ? "#4f46e5" : "rgba(255,255,255,0.2)", color: "white", fontFamily: page.font || 'inherit' }}
+                          onClick={() => setExpandedAnalytics(analyticsOpen ? null : pageId)}
+                        >
+                          {analyticsOpen ? "Hide Analytics" : "Analytics"}
+                        </button>
+                        <button
+                          className="btn btn-alert btn-sm"
+                          onClick={() => handleDelete(pageId)}
+                          style={{ fontFamily: page.font || 'inherit' }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Collapsible analytics panel */}
+                  {analyticsOpen && (
+                    <div className="border border-gray-200 rounded-b-lg bg-gray-50 px-4 pb-4 -mt-1">
+                      <ReleasePageAnalytics releasePageId={pageId} releasePageName={page.name} />
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="p-4 bg-gray-100 rounded-md" style={{ fontFamily: font || 'inherit' }}>
