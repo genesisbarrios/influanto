@@ -353,8 +353,9 @@ useEffect(() => {
   const getQRData = (code: any): string => {
     const codeKey = code.id ?? code._id;
     if (user?.hasAccess && codeKey) {
-      const origin = typeof window !== "undefined" ? window.location.origin : "https://influanto.com";
-      return `${origin}/code/${codeKey}`;
+      // Always encode the canonical production domain — a QR is a physical
+      // artifact, so it must never bake in localhost or a preview URL.
+      return `https://${config.domainName}/code/${codeKey}`;
     }
     return code.url;
   };
