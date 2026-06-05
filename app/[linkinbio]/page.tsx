@@ -765,11 +765,11 @@ return (
 
         {/* ── Brand logo (premium users) ── */}
         {user?.hasAccess && linkInBio?.brandLogoUrl && (
-          <div className="mt-6 flex justify-center" style={{ fontFamily: font || 'inherit' }}>
+          <div className="mt-12 flex justify-center" style={{ fontFamily: font || 'inherit' }}>
             <img
               src={linkInBio.brandLogoUrl}
               alt="Brand logo"
-              style={{ maxHeight: "60px", maxWidth: "160px", objectFit: "contain" }}
+              style={{ maxHeight: "60px", maxWidth: "60px", objectFit: "contain" }}
             />
           </div>
         )}
