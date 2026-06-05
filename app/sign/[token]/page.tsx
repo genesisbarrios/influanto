@@ -183,6 +183,11 @@ export default function SignPage() {
       const data = await res.json();
       if (!res.ok) { alert(data.error || "Failed to save signature"); return; }
       setSigner(prev => prev ? { ...prev, signedAt: data.signedAt, signatureData } : prev);
+      // Premium signers (logged in) get a copy saved to their account — send them there.
+      if (data.premium) {
+        window.location.href = "/dashboard?tab=split-sheets";
+        return;
+      }
       setStep("done");
     } finally {
       setSubmitting(false);
@@ -212,7 +217,7 @@ export default function SignPage() {
     );
   }
 
-  const loginUrl = `/api/auth/signin?callbackUrl=${encodeURIComponent("/dashboard")}`;
+  const loginUrl = `/api/auth/signin?callbackUrl=${encodeURIComponent(`/sign/${token}`)}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 py-10 px-4">

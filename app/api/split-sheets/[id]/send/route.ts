@@ -100,7 +100,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     const signUrl = `${APP_URL}/sign/${token}`;
-    const loginUrl = `${APP_URL}/api/auth/signin?callbackUrl=${encodeURIComponent("/dashboard")}`;
+    // Login also returns to the signing page — once authenticated, signing saves
+    // a copy of the sheet under the signer's account.
+    const loginUrl = `${APP_URL}/api/auth/signin?callbackUrl=${encodeURIComponent(`/sign/${token}`)}`;
 
     const html = `
       <div style="font-family:sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#111;">
