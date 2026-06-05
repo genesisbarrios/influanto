@@ -13,7 +13,7 @@ import { faGlobe, faLocation, faEnvelope } from "@fortawesome/free-solid-svg-ico
 import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
 import PrintifyIntegration from "@/components/PrintifyIntegration";
-import LinkInBioAnalytics from "@/components/LinkInBioAnalytics";
+import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import SettingsDropdown from "@/components/SettingsDropdown";
 
@@ -927,7 +927,7 @@ const handleYouTubeMusicChange = (e: any) => {
             
             <br></br>
 
-            <LinkInBioAnalytics />
+            <AnalyticsDashboard />
 
             {/* ── Meta Pixel ── */}
             <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">

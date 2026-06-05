@@ -89,7 +89,7 @@ export default function LinkInBioAnalytics() {
   useEffect(() => {
     apiClient
       .get("/analytics/linkinbio")
-      .then((res) => setData(res.data))
+      .then((res: any) => setData(res))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
