@@ -65,6 +65,71 @@ const PitchToSpotify: React.FC = () => {
   const { data, status } = useSession();
   const [user, setUser] = useState<any>();
 
+  // ── Curator email popup ──
+  const [emailModal, setEmailModal] = useState<Playlist | null>(null);
+  const [emailForm, setEmailForm] = useState({ subject: '', body: '' });
+  const [sending, setSending] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [emailAlert, setEmailAlert] = useState('');
+
+  const buildTemplate = (pl: Playlist) => {
+    const artist = (data?.user?.name as string) || 'an independent artist';
+    return {
+      subject: `Song submission for "${pl.name}"`,
+      body:
+`Hi ${pl.owner || 'there'},
+
+I came across your playlist "${pl.name}" and think my music would be a great fit for it.
+
+I'm ${artist} and I'd love for you to consider my latest release:
+[ paste your track link here ]
+
+Thanks so much for your time and for supporting independent artists — it means a lot.
+
+Best,
+${(data?.user?.name as string) || ''}`,
+    };
+  };
+
+  const openEmail = (pl: Playlist) => {
+    setEmailModal(pl);
+    setEmailForm(buildTemplate(pl));
+    setCopied(false);
+    setEmailAlert('');
+  };
+
+  const copyTemplate = async () => {
+    try {
+      await navigator.clipboard.writeText(`Subject: ${emailForm.subject}\n\n${emailForm.body}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setEmailAlert('Could not copy — select and copy manually.');
+    }
+  };
+
+  const sendCuratorEmail = async () => {
+    if (!emailModal?.email) return;
+    setSending(true);
+    setEmailAlert('');
+    try {
+      const res = await fetch('/api/curator-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: emailModal.email, subject: emailForm.subject, body: emailForm.body }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || 'Failed to send');
+      posthog.capture('curator_email_sent', { playlist: emailModal.name });
+      setEmailAlert('✅ Email sent!');
+      setTimeout(() => setEmailModal(null), 1200);
+    } catch (e: any) {
+      setEmailAlert(e?.message || 'Failed to send');
+    } finally {
+      setSending(false);
+    }
+  };
+
   const genres = [
     "Latin", "Latin Indie", "Reggaeton", "Latin Trap",
     "Hip Hop", "RnB", "Trap", "Drill", "EDM", "House",
@@ -236,16 +301,63 @@ const PitchToSpotify: React.FC = () => {
                   </a>
                 )}
                 {playlist.email && (
-                  <a
-                    href={`mailto:${playlist.email}`}
+                  <button
+                    onClick={() => openEmail(playlist)}
                     className="inline-block mt-2 px-4 py-2 text-white bg-green-500 rounded-lg text-sm hover:bg-green-600"
                   >
-                    Email
-                  </a>
+                    ✉️ Email
+                  </button>
                 )}
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Curator email popup */}
+      {emailModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+            <div className="px-5 py-4 border-b flex items-start justify-between gap-2">
+              <div>
+                <h3 className="text-lg font-semibold">Email curator</h3>
+                <p className="text-sm text-gray-500 mt-0.5">{emailModal.owner} · {emailModal.email}</p>
+              </div>
+              <button className="text-gray-400 hover:text-gray-600" onClick={() => setEmailModal(null)}>✕</button>
+            </div>
+
+            <div className="p-5 space-y-3">
+              <div>
+                <label className="block text-xs font-medium mb-1">Subject</label>
+                <input
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  value={emailForm.subject}
+                  onChange={(e) => setEmailForm((p) => ({ ...p, subject: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Message</label>
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
+                  rows={11}
+                  value={emailForm.body}
+                  onChange={(e) => setEmailForm((p) => ({ ...p, body: e.target.value }))}
+                />
+              </div>
+              <p className="text-xs text-gray-400">Replies go straight to your account email. Edit the template before sending.</p>
+              {emailAlert && <p className={`text-sm ${emailAlert.startsWith('✅') ? 'text-green-600' : 'text-red-500'}`}>{emailAlert}</p>}
+            </div>
+
+            <div className="px-5 pb-5 flex justify-end gap-2 flex-wrap">
+              <button className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50" onClick={() => setEmailModal(null)}>Cancel</button>
+              <button className="px-4 py-2 text-sm border border-indigo-300 text-indigo-700 rounded-md hover:bg-indigo-50" onClick={copyTemplate}>
+                {copied ? '✓ Copied' : '📋 Copy template'}
+              </button>
+              <button className="px-4 py-2 text-sm text-white bg-green-600 rounded-md hover:bg-green-700 disabled:bg-gray-400" disabled={sending} onClick={sendCuratorEmail}>
+                {sending ? 'Sending…' : '✉️ Send email'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

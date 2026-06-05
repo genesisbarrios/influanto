@@ -150,3 +150,32 @@ export function mapOutreachContact(row: any) {
     createdAt: row.created_at ?? null,
   };
 }
+
+export function mapCrosspost(row: any) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    userId: row.user_id,
+    kind: row.kind ?? "image",
+    media: row.media ?? [],
+    caption: row.caption ?? "",
+    platforms: row.platforms ?? [],
+    settings: row.settings ?? {},
+    status: row.status ?? "draft",
+    results: row.results ?? {},
+    createdAt: row.created_at ?? null,
+  };
+}
+
+export function mapCrosspostAccount(row: any) {
+  if (!row) return null;
+  // Never expose stored credentials to the client.
+  return {
+    id: row.id,
+    userId: row.user_id,
+    platform: row.platform,
+    handle: row.handle ?? "",
+    connected: row.connected ?? false,
+    createdAt: row.created_at ?? null,
+  };
+}
