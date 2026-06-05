@@ -97,14 +97,11 @@ export default function ReleasePageAnalytics({ releasePageId, releasePageName }:
 
   return (
     <div className="mt-3 w-full">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-gray-800 text-sm">
-          {releasePageName || "Release Page"}
-        </h3>
-        {data && (
+      {data && (
+        <div className="flex items-center justify-end mb-3">
           <span className="text-xs text-gray-500">{data.total.toLocaleString()} total visits</span>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Tab bar */}
       <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-4 flex-wrap">
