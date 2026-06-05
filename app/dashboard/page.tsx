@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import posthog from "posthog-js";
 
 // Import or define your components here
@@ -15,6 +15,13 @@ import Outreach from './Outreach';
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
+
+  // Allow deep-linking to a tab, e.g. /dashboard?tab=split-sheets (used after signing)
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    if (tab && tab in components) setActiveComponent(tab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleTabSwitch = (tab: string) => {
     setActiveComponent(tab);

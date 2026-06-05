@@ -1,4 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/libs/next-auth";
 import supabase from "@/libs/supabase";
 
 // ── GET — public, fetch split sheet + signer details by token ────────────────
@@ -85,5 +87,41 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
     .update({ contributors: updatedContributors })
     .eq("id", sheet.id);
 
-  return NextResponse.json({ success: true, signedAt });
+  // 3. If the signer is logged in, save a copy of the sheet under their account
+  //    (so it appears in their own Split Sheets dashboard) and report premium status.
+  let premium = false;
+  const session = await getServerSession(authOptions);
+  if (session?.user?.id) {
+    const { data: u } = await supabase
+      .from("users")
+      .select("has_access")
+      .eq("id", session.user.id)
+      .single();
+    premium = !!u?.has_access;
+
+    // Dedupe: only copy once per signer for this sheet (best-effort by title+date+artists)
+    const { data: existing } = await supabase
+      .from("split_sheets")
+      .select("id")
+      .eq("user_id", session.user.id)
+      .eq("title", sheet.title ?? "")
+      .eq("date", sheet.date ?? "")
+      .eq("artists", sheet.artists ?? "")
+      .limit(1);
+
+    if (!existing?.length) {
+      await supabase.from("split_sheets").insert({
+        user_id: session.user.id,
+        title: sheet.title ?? "",
+        date: sheet.date ?? "",
+        artists: sheet.artists ?? "",
+        state_country: sheet.state_country ?? "",
+        contributors: updatedContributors,
+        publishing: sheet.publishing ?? [],
+        status: "completed",
+      });
+    }
+  }
+
+  return NextResponse.json({ success: true, signedAt, premium });
 }
