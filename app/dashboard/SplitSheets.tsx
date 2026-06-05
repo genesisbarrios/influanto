@@ -509,11 +509,13 @@ export default function SplitSheets() {
             </div>
             <div className="space-y-2">
               {publishing.map((p, i) => (
-                <div key={i} className="flex gap-2">
-                  <input className="input input-sm flex-1" placeholder="Contributor Name" value={p.contributorName} onChange={e => setPublishing(i, { contributorName: e.target.value })} />
-                  <input className="input input-sm flex-1" placeholder="Publisher" value={p.publisher} onChange={e => setPublishing(i, { publisher: e.target.value })} />
-                  <input className="input input-sm w-20" placeholder="%" value={p.percent} onChange={e => setPublishing(i, { percent: e.target.value })} />
-                  <button type="button" className="btn btn-xs btn-error" onClick={() => setSheet({ publishing: publishing.filter((_,idx) => idx !== i) })}>✕</button>
+                <div key={i} className="flex flex-col sm:flex-row gap-2">
+                  <input className="input input-sm w-full sm:flex-1 min-w-0" placeholder="Contributor Name" value={p.contributorName} onChange={e => setPublishing(i, { contributorName: e.target.value })} />
+                  <input className="input input-sm w-full sm:flex-1 min-w-0" placeholder="Publisher" value={p.publisher} onChange={e => setPublishing(i, { publisher: e.target.value })} />
+                  <div className="flex gap-2">
+                    <input className="input input-sm flex-1 sm:w-20 sm:flex-none min-w-0" placeholder="%" value={p.percent} onChange={e => setPublishing(i, { percent: e.target.value })} />
+                    <button type="button" className="btn btn-xs btn-error shrink-0" onClick={() => setSheet({ publishing: publishing.filter((_,idx) => idx !== i) })}>✕</button>
+                  </div>
                 </div>
               ))}
             </div>
