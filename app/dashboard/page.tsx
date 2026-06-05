@@ -12,6 +12,7 @@ import Community from './Community';
 import ReleasePage from './ReleasePage';
 import SplitSheets from './SplitSheets';
 import Outreach from './Outreach';
+// import Crossposting from './Crossposting'; // hidden until TikTok API approval
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
@@ -36,7 +37,8 @@ export default function Dashboard() {
     'qr-code-generator': <QRCodeGenerator />,
     'split-sheets': <SplitSheets />,
     'outreach': <Outreach />,
-    // 'curator-search': <CuratorSearch />,
+    'curator-search': <CuratorSearch />,
+    // 'crossposting': <Crossposting />, // hidden until TikTok API approval
     'community': <Community />
   };
 
@@ -67,7 +69,12 @@ export default function Dashboard() {
           </li>
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('outreach')}>
-              Outreach 
+              Outreach
+            </button>
+          </li>
+          <li>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('curator-search')}>
+              Curator Search
             </button>
           </li>
           <li>
