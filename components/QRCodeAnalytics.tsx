@@ -78,7 +78,7 @@ export default function QRCodeAnalytics({ codeId, codeName }: { codeId: string; 
     <div className="mt-3">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-semibold text-gray-600">
-          Analytics{codeName ? ` — ${codeName}` : ""}
+          {codeName || "QR Code"}
         </span>
         {data && <span className="text-xs text-gray-400">{data.total.toLocaleString()} total scans</span>}
       </div>
