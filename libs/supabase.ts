@@ -57,6 +57,7 @@ export function mapUser(row: any) {
     printifyStoreName: row.printify_store_name,
     printifyAccessToken: row.printify_access_token,
     printifyShopUrl: row.printify_shop_url,
+    metaPixelId: row.meta_pixel_id,
   };
 }
 

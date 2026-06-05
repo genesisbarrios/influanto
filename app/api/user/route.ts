@@ -51,6 +51,7 @@ export async function POST(req: Request) {
     }
 
     const textFields: [string, string][] = [
+      ["metaPixelId", "meta_pixel_id"],
       ["name", "name"],
       ["username", "username"],
       ["email", "email"],

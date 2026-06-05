@@ -19,12 +19,8 @@ export async function GET(_req: NextRequest) {
 
     if (error) throw error;
 
-    if (!data || !(data.codes as any[])?.length) {
-      return NextResponse.json({ error: "Links Not Found" }, { status: 404 });
-    }
-
-    // Return as array to match the original Codes.find() response shape
-    return NextResponse.json({ data: [mapQRCodes(data)] }, { status: 200 });
+    // Always return 200 — empty array when no codes so the UI shows the Create button
+    return NextResponse.json({ data: data ? [mapQRCodes(data)] : [] }, { status: 200 });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });

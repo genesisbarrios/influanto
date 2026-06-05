@@ -53,6 +53,10 @@ const Profile =  () => {
   const [youtubeMusic, setYouTubeMusic] = useState("");
   const [bandcamp, setBandcamp] = useState("");
   const [displayEmail, setDisplayEmail] = useState(Boolean);
+  const [metaPixelId, setMetaPixelId] = useState("");
+  const [isEditingPixel, setIsEditingPixel] = useState(false);
+  const [pixelInput, setPixelInput] = useState("");
+  const [pixelSaving, setPixelSaving] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [alertMsg, setAlertt] = useState("");
@@ -620,6 +624,24 @@ const handleYouTubeMusicChange = (e: any) => {
   }
 };
 
+  const saveMetaPixel = async () => {
+    setPixelSaving(true);
+    try {
+      const formData = new FormData();
+      formData.append("metaPixelId", pixelInput.trim());
+      await apiClient.post("/user", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setMetaPixelId(pixelInput.trim());
+      setUser((prev: any) => ({ ...prev, metaPixelId: pixelInput.trim() }));
+      setIsEditingPixel(false);
+    } catch (e: any) {
+      setAlertt(e?.message || "Failed to save Pixel ID");
+    } finally {
+      setPixelSaving(false);
+    }
+  };
+
   const getUser = async () => {
     try {
       const { data } = await apiClient.get("/get-user");
@@ -653,6 +675,7 @@ const handleYouTubeMusicChange = (e: any) => {
       setPandora(data.pandora);
       setYouTubeMusic(data.youtubeMusic);
       setBandcamp(data.bandcamp);
+      setMetaPixelId(data.metaPixelId || "");
       setUser(data);
   
     } catch (e) {
@@ -905,6 +928,78 @@ const handleYouTubeMusicChange = (e: any) => {
             <br></br>
 
             <LinkInBioAnalytics />
+
+            {/* ── Meta Pixel ── */}
+            <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">
+              <div className="flex items-center gap-2 mb-3">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#0866FF" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
+                </svg>
+                <span className="font-semibold text-sm text-gray-800">Meta Pixel</span>
+              </div>
+
+              {isEditingPixel ? (
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="text"
+                    className="input input-sm w-full border border-gray-300"
+                    placeholder="Enter Pixel ID (e.g. 1234567890)"
+                    value={pixelInput}
+                    onChange={(e) => setPixelInput(e.target.value)}
+                    autoFocus
+                  />
+                  <p className="text-xs text-gray-400">
+                    Find your Pixel ID in Meta Events Manager → Data Sources.
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={saveMetaPixel}
+                      disabled={pixelSaving}
+                      className="btn btn-primary btn-sm"
+                    >
+                      {pixelSaving ? "Saving…" : "Save"}
+                    </button>
+                    <button
+                      onClick={() => setIsEditingPixel(false)}
+                      className="btn btn-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : user?.metaPixelId ? (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-medium text-green-700">✅ Pixel Connected</div>
+                    <div className="text-xs text-gray-500 mt-0.5">ID: {user.metaPixelId}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setPixelInput(user.metaPixelId); setIsEditingPixel(true); }}
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => { setPixelInput(""); saveMetaPixel(); }}
+                      className="text-xs text-red-500 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-400">No pixel connected</p>
+                  <button
+                    onClick={() => { setPixelInput(""); setIsEditingPixel(true); }}
+                    className="btn btn-sm btn-outline"
+                  >
+                    Connect Pixel
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Show connection status if connected */}
             {user?.printifyShopId && (

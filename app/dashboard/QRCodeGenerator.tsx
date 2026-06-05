@@ -14,7 +14,7 @@ interface User {
 }
 
 const QRCodeGenerator = () => {
-  const [qrCodes, setQRCodes] = useState<any>();
+  const [qrCodes, setQRCodes] = useState<any[]>([]);
   const [newLink, setNewLink] = useState('');
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('#000000');
@@ -162,14 +162,14 @@ const addQRCode = async () => {
     }
     
     // Check if name is unique
-    if (qrCodes && qrCodes.some((code: any) => code.name.toLowerCase() === newName.toLowerCase())) {
+    if (qrCodes.some((code: any) => code.name?.toLowerCase() === newName.toLowerCase())) {
       setAlert("A QR code with this name already exists. Please choose a different name.");
       return;
     }
     
     const maxCodes = getMaxCodes();
     
-    if (qrCodes && qrCodes.length >= maxCodes) {
+    if (qrCodes.length >= maxCodes) {
       const userType = user?.hasAccess ? "premium" : "free";
       setAlert(`You can only create up to ${maxCodes} QR codes on the ${userType} plan.`);
       return;
@@ -348,7 +348,8 @@ useEffect(() => {
   const createQRCodeForDisplay = (code: any) => {
     if (!QRCodeStyling) return;
 
-    const container = qrRefs.current[code._id];
+    const codeKey = code.id ?? code._id;
+    const container = qrRefs.current[codeKey];
     if (!container) return;
 
     try {
@@ -434,7 +435,7 @@ useEffect(() => {
       });
 
       posthog.capture("qr_code_deleted", { qr_code_id: id });
-      setQRCodes(qrCodes.filter((code: any) => code._id !== id));
+      setQRCodes(qrCodes.filter((code: any) => (code.id ?? code._id) !== id));
       setAlert("QR Code deleted successfully.");
 
     } catch (e: any) {
@@ -465,11 +466,11 @@ useEffect(() => {
   const getQrCodes = async () => {
     try {
       const { data } = await apiClient.get("/get-codes");
-      console.log(data[0].codes);
-      setQRCodes(data[0].codes);
-    } catch (e) {
-      setAlert(e?.message);
-    } 
+      setQRCodes(data[0]?.codes ?? []);
+    } catch (e: any) {
+      // Silently ignore "no codes yet" — don't show an error alert
+      setQRCodes([]);
+    }
   }
 
   return (
@@ -478,7 +479,7 @@ useEffect(() => {
     <div className="p-4 bg-white shadow rounded-md text-black">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold mb-2">QR Codes</h2>
-        {!showCreateView && qrCodes?.length < getMaxCodes() && (
+        {!showCreateView && qrCodes.length < getMaxCodes() && (
           <button
             onClick={() => setShowCreateView(true)}
             className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -787,10 +788,12 @@ useEffect(() => {
       )}
 
       {/* QR Codes Grid */}
-      {qrCodes && (
+      {qrCodes.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {qrCodes.map((code: any) => (
-            <div key={code._id} className="border border-gray-300 p-4 rounded-lg shadow-sm">
+          {qrCodes.map((code: any) => {
+            const codeKey = code.id ?? code._id;
+            return (
+            <div key={codeKey} className="border border-gray-300 p-4 rounded-lg shadow-sm">
               <h3 className="mb-3 text-lg font-bold">{code.name}</h3>
               
               {/* QR Code Display with proper background */}
@@ -804,10 +807,9 @@ useEffect(() => {
                     backgroundPosition: code.transparentBg ? '0 0, 0 4px, 4px -4px, -4px 0px' : 'auto'
                   }}
                 >
-                  <div 
+                  <div
                     ref={el => {
-                      qrRefs.current[code._id] = el;
-                      // Trigger QR code creation when ref is set
+                      qrRefs.current[codeKey] = el;
                       if (el && QRCodeStyling) {
                         setTimeout(() => createQRCodeForDisplay(code), 100);
                       }
@@ -872,21 +874,22 @@ useEffect(() => {
 
               {/* Delete Button */}
               <button
-                onClick={() => handleDelete(code._id)}
+                onClick={() => handleDelete(codeKey)}
                 className="w-full px-3 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
               >
                 Delete
               </button>
             </div>
-          ))}
+          );
+          })}
         </div>
       )}
 
-      {/* Show message if no QR codes */}
-      {qrCodes && qrCodes.length === 0 && (
-        <div className="text-center py-8">
-          <div className="text-gray-400 text-lg mb-2">📱 No QR codes yet</div>
-          <div className="text-gray-500 text-sm">Create your first QR code to get started!</div>
+      {/* Empty state — only shown when not in create view */}
+      {!showCreateView && qrCodes.length === 0 && (
+        <div className="text-center py-8 text-gray-400">
+          <div className="text-4xl mb-3">📱</div>
+          <div className="text-sm">No QR codes yet. Hit <strong>Create QR</strong> to get started!</div>
         </div>
       )}
       
