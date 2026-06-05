@@ -5,6 +5,7 @@ import apiClient from "@/libs/api";
 import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
 import posthog from "posthog-js";
+import QRCodeAnalytics from "@/components/QRCodeAnalytics";
 
 // Define a TypeScript interface for the user prop to ensure type safety
 interface User {
@@ -35,6 +36,7 @@ const QRCodeGenerator = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setEditing] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [expandedAnalytics, setExpandedAnalytics] = useState<string | null>(null);
   const [QRCodeStyling, setQRCodeStyling] = useState<any>(null);
   const [previewQR, setPreviewQR] = useState<any>(null);
 
@@ -345,6 +347,18 @@ useEffect(() => {
     }
   };
 
+  // Returns the URL encoded in the QR image:
+  // premium users get the /code/[id] redirect (enables analytics);
+  // free users get the raw destination URL directly.
+  const getQRData = (code: any): string => {
+    const codeKey = code.id ?? code._id;
+    if (user?.hasAccess && codeKey) {
+      const origin = typeof window !== "undefined" ? window.location.origin : "https://influanto.com";
+      return `${origin}/code/${codeKey}`;
+    }
+    return code.url;
+  };
+
   const createQRCodeForDisplay = (code: any) => {
     if (!QRCodeStyling) return;
 
@@ -360,7 +374,7 @@ useEffect(() => {
         width: 128,
         height: 128,
         type: "svg" as const,
-        data: code.url,
+        data: getQRData(code),
         dotsOptions: {
           color: code.color || "#000000", // Use individual colors if available
           type: (code.dotStyle || "rounded") as any
@@ -393,10 +407,10 @@ useEffect(() => {
 
     try {
       const qrCodeOptions = {
-        width: 512, // High resolution for download
+        width: 512,
         height: 512,
         type: "svg" as const,
-        data: code.url,
+        data: getQRData(code),
         dotsOptions: {
           color: code.color || "#000000", // Use individual colors if available
           type: (code.dotStyle || "rounded") as any
@@ -792,8 +806,10 @@ useEffect(() => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {qrCodes.map((code: any) => {
             const codeKey = code.id ?? code._id;
+            const analyticsOpen = expandedAnalytics === codeKey;
             return (
-            <div key={codeKey} className="border border-gray-300 p-4 rounded-lg shadow-sm">
+            <div key={codeKey} className="border border-gray-300 rounded-lg shadow-sm overflow-hidden">
+            <div className="p-4">
               <h3 className="mb-3 text-lg font-bold">{code.name}</h3>
               
               {/* QR Code Display with proper background */}
@@ -836,15 +852,19 @@ useEffect(() => {
                 </div>
               )}
               
-              <p className="mb-3 text-sm break-words text-gray-600">{code.url}</p>
+              {/* Destination URL + tracking badge */}
+              <p className="mb-1 text-sm break-words text-gray-600">{code.url}</p>
+              {user?.hasAccess && (
+                <p className="mb-3 text-xs text-indigo-500">📊 Tracking via /code/{codeKey}</p>
+              )}
 
-              {/* Style Info - Enhanced for premium */}
+              {/* Style Info */}
               <div className="mb-3 text-xs text-gray-500 space-y-1">
                 <div>Style: {code.dotType || 'square'} dots, {code.cornerType || 'square'} corners</div>
                 {code.dotsColor || code.cornerDotColor || code.cornerSquareColor ? (
                   <div>
-                    Colors: 
-                    <span className="ml-1">🌐 {code.color}</span> <br></br>
+                    Colors:
+                    <span className="ml-1">🌐 {code.color}</span> <br />
                     <span className="ml-1">💠 {code.cornerSquareColor || code.color}</span>
                     <span className="ml-1">⚫ {code.cornerDotColor || code.color}</span>
                   </div>
@@ -853,8 +873,8 @@ useEffect(() => {
                 )}
               </div>
 
-              {/* Download Buttons */}
-              <div className="flex gap-2 mb-2">
+              {/* Download + Analytics Buttons */}
+              <div className="flex gap-2 mb-2 flex-wrap">
                 <button
                   onClick={() => handleDownload(code, 'png')}
                   disabled={!QRCodeStyling}
@@ -862,7 +882,6 @@ useEffect(() => {
                 >
                   PNG
                 </button>
-                
                 <button
                   onClick={() => handleDownload(code, 'svg')}
                   disabled={!QRCodeStyling}
@@ -870,6 +889,14 @@ useEffect(() => {
                 >
                   SVG
                 </button>
+                {user?.hasAccess && (
+                  <button
+                    onClick={() => setExpandedAnalytics(analyticsOpen ? null : codeKey)}
+                    className={`flex-1 px-3 py-2 text-sm rounded ${analyticsOpen ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}
+                  >
+                    📊
+                  </button>
+                )}
               </div>
 
               {/* Delete Button */}
@@ -879,6 +906,14 @@ useEffect(() => {
               >
                 Delete
               </button>
+            </div>{/* end p-4 */}
+
+            {/* Analytics panel */}
+            {analyticsOpen && user?.hasAccess && (
+              <div className="border-t border-gray-200 px-4 pb-4 bg-gray-50">
+                <QRCodeAnalytics codeId={codeKey} codeName={code.name} />
+              </div>
+            )}
             </div>
           );
           })}
