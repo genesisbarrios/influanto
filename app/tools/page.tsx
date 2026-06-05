@@ -35,6 +35,12 @@ const tools = [
     href: "/BPM-Calculator",
     icon: "🎵",
   },
+  {
+    title: "Chromatic Tuner",
+    description: "Tune guitar, bass, violin, or any instrument with your mic.",
+    href: "/Tuner",
+    icon: "🎻",
+  },
 //   {
 //     title: "WAV to MP3 Converter",
 //     description: "Convert WAV files to MP3 format easily.",
