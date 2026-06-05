@@ -99,7 +99,7 @@ export default function ReleasePageAnalytics({ releasePageId, releasePageName }:
     <div className="mt-3 w-full">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-semibold text-gray-800 text-sm">
-          Analytics{releasePageName ? ` — ${releasePageName}` : ""}
+          {releasePageName || "Release Page"}
         </h3>
         {data && (
           <span className="text-xs text-gray-500">{data.total.toLocaleString()} total visits</span>

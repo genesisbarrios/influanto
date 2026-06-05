@@ -99,7 +99,7 @@ export default function LinkInBioAnalytics() {
   return (
     <div className="mt-6 w-full">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-gray-800">Link In Bio Analytics</h3>
+        <h3 className="font-semibold text-gray-800">Link In Bio</h3>
         {data && (
           <span className="text-xs text-gray-500">{data.total.toLocaleString()} total visits</span>
         )}
