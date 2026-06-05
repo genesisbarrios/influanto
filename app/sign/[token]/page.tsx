@@ -88,12 +88,27 @@ function downloadPDF(sheet: SheetData, overrideSignature?: { name: string; data:
     doc.text(sigDate||"",132,y+6,{maxWidth:58}); y += h;
   });
 
+  // Agreement terms (matches the on-screen terms)
+  y += 10; if (y+30 > ph-20) { doc.addPage(); y=20; }
+  doc.setFontSize(12); doc.setTextColor(0);
+  doc.text("Agreement Terms:", 10, y); y += 6;
+  doc.setFontSize(10); doc.setTextColor(60);
+  const termsText =
+    `Each contributor agrees to the ownership percentages of the composition and master recording specified above. ` +
+    `All royalties will be distributed accordingly. Dispute resolution under the laws of ${sheet.stateCountry || "[State/Country]"}. ` +
+    `By signing, all parties acknowledge their contributions are accurately reflected.`;
+  doc.splitTextToSize(termsText, 190).forEach((line: string) => {
+    if (y+6 > ph-20) { doc.addPage(); y=20; }
+    doc.text(line, 10, y); y += 6;
+  });
+  doc.setTextColor(0);
+
   doc.save(`${sheet.title||"split-sheet"}_signed_influanto.pdf`);
 }
 
 // ─── Signature canvas ─────────────────────────────────────────────────────────
 
-function SignatureCanvas({ onSave }: { onSave: (data: string) => void }) {
+function SignatureCanvas({ onSave, saving }: { onSave: (data: string) => void; saving?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
@@ -121,8 +136,10 @@ function SignatureCanvas({ onSave }: { onSave: (data: string) => void }) {
         onPointerUp={e => { drawing.current=false; lastPos.current=null; canvasRef.current!.releasePointerCapture(e.pointerId); }}
         onPointerLeave={() => { drawing.current=false; }}
       />
-      <button type="button" onClick={clear} className="mt-2 text-xs text-gray-400 hover:text-gray-600 underline">Clear</button>
-      <button type="button" onClick={save} className="mt-2 ml-4 btn btn-primary btn-sm">Save Signature</button>
+      <div className="mt-3 flex items-center gap-4">
+        <button type="button" onClick={clear} disabled={saving} className="text-xs text-gray-400 hover:text-gray-600 underline">Clear</button>
+        <button type="button" onClick={save} disabled={saving} className="btn btn-primary btn-sm">{saving ? "Saving…" : "Save Signature"}</button>
+      </div>
     </div>
   );
 }
@@ -137,8 +154,7 @@ export default function SignPage() {
   const [error, setError] = useState("");
   const [sheet, setSheet] = useState<SheetData | null>(null);
   const [signer, setSigner] = useState<SignerData | null>(null);
-  const [step, setStep] = useState<"review" | "sign" | "done">("review");
-  const [pendingSig, setPendingSig] = useState<string | null>(null);
+  const [step, setStep] = useState<"sign" | "done">("sign");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -155,18 +171,18 @@ export default function SignPage() {
       .finally(() => setLoading(false));
   }, [token]);
 
-  const submitSignature = async () => {
-    if (!pendingSig) return;
+  const submitSignature = async (signatureData: string) => {
+    if (!signatureData) return;
     setSubmitting(true);
     try {
       const res = await fetch(`/api/sign/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ signatureData: pendingSig }),
+        body: JSON.stringify({ signatureData }),
       });
       const data = await res.json();
       if (!res.ok) { alert(data.error || "Failed to save signature"); return; }
-      setSigner(prev => prev ? { ...prev, signedAt: data.signedAt, signatureData: pendingSig } : prev);
+      setSigner(prev => prev ? { ...prev, signedAt: data.signedAt, signatureData } : prev);
       setStep("done");
     } finally {
       setSubmitting(false);
@@ -284,91 +300,31 @@ export default function SignPage() {
           </div>
         </div>
 
-        {/* ── Already signed ── */}
-        {step === "done" && (
-          <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 text-center">
-            <div className="text-4xl mb-3">✅</div>
-            <h2 className="text-lg font-bold text-green-700 mb-1">Signed!</h2>
-            <p className="text-gray-500 text-sm mb-1">
-              {signer.signedAt
-                ? `Signed on ${new Date(signer.signedAt).toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" })}`
-                : "Your signature has been recorded."}
-            </p>
-            {signer.signatureData && (
-              <div className="flex justify-center my-4">
-                <img src={signer.signatureData} alt="Your signature" className="max-h-16 border border-gray-200 rounded-lg bg-white p-2" />
-              </div>
-            )}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mt-4">
+        {/* ── Signature ── */}
+        <div className="bg-white rounded-2xl shadow-sm border border-indigo-100 p-6">
+          <h2 className="font-bold text-gray-800 mb-4">Your Signature</h2>
+
+          {step === "done" ? (
+            <>
+              {signer.signatureData && (
+                <div className="flex justify-center border border-gray-200 rounded-xl bg-white p-2 mb-2">
+                  <img src={signer.signatureData} alt="Your signature" className="max-h-20 object-contain" />
+                </div>
+              )}
+              <p className="text-xs text-green-700 mb-4">
+                ✅ Signed{signer.signedAt ? ` on ${new Date(signer.signedAt).toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" })}` : ""}
+              </p>
               <button
-                onClick={() => downloadPDF(sheet, pendingSig ? { name: signer.name, data: pendingSig } : (signer.signatureData ? { name: signer.name, data: signer.signatureData } : undefined))}
-                className="btn btn-primary"
+                onClick={() => downloadPDF(sheet, signer.signatureData ? { name: signer.name, data: signer.signatureData } : undefined)}
+                className="btn btn-primary w-full"
               >
                 ⬇️ Download PDF
               </button>
-              <a href={loginUrl} className="btn btn-outline">
-                🔐 Create / Login to Influanto
-              </a>
-            </div>
-            <p className="text-xs text-gray-400 mt-4">
-              Create a free Influanto account to manage your own split sheets, link-in-bio, and more.
-            </p>
-          </div>
-        )}
-
-        {/* ── Review step ── */}
-        {step === "review" && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
-            <p className="text-gray-600 text-sm mb-4">
-              By clicking below you confirm you have read and agree to the terms of this split sheet.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button onClick={() => setStep("sign")} className="btn btn-primary btn-lg">
-                ✍️ Continue to Sign
-              </button>
-              <button
-                onClick={() => downloadPDF(sheet)}
-                className="btn btn-outline"
-              >
-                ⬇️ Download PDF (unsigned)
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Sign step ── */}
-        {step === "sign" && (
-          <div className="bg-white rounded-2xl shadow-sm border border-indigo-100 p-6">
-            <h2 className="font-bold text-gray-800 mb-1">Your Signature</h2>
-            <p className="text-sm text-gray-500 mb-4">Draw your signature in the box below using your mouse or finger.</p>
-
-            {pendingSig ? (
-              <div>
-                <div className="flex justify-center border border-gray-200 rounded-xl bg-white p-2 mb-3">
-                  <img src={pendingSig} alt="Signature" className="max-h-20 object-contain" />
-                </div>
-                <button onClick={() => setPendingSig(null)} className="text-xs text-gray-400 underline mr-4">Redo signature</button>
-              </div>
-            ) : (
-              <SignatureCanvas onSave={data => setPendingSig(data)} />
-            )}
-
-            {pendingSig && (
-              <div className="flex flex-col sm:flex-row gap-3 mt-4">
-                <button
-                  onClick={submitSignature}
-                  disabled={submitting}
-                  className="btn btn-primary flex-1"
-                >
-                  {submitting ? "Saving…" : "✅ Submit Signature"}
-                </button>
-                <button onClick={() => setStep("review")} className="btn btn-outline">
-                  Back
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+            </>
+          ) : (
+            <SignatureCanvas saving={submitting} onSave={submitSignature} />
+          )}
+        </div>
 
         {/* Login CTA (always visible except done) */}
         {step !== "done" && (

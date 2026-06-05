@@ -7,6 +7,14 @@ import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
 import jsPDF from "jspdf";
 import posthog from "posthog-js";
+import ImportContactsModal, { ImportField } from "@/components/ImportContactsModal";
+
+const IMPORT_FIELDS: ImportField[] = [
+  { key: "email", label: "Email", aliases: ["e-mail", "mail"] },
+  { key: "name", label: "Name", aliases: ["full name", "fullname"] },
+  { key: "role", label: "Role", aliases: ["title", "credit"] },
+  { key: "phone", label: "Phone", aliases: ["phone number", "tel", "mobile"] },
+];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -244,6 +252,7 @@ export default function SplitSheets() {
   const [sendDialog, setSendDialog] = useState<string | null>(null); // sheet id
   const [contactForm, setContactForm] = useState<Partial<Contact>>({});
   const [editingContact, setEditingContact] = useState<string | null>(null);
+  const [showImport, setShowImport] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState("");
 
@@ -356,10 +365,27 @@ export default function SplitSheets() {
   if (view === "contacts") {
     return (
       <div className="p-4 bg-white shadow rounded-md text-black">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <h2 className="text-xl font-bold">Collaborator Contacts</h2>
-          <button className="btn btn-sm" onClick={() => { setView("list"); setContactForm({}); setEditingContact(null); setAlert(""); }}>← Back</button>
+          <div className="flex gap-2">
+            <button className="btn btn-sm btn-outline" onClick={() => { setShowImport(true); setAlert(""); }}>⬆ Import</button>
+            <button className="btn btn-sm" onClick={() => { setView("list"); setContactForm({}); setEditingContact(null); setAlert(""); }}>← Back</button>
+          </div>
         </div>
+
+        {showImport && (
+          <ImportContactsModal
+            title="Import Collaborator Contacts"
+            fields={IMPORT_FIELDS}
+            onClose={() => setShowImport(false)}
+            onImport={async (rows) => {
+              const r = await apiClient.post("/collaborator-contacts/import", { contacts: rows });
+              posthog.capture("collaborator_contacts_imported", { count: (r as any)?.added ?? rows.length });
+              await loadContacts();
+              return r as any;
+            }}
+          />
+        )}
 
         {/* Add / edit contact form */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
