@@ -2,7 +2,7 @@
 /* eslint-disable */
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
-import { useSession, signOut } from "next-auth/react";
+import MetaPixel, { trackLinkClick, trackStreamingClick, trackMerchClick } from "@/components/MetaPixel";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
@@ -421,6 +421,13 @@ useEffect(() => {
 
 return (
  <>
+  {user?.metaPixelId && (
+    <MetaPixel
+      pixelId={user.metaPixelId}
+      contentName={user.name || userName}
+      contentType="link_in_bio"
+    />
+  )}
   {/* Main container with proper spacing for mobile */}
   <div style={{
     minHeight: "100vh",
@@ -469,7 +476,13 @@ return (
         <p style={{marginBottom:"2%", fontFamily: font || 'inherit', color: textColor || "#333333"}}>{user.bio}</p>
 
         {/* Social media links */}
-        <div style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>
+        <div
+          style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}
+          onClick={(e) => {
+            const a = (e.target as Element).closest('a');
+            if (a?.href) trackLinkClick(new URL(a.href).hostname.replace(/^www\./, ''), a.href, 'social');
+          }}
+        >
           {user.instagram && <a href={"https://instagram.com/" + user.instagram } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faInstagram} /></a>}
           {user.tiktok && <a href={"https://tiktok.com/@" + user.tiktok } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faTiktok} /></a>}
           {user.twitter && <a href={"https://twitter.com/" + user.twitter } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTwitter} /></a>}
@@ -500,7 +513,16 @@ return (
 
         {/* Music platforms */}
         {user.spotify && <h3 className="mt-5" style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>Listen</h3>}
-        <div style={{ fontFamily: font || 'inherit', color: textColor || "#333333", marginBottom:"2%" }}>
+        <div
+          style={{ fontFamily: font || 'inherit', color: textColor || "#333333", marginBottom:"2%" }}
+          onClick={(e) => {
+            const a = (e.target as Element).closest('a');
+            if (a?.href) {
+              const platform = new URL(a.href).hostname.replace(/^www\./, '').split('.')[0];
+              trackStreamingClick(platform, a.href);
+            }
+          }}
+        >
           {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{marginRight:"10px", color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
           {user.appleMusic && <a href={"https://music.apple.com/" + user.appleMusic } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
           {user.tidal && (
@@ -569,10 +591,11 @@ return (
             ) : (
               <>
                 {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
-                <a 
-                  href={link.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackLinkClick(link.name, link.url)}
                   style={{
                     color: linksColor,
                     fontFamily: font || 'inherit'
@@ -588,7 +611,7 @@ return (
 
       
       {/* MERCH SECTION */}
-      {user?.hasAccess && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
+      {user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
         <div className="mt-6 mb-4">
           <hr style={{margin: "5% 0"}}></hr>
           <h3 className="text-lg font-semibold mb-3 text-center" style={{
@@ -636,11 +659,12 @@ return (
                   const productUrl = product.url || '#';
                   
                   return (
-                    <a 
+                    <a
                       key={productId}
                       href={productUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => trackMerchClick(product.title, productUrl)}
                       style={{
                         display: 'block',
                         padding: '8px',
@@ -738,13 +762,24 @@ return (
         </div>
       )}
 
+        {/* ── Brand logo (premium users) ── */}
+        {user?.hasAccess && linkInBio?.brandLogoUrl && (
+          <div className="mt-6 flex justify-center" style={{ fontFamily: font || 'inherit' }}>
+            <img
+              src={linkInBio.brandLogoUrl}
+              alt="Brand logo"
+              style={{ maxHeight: "60px", maxWidth: "160px", objectFit: "contain" }}
+            />
+          </div>
+        )}
+
         {alert && <div className="alert mt-10 w-1/2 m-auto" style={{ fontFamily: font || 'inherit' }}>{alert}</div>}
         <br></br>
       </div>
     </div>
   </div>
 
-  {/* Fixed logo with enhanced mobile styling */}
+  {/* Fixed Influanto badge — only for free users */}
   {!user.hasAccess && (
     <div style={{ 
       position: "fixed",

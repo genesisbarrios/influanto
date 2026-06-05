@@ -2,6 +2,7 @@
 /* eslint-disable */
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
+import MetaPixel, { trackStreamingClick, trackMerchClick, trackLinkClick } from "@/components/MetaPixel";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare } from "@fortawesome/free-brands-svg-icons";
 import { faGlobe } from "@fortawesome/free-solid-svg-icons";
@@ -167,6 +168,17 @@ const ReleasePageView = () => {
       getReleasePage();
     }
   }, [slug]);
+
+  // Track page visit once release page data is loaded
+  useEffect(() => {
+    if (releasePage?.id) {
+      fetch('/api/analytics/release', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ releasePageId: releasePage.id }),
+      }).catch(() => {});
+    }
+  }, [releasePage?.id]);
 
   // Set metadata after all data is loaded
   // Replace the metadata useEffect with this complete version:
@@ -545,6 +557,7 @@ const renderMerchSection = () => {
               }}
               onClick={() => {
                 if (product.url) {
+                  trackMerchClick(product.title, product.url);
                   window.open(product.url, '_blank');
                 }
               }}
@@ -627,7 +640,7 @@ const renderMerchSection = () => {
   return (
     <div
       style={{
-        textAlign: "center", 
+        textAlign: "center",
         minHeight: "100vh",
         padding: "5% 0",
         color: textColor || "white",
@@ -635,6 +648,13 @@ const renderMerchSection = () => {
         fontFamily: releasePage?.font || 'inherit',
       }}
     >
+      {user?.metaPixelId && (
+        <MetaPixel
+          pixelId={user.metaPixelId}
+          contentName={releasePage.name || "Release"}
+          contentType="release_page"
+        />
+      )}
       <div>
         {/* Image */}
         <img
@@ -747,6 +767,7 @@ const renderMerchSection = () => {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackStreamingClick(platformName, link.url)}
                   style={{
                     padding: "8px 16px",
                     fontSize: "14px",
@@ -769,11 +790,10 @@ const renderMerchSection = () => {
 
         {/* User Social Icons */}
         <div
-          style={{
-            marginTop: "50px",
-            display: "flex",
-            justifyContent: "center",
-            gap: "15px",
+          style={{ marginTop: "50px", display: "flex", justifyContent: "center", gap: "15px" }}
+          onClick={(e) => {
+            const a = (e.target as Element).closest('a');
+            if (a?.href) trackLinkClick(new URL(a.href).hostname.replace(/^www\./, ''), a.href, 'social');
           }}
         >
           {instagram && (

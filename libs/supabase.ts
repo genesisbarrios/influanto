@@ -80,6 +80,7 @@ export function mapLinkInBio(row: any) {
     patternOpacity: row.pattern_opacity,
     selectedProducts: row.selected_products ?? [],
     links: row.links ?? [],
+    brandLogoUrl: row.brand_logo_url ?? null,
   };
 }
 

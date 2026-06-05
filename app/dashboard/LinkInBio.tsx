@@ -179,6 +179,7 @@ const LinkInBio = () => {
   const [availableProducts, setAvailableProducts] = useState<any[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [brandLogoUrl, setBrandLogoUrl] = useState("");
 
   // ── Effects ────────────────────────────────────────────────────────────────
 
@@ -322,6 +323,7 @@ const LinkInBio = () => {
       if (data.selectedProducts && Array.isArray(data.selectedProducts)) {
         setSelectedProductIds(data.selectedProducts);
       }
+      setBrandLogoUrl(data.brandLogoUrl || "");
     } catch (e) {
       setAlertt(e?.message);
     }
@@ -443,6 +445,7 @@ const LinkInBio = () => {
         patternFg: linkInBio?.patternFg,
         patternBg: linkInBio?.patternBg,
         patternOpacity: linkInBio?.patternOpacity,
+        brandLogoUrl: brandLogoUrl || null,
       });
       posthog.capture("link_in_bio_saved", { links_count: links.length });
       setAlertt("Link In Bio updated successfully");
@@ -644,9 +647,11 @@ const LinkInBio = () => {
         </h2>
         <br />
         <form>
-          <h1 style={{ fontFamily: linkInBio?.font || 'inherit' }}>Edit Links</h1>
-          <div className="flex flex-wrap w-full">
-            <div className="w-full lg:w-full p-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full mb-4">
+
+            {/* ── LEFT column: Links ── */}
+            <div className="p-3 border border-gray-100 rounded-xl">
+              <h3 className="font-semibold mb-3 text-sm text-gray-600 uppercase tracking-wide" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Links</h3>
 
               {/* ── Links List ── */}
               {links.map((link: any, index: number) => (
@@ -744,9 +749,11 @@ const LinkInBio = () => {
               >
                 Add Link
               </button>
+            </div>
 
-              {/* ── Styles ── */}
-              <h1 className="mt-8 mb-2 w-full" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Colors:</h1>
+            {/* ── RIGHT column: Styles ── */}
+            <div className="p-3 border border-gray-100 rounded-xl">
+              <h3 className="font-semibold mb-3 text-sm text-gray-600 uppercase tracking-wide" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Styles</h3>
 
               <div className="w-full">
                 {/* Color Pickers Row */}
@@ -925,6 +932,69 @@ const LinkInBio = () => {
                 </div>
 
               </div>
+
+              {/* ── Brand Logo (Premium) ── */}
+              {user?.hasAccess && (
+                <div className="mt-4 p-4 bg-purple-50 rounded-md border border-purple-200">
+                  <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
+                    ✨ Brand Logo
+                  </h4>
+                  <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
+                    Shown at the bottom of your link-in-bio page. Replaces the Influanto badge.
+                  </p>
+
+                  {brandLogoUrl ? (
+                    <div className="flex items-center gap-3 mb-3">
+                      <img
+                        src={brandLogoUrl}
+                        alt="Brand logo"
+                        className="h-12 object-contain rounded border border-purple-200 bg-white p-1"
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-error"
+                        onClick={() => setBrandLogoUrl("")}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : null}
+
+                  <div className="flex flex-col gap-2">
+                    <CldUploadWidget
+                      uploadPreset="LinkInBioThumbnail"
+                      options={{ folder: `user_${user?.id}_brand`, publicId: `brand_logo` }}
+                      onSuccess={(result: any) => {
+                        const url = result.info.secure_url ||
+                          `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/v${result.info.version}/${result.info.public_id}.${result.info.format}`;
+                        setBrandLogoUrl(url);
+                        try { document.body.style.overflow = ''; } catch {}
+                      }}
+                    >
+                      {({ open }: { open: () => void }) => (
+                        <button
+                          type="button"
+                          onClick={() => open()}
+                          className="btn btn-sm btn-outline w-fit"
+                          style={{ fontFamily: linkInBio?.font || 'inherit' }}
+                        >
+                          {brandLogoUrl ? 'Replace Logo' : 'Upload Brand Logo'}
+                        </button>
+                      )}
+                    </CldUploadWidget>
+                    <p className="text-xs text-gray-400">Or paste a logo URL:</p>
+                    <input
+                      type="url"
+                      className="input input-sm w-full"
+                      placeholder="https://example.com/logo.png"
+                      value={brandLogoUrl}
+                      onChange={e => setBrandLogoUrl(e.target.value)}
+                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
+                    />
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
 
