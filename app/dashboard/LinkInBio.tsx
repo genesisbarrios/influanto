@@ -6,6 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import posthog from "posthog-js";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
+import LinkInBioAnalytics from "@/components/LinkInBioAnalytics";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import Head from 'next/head';
 import { text } from "stream/consumers";
