@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import supabase, { mapUser, mapReleasePage } from "@/libs/supabase";
 
+// Always serve fresh data — never cache this public lookup.
+export const dynamic = "force-dynamic";
+
 export async function GET(_req: NextRequest, { params }: { params: { slug: string } }) {
   const slug = params?.slug;
   if (!slug) {

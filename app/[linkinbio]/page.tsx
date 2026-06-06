@@ -728,7 +728,7 @@ return (
             <img
               src={linkInBio.brandLogoUrl}
               alt="Brand logo"
-              style={{ maxHeight: "60px", maxWidth: "60px", objectFit: "contain" }}
+              style={{ maxHeight: "30px", maxWidth: "30px", objectFit: "contain" }}
             />
           </div>
         )}

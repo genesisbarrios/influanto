@@ -6,9 +6,15 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!supabaseUrl) throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
 if (!supabaseKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
 
-// Server-side client using service role key — bypasses RLS for API routes
+// Server-side client using service role key — bypasses RLS for API routes.
+// Force no-store on every request so the Next.js App Router Data Cache never
+// serves stale rows (public pages like /[slug] would otherwise show old data
+// after an edit until revalidation).
 const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: { autoRefreshToken: false, persistSession: false },
+  global: {
+    fetch: (input: any, init: any = {}) => fetch(input, { ...init, cache: "no-store" }),
+  },
 });
 
 export default supabase;
