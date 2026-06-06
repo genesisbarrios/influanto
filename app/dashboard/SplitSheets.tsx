@@ -481,6 +481,19 @@ export default function SplitSheets() {
             <div className="space-y-3">
               {contributors.map((c, i) => (
                 <div key={i} className="bg-gray-50 rounded-lg p-3 space-y-2">
+                  {contacts.length > 0 && (
+                    <select
+                      className="select select-xs select-bordered w-full"
+                      value=""
+                      onChange={e => {
+                        const ct = contacts.find(x => x.id === e.target.value);
+                        if (ct) setContributor(i, { name: ct.name || "", role: ct.role || "", contact: ct.email || "" });
+                      }}
+                    >
+                      <option value="">＋ Fill from saved contact…</option>
+                      {contacts.map(ct => <option key={ct.id} value={ct.id}>{ct.name || ct.email}{ct.email ? ` (${ct.email})` : ""}</option>)}
+                    </select>
+                  )}
                   <div className="grid grid-cols-2 gap-2">
                     <input className="input input-sm" placeholder="Name" value={c.name} onChange={e => setContributor(i, { name: e.target.value })} />
                     <input className="input input-sm" placeholder="Role (Producer, Writer…)" value={c.role} onChange={e => setContributor(i, { role: e.target.value })} />

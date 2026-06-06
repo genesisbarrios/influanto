@@ -1013,6 +1013,10 @@ const removeCustomLink = (index: number) => {
                     className="w-32"
                   />
                   <span className="text-xs text-gray-500 w-9">{bgOpacity}%</span>
+                  {/* Live preview so transparency is visible (a color input can't show alpha) */}
+                  <div title="Card preview" style={{ width: 32, height: 32, borderRadius: 6, border: '1px solid #d1d5db', overflow: 'hidden', backgroundImage: 'linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%)', backgroundSize: '8px 8px', backgroundPosition: '0 0,0 4px,4px -4px,-4px 0' }}>
+                    <div style={{ width: '100%', height: '100%', backgroundColor: bgColor || '#ffffff' }} />
+                  </div>
                 </div>
                 <div className="flex items-center flex-wrap gap-1">
                   <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-2">Text</h2>
@@ -1059,10 +1063,14 @@ const removeCustomLink = (index: number) => {
 
             {/* Newsletter signup */}
             <div className="mt-4 w-full p-4 bg-indigo-50 rounded-md border border-indigo-100">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="checkbox checkbox-sm" checked={!!editingPage?.newsletterEnabled} onChange={e => setEditingPage({ ...editingPage, newsletterEnabled: e.target.checked })} />
-                <span className="font-bold text-indigo-800">📣 Collect newsletter signups</span>
-              </label>
+              <div className="flex items-center gap-2">
+                <button type="button" role="switch" aria-checked={!!editingPage?.newsletterEnabled}
+                  onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}
+                  style={{ width: 46, height: 26, borderRadius: 999, background: editingPage?.newsletterEnabled ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
+                  <span style={{ position: 'absolute', top: 3, left: editingPage?.newsletterEnabled ? 23 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
+                </button>
+                <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}>📣 Collect newsletter signups</span>
+              </div>
               <p className="text-indigo-600 text-sm mt-1">Show a signup form on this release page so fans can join your Outreach contacts.</p>
               {editingPage?.newsletterEnabled && (
                 <div className="mt-3">
@@ -1072,7 +1080,7 @@ const removeCustomLink = (index: number) => {
                       const fields: string[] = Array.isArray(editingPage?.newsletterFields) ? editingPage.newsletterFields : ["name", "email"];
                       return (
                         <label key={key} className="flex items-center gap-1.5 text-sm cursor-pointer">
-                          <input type="checkbox" className="checkbox checkbox-xs" checked={fields.includes(key)}
+                          <input type="checkbox" style={{ width: 16, height: 16, accentColor: '#4f46e5', cursor: 'pointer' }} checked={fields.includes(key)}
                             onChange={() => setEditingPage({ ...editingPage, newsletterFields: fields.includes(key) ? fields.filter(f => f !== key) : [...fields, key] })} />
                           {label}
                         </label>
@@ -1324,6 +1332,10 @@ const removeCustomLink = (index: number) => {
                     className="w-32"
                   />
                   <span className="text-xs text-gray-500 w-9">{bgOpacity}%</span>
+                  {/* Live preview so transparency is visible (a color input can't show alpha) */}
+                  <div title="Card preview" style={{ width: 32, height: 32, borderRadius: 6, border: '1px solid #d1d5db', overflow: 'hidden', backgroundImage: 'linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%)', backgroundSize: '8px 8px', backgroundPosition: '0 0,0 4px,4px -4px,-4px 0' }}>
+                    <div style={{ width: '100%', height: '100%', backgroundColor: bgColor || '#ffffff' }} />
+                  </div>
                 </div>
                 <div className="flex items-center flex-wrap gap-1">
                   <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-2">Text</h2>
@@ -1372,10 +1384,14 @@ const removeCustomLink = (index: number) => {
 
             {/* Newsletter signup */}
             <div className="mt-4 w-full p-4 bg-indigo-50 rounded-md border border-indigo-100">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="checkbox checkbox-sm" checked={!!editingPage?.newsletterEnabled} onChange={e => setEditingPage({ ...editingPage, newsletterEnabled: e.target.checked })} />
-                <span className="font-bold text-indigo-800">📣 Collect newsletter signups</span>
-              </label>
+              <div className="flex items-center gap-2">
+                <button type="button" role="switch" aria-checked={!!editingPage?.newsletterEnabled}
+                  onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}
+                  style={{ width: 46, height: 26, borderRadius: 999, background: editingPage?.newsletterEnabled ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
+                  <span style={{ position: 'absolute', top: 3, left: editingPage?.newsletterEnabled ? 23 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
+                </button>
+                <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}>📣 Collect newsletter signups</span>
+              </div>
               <p className="text-indigo-600 text-sm mt-1">Show a signup form on this release page so fans can join your Outreach contacts.</p>
               {editingPage?.newsletterEnabled && (
                 <div className="mt-3">
@@ -1385,7 +1401,7 @@ const removeCustomLink = (index: number) => {
                       const fields: string[] = Array.isArray(editingPage?.newsletterFields) ? editingPage.newsletterFields : ["name", "email"];
                       return (
                         <label key={key} className="flex items-center gap-1.5 text-sm cursor-pointer">
-                          <input type="checkbox" className="checkbox checkbox-xs" checked={fields.includes(key)}
+                          <input type="checkbox" style={{ width: 16, height: 16, accentColor: '#4f46e5', cursor: 'pointer' }} checked={fields.includes(key)}
                             onChange={() => setEditingPage({ ...editingPage, newsletterFields: fields.includes(key) ? fields.filter(f => f !== key) : [...fields, key] })} />
                           {label}
                         </label>
