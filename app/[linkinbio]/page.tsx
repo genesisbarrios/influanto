@@ -763,18 +763,7 @@ return (
         </div>
       )}
 
-        {/* ── Brand logo (premium users) ── */}
-        {user?.hasAccess && linkInBio?.brandLogoUrl && (
-          <div className="mt-12 flex justify-center" style={{ fontFamily: font || 'inherit' }}>
-            <img
-              src={linkInBio.brandLogoUrl}
-              alt="Brand logo"
-              style={{ maxHeight: "60px", maxWidth: "60px", objectFit: "contain" }}
-            />
-          </div>
-        )}
-
-        {/* ── Newsletter signup ── */}
+        {/* ── Newsletter signup (above the brand / Influanto logo) ── */}
         {linkInBio?.newsletterEnabled && (
           <div className="mt-8 px-4">
             <NewsletterSignup
@@ -783,6 +772,17 @@ return (
               fields={linkInBio.newsletterFields}
               textColor={textColor}
               linksColor={linksColor}
+            />
+          </div>
+        )}
+
+        {/* ── Brand logo (premium users) ── */}
+        {user?.hasAccess && linkInBio?.brandLogoUrl && (
+          <div className="mt-12 flex justify-center" style={{ fontFamily: font || 'inherit' }}>
+            <img
+              src={linkInBio.brandLogoUrl}
+              alt="Brand logo"
+              style={{ maxHeight: "60px", maxWidth: "60px", objectFit: "contain" }}
             />
           </div>
         )}

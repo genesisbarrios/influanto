@@ -6,6 +6,7 @@ import Image from "next/image";
 import image from "@/app/qrcode.png";
 import playlist from "@/app/Playlist.png";
 import link from "@/app/linkInBio.png";
+import outreach from "@/app/outreach_horizontal.png";
 
 interface Feature {
   title: string;
@@ -49,6 +50,19 @@ const features = [
   {
     title: "Outreach / Contacts / Email Campaigns",
     description: "Use our Outreach Dashboard to manage your contacts, and send email campaigns to your fans.",
+    type: "image",
+    path: outreach,
+    alt: "A computer",
+    svg: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 15.553Z" />
+      </svg>
+
+    ),
+  },
+  {
+    title: "Playlist Curator Search / Contact Tool",
+    description: "Use our Curator Search Tool to find the right contacts for your music, and reach out to them directly from the platform.",
     type: "image",
     path: playlist,
     alt: "A computer",
