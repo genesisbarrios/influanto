@@ -9,6 +9,7 @@ import ButtonEdit from "@/components/ButtonEdit";
 import LinkInBioAnalytics from "@/components/LinkInBioAnalytics";
 import { parseColorValue, combineColor } from "@/libs/color";
 import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
+import ImagePicker from "@/components/ImagePicker";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import Head from 'next/head';
 import { text } from "stream/consumers";
@@ -186,6 +187,8 @@ const LinkInBio = () => {
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
   const [newsletterFields, setNewsletterFields] = useState<string[]>(["name", "email"]);
   const [cardBgOpacity, setCardBgOpacity] = useState(100);
+  const [picker, setPicker] = useState<{ type: 'link'; index: number } | { type: 'brand' } | null>(null);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
 
   // ── Effects ────────────────────────────────────────────────────────────────
 
@@ -206,6 +209,12 @@ const LinkInBio = () => {
       setSelectedProductIds(linkInBio.selectedProducts);
     }
   }, [linkInBio?.selectedProducts]);
+
+  // Load the user's existing images for the picker gallery
+  const loadGallery = () => {
+    fetch('/api/my-images').then(r => r.json()).then(j => setGalleryImages(Array.isArray(j?.images) ? j.images : [])).catch(() => {});
+  };
+  useEffect(() => { loadGallery(); }, []);
 
   useEffect(() => {
     getUser();
@@ -396,8 +405,12 @@ const LinkInBio = () => {
   const handleImageUpload = (index: number, result: any) => {
     const imageUrl = result.info.secure_url ||
       `https://res.cloudinary.com/${cloudName}/image/upload/v${result.info.version}/${result.info.public_id}.${result.info.format}`;
+    const old = links[index]?.image;
     updateLink(index, 'image', imageUrl);
     try { document.body.style.overflow = ''; } catch (err) { /* ignore */ }
+    // Unique publicId per upload — the old asset is now orphaned, clean it up.
+    if (old && old !== imageUrl) deleteCloudinaryImage(old);
+    loadGallery();
   };
 
   // ── YouTube helpers ────────────────────────────────────────────────────────
@@ -719,31 +732,23 @@ const LinkInBio = () => {
                   />
                   <br />
                   {!isYouTubeLink(index, link.url) && (
-                    <CldUploadWidget
-                      uploadPreset="LinkInBioThumbnail"
-                      options={{ folder: `user_${user.id}_links`, publicId: `link_${index}_thumbnail` }}
-                      onSuccess={(result: any) => handleImageUpload(index, result)}
-                    >
-                      {({ open }: { open: () => void }) => (
-                        link.image ? (
-                          <div className="flex items-center gap-2">
-                            <button type="button" onClick={() => open()} title="Replace image" className="btn btn-sm btn-outline btn-narrow" style={{ fontFamily: linkInBio?.font || 'inherit' }}>✏️ Replace</button>
-                            <button type="button" title="Delete image"
-                              onClick={async () => { const old = link.image; updateLink(index, 'image', ''); await deleteCloudinaryImage(old); }}
-                              className="btn btn-sm btn-error btn-narrow text-white">🗑️</button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => open()}
-                            className="btn btn-primary btn-sm btn-narrow"
-                            style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                          >
-                            Upload Image
-                          </button>
-                        )
-                      )}
-                    </CldUploadWidget>
+                    link.image ? (
+                      <div className="flex items-center gap-2">
+                        <button type="button" onClick={() => setPicker({ type: 'link', index })} title="Change image" className="btn btn-sm btn-outline btn-narrow" style={{ fontFamily: linkInBio?.font || 'inherit' }}>✏️ Change</button>
+                        <button type="button" title="Delete image"
+                          onClick={async () => { const old = link.image; updateLink(index, 'image', ''); await deleteCloudinaryImage(old); }}
+                          className="btn btn-sm btn-error btn-narrow text-white">🗑️</button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setPicker({ type: 'link', index })}
+                        className="btn btn-primary btn-sm btn-narrow"
+                        style={{ fontFamily: linkInBio?.font || 'inherit' }}
+                      >
+                        + Add Image
+                      </button>
+                    )
                   )}
                   <button
                     type="button"
@@ -1016,27 +1021,14 @@ const LinkInBio = () => {
                   ) : null}
 
                   <div className="flex flex-col gap-2">
-                    <CldUploadWidget
-                      uploadPreset="LinkInBioThumbnail"
-                      options={{ folder: `user_${user?.id}_brand`, publicId: `brand_logo` }}
-                      onSuccess={(result: any) => {
-                        const url = result.info.secure_url ||
-                          `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/v${result.info.version}/${result.info.public_id}.${result.info.format}`;
-                        setBrandLogoUrl(url);
-                        try { document.body.style.overflow = ''; } catch {}
-                      }}
+                    <button
+                      type="button"
+                      onClick={() => setPicker({ type: 'brand' })}
+                      className="btn btn-sm btn-outline w-fit"
+                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
                     >
-                      {({ open }: { open: () => void }) => (
-                        <button
-                          type="button"
-                          onClick={() => open()}
-                          className="btn btn-sm btn-outline w-fit"
-                          style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                        >
-                          {brandLogoUrl ? 'Replace Logo' : 'Upload Brand Logo'}
-                        </button>
-                      )}
-                    </CldUploadWidget>
+                      {brandLogoUrl ? 'Replace Logo' : 'Upload Brand Logo'}
+                    </button>
                     <p className="text-xs text-gray-400">Or paste a logo URL:</p>
                     <input
                       type="url"
@@ -1287,6 +1279,33 @@ const LinkInBio = () => {
           </div>
 
         </form>
+
+        {picker && (
+          <ImagePicker
+            images={galleryImages}
+            uploadPreset="LinkInBioThumbnail"
+            uploadOptions={picker.type === 'link'
+              ? { folder: `user_${user?.id}_links`, publicId: `link_${picker.index}_${Date.now()}` }
+              : { folder: `user_${user?.id}_brand`, publicId: `brand_logo_${Date.now()}` }}
+            onUploaded={(result: any) => {
+              if (picker.type === 'link') {
+                handleImageUpload(picker.index, result);
+              } else {
+                const url = result.info.secure_url ||
+                  `https://res.cloudinary.com/${cloudName}/image/upload/v${result.info.version}/${result.info.public_id}.${result.info.format}`;
+                const old = brandLogoUrl;
+                setBrandLogoUrl(url);
+                if (old && old !== url) deleteCloudinaryImage(old);
+                loadGallery();
+              }
+            }}
+            onSelect={(url: string) => {
+              if (picker.type === 'link') updateLink(picker.index, 'image', url);
+              else setBrandLogoUrl(url);
+            }}
+            onClose={() => setPicker(null)}
+          />
+        )}
       </div>
     </div>
   );

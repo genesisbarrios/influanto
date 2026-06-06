@@ -9,6 +9,7 @@ import { debounce } from "lodash";
 import posthog from "posthog-js";
 import { parseColorValue, combineColor } from "@/libs/color";
 import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
+import ImagePicker from "@/components/ImagePicker";
 
 const ReleasePages = () => {
   const { data, status } = useSession();
@@ -20,6 +21,8 @@ const ReleasePages = () => {
   const [isNameUnique, setIsNameUnique] = useState(true);
   const [bgColor, setBgColor] = useState("#ffffff");
   const [bgOpacity, setBgOpacity] = useState(100);
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [textColor, setTextColor] = useState("#000000");
   const [linksColor, setLinksColor] = useState("#0000ff");
   const [font, setFont] = useState("sans-serif");
@@ -168,6 +171,12 @@ const ReleasePages = () => {
     }
   }, [data]);
 
+  // Load the user's existing images for the picker gallery
+  const loadGallery = () => {
+    fetch('/api/my-images').then(r => r.json()).then(j => setGalleryImages(Array.isArray(j?.images) ? j.images : [])).catch(() => {});
+  };
+  useEffect(() => { loadGallery(); }, []);
+
   // Add useEffect to fetch products when user data is available
   useEffect(() => {
     if (userData?.id && userData?.printifyShopId) {
@@ -223,11 +232,13 @@ const ReleasePages = () => {
   };
 
   const handleImageUpload = (result: any) => {
-    const imageUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/v1742637738/${result.info.publicId}.png`;
+    const imageUrl = result.info?.secure_url ||
+      `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/v${result.info.version}/${result.info.public_id || result.info.publicId}.${result.info.format || "png"}`;
     const oldImage = editingPage?.image;
     setEditingPage({ ...editingPage, image: imageUrl });
     // Replacing — clean up the previous image from Cloudinary
     if (oldImage && oldImage !== imageUrl) deleteCloudinaryImage(oldImage);
+    loadGallery();
   };
 
   const getYouTubeVideoId = (url: string): { videoId: string | null; playlistId: string | null } => {
@@ -885,37 +896,27 @@ const removeCustomLink = (index: number) => {
             {editingPage?.name && (
               <div className="mb-4">
                 <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Image</label>
-                <CldUploadWidget
-                  uploadPreset="ReleasePageImages"
-                  options={{ publicId: `user_${data?.user?.id}_releasePage_thumbnail_${releasePages.length + 1}` }}
-                  onUploadAdded={(result: any) => {
-                    handleImageUpload(result);
-                  }}
-                >
-                  {({ open }: { open: () => void }) => (
-                    editingPage?.image ? (
-                      <div style={{ position: "relative", display: "inline-block", width: "100%", maxWidth: 400 }}>
-                        <img
-                          src={editingPage.image}
-                          alt="Release Page"
-                          className="rounded-md"
-                          style={{ width: "100%", maxHeight: "200px", objectFit: "cover", display: "block" }}
-                        />
-                        <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6 }}>
-                          <button type="button" title="Replace image" onClick={() => open()}
-                            style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", fontSize: 14 }}>✏️</button>
-                          <button type="button" title="Delete image"
-                            onClick={async () => { const old = editingPage.image; setEditingPage({ ...editingPage, image: "" }); await deleteCloudinaryImage(old); }}
-                            style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(220,38,38,0.85)", color: "#fff", cursor: "pointer", fontSize: 14 }}>🗑️</button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button type="button" onClick={() => open()} className="btn btn-primary btn-sm" style={{ fontFamily: font || 'inherit' }}>
-                        Upload Image
-                      </button>
-                    )
-                  )}
-                </CldUploadWidget>
+                {editingPage?.image ? (
+                  <div style={{ position: "relative", display: "inline-block", width: "100%", maxWidth: 400 }}>
+                    <img
+                      src={editingPage.image}
+                      alt="Release Page"
+                      className="rounded-md"
+                      style={{ width: "100%", maxHeight: "200px", objectFit: "cover", display: "block" }}
+                    />
+                    <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6 }}>
+                      <button type="button" title="Change image" onClick={() => setImagePickerOpen(true)}
+                        style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", fontSize: 14 }}>✏️</button>
+                      <button type="button" title="Delete image"
+                        onClick={async () => { const old = editingPage.image; setEditingPage({ ...editingPage, image: "" }); await deleteCloudinaryImage(old); }}
+                        style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(220,38,38,0.85)", color: "#fff", cursor: "pointer", fontSize: 14 }}>🗑️</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => setImagePickerOpen(true)} className="btn btn-primary btn-sm" style={{ fontFamily: font || 'inherit' }}>
+                    + Add Image
+                  </button>
+                )}
               </div>
             )}
             <div className="mb-4">
@@ -1455,6 +1456,17 @@ const removeCustomLink = (index: number) => {
           </div>
         )}
       </div>
+
+      {imagePickerOpen && (
+        <ImagePicker
+          images={galleryImages}
+          uploadPreset="ReleasePageImages"
+          uploadOptions={{ publicId: `user_${data?.user?.id}_releasePage_${Date.now()}` }}
+          onUploaded={(result: any) => handleImageUpload(result)}
+          onSelect={(url: string) => setEditingPage({ ...editingPage, image: url })}
+          onClose={() => setImagePickerOpen(false)}
+        />
+      )}
     </>
   );
 };
