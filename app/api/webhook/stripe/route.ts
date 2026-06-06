@@ -14,7 +14,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-08-16",
   typescript: true,
 });
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
+// Live and test endpoints have different signing secrets — verify against
+// whichever matches so both work on the same /api/webhook/stripe URL.
+const webhookSecrets = [
+  process.env.STRIPE_WEBHOOK_SECRET_PROD,
+  process.env.STRIPE_WEBHOOK_SECRET,
+].filter((s): s is string => !!s);
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -24,8 +29,20 @@ export async function POST(req: NextRequest) {
 
   try {
     if (!signature) throw new Error("Stripe signature is missing");
-    if (!webhookSecret) throw new Error("STRIPE_WEBHOOK_SECRET is not defined");
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    if (!webhookSecrets.length) throw new Error("No Stripe webhook secret is configured");
+
+    let constructed: Stripe.Event | null = null;
+    let lastErr: any;
+    for (const secret of webhookSecrets) {
+      try {
+        constructed = stripe.webhooks.constructEvent(body, signature, secret);
+        break;
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+    if (!constructed) throw lastErr ?? new Error("Signature verification failed");
+    event = constructed;
   } catch (err: any) {
     console.error(`Webhook signature verification failed. ${err.message}`);
     return NextResponse.json({ error: err.message }, { status: 400 });
