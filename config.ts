@@ -39,6 +39,7 @@ const config = {
           { name: "Release Pages (10)" },
           { name: "QR Code Generator" },
           { name: "Split Sheet Generator" },
+          { name: "Playlist Curator Search / Contact Tool" },
           { name: "Display your Merch with Printify" },
         ],
       },

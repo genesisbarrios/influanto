@@ -875,6 +875,11 @@
     expect "^29.0.0"
     pretty-format "^29.0.0"
 
+"@types/jsmediatags@^3.9.6":
+  version "3.9.6"
+  resolved "https://registry.npmjs.org/@types/jsmediatags/-/jsmediatags-3.9.6.tgz"
+  integrity sha512-a2IVxVGXBCCVzONBFKGBb2mnTNMAt0shl+Mb5+wM5YVxymhgqNilr/7/x+XePYM2DnmWwCYlBRjq+8q7nsp2PA==
+
 "@types/json5@^0.0.29":
   version "0.0.29"
   resolved "https://registry.npmjs.org/@types/json5/-/json5-0.0.29.tgz"
@@ -3515,6 +3520,13 @@ js-yaml@^4.1.0:
   integrity sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==
   dependencies:
     argparse "^2.0.1"
+
+jsmediatags@^3.9.7:
+  version "3.9.7"
+  resolved "https://registry.npmjs.org/jsmediatags/-/jsmediatags-3.9.7.tgz"
+  integrity sha512-xCAO8C3li3t5hYkXqn8iv8zQQUB4T1QqRN2aSONHMls21ICdEvXi4xtb6W70/fAFYSDwMHd32hIqvo4YuXoNcQ==
+  dependencies:
+    xhr2 "^0.1.4"
 
 json-buffer@3.0.1:
   version "3.0.1"
@@ -6389,6 +6401,11 @@ ws@^8.21.0:
   version "8.21.0"
   resolved "https://registry.npmjs.org/ws/-/ws-8.21.0.tgz"
   integrity sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g==
+
+xhr2@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.npmjs.org/xhr2/-/xhr2-0.1.4.tgz"
+  integrity sha512-3QGhDryRzTbIDj+waTRvMBe8SyPhW79kz3YnNb+HQt/6LPYQT3zT3Jt0Y8pBofZqQX26x8Ecfv0FXR72uH5VpA==
 
 xtend@^4.0.0:
   version "4.0.2"
