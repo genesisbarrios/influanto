@@ -115,6 +115,17 @@ export function mapQRCodes(row: any) {
   };
 }
 
+// Resolve a list of emails to the Supabase user ids that have an account.
+export async function resolveUserIdsByEmails(emails: (string | undefined)[]): Promise<string[]> {
+  const clean = Array.from(new Set(
+    emails.map((e) => String(e ?? "").trim().toLowerCase())
+      .filter((e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))
+  ));
+  if (!clean.length) return [];
+  const { data } = await supabase.from("users").select("id").in("email", clean);
+  return (data ?? []).map((u: any) => u.id);
+}
+
 export function mapNewsletter(row: any) {
   if (!row) return null;
   return {

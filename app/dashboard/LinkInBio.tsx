@@ -819,6 +819,10 @@ const LinkInBio = () => {
                       className="w-28 sm:w-36" />
                     <span className="text-xs text-gray-500 w-9 text-right">{cardBgOpacity}%</span>
                   </div>
+                  {/* Live preview so transparency is visible (a color input can't show alpha) */}
+                  <div title="Card preview" style={{ width: 32, height: 32, borderRadius: 6, border: '1px solid #d1d5db', overflow: 'hidden', backgroundImage: 'linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%)', backgroundSize: '8px 8px', backgroundPosition: '0 0,0 4px,4px -4px,-4px 0' }}>
+                    <div style={{ width: '100%', height: '100%', backgroundColor: linkInBio?.cardBgColor || '#ffffff' }} />
+                  </div>
                 </div>
 
                 {/* Font Row */}
@@ -1051,10 +1055,14 @@ const LinkInBio = () => {
 
           {/* ── Newsletter Signup ── */}
           <div className="mb-4 p-4 bg-indigo-50 rounded-md border border-indigo-100">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="checkbox checkbox-sm" checked={newsletterEnabled} onChange={e => setNewsletterEnabled(e.target.checked)} />
-              <span className="font-bold text-indigo-800">📣 Collect newsletter signups</span>
-            </label>
+            <div className="flex items-center gap-2">
+              <button type="button" role="switch" aria-checked={newsletterEnabled}
+                onClick={() => setNewsletterEnabled(!newsletterEnabled)}
+                style={{ width: 46, height: 26, borderRadius: 999, background: newsletterEnabled ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
+                <span style={{ position: 'absolute', top: 3, left: newsletterEnabled ? 23 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
+              </button>
+              <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setNewsletterEnabled(!newsletterEnabled)}>📣 Collect newsletter signups</span>
+            </div>
             <p className="text-indigo-600 text-sm mt-1">Show a signup form on your public page so fans can join your Outreach contacts.</p>
             {newsletterEnabled && (
               <div className="mt-3">
@@ -1062,7 +1070,7 @@ const LinkInBio = () => {
                 <div className="flex flex-wrap gap-3">
                   {[["name", "Name"], ["phone", "Phone"], ["instagram", "Instagram"], ["tiktok", "TikTok"]].map(([key, label]) => (
                     <label key={key} className="flex items-center gap-1.5 text-sm cursor-pointer">
-                      <input type="checkbox" className="checkbox checkbox-xs" checked={newsletterFields.includes(key)} onChange={() => toggleNewsletterField(key)} />
+                      <input type="checkbox" style={{ width: 16, height: 16, accentColor: '#4f46e5', cursor: 'pointer' }} checked={newsletterFields.includes(key)} onChange={() => toggleNewsletterField(key)} />
                       {label}
                     </label>
                   ))}

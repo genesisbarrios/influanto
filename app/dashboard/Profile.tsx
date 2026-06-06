@@ -1245,7 +1245,7 @@ const handleYouTubeMusicChange = (e: any) => {
             <input 
               type="text" 
               className="input mb-2 w-3/4" 
-              placeholder="handle"
+              placeholder="@handle"
               value={youtube || ""}
               onChange={(e) => handleYouTubeChange(e)} 
             />

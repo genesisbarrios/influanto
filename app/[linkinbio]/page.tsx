@@ -438,7 +438,7 @@ return (
     justifyContent: "flex-start"
   }}>
     <div 
-      className="p-6 shadow rounded-lg w-[90%] max-w-[90%] md:w-[50%] md:max-w-[50%] lg:w-[40%] lg:max-w-[40%]" 
+      className="p-6 shadow rounded-lg w-[84%] max-w-[84%] md:w-[50%] md:max-w-[50%] lg:w-[40%] lg:max-w-[40%]"
       style={{
         margin: "0 auto", 
         textAlign: "center", 
