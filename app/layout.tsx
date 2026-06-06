@@ -43,6 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           `,
         }}/>
         <script src="https://analytics.ahrefs.com/analytics.js" data-key="V99pP2dI1JT1hXRZGzOaIQ" async></script>
+        <meta name="facebook-domain-verification" content="wlmap6a9b74lr7qzry02c1y7qo9bq7" />
         </head>
       )}
       <body>
