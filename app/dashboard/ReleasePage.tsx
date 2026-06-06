@@ -8,6 +8,7 @@ import { CldUploadWidget } from 'next-cloudinary';
 import { debounce } from "lodash";
 import posthog from "posthog-js";
 import { parseColorValue, combineColor } from "@/libs/color";
+import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
 
 const ReleasePages = () => {
   const { data, status } = useSession();
@@ -223,7 +224,10 @@ const ReleasePages = () => {
 
   const handleImageUpload = (result: any) => {
     const imageUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/v1742637738/${result.info.publicId}.png`;
+    const oldImage = editingPage?.image;
     setEditingPage({ ...editingPage, image: imageUrl });
+    // Replacing — clean up the previous image from Cloudinary
+    if (oldImage && oldImage !== imageUrl) deleteCloudinaryImage(oldImage);
   };
 
   const getYouTubeVideoId = (url: string): { videoId: string | null; playlistId: string | null } => {
@@ -889,24 +893,29 @@ const removeCustomLink = (index: number) => {
                   }}
                 >
                   {({ open }: { open: () => void }) => (
-                    <button
-                      type="button"
-                      onClick={() => open()}
-                      className="btn btn-primary btn-sm"
-                      style={{ fontFamily: font || 'inherit' }}
-                    >
-                      Upload Image
-                    </button>
+                    editingPage?.image ? (
+                      <div style={{ position: "relative", display: "inline-block", width: "100%", maxWidth: 400 }}>
+                        <img
+                          src={editingPage.image}
+                          alt="Release Page"
+                          className="rounded-md"
+                          style={{ width: "100%", maxHeight: "200px", objectFit: "cover", display: "block" }}
+                        />
+                        <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6 }}>
+                          <button type="button" title="Replace image" onClick={() => open()}
+                            style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", fontSize: 14 }}>✏️</button>
+                          <button type="button" title="Delete image"
+                            onClick={async () => { const old = editingPage.image; setEditingPage({ ...editingPage, image: "" }); await deleteCloudinaryImage(old); }}
+                            style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(220,38,38,0.85)", color: "#fff", cursor: "pointer", fontSize: 14 }}>🗑️</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => open()} className="btn btn-primary btn-sm" style={{ fontFamily: font || 'inherit' }}>
+                        Upload Image
+                      </button>
+                    )
                   )}
                 </CldUploadWidget>
-                {editingPage?.image && (
-                  <img
-                    src={editingPage.image}
-                    alt="Release Page"
-                    className="mt-2 rounded-md"
-                    style={{ width: "100%", maxHeight: "200px", objectFit: "cover" }}
-                  />
-                )}
               </div>
             )}
             <div className="mb-4">
