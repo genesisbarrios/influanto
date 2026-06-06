@@ -41,6 +41,12 @@ const tools = [
     href: "/Tuner",
     icon: "🎻",
   },
+  {
+    title: "Song Key Finder",
+    description: "Upload a song or use your mic to detect its musical key.",
+    href: "/Key-Finder",
+    icon: "🎼",
+  },
 //   {
 //     title: "WAV to MP3 Converter",
 //     description: "Convert WAV files to MP3 format easily.",
