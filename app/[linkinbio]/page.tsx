@@ -444,8 +444,8 @@ return (
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: 18,
-                height: 18,
+                width: 15,
+                height: 15,
                 borderRadius: '50%',
                 backgroundColor: '#fff',
                 boxSizing: 'border-box'
@@ -461,7 +461,7 @@ return (
         {/* Music platforms */}
         {user.spotify && <h3 className="mt-5" style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>Listen</h3>}
         <div
-          style={{ fontFamily: font || 'inherit', color: textColor || "#333333", marginBottom:"2%" }}
+          style={{ fontFamily: font || 'inherit', color: textColor || "#333333", marginBottom:"28px" }}
           onClick={(e) => {
             const a = (e.target as Element).closest('a');
             if (a?.href) {
@@ -586,11 +586,9 @@ return (
               {/* Responsive Grid Container */}
               <div style={{
                 display: "grid",
-                gridTemplateColumns: linkInBio.selectedProducts.length === 1 
+                gridTemplateColumns: linkInBio.selectedProducts.length === 1
                   ? "1fr" // 1 item: center it
-                  : linkInBio.selectedProducts.length === 2 
-                  ? "repeat(2, 1fr)" // 2 items: side by side
-                  : "repeat(auto-fit, minmax(140px, 1fr))", // 3+ items: responsive grid
+                  : "repeat(2, 1fr)", // 2+ items: always 2 per row (incl. mobile)
                 gap: "12px",
                 width: "100%",
                 padding: "0 4px",
