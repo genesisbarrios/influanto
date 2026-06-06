@@ -8,6 +8,7 @@ import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 import LinkInBioAnalytics from "@/components/LinkInBioAnalytics";
 import { parseColorValue, combineColor } from "@/libs/color";
+import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import Head from 'next/head';
 import { text } from "stream/consumers";
@@ -717,21 +718,30 @@ const LinkInBio = () => {
                     style={{ fontFamily: linkInBio?.font || 'inherit' }}
                   />
                   <br />
-                  {!isYouTubeLink(index, link.url) && !link.image && (
+                  {!isYouTubeLink(index, link.url) && (
                     <CldUploadWidget
                       uploadPreset="LinkInBioThumbnail"
                       options={{ folder: `user_${user.id}_links`, publicId: `link_${index}_thumbnail` }}
                       onSuccess={(result: any) => handleImageUpload(index, result)}
                     >
                       {({ open }: { open: () => void }) => (
-                        <button
-                          type="button"
-                          onClick={() => open()}
-                          className="btn btn-primary btn-sm btn-narrow"
-                          style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                        >
-                          Upload Image
-                        </button>
+                        link.image ? (
+                          <div className="flex items-center gap-2">
+                            <button type="button" onClick={() => open()} title="Replace image" className="btn btn-sm btn-outline btn-narrow" style={{ fontFamily: linkInBio?.font || 'inherit' }}>✏️ Replace</button>
+                            <button type="button" title="Delete image"
+                              onClick={async () => { const old = link.image; updateLink(index, 'image', ''); await deleteCloudinaryImage(old); }}
+                              className="btn btn-sm btn-error btn-narrow text-white">🗑️</button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => open()}
+                            className="btn btn-primary btn-sm btn-narrow"
+                            style={{ fontFamily: linkInBio?.font || 'inherit' }}
+                          >
+                            Upload Image
+                          </button>
+                        )
                       )}
                     </CldUploadWidget>
                   )}
@@ -996,10 +1006,11 @@ const LinkInBio = () => {
                       />
                       <button
                         type="button"
-                        className="btn btn-xs btn-error"
-                        onClick={() => setBrandLogoUrl("")}
+                        className="btn btn-xs btn-error text-white"
+                        title="Delete logo"
+                        onClick={async () => { const old = brandLogoUrl; setBrandLogoUrl(""); await deleteCloudinaryImage(old); }}
                       >
-                        Remove
+                        🗑️ Delete
                       </button>
                     </div>
                   ) : null}

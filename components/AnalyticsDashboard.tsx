@@ -53,7 +53,10 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="mt-6 w-full text-left">
-      <h3 className="font-semibold text-gray-800 text-lg mb-3">Analytics</h3>
+      <div className="flex items-center gap-2 mb-3">
+        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}>📊</span>
+        <h3 className="font-bold text-lg text-gray-800">Analytics</h3>
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-4 flex-wrap">

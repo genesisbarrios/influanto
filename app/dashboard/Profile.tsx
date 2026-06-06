@@ -60,6 +60,7 @@ const Profile =  () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [alertMsg, setAlertt] = useState("");
+  const [embedCopied, setEmbedCopied] = useState(false);
   
 // In Profile.tsx, add this function before the return statement
 
@@ -928,6 +929,37 @@ const handleYouTubeMusicChange = (e: any) => {
             <br></br>
 
             <AnalyticsDashboard />
+
+            {/* ── Newsletter Embed ── */}
+            {user?.username && (() => {
+              const embedCode = `<iframe src="https://influanto.com/embed/newsletter/${user.username}" width="100%" height="440" style="border:none;max-width:480px;" title="Newsletter signup"></iframe>`;
+              return (
+                <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}>📨</span>
+                    <h3 className="font-bold text-base text-gray-800">Embed your newsletter</h3>
+                  </div>
+                  <p className="text-sm text-gray-500 mb-3">Paste this code on any website to collect newsletter signups (works once newsletter signups are enabled on your Link in Bio).</p>
+                  <textarea
+                    readOnly
+                    onFocus={(e) => e.currentTarget.select()}
+                    value={embedCode}
+                    rows={3}
+                    className="w-full text-xs font-mono p-2 border border-gray-200 rounded bg-gray-50 text-gray-700"
+                  />
+                  <div className="flex items-center gap-3 mt-2">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-primary"
+                      onClick={async () => { try { await navigator.clipboard.writeText(embedCode); setEmbedCopied(true); setTimeout(() => setEmbedCopied(false), 2000); } catch { /* ignore */ } }}
+                    >
+                      {embedCopied ? '✓ Copied' : '📋 Copy embed code'}
+                    </button>
+                    <a href={`/embed/newsletter/${user.username}`} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 underline">Preview</a>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* ── Meta Pixel ── */}
             <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">
