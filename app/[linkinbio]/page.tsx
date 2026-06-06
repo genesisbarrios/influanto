@@ -6,6 +6,7 @@ import MetaPixel, { trackLinkClick, trackStreamingClick, trackMerchClick } from 
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import * as HeroPatterns from 'hero-patterns';
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobe, faLocation, faEnvelope } from "@fortawesome/free-solid-svg-icons";
@@ -16,65 +17,8 @@ const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-3
 import { useRouter } from 'next/navigation'; 
 import { usePathname, useSearchParams } from 'next/navigation'
 
-// ─── Hero Patterns ───────────────────────────────────────────────────────────
-
-const PATTERNS = [
-  {
-    name: "Topography",
-    id: "topography",
-    paths: `<path d='M20 0 C20 11 11 20 0 20 C-11 20 -20 11 -20 0 C-20 -11 -11 -20 0 -20 C11 -20 20 -11 20 0 Z M0 16 C8.8 16 16 8.8 16 0 C16 -8.8 8.8 -16 0 -16 C-8.8 -16 -16 -8.8 -16 0 C-16 8.8 -8.8 16 0 16 Z' transform='translate(20 20)' fill='none' stroke='COLOR' stroke-width='1'/>`,
-    width: 40, height: 40,
-  },
-  {
-    name: "Chevron",
-    id: "chevron",
-    paths: `<path d='M0 11 L7 0 L14 11' fill='none' stroke='COLOR' stroke-width='1.5'/><path d='M0 22 L7 11 L14 22' fill='none' stroke='COLOR' stroke-width='1.5'/>`,
-    width: 14, height: 22,
-  },
-  {
-    name: "Dots",
-    id: "dots",
-    paths: `<circle cx='3' cy='3' r='2' fill='COLOR'/>`,
-    width: 10, height: 10,
-  },
-  {
-    name: "Cross",
-    id: "cross",
-    paths: `<path d='M5 0 L5 10 M0 5 L10 5' stroke='COLOR' stroke-width='1.5' stroke-linecap='round'/>`,
-    width: 10, height: 10,
-  },
-  {
-    name: "Diagonal",
-    id: "diagonal",
-    paths: `<path d='M-1 1 L1 -1 M0 10 L10 0 M9 11 L11 9' stroke='COLOR' stroke-width='1'/>`,
-    width: 10, height: 10,
-  },
-  {
-    name: "Hexagons",
-    id: "hexagons",
-    paths: `<path d='M10 0 L20 5.77 L20 17.32 L10 23.09 L0 17.32 L0 5.77 Z' fill='none' stroke='COLOR' stroke-width='1'/>`,
-    width: 20, height: 23,
-  },
-  {
-    name: "Waves",
-    id: "waves",
-    paths: `<path d='M0 5 Q5 0 10 5 Q15 10 20 5' fill='none' stroke='COLOR' stroke-width='1.5'/>`,
-    width: 20, height: 10,
-  },
-  {
-    name: "Triangles",
-    id: "triangles",
-    paths: `<path d='M0 10 L5 0 L10 10 Z' fill='COLOR'/>`,
-    width: 10, height: 10,
-  },
-];
-
-function buildPatternUrl(pattern: typeof PATTERNS[0], fgColor: string, opacity: number) {
-  const encodedColor = fgColor.replace('#', '%23');
-  const pathsWithColor = pattern.paths.replace(/COLOR/g, encodedColor);
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${pattern.width}' height='${pattern.height}'><g opacity='${opacity}'>${pathsWithColor}</g></svg>`;
-  return `url("data:image/svg+xml,${svg}")`;
-}
+// Background patterns are rendered via the shared hero-patterns library (see
+// HeroPatterns import) so the saved patternId matches the dashboard picker.
 
 const LinkInBioPage =  () => {
   const router = useRouter();
@@ -365,14 +309,16 @@ useEffect(() => {
       document.body.style.backgroundColor = bgColor;
     }
     
-    // Apply pattern if bgMode is 'pattern'
+    // Apply pattern if bgMode is 'pattern'. Use the hero-patterns library — the
+    // same source the dashboard picker uses — so the saved patternId renders
+    // identically here (a hardcoded list got out of sync with the picker).
     if (linkInBio?.bgMode === 'pattern') {
-      const p = PATTERNS.find(p => p.id === (linkInBio?.patternId || PATTERNS[0].id)) || PATTERNS[0];
-      document.body.style.backgroundImage = buildPatternUrl(
-        p,
-        linkInBio?.patternFg || '#000000',
-        linkInBio?.patternOpacity ?? 0.5
-      );
+      const HP = HeroPatterns as Record<string, (color: string, opacity: number) => string>;
+      const patternId: string = linkInBio?.patternId || Object.keys(HP)[0];
+      const fn = HP[patternId];
+      document.body.style.backgroundImage = fn
+        ? fn(linkInBio?.patternFg || '#000000', linkInBio?.patternOpacity ?? 0.5)
+        : 'none';
       document.body.style.backgroundColor = linkInBio?.patternBg || '#ffffff';
       document.body.style.backgroundSize = '';
       document.body.style.backgroundPosition = '';
