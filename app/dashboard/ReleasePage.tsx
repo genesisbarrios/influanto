@@ -7,6 +7,7 @@ import ReleasePageAnalytics from "@/components/ReleasePageAnalytics";
 import { CldUploadWidget } from 'next-cloudinary';
 import { debounce } from "lodash";
 import posthog from "posthog-js";
+import { parseColorValue, combineColor } from "@/libs/color";
 
 const ReleasePages = () => {
   const { data, status } = useSession();
@@ -17,6 +18,7 @@ const ReleasePages = () => {
   const [createPage, setCreatePage] = useState(false);
   const [isNameUnique, setIsNameUnique] = useState(true);
   const [bgColor, setBgColor] = useState("#ffffff");
+  const [bgOpacity, setBgOpacity] = useState(100);
   const [textColor, setTextColor] = useState("#000000");
   const [linksColor, setLinksColor] = useState("#0000ff");
   const [font, setFont] = useState("sans-serif");
@@ -182,7 +184,9 @@ const ReleasePages = () => {
   }, [editingPage?.selectedProducts]);
 
   const handleCreate = async () => {
-    setEditingPage({ 
+    setBgColor("#ffffff");
+    setBgOpacity(100);
+    setEditingPage({
       name: "", 
       description: "", 
       links: [], 
@@ -204,6 +208,7 @@ const ReleasePages = () => {
     setEditingPage(page);
     // Populate color states with values from the selected page
     setBgColor(page.bgColor || "#ffffff");
+    setBgOpacity(parseColorValue(page.bgColor, "#ffffff").opacity);
     setTextColor(page.textColor || "#000000");
     setLinksColor(page.linksColor || "#0000ff");
     setFont(page.font || "sans-serif");
@@ -991,28 +996,40 @@ const removeCustomLink = (index: number) => {
 
             <div className="mb-4">
               <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Colors</h4>
-              <div className="flex flex-wrap w-full">
-                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-2">BG</h2>
-                <input
-                  type="color"
-                  value={bgColor}
-                  onChange={(e) => setBgColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Text</h2>
-                <input
-                  type="color"
-                  value={textColor}
-                  onChange={(e) => setTextColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
-                <input
-                  type="color"
-                  value={linksColor}
-                  onChange={(e) => setLinksColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
+              <div className="w-full">
+                {/* BG on its own line with an opacity fader */}
+                <div className="flex items-center flex-wrap gap-2 mb-2">
+                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-1">Card BG</h2>
+                  <input
+                    type="color"
+                    value={parseColorValue(bgColor, "#ffffff").hex}
+                    onChange={(e) => setBgColor(combineColor(e.target.value, bgOpacity))}
+                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                  />
+                  <span className="text-sm ml-2 mr-1" style={{ fontFamily: font || 'inherit' }}>Opacity</span>
+                  <input
+                    type="range" min={0} max={100} value={bgOpacity}
+                    onChange={(e) => { const o = Number(e.target.value); setBgOpacity(o); setBgColor(combineColor(parseColorValue(bgColor, "#ffffff").hex, o)); }}
+                    className="w-32"
+                  />
+                  <span className="text-xs text-gray-500 w-9">{bgOpacity}%</span>
+                </div>
+                <div className="flex items-center flex-wrap gap-1">
+                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-2">Text</h2>
+                  <input
+                    type="color"
+                    value={textColor}
+                    onChange={(e) => setTextColor(e.target.value)}
+                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                  />
+                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
+                  <input
+                    type="color"
+                    value={linksColor}
+                    onChange={(e) => setLinksColor(e.target.value)}
+                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                  />
+                </div>
               </div>
             </div>
 
@@ -1290,28 +1307,40 @@ const removeCustomLink = (index: number) => {
 
             <div className="mb-4">
               <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Colors</h4>
-              <div className="flex flex-wrap w-full">
-                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-2">BG</h2>
-                <input
-                  type="color"
-                  value={bgColor}
-                  onChange={(e) => setBgColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Text</h2>
-                <input
-                  type="color"
-                  value={textColor}
-                  onChange={(e) => setTextColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
-                <input
-                  type="color"
-                  value={linksColor}
-                  onChange={(e) => setLinksColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
+              <div className="w-full">
+                {/* BG on its own line with an opacity fader */}
+                <div className="flex items-center flex-wrap gap-2 mb-2">
+                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-1">Card BG</h2>
+                  <input
+                    type="color"
+                    value={parseColorValue(bgColor, "#ffffff").hex}
+                    onChange={(e) => setBgColor(combineColor(e.target.value, bgOpacity))}
+                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                  />
+                  <span className="text-sm ml-2 mr-1" style={{ fontFamily: font || 'inherit' }}>Opacity</span>
+                  <input
+                    type="range" min={0} max={100} value={bgOpacity}
+                    onChange={(e) => { const o = Number(e.target.value); setBgOpacity(o); setBgColor(combineColor(parseColorValue(bgColor, "#ffffff").hex, o)); }}
+                    className="w-32"
+                  />
+                  <span className="text-xs text-gray-500 w-9">{bgOpacity}%</span>
+                </div>
+                <div className="flex items-center flex-wrap gap-1">
+                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-2">Text</h2>
+                  <input
+                    type="color"
+                    value={textColor}
+                    onChange={(e) => setTextColor(e.target.value)}
+                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                  />
+                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
+                  <input
+                    type="color"
+                    value={linksColor}
+                    onChange={(e) => setLinksColor(e.target.value)}
+                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                  />
+                </div>
               </div>
             </div>
 

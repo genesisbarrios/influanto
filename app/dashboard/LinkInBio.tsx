@@ -7,6 +7,7 @@ import posthog from "posthog-js";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 import LinkInBioAnalytics from "@/components/LinkInBioAnalytics";
+import { parseColorValue, combineColor } from "@/libs/color";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import Head from 'next/head';
 import { text } from "stream/consumers";
@@ -183,6 +184,7 @@ const LinkInBio = () => {
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
   const [newsletterFields, setNewsletterFields] = useState<string[]>(["name", "email"]);
+  const [cardBgOpacity, setCardBgOpacity] = useState(100);
 
   // ── Effects ────────────────────────────────────────────────────────────────
 
@@ -327,6 +329,7 @@ const LinkInBio = () => {
         setSelectedProductIds(data.selectedProducts);
       }
       setBrandLogoUrl(data.brandLogoUrl || "");
+      setCardBgOpacity(parseColorValue(data.cardBgColor, "#ffffff").opacity);
       setNewsletterEnabled(!!data.newsletterEnabled);
       setNewsletterFields(Array.isArray(data.newsletterFields) ? data.newsletterFields : ["name", "email"]);
     } catch (e) {
@@ -795,11 +798,26 @@ const LinkInBio = () => {
                     <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)}
                       className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer" />
                   </div>
+                </div>
+
+                {/* Card BG + opacity (own line) */}
+                <div className="flex justify-center items-center gap-4 mb-3 flex-wrap">
                   <div className="flex items-center gap-1">
                     <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Card BG</span>
-                    <input type="color" value={linkInBio?.cardBgColor || "#ffffff"}
-                      onChange={e => setLinkInBio({ ...linkInBio, cardBgColor: e.target.value })}
+                    <input type="color" value={parseColorValue(linkInBio?.cardBgColor, "#ffffff").hex}
+                      onChange={e => setLinkInBio({ ...linkInBio, cardBgColor: combineColor(e.target.value, cardBgOpacity) })}
                       className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Opacity</span>
+                    <input type="range" min={0} max={100} value={cardBgOpacity}
+                      onChange={e => {
+                        const o = Number(e.target.value);
+                        setCardBgOpacity(o);
+                        setLinkInBio({ ...linkInBio, cardBgColor: combineColor(parseColorValue(linkInBio?.cardBgColor, "#ffffff").hex, o) });
+                      }}
+                      className="w-28 sm:w-36" />
+                    <span className="text-xs text-gray-500 w-9 text-right">{cardBgOpacity}%</span>
                   </div>
                 </div>
 
