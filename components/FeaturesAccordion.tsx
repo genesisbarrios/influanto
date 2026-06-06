@@ -213,13 +213,16 @@ const Media = ({ feature }: { feature: Feature }) => {
       </video>
     );
   } else if (type === "image") {
+    // Use each image's real dimensions so wide/horizontal art keeps its aspect
+    // ratio instead of being cropped into a square.
+    const isStatic = typeof path === "object" && path !== null;
     return (
       <Image
         src={path || "/fallback-image.png"}
         alt={alt || "Default alt text"}
-        className={`${style} object-cover object-center`}
-        width={size.width}
-        height={size.height}
+        className="rounded-2xl w-full sm:w-[26rem] h-auto"
+        width={isStatic ? (path as any).width : size.width}
+        height={isStatic ? (path as any).height : size.height}
       />
     );
   } else {
