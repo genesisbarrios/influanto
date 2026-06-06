@@ -53,7 +53,7 @@ export default function BPMCalculator() {
       ogDescription.setAttribute('property', 'og:description');
       document.head.appendChild(ogDescription);
     }
-    ogDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more');
+    ogDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner, Split Sheet Generator + more');
 
     // Update twitter:title
     let twitterTitle = document.querySelector('meta[name="twitter:title"]');

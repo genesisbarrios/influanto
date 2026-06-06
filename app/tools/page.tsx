@@ -75,7 +75,7 @@ useEffect(() => {
       metaDescription.setAttribute('name', 'description');
       document.head.appendChild(metaDescription);
     }
-    metaDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more');
+    metaDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner, Split Sheet Generator + more');
 
     // Update og:title
     let ogTitle = document.querySelector('meta[property="og:title"]');
@@ -93,7 +93,7 @@ useEffect(() => {
       ogDescription.setAttribute('property', 'og:description');
       document.head.appendChild(ogDescription);
     }
-    ogDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more');
+    ogDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner,Split Sheet Generator + more');
 
     // Update twitter:title
     let twitterTitle = document.querySelector('meta[name="twitter:title"]');
@@ -111,7 +111,7 @@ useEffect(() => {
       twitterDescription.setAttribute('name', 'twitter:description');
       document.head.appendChild(twitterDescription);
     }
-    twitterDescription.setAttribute('content', 'Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more');
+    twitterDescription.setAttribute('content', 'Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner, Split Sheet Generator + more');
   }, []);
 
 
