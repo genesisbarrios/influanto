@@ -17,17 +17,11 @@ const tools = [
     href: "/Split-Sheet-Generator",
     icon: "📄",
   },
-  {
-    title: "Synthfluanto",
-    description: "Create and share your own melodies with our synth.",
-    href: "/Synthfluanto",
-    icon: "🎹",
-  },
-  {
-    title: "Delay & Reverb Time Calculator",
-    description: "Calculate delay and reverb times for your song.",
-    href: "/Reverb-and-Delay-Calculator",
-    icon: "⏱️",
+   {
+    title: "Song Key Finder",
+    description: "Upload a song or use your mic to detect its musical key.",
+    href: "/Key-Finder",
+    icon: "🎼",
   },
   {
     title: "BPM Calculator",
@@ -36,17 +30,24 @@ const tools = [
     icon: "🎵",
   },
   {
+    title: "Delay & Reverb Time Calculator",
+    description: "Calculate delay and reverb times for your song.",
+    href: "/Reverb-and-Delay-Calculator",
+    icon: "⏱️",
+  },
+  {
     title: "Chromatic Tuner",
     description: "Tune guitar, bass, violin, or any instrument with your mic.",
     href: "/Tuner",
     icon: "🎻",
   },
   {
-    title: "Song Key Finder",
-    description: "Upload a song or use your mic to detect its musical key.",
-    href: "/Key-Finder",
-    icon: "🎼",
+    title: "Synthfluanto",
+    description: "Create and share your own melodies with our synth.",
+    href: "/Synthfluanto",
+    icon: "🎹",
   },
+  
 //   {
 //     title: "WAV to MP3 Converter",
 //     description: "Convert WAV files to MP3 format easily.",
