@@ -65,6 +65,8 @@ export async function POST(req: Request) {
       ["facebook", "facebook"],
       ["linkedin", "linkedin"],
       ["youtube", "youtube"],
+      ["bluesky", "bluesky"],
+      ["upscrolled", "upscrolled"],
       ["tiktok", "tiktok"],
       ["github", "github"],
       ["patreon", "patreon"],

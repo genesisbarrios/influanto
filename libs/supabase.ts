@@ -41,6 +41,8 @@ export function mapUser(row: any) {
     facebook: row.facebook,
     linkedin: row.linkedin,
     youtube: row.youtube,
+    bluesky: row.bluesky,
+    upscrolled: row.upscrolled,
     tiktok: row.tiktok,
     github: row.github,
     spotify: row.spotify,
