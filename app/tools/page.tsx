@@ -36,6 +36,18 @@ const tools = [
     icon: "⏱️",
   },
   {
+    title: "Music Metadata Editor",
+    description: "Edit MP3 tags — artist, composer, cover art, copyright — and download.",
+    href: "/Metadata-Editor",
+    icon: "🏷️",
+  },
+  {
+    title: "Image Privacy Cleaner",
+    description: "Strip GPS location & camera data (EXIF) from your photos.",
+    href: "/Image-Privacy",
+    icon: "🛡️",
+  },
+  {
     title: "Chromatic Tuner",
     description: "Tune guitar, bass, violin, or any instrument with your mic.",
     href: "/Tuner",
