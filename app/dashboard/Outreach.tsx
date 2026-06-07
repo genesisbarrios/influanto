@@ -162,6 +162,26 @@ export default function Outreach() {
     try { const r = await apiClient.get("/outreach-contacts"); setContacts(r.data ?? []); } catch {}
   };
 
+  // ── Export contacts ──
+  const contactsToCsv = () => {
+    const headers = ["name", "email", "phone", "instagram", "tiktok", "source"];
+    const esc = (v: any) => { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    const lines = [headers.join(",")];
+    for (const c of contacts) lines.push([c.name, c.email, c.phone, c.instagram, c.tiktok, c.source].map(esc).join(","));
+    return lines.join("\n");
+  };
+  const exportCsv = () => {
+    const blob = new Blob([contactsToCsv()], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "outreach-contacts.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
+  const copyContacts = async () => {
+    try { await navigator.clipboard.writeText(contactsToCsv()); setAlert("✅ Contacts copied to clipboard"); }
+    catch { setAlert("Could not copy"); }
+  };
+
   // ── Builder helpers ──────────────────────────────────────────────────────────
 
   const nl = editing ?? blankNewsletter("blank");
@@ -311,6 +331,8 @@ export default function Outreach() {
           <h2 className="text-xl font-bold">Contacts</h2>
           <div className="flex gap-2">
             <button className="btn btn-sm btn-outline" onClick={() => { setShowImport(true); setAlert(""); }}>⬆ Import</button>
+            <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={copyContacts}>📋 Copy</button>
+            <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={exportCsv}>⬇ Export CSV</button>
             <button className="btn btn-sm" onClick={() => { setView("list"); setContactForm({}); setEditingContact(null); setAlert(""); }}>← Back</button>
           </div>
         </div>
