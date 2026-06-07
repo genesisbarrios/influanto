@@ -58,8 +58,6 @@ const Profile =  () => {
   const [isEditingPixel, setIsEditingPixel] = useState(false);
   const [pixelInput, setPixelInput] = useState("");
   const [pixelSaving, setPixelSaving] = useState(false);
-  const [capiTokenInput, setCapiTokenInput] = useState("");
-  const [hasCapiToken, setHasCapiToken] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [alertMsg, setAlertt] = useState("");
@@ -636,13 +634,11 @@ const handleYouTubeMusicChange = (e: any) => {
     try {
       const formData = new FormData();
       formData.append("metaPixelId", pixelInput.trim());
-      if (capiTokenInput.trim()) formData.append("metaCapiToken", capiTokenInput.trim());
       await apiClient.post("/user", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setMetaPixelId(pixelInput.trim());
       setUser((prev: any) => ({ ...prev, metaPixelId: pixelInput.trim() }));
-      if (capiTokenInput.trim()) { setHasCapiToken(true); setCapiTokenInput(""); }
       setIsEditingPixel(false);
     } catch (e: any) {
       setAlertt(e?.message || "Failed to save Pixel ID");
@@ -685,7 +681,6 @@ const handleYouTubeMusicChange = (e: any) => {
       setYouTubeMusic(data.youtubeMusic);
       setBandcamp(data.bandcamp);
       setMetaPixelId(data.metaPixelId || "");
-      setHasCapiToken(!!data.hasMetaCapiToken);
       setNewsletterStyle(data.newsletterStyle && typeof data.newsletterStyle === "object" ? data.newsletterStyle : {});
       setUser(data);
   
@@ -1053,16 +1048,6 @@ const handleYouTubeMusicChange = (e: any) => {
                   />
                   <p className="text-xs text-gray-400">
                     Find your Pixel ID in Meta Events Manager → Data Sources.
-                  </p>
-                  <input
-                    type="password"
-                    className="input input-sm w-full border border-gray-300"
-                    placeholder={hasCapiToken ? "Conversions API token (saved — leave blank to keep)" : "Conversions API token (optional)"}
-                    value={capiTokenInput}
-                    onChange={(e) => setCapiTokenInput(e.target.value)}
-                  />
-                  <p className="text-xs text-gray-400">
-                    Optional but recommended — server-side events bypass ad blockers. Events Manager → Settings → Conversions API → Generate access token. {hasCapiToken && <span className="text-green-600">✓ token saved</span>}
                   </p>
                   <div className="flex gap-2">
                     <button
