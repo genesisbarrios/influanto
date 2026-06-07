@@ -69,6 +69,9 @@ export default function ImagePrivacy() {
     try {
       // Start from a fresh, empty EXIF and only add back what's kept.
       const out: any = { "0th": {}, "Exif": {}, "GPS": {}, "1st": {}, thumbnail: null };
+      // Always preserve Orientation so the photo isn't flipped/rotated on display.
+      const orient = exif?.["0th"]?.[piexif.ImageIFD.Orientation];
+      if (orient != null) out["0th"][piexif.ImageIFD.Orientation] = orient;
       if (keepGps && exif?.GPS) out.GPS = exif.GPS;
       if (keepCamera) {
         for (const k of ["Make", "Model", "Software"]) {
@@ -98,7 +101,14 @@ export default function ImagePrivacy() {
   const stripAll = () => {
     if (!src) return;
     try {
-      const result = piexif.remove(src);
+      const stripped = piexif.remove(src);
+      // Re-add only Orientation so the photo keeps its correct display rotation.
+      const orient = exif?.["0th"]?.[piexif.ImageIFD.Orientation];
+      let result = stripped;
+      if (orient != null) {
+        const bytes = piexif.dump({ "0th": { [piexif.ImageIFD.Orientation]: orient }, Exif: {}, GPS: {} } as any);
+        result = piexif.insert(bytes, stripped);
+      }
       if (outUrl) URL.revokeObjectURL(outUrl);
       setOutUrl(URL.createObjectURL(dataUrlToBlob(result)));
       setStatus("✅ All metadata removed — download below.");
