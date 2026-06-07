@@ -49,18 +49,9 @@ export default function MetaPixel({ pixelId, contentName, contentType }: Props) 
   useEffect(() => {
     if (!pixelId) return;
 
-    const eventId = (typeof crypto !== "undefined" && (crypto as any).randomUUID) ? crypto.randomUUID() : `pv_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-
-    // Fire PageView on both the browser pixel and the Conversions API, sharing
-    // one event_id so Meta deduplicates. The server copy survives ad blockers.
     const fire = () => {
-      window.fbq("track", "PageView", {}, { eventID: eventId });
+      window.fbq("track", "PageView");
       window.fbq("track", "ViewContent", { content_name: contentName, content_type: contentType });
-      fetch("/api/meta/capi", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pixelId, eventName: "PageView", eventId, eventSourceUrl: typeof window !== "undefined" ? window.location.href : "" }),
-      }).catch(() => {});
     };
 
     // Already loaded — just fire again (SPA navigation)
