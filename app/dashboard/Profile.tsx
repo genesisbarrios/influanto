@@ -1210,80 +1210,87 @@ const handleYouTubeMusicChange = (e: any) => {
         <br></br>
       
       <form>
-        <img src={avatarImage || fallbackImageUrl} style={{ borderRadius: '50%', width:"75px", height:"75px", display:"inline"}} alt="Avatar" />
-        <div style={{display:"inline"}}>
-          <input style={{display:"inline", marginLeft:"10px"}} 
-              type="file"
-              className="input mb-2 p-2 w-1/2"
-              accept="image/*"
-              onChange={(e) => handleFileSelection(e)}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 w-full">
+          {/* Left column: image, name, username, location */}
+          <div>
+            <div className="flex items-center mb-3">
+              <img src={avatarImage || fallbackImageUrl} style={{ borderRadius: '50%', width:"75px", height:"75px"}} alt="Avatar" />
+              <input
+                  className="input mb-0 p-2 ml-3 flex-1"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileSelection(e)}
+                />
+            </div>
+            <label style={{display:"block"}}>Name</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
+              required
+              placeholder="Enter your name"
+              value={formName || ""}
+              onChange={(e) => handleNameChange(e)}
             />
+            <br />
+            <label style={{display:"block"}}>Username</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
+              required
+              placeholder="Enter your username"
+              value={formUserName || ""}
+              onChange={(e) => handleUserNameChange(e)}
+            />
+            <br />
+            <label style={{display:"block"}}>Location</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
+              placeholder="Enter Your Location"
+              value={location || ""}
+              onChange={(e) => handleLocationChange(e)}
+            />
+          </div>
+          {/* Right column: website, bio, email */}
+          <div>
+            <label style={{display:"block"}}>Website</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
+              placeholder="Website Link"
+              value={website || ""}
+              onChange={(e) => handleWebsiteChange(e)}
+            />
+            <br />
+            <label style={{display:"block"}}>Bio</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
+              placeholder="Describe Yourself"
+              value={bio || ""}
+              onChange={(e) => handleBioChange(e)}
+            />
+            <br />
+            <label style={{display:"block"}}>Email</label>
+            <p className="text-sm mb-2">{user?.email}</p>
+            <label style={{display:"block"}}>
+              <input
+                type="checkbox"
+                className="mr-2"
+                checked={displayEmail || false}
+                onChange={(e) => setDisplayEmail(e.target.checked)}
+              />
+              Display Email
+            </label>
+          </div>
         </div>
-        <br></br>
-        <label style={{display:"block"}}>Name</label>
-        <input 
-          type="text" 
-          className="input mb-2 w-3/4" 
-          required 
-          placeholder="Enter your name"
-          value={formName || ""}
-          onChange={(e) => handleNameChange(e)}
-        />
-        <br />
-        <label style={{display:"block"}}>Username</label>
-        <input 
-          type="text" 
-          className="input mb-2 w-3/4" 
-          required 
-          placeholder="Enter your username"
-          value={formUserName || ""}
-          onChange={(e) => handleUserNameChange(e)}
-        />
-        <br />
-        <label style={{display:"block"}}>Location</label> 
-        <input 
-          type="text" 
-          className="input mb-2 w-3/4" 
-          placeholder="Enter Your Location"
-          value={location || ""}
-          onChange={(e) => handleLocationChange(e)} 
-        />
-        <br />
-        <label style={{display:"block"}}>Website</label> 
-        <input 
-          type="text" 
-          className="input mb-2 w-3/4" 
-          placeholder="Website Link"
-          value={website || ""}
-          onChange={(e) => handleWebsiteChange(e)} 
-        />
-        <br />
-        <label style={{display:"block"}}>Bio</label> 
-        <input 
-          type="text" 
-          className="input mb-2 w-3/4" 
-          placeholder="Describe Yourself"
-          value={bio || ""}
-          onChange={(e) => handleBioChange(e)} 
-        />
-        <br />
-        <label style={{display:"block"}}>Email</label>
-        <p className="text-sm mb-2">{user?.email}</p>
-        <label style={{display:"block"}}>
-          <input 
-            type="checkbox" 
-            className="mr-2" 
-            checked={displayEmail || false} 
-            onChange={(e) => setDisplayEmail(e.target.checked)} 
-          /> 
-          Display Email
-        </label>
-        <br />
 
-        <h1>Socials</h1>
-        <div className="flex flex-wrap w-full">
-          <div className="w-full lg:w-1/2 p-2">
-            <label style={{display:"block"}}>Instagram</label> 
+        {/* Socials + Listen as two separate cards (side by side on desktop) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 w-full">
+          {/* Socials card */}
+          <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+          <h1 className="mb-3">Socials</h1>
+            <label style={{display:"block"}}>Instagram</label>
             <input 
               type="text" 
               className="input mb-2 w-3/4" 
@@ -1334,12 +1341,9 @@ const handleYouTubeMusicChange = (e: any) => {
               className="input mb-2 w-3/4" 
               placeholder="handle"
               value={etsy || ""}
-              onChange={(e) => handleEtsyChange(e)} 
+              onChange={(e) => handleEtsyChange(e)}
             />
-          </div>
-
-          <div className="w-full lg:w-1/2 p-2">
-          <label style={{display:"block"}}>TikTok</label> 
+            <label style={{display:"block"}}>TikTok</label>
             <input 
               type="text" 
               className="input mb-2 w-3/4" 
@@ -1407,11 +1411,12 @@ const handleYouTubeMusicChange = (e: any) => {
               className="input mb-2 w-3/4" 
               placeholder="handle"
               value={patreon || ""}
-              onChange={(e) => handlePatreonChange(e)} 
+              onChange={(e) => handlePatreonChange(e)}
             />
-            <br />
           </div>
-        </div>
+
+          {/* Listen card */}
+          <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
         <h1 style={{display:"inline"}}>Listen</h1>
         {!isEditingStreaming &&  <button 
           type="button"
@@ -1421,8 +1426,8 @@ const handleYouTubeMusicChange = (e: any) => {
           Edit Streaming Links  
         </button> }
         <br></br>
-        {isEditingStreaming && <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 w-full">
-          <div className="p-2 sm:col-span-2">
+        {isEditingStreaming && <div className="grid grid-cols-1 gap-x-6 w-full">
+          <div className="p-2">
             <label style={{display:"block"}}>Spotify</label>
             <input
               type="text"
@@ -1513,6 +1518,8 @@ const handleYouTubeMusicChange = (e: any) => {
             />
           </div>
         </div>}
+          </div>{/* end Listen card */}
+        </div>{/* end Socials + Listen grid */}
         {alertMsg && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alertMsg}</div>}
         <button 
           className="btn btn-primary btn-block btn-sm btn-narrow"
