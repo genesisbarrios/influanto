@@ -5,9 +5,55 @@ import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import { getSEOTags } from "@/libs/seo";
 
+// Estimate tempo from an audio buffer via an onset-energy autocorrelation.
+function detectBPM(data: Float32Array, sampleRate: number): number {
+  const frame = 1024, hop = 512;
+  const env: number[] = [];
+  for (let i = 0; i + frame <= data.length; i += hop) {
+    let e = 0;
+    for (let j = 0; j < frame; j++) { const s = data[i + j]; e += s * s; }
+    env.push(e);
+  }
+  const flux: number[] = [];
+  for (let i = 1; i < env.length; i++) { const d = env[i] - env[i - 1]; flux.push(d > 0 ? d : 0); }
+  const envRate = sampleRate / hop;
+  const minLag = Math.floor((envRate * 60) / 180);
+  const maxLag = Math.ceil((envRate * 60) / 60);
+  let bestLag = -1, best = -1;
+  for (let lag = minLag; lag <= maxLag; lag++) {
+    let sum = 0;
+    for (let i = lag; i < flux.length; i++) sum += flux[i] * flux[i - lag];
+    if (sum > best) { best = sum; bestLag = lag; }
+  }
+  if (bestLag <= 0) return 0;
+  let bpm = (60 * envRate) / bestLag;
+  while (bpm < 70) bpm *= 2;
+  while (bpm > 180) bpm /= 2;
+  return Math.round(bpm);
+}
+
 export default function BPMCalculator() {
   const [bpm, setBpm] = useState<number>(0);
   const [tapTimes, setTapTimes] = useState<number[]>([]);
+  const [analyzing, setAnalyzing] = useState(false);
+  const fileRef = React.useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (file?: File) => {
+    if (!file) return;
+    setAnalyzing(true);
+    try {
+      const buf = await file.arrayBuffer();
+      const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx: AudioContext = new Ctx();
+      const audio = await ctx.decodeAudioData(buf);
+      ctx.close().catch(() => {});
+      setBpm(detectBPM(audio.getChannelData(0), audio.sampleRate));
+    } catch {
+      /* ignore decode errors */
+    } finally {
+      setAnalyzing(false);
+    }
+  };
 
   // Calculate BPM from tap times
   const handleTap = useCallback(() => {
@@ -186,6 +232,21 @@ export default function BPMCalculator() {
             >
             Reset BPM
             </button>
+
+            <div style={{ marginTop: "1.25rem" }}>
+              <button
+                className="btn"
+                style={{ padding: "0.6rem 1.5rem", fontSize: "1rem", borderRadius: 8, background: "#181b20", color: "#fff", border: "none", cursor: "pointer" }}
+                disabled={analyzing}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
+              >
+                {analyzing ? "Analyzing…" : "⬆️ Upload a song to detect BPM"}
+              </button>
+              <input ref={fileRef} type="file" accept="audio/*" style={{ display: "none" }} onChange={(e) => handleUpload(e.target.files?.[0])} />
+              <p style={{ color: "#181b20", fontSize: "0.8rem", marginTop: "0.5rem", opacity: 0.7 }}>Estimate — works best on beat-driven tracks.</p>
+            </div>
         </div>
         {/* Right: Sign up and info */}
         <div

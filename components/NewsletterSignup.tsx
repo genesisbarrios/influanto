@@ -28,6 +28,16 @@ const FIELD_LABELS: Record<string, string> = {
   tiktok: "TikTok",
 };
 
+const FIELD_PLACEHOLDERS: Record<string, string> = {
+  name: "Name",
+  phone: "Phone",
+  instagram: "@handle (Instagram)",
+  tiktok: "@handle (TikTok)",
+};
+
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const HANDLE_RE = /^@?[a-zA-Z0-9._]{1,30}$/;
+
 export default function NewsletterSignup({ username, source, fields = ["name", "email"], bgColor, textColor, linksColor, heading, style }: Props) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [hp, setHp] = useState(""); // honeypot
@@ -46,13 +56,23 @@ export default function NewsletterSignup({ username, source, fields = ["name", "
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!values.email?.trim()) { setError("Email is required"); return; }
+    if (!EMAIL_RE.test((values.email || "").trim())) { setError("Please enter a valid email address"); return; }
+    for (const f of ["instagram", "tiktok"]) {
+      const v = (values[f] || "").trim();
+      if (v && !HANDLE_RE.test(v)) { setError(`Enter a valid ${FIELD_LABELS[f]} handle (e.g. @yourname)`); return; }
+    }
+    // Normalize handles to include a leading @
+    const payload: Record<string, string> = { ...values };
+    for (const f of ["instagram", "tiktok"]) {
+      const v = (payload[f] || "").trim();
+      if (v) payload[f] = v.startsWith("@") ? v : "@" + v;
+    }
     setStatus("sending"); setError("");
     try {
       const res = await fetch("/api/outreach/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, source, hp, ...values }),
+        body: JSON.stringify({ username, source, hp, ...payload }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -107,7 +127,7 @@ export default function NewsletterSignup({ username, source, fields = ["name", "
       )}
       <input style={inputStyle} type="email" required placeholder="Email *" value={values.email || ""} onChange={e => set("email", e.target.value)} />
       {optionalFields.filter(f => f !== "name").map(f => (
-        <input key={f} style={inputStyle} placeholder={FIELD_LABELS[f] || f} value={values[f] || ""} onChange={e => set(f, e.target.value)} />
+        <input key={f} style={inputStyle} placeholder={FIELD_PLACEHOLDERS[f] || FIELD_LABELS[f] || f} value={values[f] || ""} onChange={e => set(f, e.target.value)} />
       ))}
 
       {error && <p style={{ color: "#f87171", fontSize: 13, marginBottom: 8 }}>{error}</p>}

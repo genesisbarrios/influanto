@@ -318,8 +318,8 @@ export default function Outreach() {
     const sourceBadge = (s: string) => {
       const map: Record<string, { label: string; cls: string }> = {
         manual: { label: "Manual", cls: "badge-ghost" },
-        link_in_bio: { label: "Link in Bio", cls: "badge-info" },
-        release_page: { label: "Release Page", cls: "badge-success" },
+        link_in_bio: { label: "Influanto", cls: "badge-info" },
+        release_page: { label: "Influanto", cls: "badge-success" },
       };
       const b = map[s] ?? map.manual;
       return <span className={`badge badge-xs ${b.cls}`}>{b.label}</span>;
@@ -331,8 +331,8 @@ export default function Outreach() {
           <h2 className="text-xl font-bold">Contacts</h2>
           <div className="flex gap-2">
             <button className="btn btn-sm btn-outline" onClick={() => { setShowImport(true); setAlert(""); }}>⬆ Import</button>
-            <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={copyContacts}>📋 Copy</button>
             <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={exportCsv}>⬇ Export CSV</button>
+            <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={copyContacts}>📋 Copy Contacts</button>
             <button className="btn btn-sm" onClick={() => { setView("list"); setContactForm({}); setEditingContact(null); setAlert(""); }}>← Back</button>
           </div>
         </div>
