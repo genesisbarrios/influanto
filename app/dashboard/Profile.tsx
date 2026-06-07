@@ -1203,7 +1203,8 @@ const handleYouTubeMusicChange = (e: any) => {
     );
   }else if (isEditing){
     return (
-      <div className="p-4 bg-white shadow rounded-md " style={containerStyle}>
+      <div className="profile-edit p-4 bg-white shadow rounded-md " style={containerStyle}>
+        <style>{`.profile-edit label, .profile-edit h1, .profile-edit h2, .profile-edit h3 { color:#000 !important; }`}</style>
         <div className="w-full flex flex-wrap">
         <h2 className="text-xl sm:text-2xl font-bold mb-2 inline">Profile</h2>
         <br></br>
@@ -1420,91 +1421,96 @@ const handleYouTubeMusicChange = (e: any) => {
           Edit Streaming Links  
         </button> }
         <br></br>
-        {isEditingStreaming && <div className="flex flex-wrap w-full">
-          <div className="w-full sm:w-1/2 p-2">
-            <label  style={{display:"block"}}>Spotify</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
+        {isEditingStreaming && <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 w-full">
+          <div className="p-2 sm:col-span-2">
+            <label style={{display:"block"}}>Spotify</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
               placeholder="Spotify URI"
               value={spotify || ""}
-              onChange={(e) => handleSpotifyChange(e)} 
+              onChange={(e) => handleSpotifyChange(e)}
             />
-            <br />
-            <label>Apple Music</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
+          </div>
+          <div className="p-2">
+            <label style={{display:"block"}}>Apple Music</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
               placeholder="Artist ID"
               value={appleMusic || ""}
-              onChange={(e) => handleAppleMusicChange(e)} 
+              onChange={(e) => handleAppleMusicChange(e)}
             />
-            <br />
-            <label>YouTube Music</label>   <br />
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
+          </div>
+          <div className="p-2">
+            <label style={{display:"block"}}>YouTube Music</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
               placeholder="Channel ID"
               value={youtubeMusic || ""}
-              onChange={(e) => handleYouTubeMusicChange(e)} 
+              onChange={(e) => handleYouTubeMusicChange(e)}
             />
-            <br />
-            <label>Amazon Music</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
+          </div>
+          <div className="p-2">
+            <label style={{display:"block"}}>Amazon Music</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
               placeholder="Artist ID"
               value={amazonMusic || ""}
-              onChange={(e) => handleAmazonMusicChange(e)} 
+              onChange={(e) => handleAmazonMusicChange(e)}
             />
-            <br />
-            <label>Bandcamp</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
+          </div>
+          <div className="p-2">
+            <label style={{display:"block"}}>Bandcamp</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
               placeholder="link"
               value={bandcamp || ""}
-              onChange={(e) => handleBandcampChange(e)} 
+              onChange={(e) => handleBandcampChange(e)}
             />
-            <br />
           </div>
-          <div className="w-full sm:w-1/2 p-2">
-            <label>Soundcloud</label>   <br />
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
+          <div className="p-2">
+            <label style={{display:"block"}}>Soundcloud</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
               placeholder="handle"
               value={soundcloud || ""}
-              onChange={(e) => handleSoundcloudChange(e)} 
+              onChange={(e) => handleSoundcloudChange(e)}
             />
-            <br />
-            <label>Tidal</label> <br />
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
+          </div>
+          <div className="p-2">
+            <label style={{display:"block"}}>Tidal</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
               placeholder="Artist ID"
               value={tidal || ""}
-              onChange={(e) => handleTidalChange(e)} 
+              onChange={(e) => handleTidalChange(e)}
             />
-            <br />
-            <label>Pandora</label>   <br />
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
+          </div>
+          <div className="p-2">
+            <label style={{display:"block"}}>Pandora</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
               placeholder="Artist ID"
               value={pandora || ""}
-              onChange={(e) => handlePandoraChange(e)} 
+              onChange={(e) => handlePandoraChange(e)}
             />
-            <br />
-            <label style={{display:"block"}}>Deezer</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
+          </div>
+          <div className="p-2">
+            <label style={{display:"block"}}>Deezer</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
               placeholder="Artist ID"
               value={deezer || ""}
-              onChange={(e) => handleDeezerChange(e)} 
+              onChange={(e) => handleDeezerChange(e)}
             />
-            <br />
           </div>
         </div>}
         {alertMsg && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alertMsg}</div>}
