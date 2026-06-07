@@ -28,9 +28,11 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     const currentCodes: any[] = existing?.codes ?? [];
+    // Ensure the destination has a scheme so the QR / redirect always works.
+    const normalizedLink = /^https?:\/\//i.test(String(link).trim()) ? String(link).trim() : "https://" + String(link).trim();
     const newCode = {
       id: crypto.randomUUID(),
-      url: link,
+      url: normalizedLink,
       name,
       color,
       dotStyle,
