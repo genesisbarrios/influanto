@@ -64,6 +64,7 @@ export function mapUser(row: any) {
     printifyAccessToken: row.printify_access_token,
     printifyShopUrl: row.printify_shop_url,
     metaPixelId: row.meta_pixel_id,
+    hasMetaCapiToken: !!row.meta_capi_token, // never expose the token itself
     newsletterStyle: row.newsletter_style ?? {},
   };
 }

@@ -25,7 +25,7 @@ const tools = [
   },
   {
     title: "BPM Calculator",
-    description: "Tap or click on beat to find the tempo of your track.",
+    description: "Tap/click on beat or upload the audio to find the tempo of your track.",
     href: "/BPM-Calculator",
     icon: "🎵",
   },

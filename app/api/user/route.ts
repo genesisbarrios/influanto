@@ -52,6 +52,7 @@ export async function POST(req: Request) {
 
     const textFields: [string, string][] = [
       ["metaPixelId", "meta_pixel_id"],
+      ["metaCapiToken", "meta_capi_token"],
       ["name", "name"],
       ["username", "username"],
       ["email", "email"],

@@ -49,15 +49,22 @@ export default function MetaPixel({ pixelId, contentName, contentType }: Props) 
   useEffect(() => {
     if (!pixelId) return;
 
-    // Already loaded — just fire PageView again (SPA navigation)
-    if (typeof window !== "undefined" && window.fbq) {
-      window.fbq("track", "PageView");
-      window.fbq("track", "ViewContent", {
-        content_name: contentName,
-        content_type: contentType,
-      });
-      return;
-    }
+    const eventId = (typeof crypto !== "undefined" && (crypto as any).randomUUID) ? crypto.randomUUID() : `pv_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+    // Fire PageView on both the browser pixel and the Conversions API, sharing
+    // one event_id so Meta deduplicates. The server copy survives ad blockers.
+    const fire = () => {
+      window.fbq("track", "PageView", {}, { eventID: eventId });
+      window.fbq("track", "ViewContent", { content_name: contentName, content_type: contentType });
+      fetch("/api/meta/capi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pixelId, eventName: "PageView", eventId, eventSourceUrl: typeof window !== "undefined" ? window.location.href : "" }),
+      }).catch(() => {});
+    };
+
+    // Already loaded — just fire again (SPA navigation)
+    if (typeof window !== "undefined" && typeof window.fbq === "function") { fire(); return; }
 
     // Bootstrap the FB Pixel snippet
     (function (f: any, b: Document, e: string, v: string) {
@@ -78,11 +85,7 @@ export default function MetaPixel({ pixelId, contentName, contentType }: Props) 
     })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
 
     window.fbq("init", pixelId);
-    window.fbq("track", "PageView");
-    window.fbq("track", "ViewContent", {
-      content_name: contentName,
-      content_type: contentType,
-    });
+    fire();
   }, [pixelId, contentName, contentType]);
 
   if (!pixelId) return null;
