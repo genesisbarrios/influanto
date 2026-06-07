@@ -42,12 +42,6 @@ const tools = [
     icon: "🏷️",
   },
   {
-    title: "Image Privacy Cleaner",
-    description: "Strip GPS location & camera data (EXIF) from your photos.",
-    href: "/Image-Privacy",
-    icon: "🛡️",
-  },
-  {
     title: "Chromatic Tuner",
     description: "Tune guitar, bass, violin, or any instrument with your mic.",
     href: "/Tuner",
@@ -58,6 +52,12 @@ const tools = [
     description: "Create and share your own melodies with our synth.",
     href: "/Synthfluanto",
     icon: "🎹",
+  },
+  {
+    title: "Image Privacy Cleaner",
+    description: "Strip GPS location & camera data (EXIF) from your photos.",
+    href: "/Image-Privacy",
+    icon: "🛡️",
   },
   
 //   {
