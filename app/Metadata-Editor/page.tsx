@@ -133,16 +133,16 @@ export default function MetadataEditor() {
     <>
       <Suspense><Header /></Suspense>
       <div id="meta-bg" style={{ display: "flex", flexDirection: "column", minHeight: "80vh", width: "100%" }}>
-        <div style={{ background: "#f9fafb" }} className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300">
+        <div style={{ background: "#f9fafb", textAlign: "center" }} className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300">
           <h1 className="text-3xl font-bold mb-2" style={{ color: "#181b20" }}>Music Metadata Editor</h1>
           <p className="mb-4" style={{ color: "#181b20" }}>Upload an MP3 or WAV, edit its tags &amp; cover art, then download.</p>
 
           {!file ? (
-            <button onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg py-12 text-sm text-gray-500 hover:bg-gray-100" style={{ maxWidth: 640 }}>
+            <button onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg py-12 text-sm text-gray-500 hover:bg-gray-100" style={{ maxWidth: 640, margin: "0 auto" }}>
               Click to upload an MP3 or WAV
             </button>
           ) : (
-            <div style={{ maxWidth: 640 }} className="space-y-4">
+            <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "left" }} className="space-y-4">
               <div className="flex gap-4 items-start flex-wrap">
                 {/* Cover */}
                 <div className="text-center">
