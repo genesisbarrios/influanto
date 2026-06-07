@@ -14,6 +14,7 @@ import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
 import PrintifyIntegration from "@/components/PrintifyIntegration";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import NewsletterSignup from "@/components/NewsletterSignup";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import SettingsDropdown from "@/components/SettingsDropdown";
 
@@ -61,6 +62,8 @@ const Profile =  () => {
   const [isLoading, setIsLoading] = useState(false);
   const [alertMsg, setAlertt] = useState("");
   const [embedCopied, setEmbedCopied] = useState(false);
+  const [newsletterStyle, setNewsletterStyle] = useState<{ heading?: string; subtitle?: string; buttonColor?: string; textColor?: string; bgColor?: string }>({});
+  const setNL = (patch: Record<string, string>) => setNewsletterStyle(prev => ({ ...prev, ...patch }));
   
 // In Profile.tsx, add this function before the return statement
 
@@ -677,6 +680,7 @@ const handleYouTubeMusicChange = (e: any) => {
       setYouTubeMusic(data.youtubeMusic);
       setBandcamp(data.bandcamp);
       setMetaPixelId(data.metaPixelId || "");
+      setNewsletterStyle(data.newsletterStyle && typeof data.newsletterStyle === "object" ? data.newsletterStyle : {});
       setUser(data);
   
     } catch (e) {
@@ -789,6 +793,7 @@ const handleYouTubeMusicChange = (e: any) => {
     try {
       // Create FormData object to handle file uploads
       const formData = new FormData();
+      formData.append("newsletterStyle", JSON.stringify(newsletterStyle || {}));
       if (formName != null && formName != "") formData.append("name", formName);
       if (formUserName != null && formUserName != "") formData.append("username", formUserName);
       if (formEmail !== undefined && formEmail !== null) formData.append("email", user?.email);
@@ -960,6 +965,61 @@ const handleYouTubeMusicChange = (e: any) => {
                 </div>
               );
             })()}
+
+            {/* ── Newsletter Style ── */}
+            <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">
+              <div className="flex items-center gap-2 mb-1">
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}>🎨</span>
+                <h3 className="font-bold text-base text-gray-800">Newsletter Style</h3>
+              </div>
+              <p className="text-sm text-gray-500 mb-3">Customize the signup form that appears on your pages and embed.</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Heading</label>
+                  <input className="input input-sm input-bordered w-full" placeholder="📣 Join my newsletter" value={newsletterStyle.heading ?? ""} onChange={e => setNL({ heading: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Subtitle</label>
+                  <input className="input input-sm input-bordered w-full" placeholder="Get updates on new releases…" value={newsletterStyle.subtitle ?? ""} onChange={e => setNL({ subtitle: e.target.value })} />
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-4 mt-3">
+                <label className="flex items-center gap-2 text-sm">Button
+                  <input type="color" className="w-8 h-8 rounded border border-gray-300 cursor-pointer" value={newsletterStyle.buttonColor || "#4f46e5"} onChange={e => setNL({ buttonColor: e.target.value })} />
+                </label>
+                <label className="flex items-center gap-2 text-sm">Text
+                  <input type="color" className="w-8 h-8 rounded border border-gray-300 cursor-pointer" value={newsletterStyle.textColor || "#111827"} onChange={e => setNL({ textColor: e.target.value })} />
+                </label>
+                <label className="flex items-center gap-2 text-sm">Background
+                  <input type="color" className="w-8 h-8 rounded border border-gray-300 cursor-pointer" value={newsletterStyle.bgColor || "#ffffff"} onChange={e => setNL({ bgColor: e.target.value })} />
+                </label>
+              </div>
+
+              {/* Live preview */}
+              <div className="mt-4">
+                <p className="text-xs font-semibold text-gray-500 mb-1">Preview</p>
+                <div className="rounded-lg border border-gray-200 p-2" style={{ background: "#f3f4f6" }}>
+                  <NewsletterSignup username={user?.username || "you"} source="link_in_bio" fields={["name", "email"]} style={newsletterStyle} />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-primary btn-sm mt-3"
+                onClick={async () => {
+                  try {
+                    const fd = new FormData();
+                    fd.append("newsletterStyle", JSON.stringify(newsletterStyle || {}));
+                    await apiClient.post("/user", fd, { headers: { "Content-Type": "multipart/form-data" } });
+                    setUser((prev: any) => ({ ...prev, newsletterStyle }));
+                    setAlertt("Newsletter style saved");
+                  } catch { setAlertt("Could not save newsletter style"); }
+                }}
+              >
+                Save newsletter style
+              </button>
+            </div>
 
             {/* ── Meta Pixel ── */}
             <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">

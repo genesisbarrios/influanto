@@ -716,6 +716,7 @@ return (
               fields={linkInBio.newsletterFields}
               textColor={textColor}
               linksColor={linksColor}
+              style={user?.newsletterStyle}
             />
           </div>
         )}

@@ -918,6 +918,7 @@ const renderMerchSection = () => {
               fields={releasePage.newsletterFields}
               textColor={textColor}
               linksColor={linksColor}
+              style={user?.newsletterStyle}
             />
           </div>
         )}
