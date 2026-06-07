@@ -131,16 +131,16 @@ export default function ImagePrivacy() {
     <>
       <Suspense><Header /></Suspense>
       <div id="img-bg" style={{ display: "flex", flexDirection: "column", minHeight: "80vh", width: "100%" }}>
-        <div style={{ background: "#f9fafb" }} className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300">
+        <div style={{ background: "#f9fafb", textAlign: "center" }} className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300">
           <h1 className="text-3xl font-bold mb-2" style={{ color: "#181b20" }}>Image Privacy Cleaner</h1>
           <p className="mb-4" style={{ color: "#181b20" }}>Remove GPS location &amp; camera data from your photos (JPEG), or edit it, then download.</p>
 
           {!src ? (
-            <button onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg py-12 text-sm text-gray-500 hover:bg-gray-100" style={{ maxWidth: 640 }}>
+            <button onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg py-12 text-sm text-gray-500 hover:bg-gray-100" style={{ maxWidth: 640, margin: "0 auto" }}>
               Click to upload a JPEG photo
             </button>
           ) : (
-            <div style={{ maxWidth: 640 }} className="space-y-4">
+            <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "left" }} className="space-y-4">
               <div className="flex gap-4 flex-wrap items-start">
                 <img src={src} alt="" style={{ width: 140, height: 140, objectFit: "cover", borderRadius: 10, border: "1px solid #e5e7eb" }} />
                 <div className="flex-1 min-w-[220px]">
