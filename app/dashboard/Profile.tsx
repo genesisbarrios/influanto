@@ -62,6 +62,7 @@ const Profile =  () => {
   const [isLoading, setIsLoading] = useState(false);
   const [alertMsg, setAlertt] = useState("");
   const [embedCopied, setEmbedCopied] = useState(false);
+  const [showNewsletterStyle, setShowNewsletterStyle] = useState(false);
   const [newsletterStyle, setNewsletterStyle] = useState<{ heading?: string; subtitle?: string; buttonColor?: string; textColor?: string; bgColor?: string }>({});
   const setNL = (patch: Record<string, string>) => setNewsletterStyle(prev => ({ ...prev, ...patch }));
   
@@ -960,6 +961,9 @@ const handleYouTubeMusicChange = (e: any) => {
                     >
                       {embedCopied ? '✓ Copied' : '📋 Copy embed code'}
                     </button>
+                    <button type="button" className="btn btn-sm btn-outline" onClick={() => setShowNewsletterStyle(s => !s)}>
+                      {showNewsletterStyle ? '✕ Close style' : '✏️ Edit style'}
+                    </button>
                     <a href={`/embed/newsletter/${user.username}`} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 underline">Preview</a>
                   </div>
                 </div>
@@ -967,6 +971,7 @@ const handleYouTubeMusicChange = (e: any) => {
             })()}
 
             {/* ── Newsletter Style ── */}
+            {showNewsletterStyle && (
             <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">
               <div className="flex items-center gap-2 mb-1">
                 <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}>🎨</span>
@@ -1020,6 +1025,7 @@ const handleYouTubeMusicChange = (e: any) => {
                 Save newsletter style
               </button>
             </div>
+            )}
 
             {/* ── Meta Pixel ── */}
             <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">

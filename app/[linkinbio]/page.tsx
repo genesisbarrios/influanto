@@ -583,17 +583,11 @@ return (
               width: "100%",
               overflow: "hidden"
             }}>
-              {/* Responsive Grid Container */}
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: linkInBio.selectedProducts.length === 1
-                  ? "1fr" // 1 item: center it
-                  : "repeat(2, 1fr)", // 2+ items: always 2 per row (incl. mobile)
-                gap: "12px",
-                width: "100%",
-                padding: "0 4px",
-                justifyItems: "center"
-              }}>
+              {/* Responsive Grid Container — 2 per row on mobile, 3 on desktop */}
+              <div
+                className={`grid gap-3 w-full justify-items-center ${linkInBio.selectedProducts.length === 1 ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3"}`}
+                style={{ padding: "0 4px" }}
+              >
                 {linkInBio.selectedProducts.map((productId: string) => {
                   const product = availableProducts.find(p => p.id === productId);
                   if (!product) {
