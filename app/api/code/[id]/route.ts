@@ -69,6 +69,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     if (!destinationUrl) return fallback;
 
+    // Destinations are sometimes saved without a scheme ("example.com"), which
+    // NextResponse.redirect rejects (it needs an absolute URL) — normalize it.
+    let target = destinationUrl.trim();
+    if (!/^https?:\/\//i.test(target)) target = "https://" + target;
+    try { new URL(target); } catch { return fallback; }
+
     // Record analytics (non-blocking — don't let this delay the redirect)
     const ua = req.headers.get("user-agent") || "";
     if (!isBot(ua) && userId) {
@@ -85,7 +91,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       }).then(undefined, (e: any) => console.error("QR visit insert error:", e));
     }
 
-    return NextResponse.redirect(destinationUrl, 302);
+    return NextResponse.redirect(target, 302);
   } catch (e) {
     console.error("QR redirect error:", e);
     return fallback;
