@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import { ID3Writer } from "browser-id3-writer";
+import { readWavTags, writeWavTags } from "@/libs/wav-tags";
 
 interface Tags {
   title: string; artist: string; album: string; composer: string;
@@ -46,6 +47,7 @@ export default function MetadataEditor() {
   const [cover, setCover] = useState<string>("");           // data URL for preview
   const [coverBuffer, setCoverBuffer] = useState<ArrayBuffer | null>(null); // new cover bytes
   const [savedUrl, setSavedUrl] = useState<string>("");
+  const [isWav, setIsWav] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -66,11 +68,19 @@ export default function MetadataEditor() {
     if (!f) return;
     setError(""); setStatus(""); setSavedUrl(""); setCoverBuffer(null);
     setFile(f);
+    const wav = /\.wav$/i.test(f.name) || /wav/i.test(f.type);
+    setIsWav(wav);
     const buf = await f.arrayBuffer();
     setBuffer(buf);
-    const { tags: t, cover: c } = await readTags(f);
-    setTags({ ...EMPTY, ...Object.fromEntries(Object.entries(t).map(([k, v]) => [k, v ?? ""])) } as Tags);
-    setCover(c || "");
+    if (wav) {
+      const t = readWavTags(buf);
+      setTags({ ...EMPTY, ...Object.fromEntries(Object.entries(t).map(([k, v]) => [k, v ?? ""])) } as Tags);
+      setCover("");
+    } else {
+      const { tags: t, cover: c } = await readTags(f);
+      setTags({ ...EMPTY, ...Object.fromEntries(Object.entries(t).map(([k, v]) => [k, v ?? ""])) } as Tags);
+      setCover(c || "");
+    }
   };
 
   const onCover = async (f?: File) => {
@@ -85,6 +95,16 @@ export default function MetadataEditor() {
     if (!buffer) return;
     setError(""); setStatus("");
     try {
+      if (isWav) {
+        const blob = writeWavTags(buffer.slice(0), {
+          title: tags.title, artist: tags.artist, album: tags.album, composer: tags.composer,
+          year: tags.year, genre: tags.genre, copyright: tags.copyright, comment: tags.comment,
+        });
+        if (savedUrl) URL.revokeObjectURL(savedUrl);
+        setSavedUrl(URL.createObjectURL(blob));
+        setStatus("✅ Tags saved — preview and download below.");
+        return;
+      }
       const writer: any = new ID3Writer(buffer.slice(0));
       writer
         .setFrame("TIT2", tags.title || "")
@@ -107,7 +127,7 @@ export default function MetadataEditor() {
     }
   };
 
-  const downloadName = (file?.name || "song.mp3").replace(/\.\w+$/, "") + "_tagged.mp3";
+  const downloadName = (file?.name || "song").replace(/\.\w+$/, "") + "_tagged" + (isWav ? ".wav" : ".mp3");
 
   return (
     <>
@@ -115,11 +135,11 @@ export default function MetadataEditor() {
       <div id="meta-bg" style={{ display: "flex", flexDirection: "column", minHeight: "80vh", width: "100%" }}>
         <div style={{ background: "#f9fafb" }} className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300">
           <h1 className="text-3xl font-bold mb-2" style={{ color: "#181b20" }}>Music Metadata Editor</h1>
-          <p className="mb-4" style={{ color: "#181b20" }}>Upload an MP3, edit its tags &amp; cover art, then download.</p>
+          <p className="mb-4" style={{ color: "#181b20" }}>Upload an MP3 or WAV, edit its tags &amp; cover art, then download.</p>
 
           {!file ? (
             <button onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-lg py-12 text-sm text-gray-500 hover:bg-gray-100" style={{ maxWidth: 640 }}>
-              Click to upload an MP3
+              Click to upload an MP3 or WAV
             </button>
           ) : (
             <div style={{ maxWidth: 640 }} className="space-y-4">
@@ -129,8 +149,14 @@ export default function MetadataEditor() {
                   <div style={{ width: 120, height: 120, borderRadius: 10, overflow: "hidden", background: "#e5e7eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {cover ? <img src={cover} alt="cover" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 36 }}>🎵</span>}
                   </div>
-                  <button className="btn btn-xs btn-outline mt-2" onClick={() => coverRef.current?.click()}>Change cover</button>
-                  <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={e => onCover(e.target.files?.[0])} />
+                  {isWav ? (
+                    <p className="text-[11px] text-gray-400 mt-2" style={{ maxWidth: 120 }}>Cover art isn&apos;t supported in WAV</p>
+                  ) : (
+                    <>
+                      <button className="btn btn-xs btn-outline mt-2" onClick={() => coverRef.current?.click()}>Change cover</button>
+                      <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={e => onCover(e.target.files?.[0])} />
+                    </>
+                  )}
                 </div>
                 {/* Fields */}
                 <div className="flex-1 min-w-[220px] grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -159,7 +185,7 @@ export default function MetadataEditor() {
               {savedUrl && <audio src={savedUrl} controls style={{ width: "100%", maxWidth: 640, marginTop: 8 }} />}
             </div>
           )}
-          <input ref={fileRef} type="file" accept=".mp3,audio/mpeg" className="hidden" onChange={e => onFile(e.target.files?.[0])} />
+          <input ref={fileRef} type="file" accept=".mp3,.wav,audio/mpeg,audio/wav,audio/x-wav" className="hidden" onChange={e => onFile(e.target.files?.[0])} />
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#fff" }} className="w-full sm:w-1/4 p-8">
