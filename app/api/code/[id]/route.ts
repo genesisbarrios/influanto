@@ -49,21 +49,23 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const fallback = NextResponse.redirect("https://influanto.com", 302);
 
   try {
-    // Find the qr_codes row whose JSONB codes array contains this code id
-    const { data: rows } = await supabase
+    // Find the code by scanning rows in JS. (JSONB `.contains` was unreliable in
+    // the prod runtime; this is robust and the row count is small.)
+    const { data: rows, error } = await supabase
       .from("qr_codes")
-      .select("user_id, codes")
-      .contains("codes", [{ id: codeId }]);
+      .select("user_id, codes");
+    if (error) throw error;
 
     let destinationUrl: string | null = null;
     let userId: string | null = null;
 
-    if (rows?.length) {
-      const codes = rows[0].codes as any[];
-      const code = codes?.find((c: any) => c.id === codeId);
+    for (const row of rows ?? []) {
+      const codes = (row.codes as any[]) ?? [];
+      const code = codes.find((c: any) => c?.id === codeId || c?._id?.toString?.() === codeId);
       if (code?.url) {
         destinationUrl = code.url;
-        userId = rows[0].user_id;
+        userId = row.user_id;
+        break;
       }
     }
 
