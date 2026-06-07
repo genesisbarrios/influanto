@@ -13,6 +13,11 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        // QR codes encode /code/<id>; the redirect+analytics handler lives at /api/code/<id>
+        source: "/code/:id",
+        destination: "/api/code/:id",
+      },
+      {
         source: "/ingest/static/:path*",
         destination: "https://us-assets.i.posthog.com/static/:path*",
       },
