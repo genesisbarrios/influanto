@@ -23,7 +23,6 @@ const Profile =  () => {
   const [user, setUser] = useState<any>();
   const {data, status} = useSession();
   const [isEditing, setEditing] = useState(false);
-  const [isEditingStreaming, setEditingStreaming] = useState(false);
   const [formName, setFormName] = useState("");
   const [formUserName, setFormUserName] = useState("");
   const [formEmail, setFormEmail] = useState("");
@@ -1216,7 +1215,8 @@ const handleYouTubeMusicChange = (e: any) => {
             <div className="flex items-center mb-3">
               <img src={avatarImage || fallbackImageUrl} style={{ borderRadius: '50%', width:"75px", height:"75px"}} alt="Avatar" />
               <input
-                  className="input mb-0 p-2 ml-3 flex-1"
+                  className="ml-3 text-sm"
+                  style={{ maxWidth: "180px" }}
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleFileSelection(e)}
@@ -1290,234 +1290,107 @@ const handleYouTubeMusicChange = (e: any) => {
           {/* Socials card */}
           <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
           <h1 className="mb-3">Socials</h1>
-            <label style={{display:"block"}}>Instagram</label>
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="handle"
-              value={instagram || ""}
-              onChange={(e) => handleInstagramChange(e)} 
-            />
-          
-            <label style={{display:"block"}}>Twitter(X)</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="handle"
-              value={twitter || ""}
-              onChange={(e) => handleTwitterChange(e)} 
-            />
-
-            <label style={{display:"block"}}>Discord</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="link"
-              value={discord || ""}
-              onChange={(e) => handleDiscordChange(e)} 
-            />
-          
-            <label style={{display:"block"}}>FaceBook</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="link"
-              value={facebook || ""}
-              onChange={(e) => handleFacebookChange(e)} 
-            />
-            
-            <label style={{display:"block"}}>LinkedIn</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="handle"
-              value={linkedin || ""}
-              onChange={(e) => handleLinkedInChange(e)} 
-            />
-            
-            <label style={{display:"block"}}>Etsy</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="handle"
-              value={etsy || ""}
-              onChange={(e) => handleEtsyChange(e)}
-            />
-            <label style={{display:"block"}}>TikTok</label>
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="handle"
-              value={tiktok || ""}
-              onChange={(e) => handleTikTokChange(e)} 
-            />
-            <br />
-            <label style={{display:"block"}}>YouTube</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
-              placeholder="@handle"
-              value={youtube || ""}
-              onChange={(e) => handleYouTubeChange(e)}
-            />
-            <br />
-            <label style={{display:"block"}}>Bluesky</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
-              placeholder="handle.bsky.social"
-              value={bluesky || ""}
-              onChange={(e) => setBluesky(e.target.value)}
-            />
-            <br />
-            <label style={{display:"block"}}>Upscrolled</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
-              placeholder="handle"
-              value={upscrolled || ""}
-              onChange={(e) => setUpscrolled(e.target.value)}
-            />
-            <br />
-            <label style={{display:"block"}}>Telegram</label>
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="handle"
-              value={telegram || ""}
-              onChange={(e) => handleTelegramChange(e)} 
-            />
-            <br />
-            <label  style={{display:"block"}}>GitHub</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="handle"
-              value={github || ""}
-              onChange={(e) => handleGithubChange(e)} 
-            />
-            <br />
-            <label>SubStack</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="handle"
-              value={substack || ""}
-              onChange={(e) => handleSubstackChange(e)} 
-            />
-              <label style={{display:"block"}}>Patreon</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
-              placeholder="handle"
-              value={patreon || ""}
-              onChange={(e) => handlePatreonChange(e)}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+              <div className="mb-2">
+                <label style={{display:"block"}}>Instagram</label>
+                <input type="text" className="input w-full" placeholder="handle" value={instagram || ""} onChange={(e) => handleInstagramChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Twitter(X)</label>
+                <input type="text" className="input w-full" placeholder="handle" value={twitter || ""} onChange={(e) => handleTwitterChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Discord</label>
+                <input type="text" className="input w-full" placeholder="link" value={discord || ""} onChange={(e) => handleDiscordChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>FaceBook</label>
+                <input type="text" className="input w-full" placeholder="link" value={facebook || ""} onChange={(e) => handleFacebookChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>LinkedIn</label>
+                <input type="text" className="input w-full" placeholder="handle" value={linkedin || ""} onChange={(e) => handleLinkedInChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Etsy</label>
+                <input type="text" className="input w-full" placeholder="handle" value={etsy || ""} onChange={(e) => handleEtsyChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>TikTok</label>
+                <input type="text" className="input w-full" placeholder="handle" value={tiktok || ""} onChange={(e) => handleTikTokChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>YouTube</label>
+                <input type="text" className="input w-full" placeholder="@handle" value={youtube || ""} onChange={(e) => handleYouTubeChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Bluesky</label>
+                <input type="text" className="input w-full" placeholder="handle.bsky.social" value={bluesky || ""} onChange={(e) => setBluesky(e.target.value)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Upscrolled</label>
+                <input type="text" className="input w-full" placeholder="handle" value={upscrolled || ""} onChange={(e) => setUpscrolled(e.target.value)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Telegram</label>
+                <input type="text" className="input w-full" placeholder="handle" value={telegram || ""} onChange={(e) => handleTelegramChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>GitHub</label>
+                <input type="text" className="input w-full" placeholder="handle" value={github || ""} onChange={(e) => handleGithubChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>SubStack</label>
+                <input type="text" className="input w-full" placeholder="handle" value={substack || ""} onChange={(e) => handleSubstackChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Patreon</label>
+                <input type="text" className="input w-full" placeholder="handle" value={patreon || ""} onChange={(e) => handlePatreonChange(e)} />
+              </div>
+            </div>
           </div>
 
           {/* Listen card */}
           <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-        <h1 style={{display:"inline"}}>Listen</h1>
-        {!isEditingStreaming &&  <button 
-          type="button"
-          className="btn btn-alert btn-sm btn-narrow ml-2"
-          style={{ width: "auto", display: "inline"}}
-          onClick={() => setEditingStreaming(true)}>
-          Edit Streaming Links  
-        </button> }
-        <br></br>
-        {isEditingStreaming && <div className="grid grid-cols-1 gap-x-6 w-full">
-          <div className="p-2">
-            <label style={{display:"block"}}>Spotify</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
-              placeholder="Spotify URI"
-              value={spotify || ""}
-              onChange={(e) => handleSpotifyChange(e)}
-            />
-          </div>
-          <div className="p-2">
-            <label style={{display:"block"}}>Apple Music</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
-              placeholder="Artist ID"
-              value={appleMusic || ""}
-              onChange={(e) => handleAppleMusicChange(e)}
-            />
-          </div>
-          <div className="p-2">
-            <label style={{display:"block"}}>YouTube Music</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
-              placeholder="Channel ID"
-              value={youtubeMusic || ""}
-              onChange={(e) => handleYouTubeMusicChange(e)}
-            />
-          </div>
-          <div className="p-2">
-            <label style={{display:"block"}}>Amazon Music</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
-              placeholder="Artist ID"
-              value={amazonMusic || ""}
-              onChange={(e) => handleAmazonMusicChange(e)}
-            />
-          </div>
-          <div className="p-2">
-            <label style={{display:"block"}}>Bandcamp</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
-              placeholder="link"
-              value={bandcamp || ""}
-              onChange={(e) => handleBandcampChange(e)}
-            />
-          </div>
-          <div className="p-2">
-            <label style={{display:"block"}}>Soundcloud</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
-              placeholder="handle"
-              value={soundcloud || ""}
-              onChange={(e) => handleSoundcloudChange(e)}
-            />
-          </div>
-          <div className="p-2">
-            <label style={{display:"block"}}>Tidal</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
-              placeholder="Artist ID"
-              value={tidal || ""}
-              onChange={(e) => handleTidalChange(e)}
-            />
-          </div>
-          <div className="p-2">
-            <label style={{display:"block"}}>Pandora</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
-              placeholder="Artist ID"
-              value={pandora || ""}
-              onChange={(e) => handlePandoraChange(e)}
-            />
-          </div>
-          <div className="p-2">
-            <label style={{display:"block"}}>Deezer</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
-              placeholder="Artist ID"
-              value={deezer || ""}
-              onChange={(e) => handleDeezerChange(e)}
-            />
-          </div>
-        </div>}
+            <h1 className="mb-3">Listen</h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+              <div className="mb-2">
+                <label style={{display:"block"}}>Spotify</label>
+                <input type="text" className="input w-full" placeholder="Spotify URI" value={spotify || ""} onChange={(e) => handleSpotifyChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Apple Music</label>
+                <input type="text" className="input w-full" placeholder="Artist ID" value={appleMusic || ""} onChange={(e) => handleAppleMusicChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>YouTube Music</label>
+                <input type="text" className="input w-full" placeholder="Channel ID" value={youtubeMusic || ""} onChange={(e) => handleYouTubeMusicChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Amazon Music</label>
+                <input type="text" className="input w-full" placeholder="Artist ID" value={amazonMusic || ""} onChange={(e) => handleAmazonMusicChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Bandcamp</label>
+                <input type="text" className="input w-full" placeholder="link" value={bandcamp || ""} onChange={(e) => handleBandcampChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Soundcloud</label>
+                <input type="text" className="input w-full" placeholder="handle" value={soundcloud || ""} onChange={(e) => handleSoundcloudChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Tidal</label>
+                <input type="text" className="input w-full" placeholder="Artist ID" value={tidal || ""} onChange={(e) => handleTidalChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Pandora</label>
+                <input type="text" className="input w-full" placeholder="Artist ID" value={pandora || ""} onChange={(e) => handlePandoraChange(e)} />
+              </div>
+              <div className="mb-2">
+                <label style={{display:"block"}}>Deezer</label>
+                <input type="text" className="input w-full" placeholder="Artist ID" value={deezer || ""} onChange={(e) => handleDeezerChange(e)} />
+              </div>
+            </div>
           </div>{/* end Listen card */}
         </div>{/* end Socials + Listen grid */}
         {alertMsg && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alertMsg}</div>}
