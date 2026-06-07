@@ -530,10 +530,9 @@ const renderMerchSection = () => {
           No merch available
         </div>
       ) : (
-        <div 
-          className="merch-grid"
-          style={{ 
-            display: "grid", 
+        <div
+          className="grid grid-cols-2 md:grid-cols-3"
+          style={{
             gap: "20px",
             padding: "0 20px"
           }}
