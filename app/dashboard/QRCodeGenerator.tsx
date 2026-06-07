@@ -37,6 +37,10 @@ const QRCodeGenerator = () => {
   const [isEditing, setEditing] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [expandedAnalytics, setExpandedAnalytics] = useState<string | null>(null);
+  const [editingCodeId, setEditingCodeId] = useState<string | null>(null);
+  const [editUrl, setEditUrl] = useState("");
+  const [editName, setEditName] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
   const [QRCodeStyling, setQRCodeStyling] = useState<any>(null);
   const [previewQR, setPreviewQR] = useState<any>(null);
 
@@ -488,6 +492,28 @@ useEffect(() => {
     }
   }
 
+  // Edit a code's destination (dynamic QR — the image/URL it encodes stays the same)
+  const startEditCode = (code: any) => {
+    setEditingCodeId(code.id ?? code._id);
+    setEditUrl(code.url || "");
+    setEditName(code.name || "");
+  };
+
+  const handleSaveEdit = async (codeKey: string) => {
+    if (!editUrl.trim()) return;
+    setSavingEdit(true);
+    try {
+      await apiClient.patch("/codes", { id: codeKey, url: editUrl.trim(), name: editName });
+      posthog.capture("qr_code_edited", { qr_code_id: codeKey });
+      await getQrCodes();
+      setEditingCodeId(null);
+    } catch (e: any) {
+      // surface nothing intrusive; leave the editor open
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   return (
     <>
    
@@ -899,6 +925,40 @@ useEffect(() => {
                   </button>
                 )}
               </div>
+
+              {/* Edit destination (dynamic QR) */}
+              {editingCodeId === codeKey ? (
+                <div className="mb-2 p-2 border border-indigo-200 rounded bg-indigo-50">
+                  <label className="block text-xs font-medium mb-1">
+                    Destination URL{user?.hasAccess ? " — dynamic, the QR stays the same" : " (free: re-download the QR after saving)"}
+                  </label>
+                  <input
+                    className="w-full mb-2 px-2 py-1 text-sm border border-gray-300 rounded"
+                    placeholder="https://..."
+                    value={editUrl}
+                    onChange={(e) => setEditUrl(e.target.value)}
+                  />
+                  <label className="block text-xs font-medium mb-1">Name</label>
+                  <input
+                    className="w-full mb-2 px-2 py-1 text-sm border border-gray-300 rounded"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <button onClick={() => handleSaveEdit(codeKey)} disabled={savingEdit || !editUrl.trim()} className="flex-1 px-3 py-1.5 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:bg-gray-400">
+                      {savingEdit ? "Saving…" : "Save"}
+                    </button>
+                    <button onClick={() => setEditingCodeId(null)} className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => startEditCode(code)}
+                  className="w-full mb-2 px-3 py-2 text-sm bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200"
+                >
+                  ✏️ Edit destination
+                </button>
+              )}
 
               {/* Delete Button */}
               <button
