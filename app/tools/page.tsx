@@ -37,7 +37,7 @@ const tools = [
   },
   {
     title: "Music Metadata Editor",
-    description: "Edit MP3 tags — artist, composer, cover art, copyright — and download.",
+    description: "Edit MP3 & WAV tags — artist, composer, cover art, copyright — and download.",
     href: "/Metadata-Editor",
     icon: "🏷️",
   },
