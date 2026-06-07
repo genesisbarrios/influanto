@@ -6,7 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import posthog from "posthog-js";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
-import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faDiscord, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
+import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faDiscord, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube, faBluesky } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobe, faLocation, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
@@ -36,6 +36,8 @@ const Profile =  () => {
   const [facebook, setFacebook] = useState("");
   const [linkedin, setLinkedIn] = useState("");
   const [youtube, setYouTube] = useState("");
+  const [bluesky, setBluesky] = useState("");
+  const [upscrolled, setUpscrolled] = useState("");
   const [tiktok, setTikTok] = useState("");
   const [github, setGithub] = useState("");
   const [patreon, setPatreon] = useState("");
@@ -665,6 +667,8 @@ const handleYouTubeMusicChange = (e: any) => {
       setDiscord(data.discord);
       setLinkedIn(data.linkedin);
       setYouTube(data.youtube);
+      setBluesky(data.bluesky || "");
+      setUpscrolled(data.upscrolled || "");
       setTikTok(data.tiktok);
       setGithub(data.github);
       setPatreon(data.patreon);
@@ -808,6 +812,8 @@ const handleYouTubeMusicChange = (e: any) => {
       if (discord !== undefined && discord !== null) formData.append("discord", discord);
       if (linkedin !== undefined && linkedin !== null) formData.append("linkedin", linkedin);
       if (youtube !== undefined && youtube !== null) formData.append("youtube", youtube);
+      if (bluesky !== undefined && bluesky !== null) formData.append("bluesky", bluesky);
+      if (upscrolled !== undefined && upscrolled !== null) formData.append("upscrolled", upscrolled);
       if (tiktok !== undefined && tiktok !== null) formData.append("tiktok", tiktok);
       if (github !== undefined && github !== null) formData.append("github", github);
       if (patreon !== undefined && patreon !== null) formData.append("patreon", patreon);
@@ -911,6 +917,8 @@ const handleYouTubeMusicChange = (e: any) => {
             {user.discord && <a href={user.discord } target="_blank" style={{marginRight:"10px", color:"purple"}}><FontAwesomeIcon icon={faDiscord} /></a>}
             {user.etsy && <a href={"https://etsy.com/shop/" + user.etsy } target="_blank" style={{marginRight:"10px", color:"brown"}}><FontAwesomeIcon icon={faEtsy} /></a> }
             {user.youtube && <a href={"https://youtube.com/@" + user.youtube } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faYoutube} /></a>}
+            {user.bluesky && <a href={"https://bsky.app/profile/" + user.bluesky } target="_blank" style={{marginRight:"10px", color:"#1185fe"}}><FontAwesomeIcon icon={faBluesky} /></a>}
+            {user.upscrolled && <a href={"https://upscrolled.com/" + user.upscrolled } target="_blank" style={{marginRight:"10px", color:"#181b20", fontWeight:"bold", fontSize:"0.85rem"}}>Upscrolled</a>}
             {user.telegram && <a href={"https://t.me/" + user.telegram } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTelegram} /></a>}
             {user.linkedin && <a href={"https://linkedin.com/" + user.linkedin } target="_blank" style={{marginRight:"10px", color:"darkblue"}}><FontAwesomeIcon icon={faLinkedin} /></a>}
             {user.github && <a href={"https://github.com/" + user.github } target="_blank" style={{marginRight:"10px"}}><FontAwesomeIcon icon={faGithub} /></a>}
@@ -1339,16 +1347,34 @@ const handleYouTubeMusicChange = (e: any) => {
               onChange={(e) => handleTikTokChange(e)} 
             />
             <br />
-            <label>YouTube</label> 
-            <input 
-              type="text" 
-              className="input mb-2 w-3/4" 
+            <label style={{display:"block"}}>YouTube</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
               placeholder="@handle"
               value={youtube || ""}
-              onChange={(e) => handleYouTubeChange(e)} 
+              onChange={(e) => handleYouTubeChange(e)}
             />
             <br />
-            <label>Telegram</label> 
+            <label style={{display:"block"}}>Bluesky</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
+              placeholder="handle.bsky.social"
+              value={bluesky || ""}
+              onChange={(e) => setBluesky(e.target.value)}
+            />
+            <br />
+            <label style={{display:"block"}}>Upscrolled</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
+              placeholder="handle"
+              value={upscrolled || ""}
+              onChange={(e) => setUpscrolled(e.target.value)}
+            />
+            <br />
+            <label style={{display:"block"}}>Telegram</label>
             <input 
               type="text" 
               className="input mb-2 w-3/4" 
