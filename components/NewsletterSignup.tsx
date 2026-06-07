@@ -2,6 +2,14 @@
 /* eslint-disable */
 import React, { useState } from "react";
 
+export interface NewsletterStyle {
+  heading?: string;
+  subtitle?: string;
+  buttonColor?: string;
+  textColor?: string;
+  bgColor?: string;   // optional card background behind the form
+}
+
 interface Props {
   username: string;
   source: "link_in_bio" | "release_page";
@@ -10,6 +18,7 @@ interface Props {
   textColor?: string;
   linksColor?: string;
   heading?: string;
+  style?: NewsletterStyle; // per-user overrides edited on the Profile page
 }
 
 const FIELD_LABELS: Record<string, string> = {
@@ -19,14 +28,17 @@ const FIELD_LABELS: Record<string, string> = {
   tiktok: "TikTok",
 };
 
-export default function NewsletterSignup({ username, source, fields = ["name", "email"], bgColor, textColor, linksColor, heading }: Props) {
+export default function NewsletterSignup({ username, source, fields = ["name", "email"], bgColor, textColor, linksColor, heading, style }: Props) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [hp, setHp] = useState(""); // honeypot
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [error, setError] = useState("");
 
-  const text = textColor || "#ffffff";
-  const accent = linksColor || "#4f46e5";
+  const text = style?.textColor || textColor || "#ffffff";
+  const accent = style?.buttonColor || linksColor || "#4f46e5";
+  const headingText = style?.heading || heading || "📣 Join my newsletter";
+  const subtitle = style?.subtitle || "Get updates on new releases straight to your inbox.";
+  const cardBg = style?.bgColor;
   // Optional fields (email is rendered separately and always required)
   const optionalFields = fields.filter(f => f !== "email");
 
@@ -76,13 +88,15 @@ export default function NewsletterSignup({ username, source, fields = ["name", "
   }
 
   return (
-    <form onSubmit={submit} style={{ maxWidth: 420, margin: "24px auto", width: "100%" }}>
+    <form onSubmit={submit} style={{ maxWidth: 420, margin: "24px auto", width: "100%", ...(cardBg ? { background: cardBg, padding: 20, borderRadius: 14 } : {}) }}>
       <p style={{ color: text, fontWeight: 700, fontSize: 16, marginBottom: 4, textAlign: "center" }}>
-        {heading || "📣 Join my newsletter"}
+        {headingText}
       </p>
-      <p style={{ color: text, opacity: 0.7, fontSize: 13, marginBottom: 14, textAlign: "center" }}>
-        Get updates on new releases straight to your inbox.
-      </p>
+      {subtitle && (
+        <p style={{ color: text, opacity: 0.7, fontSize: 13, marginBottom: 14, textAlign: "center" }}>
+          {subtitle}
+        </p>
+      )}
 
       {/* Honeypot — hidden from real users */}
       <input type="text" value={hp} onChange={e => setHp(e.target.value)} tabIndex={-1} autoComplete="off"

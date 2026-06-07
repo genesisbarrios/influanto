@@ -36,6 +36,7 @@ export default function NewsletterEmbed() {
             textColor="#111827"
             linksColor={lib.linksColor || "#4f46e5"}
             heading={`📣 Join ${data?.user?.name || username}'s newsletter`}
+            style={data?.user?.newsletterStyle}
           />
         ) : (
           <p style={{ color: "#6b7280", textAlign: "center", padding: "24px 0" }}>

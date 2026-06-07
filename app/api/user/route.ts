@@ -90,6 +90,11 @@ export async function POST(req: Request) {
     if (displayEmail === "true") updates.display_email = true;
     else if (displayEmail === "false") updates.display_email = false;
 
+    const newsletterStyle = formData.get("newsletterStyle") as string | null;
+    if (newsletterStyle) {
+      try { updates.newsletter_style = JSON.parse(newsletterStyle); } catch { /* ignore bad json */ }
+    }
+
     const { data: updated, error } = await supabase
       .from("users")
       .update(updates)
