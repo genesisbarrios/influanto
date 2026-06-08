@@ -1263,9 +1263,9 @@ const handleYouTubeMusicChange = (e: any) => {
             />
             <br />
             <label style={{display:"block"}}>Bio</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
+            <textarea
+              rows={4}
+              className="textarea textarea-bordered mb-2 w-3/4"
               placeholder="Describe Yourself"
               value={bio || ""}
               onChange={(e) => handleBioChange(e)}
