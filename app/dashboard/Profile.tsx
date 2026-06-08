@@ -1210,7 +1210,7 @@ const handleYouTubeMusicChange = (e: any) => {
       
       <form>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 w-full">
-          {/* Left column: image, name, username, location */}
+          {/* Left column: avatar, bio, location, website */}
           <div>
             <div className="flex items-center mb-3">
               <img src={avatarImage || fallbackImageUrl} style={{ borderRadius: '50%', width:"75px", height:"75px"}} alt="Avatar" />
@@ -1222,6 +1222,26 @@ const handleYouTubeMusicChange = (e: any) => {
                   onChange={(e) => handleFileSelection(e)}
                 />
             </div>
+            <label style={{display:"block"}}>Bio</label>
+            <textarea
+              rows={4}
+              className="textarea textarea-bordered mb-2 w-3/4"
+              placeholder="Describe Yourself"
+              value={bio || ""}
+              onChange={(e) => handleBioChange(e)}
+            />
+            <br />
+            <label style={{display:"block"}}>Location</label>
+            <input
+              type="text"
+              className="input mb-2 w-3/4"
+              placeholder="Enter Your Location"
+              value={location || ""}
+              onChange={(e) => handleLocationChange(e)}
+            />
+          </div>
+          {/* Right column: name, username, website, email */}
+          <div>
             <label style={{display:"block"}}>Name</label>
             <input
               type="text"
@@ -1242,17 +1262,6 @@ const handleYouTubeMusicChange = (e: any) => {
               onChange={(e) => handleUserNameChange(e)}
             />
             <br />
-            <label style={{display:"block"}}>Location</label>
-            <input
-              type="text"
-              className="input mb-2 w-3/4"
-              placeholder="Enter Your Location"
-              value={location || ""}
-              onChange={(e) => handleLocationChange(e)}
-            />
-          </div>
-          {/* Right column: website, bio, email */}
-          <div>
             <label style={{display:"block"}}>Website</label>
             <input
               type="text"
@@ -1260,15 +1269,6 @@ const handleYouTubeMusicChange = (e: any) => {
               placeholder="Website Link"
               value={website || ""}
               onChange={(e) => handleWebsiteChange(e)}
-            />
-            <br />
-            <label style={{display:"block"}}>Bio</label>
-            <textarea
-              rows={4}
-              className="textarea textarea-bordered mb-2 w-3/4"
-              placeholder="Describe Yourself"
-              value={bio || ""}
-              onChange={(e) => handleBioChange(e)}
             />
             <br />
             <label style={{display:"block"}}>Email</label>
