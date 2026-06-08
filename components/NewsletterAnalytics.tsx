@@ -31,7 +31,7 @@ function Stat({ label, value, sub }: { label: string; value: React.ReactNode; su
   );
 }
 
-export default function NewsletterAnalytics({ newsletterId, title, onBack }: { newsletterId: string; title: string; onBack: () => void }) {
+export default function NewsletterAnalytics({ newsletterId, title, onBack, embedded }: { newsletterId: string; title: string; onBack?: () => void; embedded?: boolean }) {
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -49,14 +49,16 @@ export default function NewsletterAnalytics({ newsletterId, title, onBack }: { n
   const hasShape = data && (data.sent > 0 || data.totalOpens > 0 || data.totalClicks > 0);
 
   return (
-    <div className="p-4 bg-white shadow rounded-md text-black">
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-sm">📊</span>
-          <h2 className="text-xl font-bold">Analytics · <span className="font-semibold text-gray-600">{title || "Newsletter"}</span></h2>
+    <div className={embedded ? "text-black pt-4" : "p-4 bg-white shadow rounded-md text-black"}>
+      {!embedded && (
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-sm">📊</span>
+            <h2 className="text-xl font-bold">Analytics · <span className="font-semibold text-gray-600">{title || "Newsletter"}</span></h2>
+          </div>
+          {onBack && <button className="btn btn-sm" onClick={onBack}>← Back</button>}
         </div>
-        <button className="btn btn-sm" onClick={onBack}>← Back</button>
-      </div>
+      )}
 
       {loading ? (
         <div className="py-16 text-center text-gray-400">Loading analytics…</div>
