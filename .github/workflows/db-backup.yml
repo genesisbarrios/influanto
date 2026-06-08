@@ -70,23 +70,35 @@ jobs:
             --fail-with-body
           echo "Uploaded ${FILE} to ${BUCKET}"
 
+      # Cleanup only — the dump is already safely uploaded, so never fail the job here.
       - name: Prune backups older than retention window
+        continue-on-error: true
         run: |
-          set -euo pipefail
+          set -uo pipefail
           CUTOFF=$(date -u -d "-${RETENTION_DAYS} days" +%s)
           OBJECTS=$(curl -s -X POST \
             "${{ secrets.SUPABASE_URL }}/storage/v1/object/list/${BUCKET}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{"prefix":"","limit":1000,"sortBy":{"column":"created_at","order":"asc"}}')
-          echo "$OBJECTS" | jq -r '.[] | "\(.name)\t\(.created_at)"' | while IFS=$'\t' read -r name created; do
+
+          # Bail out gracefully if the list call didn't return a JSON array.
+          if ! echo "$OBJECTS" | jq -e 'type=="array"' >/dev/null 2>&1; then
+            echo "List response was not a JSON array; skipping prune. First 400 chars:"
+            echo "$OBJECTS" | head -c 400; echo
+            exit 0
+          fi
+
+          echo "$OBJECTS" | jq -r '.[] | select(.created_at != null) | "\(.name)\t\(.created_at)"' | while IFS=$'\t' read -r name created; do
             [ -z "$name" ] && continue
-            ts=$(date -u -d "$created" +%s)
-            if [ "$ts" -lt "$CUTOFF" ]; then
+            ts=$(date -u -d "$created" +%s 2>/dev/null || echo 0)
+            if [ "$ts" -gt 0 ] && [ "$ts" -lt "$CUTOFF" ]; then
               echo "Deleting old backup: $name ($created)"
               curl -s -X DELETE \
                 "${{ secrets.SUPABASE_URL }}/storage/v1/object/${BUCKET}/${name}" \
-                -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >/dev/null
+                -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+                -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >/dev/null
             fi
           done
           echo "Prune complete."
