@@ -44,6 +44,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     bgColor: body.bgColor ?? "",
     textColor: body.textColor ?? "",
     linksColor: body.linksColor ?? "",
+    urlRedirect: body.urlRedirect ?? "",
   };
 
   const { data, error } = await supabase
@@ -59,6 +60,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       bg_color: content.bgColor,
       text_color: content.textColor,
       links_color: content.linksColor,
+      url_redirect: content.urlRedirect,
       updated_at: new Date().toISOString(),
     })
     .eq("id", params.id)
