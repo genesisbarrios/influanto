@@ -150,8 +150,10 @@ export function mapNewsletter(row: any) {
     bgColor: row.bg_color ?? "",
     textColor: row.text_color ?? "",
     linksColor: row.links_color ?? "",
+    urlRedirect: row.url_redirect ?? "",
     html: row.html ?? "",
     status: row.status ?? "draft",
+    sentCount: row.sent_count ?? 0,
     lastSentAt: row.last_sent_at ?? null,
     createdAt: row.created_at ?? null,
   };

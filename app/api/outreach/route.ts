@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
     bgColor: body.bgColor ?? "",
     textColor: body.textColor ?? "",
     linksColor: body.linksColor ?? "",
+    urlRedirect: body.urlRedirect ?? "",
   };
 
   const { data, error } = await supabase
@@ -61,6 +62,7 @@ export async function POST(req: NextRequest) {
       bg_color: content.bgColor,
       text_color: content.textColor,
       links_color: content.linksColor,
+      url_redirect: content.urlRedirect,
     })
     .select()
     .single();

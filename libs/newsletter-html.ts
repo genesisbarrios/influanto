@@ -12,6 +12,7 @@ export interface NewsletterContent {
   bgColor?: string;
   textColor?: string;
   linksColor?: string;
+  urlRedirect?: string;
 }
 
 function escapeHtml(str: string): string {
@@ -74,17 +75,42 @@ export function renderNewsletterHtml(
     )
     .join("");
 
+  // The header block (image + badge + heading + description). If a URL Redirect
+  // is set, the whole block becomes a single clickable link to that destination.
+  const headerInner = `${image}${badgeHtml}${heading}${description}`;
+  const redirect = n.urlRedirect ? safeUrl(n.urlRedirect) : "";
+  const headerBlock = redirect && redirect !== "#"
+    ? `<a href="${escapeHtml(redirect)}" target="_blank" style="text-decoration:none;color:inherit;display:block;">${headerInner}</a>`
+    : headerInner;
+
   return `
   <div style="background:${bg};padding:32px 16px;margin:0;">
     <div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
-      ${image}
-      ${badgeHtml}
-      ${heading}
-      ${description}
+      ${headerBlock}
       ${links}
       <p style="font-size:12px;color:${text};opacity:.55;margin:28px 0 0;text-align:center;">
         Sent by ${escapeHtml(senderName)} via <a href="https://influanto.com" style="color:${accent};text-decoration:none;">Influanto</a>
       </p>
     </div>
   </div>`;
+}
+
+// Per-recipient tracking injection, applied at SEND time (not stored).
+// Rewrites every http(s) link to pass through the click tracker, and appends a
+// 1x1 open-tracking pixel — both carry the newsletter id + contact id.
+export function injectEmailTracking(
+  html: string,
+  opts: { base: string; newsletterId: string; contactId: string }
+): string {
+  const { base, newsletterId, contactId } = opts;
+  const q = `n=${encodeURIComponent(newsletterId)}&c=${encodeURIComponent(contactId)}`;
+
+  const tracked = html.replace(/href="(https?:\/\/[^"]+)"/g, (_m, url) => {
+    // The url was HTML-escaped at render time; restore &amp; before encoding.
+    const clean = String(url).replace(/&amp;/g, "&");
+    return `href="${base}/api/outreach/track/click?${q}&u=${encodeURIComponent(clean)}"`;
+  });
+
+  const pixel = `<img src="${base}/api/outreach/track/open?${q}" width="1" height="1" alt="" style="display:none;width:1px;height:1px;" />`;
+  return `${tracked}${pixel}`;
 }

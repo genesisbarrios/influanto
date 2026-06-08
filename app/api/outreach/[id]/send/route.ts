@@ -2,8 +2,11 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase, { mapNewsletter } from "@/libs/supabase";
-import { renderNewsletterHtml } from "@/libs/newsletter-html";
+import { renderNewsletterHtml, injectEmailTracking } from "@/libs/newsletter-html";
 import { sendEmail } from "@/libs/resend";
+import config from "@/config";
+
+const TRACK_BASE = `https://www.${config.domainName}`;
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
@@ -42,14 +45,21 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const senderName = sender?.name || "An artist";
   const newsletter = mapNewsletter(row)!;
-  const html = renderNewsletterHtml(newsletter, { senderName });
+  const baseHtml = renderNewsletterHtml(newsletter, { senderName });
   const subject = newsletter.subject || newsletter.title || `News from ${senderName}`;
   const text = `${newsletter.title || ""}\n\n${newsletter.description || ""}`.trim();
 
   const errors: string[] = [];
+  const sentEvents: any[] = [];
   for (const contact of contacts) {
     if (!contact.email) continue;
     try {
+      // Per-recipient open pixel + click-wrapped links so we can attribute analytics.
+      const html = injectEmailTracking(baseHtml, {
+        base: TRACK_BASE,
+        newsletterId: params.id,
+        contactId: contact.id,
+      });
       await sendEmail({
         to: contact.email,
         subject,
@@ -57,9 +67,26 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         html,
         replyTo: sender?.email || "noreply@influanto.com",
       });
+      sentEvents.push({
+        newsletter_id: params.id,
+        user_id: session.user.id,
+        contact_id: contact.id,
+        email: contact.email,
+        type: "send",
+      });
     } catch (e: any) {
       errors.push(`${contact.email}: ${e.message}`);
     }
+  }
+
+  // Log a 'send' event per successful recipient + bump the lifetime sent count.
+  if (sentEvents.length) {
+    await supabase.from("newsletter_events").insert(sentEvents);
+    await supabase
+      .from("newsletters")
+      .update({ sent_count: (row.sent_count ?? 0) + sentEvents.length })
+      .eq("id", params.id)
+      .eq("user_id", session.user.id);
   }
 
   // Mark as sent

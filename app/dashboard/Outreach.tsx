@@ -7,6 +7,7 @@ import config from "@/config";
 import posthog from "posthog-js";
 import { renderNewsletterHtml } from "@/libs/newsletter-html";
 import ImportContactsModal, { ImportField } from "@/components/ImportContactsModal";
+import NewsletterAnalytics from "@/components/NewsletterAnalytics";
 
 const IMPORT_FIELDS: ImportField[] = [
   { key: "email", label: "Email", aliases: ["e-mail", "mail"] },
@@ -22,15 +23,15 @@ interface NLLink { name: string; url: string }
 interface Newsletter {
   id: string; title: string; subject: string; template: string;
   image: string; description: string; links: NLLink[];
-  bgColor: string; textColor: string; linksColor: string;
-  html: string; status: "draft" | "sent"; lastSentAt: string | null; createdAt: string;
+  bgColor: string; textColor: string; linksColor: string; urlRedirect: string;
+  html: string; status: "draft" | "sent"; sentCount: number; lastSentAt: string | null; createdAt: string;
 }
 interface Contact { id: string; name: string; email: string; phone: string; instagram: string; tiktok: string; source: string }
 
 const TEMPLATES = [
   { key: "blank", icon: "📝", label: "Blank", desc: "Start from scratch" },
-  { key: "song_release", icon: "🎵", label: "Song Release", desc: "Announce a new single" },
-  { key: "album_release", icon: "💿", label: "Album Release", desc: "Announce a new album" },
+  { key: "song_release", icon: "🎵", label: "Song", desc: "Announce a new single" },
+  { key: "album_release", icon: "💿", label: "Album", desc: "Announce a new album" },
   { key: "music_video_release", icon: "🎬", label: "Music Video", desc: "Announce a new video" },
 ];
 
@@ -53,6 +54,7 @@ const blankNewsletter = (template: string): Partial<Newsletter> => {
     bgColor: "#0f0f12",
     textColor: "#ffffff",
     linksColor: "#4f46e5",
+    urlRedirect: "",
     status: "draft",
   };
 };
@@ -129,8 +131,9 @@ export default function Outreach() {
   const [user, setUser] = useState<any>(null);
   const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [view, setView] = useState<"list" | "pick" | "form" | "contacts">("list");
+  const [view, setView] = useState<"list" | "pick" | "form" | "contacts" | "analytics">("list");
   const [editing, setEditing] = useState<Partial<Newsletter> | null>(null);
+  const [analyticsFor, setAnalyticsFor] = useState<Newsletter | null>(null);
   const [sendDialog, setSendDialog] = useState<string | null>(null);
   const [contactForm, setContactForm] = useState<Partial<Contact>>({});
   const [editingContact, setEditingContact] = useState<string | null>(null);
@@ -193,7 +196,11 @@ export default function Outreach() {
   const populateFrom = (value: string) => {
     if (!value) return;
     if (value === "link-in-bio") {
-      setNl({ links: linkInBioLinks.map(l => ({ name: l.name || "", url: l.url || "" })) });
+      const bioUrl = user?.username ? `https://${config.domainName}/${user.username}` : "";
+      setNl({
+        links: linkInBioLinks.map(l => ({ name: l.name || "", url: l.url || "" })),
+        urlRedirect: bioUrl,
+      });
       setAlert("✅ Pulled links from your Link in Bio");
       return;
     }
@@ -206,6 +213,7 @@ export default function Outreach() {
         bgColor: rp.bgColor || nl.bgColor,
         textColor: rp.textColor || nl.textColor,
         linksColor: rp.linksColor || nl.linksColor,
+        urlRedirect: rp.name ? `https://${config.domainName}/release/${encodeURIComponent(rp.name)}` : "",
       });
       setAlert(`✅ Pulled content from "${rp.name}"`);
     }
@@ -221,6 +229,7 @@ export default function Outreach() {
         title: nl.title, subject: nl.subject, template: nl.template,
         image: nl.image, description: nl.description, links: nl.links,
         bgColor: nl.bgColor, textColor: nl.textColor, linksColor: nl.linksColor,
+        urlRedirect: nl.urlRedirect,
       };
       if ((nl as any).id) {
         await apiClient.put(`/outreach/${(nl as any).id}`, payload);
@@ -406,12 +415,25 @@ export default function Outreach() {
     );
   }
 
+  // ── Analytics view ──────────────────────────────────────────────────────────
+
+  if (view === "analytics" && analyticsFor) {
+    return (
+      <NewsletterAnalytics
+        newsletterId={analyticsFor.id}
+        title={analyticsFor.title}
+        onBack={() => { setView("list"); setAnalyticsFor(null); }}
+      />
+    );
+  }
+
   // ── Builder (create / edit) ─────────────────────────────────────────────────
 
   if (view === "form") {
     const previewHtml = renderNewsletterHtml({
       title: nl.title, template: nl.template, image: nl.image, description: nl.description,
       links: links, bgColor: nl.bgColor, textColor: nl.textColor, linksColor: nl.linksColor,
+      urlRedirect: nl.urlRedirect,
     }, { senderName: user?.name || "You" });
 
     return (
@@ -450,6 +472,11 @@ export default function Outreach() {
             <div>
               <label className="block text-sm font-medium mb-1">Description</label>
               <textarea className="textarea textarea-bordered w-full" rows={4} placeholder="Tell your fans what's new…" value={nl.description ?? ""} onChange={e => setNl({ description: e.target.value })} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">URL Redirect</label>
+              <input className="input input-bordered w-full" placeholder="https://… (makes the image, title & description clickable)" value={nl.urlRedirect ?? ""} onChange={e => setNl({ urlRedirect: e.target.value })} />
+              <p className="text-[11px] text-gray-400 mt-1">Wraps the header image, title and description in one link. Auto-filled when you populate from Link in Bio or a Release Page.</p>
             </div>
 
             {/* Links */}
@@ -541,13 +568,14 @@ export default function Outreach() {
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {n.subject && <span>{n.subject} · </span>}
-                    {(n.links?.length ?? 0)} link{(n.links?.length ?? 0) !== 1 ? "s" : ""}
+                    {(n.sentCount ?? 0)} contact{(n.sentCount ?? 0) !== 1 ? "s" : ""}
                     {n.lastSentAt && <span> · sent {new Date(n.lastSentAt).toLocaleDateString()}</span>}
                   </p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <button className="btn btn-xs btn-outline" onClick={() => { setEditing(n); setView("form"); setAlert(""); }}>Edit</button>
                   <button className="btn btn-xs btn-info text-white" onClick={() => { setSendDialog(n.id); setAlert(""); }}>{n.status === "sent" ? "Resend" : "Send"}</button>
+                  <button className="btn btn-xs btn-outline" onClick={() => { setAnalyticsFor(n); setView("analytics"); setAlert(""); }}>Analytics</button>
                   <button className="btn btn-xs btn-error" onClick={() => handleDelete(n.id)}>Delete</button>
                 </div>
               </div>
