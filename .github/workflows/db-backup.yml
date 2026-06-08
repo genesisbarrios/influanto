@@ -34,11 +34,13 @@ jobs:
           curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
           sudo apt-get update
           sudo apt-get install -y postgresql-client-17
-          pg_dump --version
+          # The runner ships pg_dump 16 on PATH, which shadows 17. Put 17 first.
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
 
       - name: Dump database
         run: |
           set -euo pipefail
+          pg_dump --version   # must report 17.x
           STAMP=$(date -u +%Y%m%d-%H%M%S)
           FILE="influanto-${STAMP}.dump"
           echo "FILE=$FILE" >> "$GITHUB_ENV"
