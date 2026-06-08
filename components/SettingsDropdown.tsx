@@ -3,12 +3,13 @@
 "use client";
 
 import { useState } from "react";
-import { Popover, Transition, Dialog } from "@headlessui/react";
+import { Transition, Dialog } from "@headlessui/react";
 import { useSession } from "next-auth/react";
 import apiClient from "@/libs/api";
 
 const SettingsDropdown = () => {
   const { data: session } = useSession();
+  const [open, setOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -47,126 +48,115 @@ const SettingsDropdown = () => {
 
   return (
     <>
-      <Popover className="inline-block">
-        {({ open, close }) => (
-          <>
-            <Popover.Button className="btn btn-ghost btn-sm">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-5 h-5"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M7.84 1.804A1 1 0 018.82 1h2.36a1 1 0 01.98.804l.331 1.652a6.993 6.993 0 011.929 1.115l1.598-.54a1 1 0 011.186.447l1.18 2.044a1 1 0 01-.205 1.251l-1.267 1.113a7.047 7.047 0 010 2.228l1.267 1.113a1 1 0 01.205 1.251l-1.18 2.044a1 1 0 01-1.186.447l-1.598-.54a6.993 6.993 0 01-1.929 1.115l-.33 1.652a1 1 0 01-.98.804H8.82a1 1 0 01-.98-.804l-.331-1.652a6.993 6.993 0 01-1.929-1.115l-1.598.54a1 1 0 01-1.186-.447l-1.18-2.044a1 1 0 01.205-1.251l1.267-1.114a7.05 7.05 0 010-2.227L1.821 7.773a1 1 0 01-.205-1.251l1.18-2.044a1 1 0 011.186-.447l1.598.54A6.993 6.993 0 017.51 3.456l.33-1.652zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Settings
-              {isLoading || isDeleting ? (
-                <span className="loading loading-spinner loading-xs"></span>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  className={`w-4 h-4 duration-200 opacity-50 ${
-                    open ? "transform rotate-180" : ""
-                  }`}
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-            </Popover.Button>
-
-            <Transition
-              enter="transition duration-100 ease-out"
-              enterFrom="transform scale-95 opacity-0"
-              enterTo="transform scale-100 opacity-100"
-              leave="transition duration-75 ease-out"
-              leaveFrom="transform scale-100 opacity-100"
-              leaveTo="transform scale-95 opacity-0"
+      <div className="relative inline-block">
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            className="w-5 h-5"
+          >
+            <path
+              fillRule="evenodd"
+              d="M7.84 1.804A1 1 0 018.82 1h2.36a1 1 0 01.98.804l.331 1.652a6.993 6.993 0 011.929 1.115l1.598-.54a1 1 0 011.186.447l1.18 2.044a1 1 0 01-.205 1.251l-1.267 1.113a7.047 7.047 0 010 2.228l1.267 1.113a1 1 0 01.205 1.251l-1.18 2.044a1 1 0 01-1.186.447l-1.598-.54a6.993 6.993 0 01-1.929 1.115l-.33 1.652a1 1 0 01-.98.804H8.82a1 1 0 01-.98-.804l-.331-1.652a6.993 6.993 0 01-1.929-1.115l-1.598.54a1 1 0 01-1.186-.447l-1.18-2.044a1 1 0 01.205-1.251l1.267-1.114a7.05 7.05 0 010-2.227L1.821 7.773a1 1 0 01-.205-1.251l1.18-2.044a1 1 0 011.186-.447l1.598.54A6.993 6.993 0 017.51 3.456l.33-1.652zM10 13a3 3 0 100-6 3 3 0 000 6z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Settings
+          {isLoading || isDeleting ? (
+            <span className="loading loading-spinner loading-xs"></span>
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className={`w-4 h-4 duration-200 opacity-50 ${
+                open ? "transform rotate-180" : ""
+              }`}
             >
-              {/* 
-                Key fix: on mobile we use a fixed full-width bottom sheet style,
-                on sm+ we use the standard absolute dropdown anchored to the right.
-              */}
-             <Popover.Panel
+              <path
+                fillRule="evenodd"
+                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+        </button>
+
+        {open && (
+          <>
+            {/* Click-away backdrop */}
+            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+
+            <div
               className="
-                fixed inset-x-2 bottom-4 z-[9999]
+                fixed inset-x-2 bottom-4 z-50
                 sm:absolute sm:inset-auto sm:bottom-auto sm:right-0 sm:top-full sm:mt-2 sm:w-48
               "
             >
-              <div
-                className="fixed inset-0 z-[-1] sm:hidden"
-                onClick={() => close()}
-              />
+              <div className="overflow-hidden rounded-xl shadow-xl ring-1 ring-base-content ring-opacity-5 bg-base-100 p-1">
+                <div className="space-y-0.5 text-sm">
 
-                <div className="overflow-hidden rounded-xl shadow-xl ring-1 ring-base-content ring-opacity-5 bg-base-100 p-1">
-                  <div className="space-y-0.5 text-sm">
-
-                    {/* Billing Button */}
-                    <button
-                      className="flex items-center gap-2 hover:bg-base-300 duration-200 py-3 px-4 w-full rounded-lg font-medium text-base sm:py-1.5 sm:text-sm"
-                      onClick={() => { close(); handleBilling(); }}
-                      disabled={isLoading || isDeleting}
+                  {/* Billing Button */}
+                  <button
+                    className="flex items-center gap-2 hover:bg-base-300 duration-200 py-3 px-4 w-full rounded-lg font-medium text-base sm:py-1.5 sm:text-sm"
+                    onClick={() => { setOpen(false); handleBilling(); }}
+                    disabled={isLoading || isDeleting}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="w-5 h-5 flex-shrink-0"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className="w-5 h-5 flex-shrink-0"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M2.5 4A1.5 1.5 0 001 5.5V6h18v-.5A1.5 1.5 0 0017.5 4h-15zM19 8.5H1v6A1.5 1.5 0 002.5 16h15a1.5 1.5 0 001.5-1.5v-6zM3 13.25a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zm4.75-.75a.75.75 0 000 1.5h3.5a.75.75 0 000-1.5h-3.5z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      Billing
-                    </button>
+                      <path
+                        fillRule="evenodd"
+                        d="M2.5 4A1.5 1.5 0 001 5.5V6h18v-.5A1.5 1.5 0 0017.5 4h-15zM19 8.5H1v6A1.5 1.5 0 002.5 16h15a1.5 1.5 0 001.5-1.5v-6zM3 13.25a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zm4.75-.75a.75.75 0 000 1.5h3.5a.75.75 0 000-1.5h-3.5z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Billing
+                  </button>
 
-                    {/* Delete Account Button */}
-                    <button
-                      className="flex items-center gap-2 hover:bg-error/20 hover:text-error duration-200 py-3 px-4 w-full rounded-lg font-medium text-error text-base sm:py-1.5 sm:text-sm"
-                      onClick={() => { close(); handleDeleteAccountClick(); }}
-                      disabled={isLoading || isDeleting}
+                  {/* Delete Account Button */}
+                  <button
+                    className="flex items-center gap-2 hover:bg-error/20 hover:text-error duration-200 py-3 px-4 w-full rounded-lg font-medium text-error text-base sm:py-1.5 sm:text-sm"
+                    onClick={() => { setOpen(false); handleDeleteAccountClick(); }}
+                    disabled={isLoading || isDeleting}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="w-5 h-5 flex-shrink-0"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className="w-5 h-5 flex-shrink-0"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      Delete Account
-                    </button>
+                      <path
+                        fillRule="evenodd"
+                        d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Delete Account
+                  </button>
 
-                    {/* Cancel / close row — mobile only */}
-                    <button
-                      className="sm:hidden flex items-center justify-center gap-2 duration-200 py-3 px-4 w-full rounded-lg font-medium text-base text-base-content/60 border-t border-base-200 mt-1 pt-3"
-                      onClick={() => close()}
-                    >
-                      Cancel
-                    </button>
+                  {/* Cancel / close row — mobile only */}
+                  <button
+                    className="sm:hidden flex items-center justify-center gap-2 duration-200 py-3 px-4 w-full rounded-lg font-medium text-base text-base-content/60 border-t border-base-200 mt-1 pt-3"
+                    onClick={() => setOpen(false)}
+                  >
+                    Cancel
+                  </button>
 
-                  </div>
                 </div>
-              </Popover.Panel>
-            </Transition>
+              </div>
+            </div>
           </>
         )}
-      </Popover>
+      </div>
 
       {/* Delete Account Confirmation Modal */}
       <Transition appear show={showDeleteModal}>
