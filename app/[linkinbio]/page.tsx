@@ -718,11 +718,25 @@ return (
         {/* ── Brand logo (premium users) ── */}
         {user?.hasAccess && linkInBio?.brandLogoUrl && (
           <div className="mt-12 flex justify-center" style={{ fontFamily: font || 'inherit' }}>
-            <img
-              src={linkInBio.brandLogoUrl}
-              alt="Brand logo"
-              style={{ maxHeight: "30px", maxWidth: "30px", objectFit: "contain" }}
-            />
+            {user?.website ? (
+              <a
+                href={/^https?:\/\//i.test(user.website) ? user.website : `https://${user.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src={linkInBio.brandLogoUrl}
+                  alt="Brand logo"
+                  style={{ maxHeight: "30px", maxWidth: "30px", objectFit: "contain", cursor: "pointer" }}
+                />
+              </a>
+            ) : (
+              <img
+                src={linkInBio.brandLogoUrl}
+                alt="Brand logo"
+                style={{ maxHeight: "30px", maxWidth: "30px", objectFit: "contain" }}
+              />
+            )}
           </div>
         )}
 
