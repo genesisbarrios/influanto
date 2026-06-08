@@ -131,9 +131,9 @@ export default function Outreach() {
   const [user, setUser] = useState<any>(null);
   const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [view, setView] = useState<"list" | "pick" | "form" | "contacts" | "analytics">("list");
+  const [view, setView] = useState<"list" | "pick" | "form" | "contacts">("list");
   const [editing, setEditing] = useState<Partial<Newsletter> | null>(null);
-  const [analyticsFor, setAnalyticsFor] = useState<Newsletter | null>(null);
+  const [expandedAnalytics, setExpandedAnalytics] = useState<string | null>(null);
   const [sendDialog, setSendDialog] = useState<string | null>(null);
   const [contactForm, setContactForm] = useState<Partial<Contact>>({});
   const [editingContact, setEditingContact] = useState<string | null>(null);
@@ -415,18 +415,6 @@ export default function Outreach() {
     );
   }
 
-  // ── Analytics view ──────────────────────────────────────────────────────────
-
-  if (view === "analytics" && analyticsFor) {
-    return (
-      <NewsletterAnalytics
-        newsletterId={analyticsFor.id}
-        title={analyticsFor.title}
-        onBack={() => { setView("list"); setAnalyticsFor(null); }}
-      />
-    );
-  }
-
   // ── Builder (create / edit) ─────────────────────────────────────────────────
 
   if (view === "form") {
@@ -575,10 +563,19 @@ export default function Outreach() {
                 <div className="flex gap-2 flex-wrap">
                   <button className="btn btn-xs btn-outline" onClick={() => { setEditing(n); setView("form"); setAlert(""); }}>Edit</button>
                   <button className="btn btn-xs btn-info text-white" onClick={() => { setSendDialog(n.id); setAlert(""); }}>{n.status === "sent" ? "Resend" : "Send"}</button>
-                  <button className="btn btn-xs btn-outline" onClick={() => { setAnalyticsFor(n); setView("analytics"); setAlert(""); }}>Analytics</button>
+                  <button className={`btn btn-xs ${expandedAnalytics === n.id ? "btn-primary text-white" : "btn-outline"}`} onClick={() => { setExpandedAnalytics(expandedAnalytics === n.id ? null : n.id); setAlert(""); }}>
+                    {expandedAnalytics === n.id ? "Hide Analytics" : "Analytics"}
+                  </button>
                   <button className="btn btn-xs btn-error" onClick={() => handleDelete(n.id)}>Delete</button>
                 </div>
               </div>
+
+              {/* Collapsible analytics panel */}
+              {expandedAnalytics === n.id && (
+                <div className="border-t border-gray-200 mt-3 -mx-4 px-4">
+                  <NewsletterAnalytics newsletterId={n.id} title={n.title} embedded />
+                </div>
+              )}
             </div>
           ))}
         </div>
