@@ -153,6 +153,11 @@ const userSchema = new mongoose.Schema(
       default: null,
        required: false,
     },
+    metaPixelId: {
+      type: String,
+      default: null,
+      required: false,
+    },
   },
   {
     timestamps: true,
