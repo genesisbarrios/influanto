@@ -14,7 +14,7 @@ const tools = [
    {
     title: "Split Sheet Generator",
     description: "Create and export split sheets for your music collaborations.",
-    href: "/Split-Sheet-Generator",
+    href: "/Split-Sheet-Generator",   
     icon: "📄",
   },
    {
