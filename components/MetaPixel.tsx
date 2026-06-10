@@ -47,16 +47,26 @@ interface Props {
 
 export default function MetaPixel({ pixelId, contentName, contentType }: Props) {
   useEffect(() => {
-    if (!pixelId) return;
+    console.log("[MetaPixel] received pixelId:", pixelId);
+    if (!pixelId) {
+      console.warn("[MetaPixel] no pixelId — pixel will not fire. Check that meta_pixel_id column exists in Supabase and a pixel ID is saved in the dashboard.");
+      return;
+    }
 
     const fire = () => {
+      console.log("[MetaPixel] firing PageView + ViewContent for pixelId:", pixelId);
       window.fbq("track", "PageView");
       window.fbq("track", "ViewContent", { content_name: contentName, content_type: contentType });
     };
 
     // Already loaded — just fire again (SPA navigation)
-    if (typeof window !== "undefined" && typeof window.fbq === "function") { fire(); return; }
+    if (typeof window !== "undefined" && typeof window.fbq === "function") {
+      console.log("[MetaPixel] fbq already loaded, firing immediately");
+      fire();
+      return;
+    }
 
+    console.log("[MetaPixel] bootstrapping fbevents.js...");
     // Bootstrap the FB Pixel snippet
     (function (f: any, b: Document, e: string, v: string) {
       if (f.fbq) return;
@@ -71,6 +81,8 @@ export default function MetaPixel({ pixelId, contentName, contentType }: Props) 
       const t = b.createElement(e) as HTMLScriptElement;
       t.async = true;
       t.src = v;
+      t.onerror = () => console.error("[MetaPixel] failed to load fbevents.js — check for ad blockers or network issues");
+      t.onload = () => console.log("[MetaPixel] fbevents.js loaded successfully");
       const s = b.getElementsByTagName(e)[0];
       s.parentNode!.insertBefore(t, s);
     })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
