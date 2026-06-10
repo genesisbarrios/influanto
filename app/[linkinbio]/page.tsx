@@ -368,6 +368,7 @@ useEffect(() => {
 
 return (
  <>
+  {console.log("[LinkinBio] user.metaPixelId:", user?.metaPixelId) as any}
   {user?.metaPixelId && (
     <MetaPixel
       pixelId={user.metaPixelId}
