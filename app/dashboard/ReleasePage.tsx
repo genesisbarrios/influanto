@@ -1071,23 +1071,11 @@ const removeCustomLink = (index: number) => {
                     onChange={(e) => setLinksColor(e.target.value)}
                     className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
                   />
-                </div>
-              </div>
-            </div>
-
-             {/* Premium Styling Options */}
-              <div className="mt-4 w-full">
-               <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Premium Styles</h4>
-
-                {/* Font Picker */}
-                <div className="mb-3">
-                  <label className="mr-2" style={{
-                    fontFamily: font || 'inherit'
-                  }}>Font:</label>
+                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-1">Font:</h2>
                   <select
                     value={font || "sans-serif"}
                     onChange={e => setFont(e.target.value)}
-                    className="input w-40"
+                    className="input w-36"
                     style={{ fontFamily: font || 'inherit' }}
                   >
                     <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
@@ -1098,6 +1086,7 @@ const removeCustomLink = (index: number) => {
                   </select>
                 </div>
               </div>
+            </div>
 
             {/* Newsletter signup */}
             <div className="mt-4 w-full p-4 bg-indigo-50 rounded-md border border-indigo-100">
@@ -1390,31 +1379,20 @@ const removeCustomLink = (index: number) => {
                     onChange={(e) => setLinksColor(e.target.value)}
                     className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
                   />
+                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-1">Font:</h2>
+                  <select
+                    value={font || "sans-serif"}
+                    onChange={e => setFont(e.target.value)}
+                    className="input w-36"
+                    style={{ fontFamily: font || 'inherit' }}
+                  >
+                    <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
+                    <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
+                    <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
+                    <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
+                    <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
+                  </select>
                 </div>
-              </div>
-            </div>
-
-            {/* Premium Styles Section for Edit Form */}
-            <div className="mt-4 w-full">
-              <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Premium Styles</h4>
-
-              {/* Font Picker */}
-              <div className="mb-3">
-                <label className="mr-2" style={{
-                  fontFamily: font || 'inherit'
-                }}>Font:</label>
-                <select
-                  value={font || "sans-serif"}
-                  onChange={e => setFont(e.target.value)}
-                  className="input w-40"
-                  style={{ fontFamily: font || 'inherit' }}
-                >
-                  <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
-                  <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
-                  <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
-                  <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
-                  <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
-                </select>
               </div>
             </div>
 
