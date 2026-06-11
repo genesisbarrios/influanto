@@ -56,9 +56,6 @@ export default function Dashboard() {
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('release-page')}>Release Pages</button>
           </li>
-          <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('qr-code-generator')}>QR Codes</button>
-          </li>
           {/* <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('curator-search')}>Curator Search</button>
           </li> */}
@@ -76,6 +73,9 @@ export default function Dashboard() {
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('curator-search')}>
               Curator Search
             </button>
+          </li>
+          <li>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('qr-code-generator')}>QR Codes</button>
           </li>
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('community')}>Community</button>
