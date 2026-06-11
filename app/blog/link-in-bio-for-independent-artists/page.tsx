@@ -143,8 +143,13 @@ export default function PostLinkInBio() {
               Every day you're promoting your music without one is a day you're sending potential fans to a dead end.
             </p>
 
+            {/* Image preview */}
+            <div style={{ margin: "2.5rem 0 0", borderRadius: 12, overflow: "hidden", border: "1px solid #e5e7eb", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
+              <img src="/linkInBio.png" alt="Example of an Influanto Link in Bio page for an independent artist" style={{ width: "100%", display: "block" }} />
+            </div>
+
             {/* CTA */}
-            <div style={{ background: "linear-gradient(135deg, #eef2ff, #ede9fe)", borderRadius: 12, padding: "1.75rem", marginTop: "2.5rem", border: "1px solid #c7d2fe" }}>
+            <div style={{ background: "linear-gradient(135deg, #eef2ff, #ede9fe)", borderRadius: 12, padding: "1.75rem", marginTop: "1.5rem", border: "1px solid #c7d2fe" }}>
               <p style={{ fontWeight: 800, fontSize: "1.1rem", color: "#3730a3", marginBottom: 8 }}>Build your free music Link in Bio on Influanto</p>
               <p style={{ color: "#4338ca", fontSize: "0.95rem", marginBottom: 16 }}>
                 Create a fully branded link in bio page with all your streaming links, merch store, newsletter signup, and custom colors — free, no credit card needed.
