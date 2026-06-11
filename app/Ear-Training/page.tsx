@@ -203,7 +203,7 @@ export default function EarTraining() {
     setPhase("singing");
 
     // Record the full melody duration in one go, split into per-note windows
-    const singWindowMs = 2000;
+    const singWindowMs = 1000;
     const totalMs = notes.length * singWindowMs;
     const windowFreqs: number[][] = Array.from({ length: notes.length }, () => []);
     const startTime = Date.now();
