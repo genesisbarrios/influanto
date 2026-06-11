@@ -1046,9 +1046,9 @@ const LinkInBio = () => {
           )}
 
           {/* ── Merch Integration Banner ── */}
-          <div className="mb-4 p-4 bg-blue-50 rounded-md">
-            <h4 className="font-bold mb-2 text-blue-800">Merch Integration</h4>
-            <p className="text-blue-600 text-sm">
+          <div className="mb-4 p-4 bg-purple-50 rounded-md border border-purple-200">
+            <h4 className="font-bold mb-2 text-purple-800">🛒 Merch Integration</h4>
+            <p className="text-purple-600 text-sm">
               {!user?.printifyShopId
                 ? "Connect your Printify store to your Profile to add merch to your release pages"
                 : "Your Printify store is connected. Select products to feature below."
