@@ -20,25 +20,24 @@ const links: {
   label: string;
 }[] = [
   {
-    href: "/#pricing",
-    label: "Pricing",
-  },
-  {
-    href: "/#faq",
-    label: "FAQ",
+    href: "/blog",
+    label: "Blog",
   },
   {
     href: "/tools",
     label: "Music Tools",
   },
   {
-    href: "/blog",
-    label: "Blog",
-  },
-  
-  {
     href: "/dashboard",
     label: "Dashboard",
+  },
+  {
+    href: "/#pricing",
+    label: "Pricing",
+  },
+  {
+    href: "/#faq",
+    label: "FAQ",
   },
 
 ];
