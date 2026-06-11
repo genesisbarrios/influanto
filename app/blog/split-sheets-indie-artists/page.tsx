@@ -179,8 +179,18 @@ export default function PostSplitSheets() {
               Do it every time, before the song is released. No exceptions.
             </p>
 
+            {/* Image previews */}
+            <div style={{ margin: "2.5rem 0 0", display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #e5e7eb", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
+                <img src="/split sheet create.png" alt="Creating a split sheet on Influanto" style={{ width: "100%", display: "block" }} />
+              </div>
+              <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #e5e7eb", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
+                <img src="/split sheet dashboard.png" alt="Split sheet dashboard on Influanto" style={{ width: "100%", display: "block" }} />
+              </div>
+            </div>
+
             {/* CTA */}
-            <div style={{ background: "linear-gradient(135deg, #fffbeb, #fef3c7)", borderRadius: 12, padding: "1.75rem", marginTop: "2.5rem", border: "1px solid #fcd34d" }}>
+            <div style={{ background: "linear-gradient(135deg, #fffbeb, #fef3c7)", borderRadius: 12, padding: "1.75rem", marginTop: "1.5rem", border: "1px solid #fcd34d" }}>
               <p style={{ fontWeight: 800, fontSize: "1.1rem", color: "#78350f", marginBottom: 8 }}>Generate a Free Split Sheet on Influanto</p>
               <p style={{ color: "#92400e", fontSize: "0.95rem", marginBottom: 16 }}>
                 Create a professional split sheet for any collaboration in minutes. Add contributors, set ownership percentages, and export as a PDF — free, no account required.
