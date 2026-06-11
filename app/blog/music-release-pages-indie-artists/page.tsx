@@ -162,8 +162,13 @@ export default function PostReleasePages() {
               For an independent artist competing without a label's marketing budget, that advantage is everything.
             </p>
 
+            {/* GIF preview */}
+            <div style={{ margin: "2.5rem 0 0", borderRadius: 12, overflow: "hidden", border: "1px solid #e5e7eb", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
+              <img src="/solymar_releasepage.gif" alt="Example of an Influanto release page for an indie artist" style={{ width: "100%", display: "block" }} />
+            </div>
+
             {/* CTA */}
-            <div style={{ background: "linear-gradient(135deg, #ecfdf5, #d1fae5)", borderRadius: 12, padding: "1.75rem", marginTop: "2.5rem", border: "1px solid #6ee7b7" }}>
+            <div style={{ background: "linear-gradient(135deg, #ecfdf5, #d1fae5)", borderRadius: 12, padding: "1.75rem", marginTop: "1.5rem", border: "1px solid #6ee7b7" }}>
               <p style={{ fontWeight: 800, fontSize: "1.1rem", color: "#065f46", marginBottom: 8 }}>Create your Release Page on Influanto — free</p>
               <p style={{ color: "#047857", fontSize: "0.95rem", marginBottom: 16 }}>
                 Build a branded release page with all major streaming links, cover art, newsletter signup, and your custom colors. No monthly fees, no complicated setup.
