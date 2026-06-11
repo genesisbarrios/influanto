@@ -1045,7 +1045,10 @@ useEffect(() => {
     const blob = new Blob([JSON.stringify({ version: 1, presets }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = "influanto_presets.json"; a.click();
+    const baseName = presets.length === 1
+      ? presets[0].name.replace(/[^a-zA-Z0-9_-]/g, "_")
+      : "presets";
+    a.href = url; a.download = `${baseName}_synthfluanto.json`; a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -1516,8 +1519,8 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
                   ) : (
                     <div style={{ display: "flex", gap: 4 }}>
                       <button onClick={() => setShowSavePreset(true)} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 6, background: "#6366f1", color: "#fff", border: "none", cursor: "pointer" }}>Save</button>
-                      <button onClick={handleExportPresets} title="Export presets as JSON" style={{ fontSize: 11, padding: "2px 6px", borderRadius: 6, background: "#0ea5e9", color: "#fff", border: "none", cursor: "pointer" }}>↓</button>
-                      <button onClick={() => importFileRef.current?.click()} title="Import presets from JSON" style={{ fontSize: 11, padding: "2px 6px", borderRadius: 6, background: "#8b5cf6", color: "#fff", border: "none", cursor: "pointer" }}>↑</button>
+                      <button onClick={handleExportPresets} title="Export presets as JSON" style={{ fontSize: 11, padding: "2px 8px", borderRadius: 6, background: "#0ea5e9", color: "#fff", border: "none", cursor: "pointer" }}>Export</button>
+                      <button onClick={() => importFileRef.current?.click()} title="Import presets from JSON" style={{ fontSize: 11, padding: "2px 8px", borderRadius: 6, background: "#8b5cf6", color: "#fff", border: "none", cursor: "pointer" }}>Import</button>
                       <input ref={importFileRef} type="file" accept=".json,application/json" onChange={handleImportPresets} style={{ display: "none" }} />
                     </div>
                   )}
@@ -1595,6 +1598,7 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
                           <span style={{ flex: 1, fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.name}</span>
                           <button onClick={() => { setAudioUrl(m.audio_url); }} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#22c55e", color: "#fff", border: "none", cursor: "pointer" }}>Load</button>
                           <button onClick={() => { setEditingMelodyId(m.id); setEditingName(m.name); }} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#f59e0b", color: "#fff", border: "none", cursor: "pointer" }}>Edit</button>
+                          <a href={m.audio_url} download={`${m.name.replace(/[^a-zA-Z0-9_-]/g, "_")}.mp3`} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#3b82f6", color: "#fff", border: "none", cursor: "pointer", textDecoration: "none" }}>MP3</a>
                           <button onClick={() => handleDeleteMelody(m.id)} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#ef4444", color: "#fff", border: "none", cursor: "pointer" }}>Del</button>
                         </>
                       )}
@@ -1648,6 +1652,17 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
               title="Download"
             >
               <SaveSVG />
+            </button>
+            {/* New Melody Button */}
+            <button
+              onClick={handleAddMelody}
+              style={{ marginLeft: 4, background: "transparent", border: "none", borderRadius: "50%", width: 40, height: 40, padding: 0, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+              title="Start new melody"
+            >
+              <svg width="32" height="32" viewBox="0 0 32 32">
+                <rect x="4" y="4" width="24" height="24" rx="4" fill="#e0e7ff" />
+                <path d="M10 16h12M16 10v12" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
             </button>
             {/* Tuning knob */}
             <div style={{ marginLeft: 16, display: "flex", flexDirection: "column", alignItems: "center" }}>

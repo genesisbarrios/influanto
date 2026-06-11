@@ -997,7 +997,7 @@ const LinkInBio = () => {
 
           {/* ── Brand Logo (Premium) ── */}
           {user?.hasAccess && (
-            <div className="mb-4 p-4 bg-purple-50 rounded-md border border-purple-200">
+            <div className="mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
               <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
                 ✨ Brand Logo
               </h4>
