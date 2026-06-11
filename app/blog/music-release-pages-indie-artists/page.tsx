@@ -55,7 +55,7 @@ export default function PostReleasePages() {
               Dropping a new song? A single release page beats a Spotify link every time. Here's why smart links are the standard for independent artists in 2025 — and what you're losing by skipping them.
             </p>
             <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-              <span style={{ color: "#6ee7b7", fontSize: 13 }}>June 2025</span>
+              <span style={{ color: "#6ee7b7", fontSize: 13 }}>June 2026</span>
               <span style={{ color: "#34d399", fontSize: 13 }}>·</span>
               <span style={{ color: "#6ee7b7", fontSize: 13 }}>7 min read</span>
             </div>

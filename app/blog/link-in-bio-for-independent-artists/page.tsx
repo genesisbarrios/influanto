@@ -54,7 +54,7 @@ export default function PostLinkInBio() {
               Social media gives you exactly one clickable link in your bio. Here's why that single link needs to do the work of an entire website — and how to make that happen.
             </p>
             <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-              <span style={{ color: "#94a3b8", fontSize: 13 }}>June 2025</span>
+              <span style={{ color: "#94a3b8", fontSize: 13 }}>June 2026</span>
               <span style={{ color: "#475569", fontSize: 13 }}>·</span>
               <span style={{ color: "#94a3b8", fontSize: 13 }}>6 min read</span>
             </div>

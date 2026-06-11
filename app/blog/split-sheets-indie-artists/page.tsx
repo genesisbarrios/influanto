@@ -56,7 +56,7 @@ export default function PostSplitSheets() {
               You made a banger with your producer friend. Congrats. Now — do you have a signed split sheet? A verbal agreement won't hold up when the song gets licensed, hits a playlist, or your names need to be registered with a PRO.
             </p>
             <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-              <span style={{ color: "#fcd34d", fontSize: 13 }}>June 2025</span>
+              <span style={{ color: "#fcd34d", fontSize: 13 }}>June 2026</span>
               <span style={{ color: "#fbbf24", fontSize: 13 }}>·</span>
               <span style={{ color: "#fcd34d", fontSize: 13 }}>6 min read</span>
             </div>
