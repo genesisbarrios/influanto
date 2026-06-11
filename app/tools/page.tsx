@@ -54,6 +54,12 @@ const tools = [
     icon: "🎹",
   },
   {
+    title: "Ear Training",
+    description: "Pitch matching, interval recognition, and chord recognition for musicians, producers, and singers.",
+    href: "/Ear-Training",
+    icon: "👂",
+  },
+  {
     title: "Image Privacy Cleaner",
     description: "Strip GPS location & camera data (EXIF) from your photos.",
     href: "/Image-Privacy",
