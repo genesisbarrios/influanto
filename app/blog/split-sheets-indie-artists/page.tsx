@@ -182,10 +182,10 @@ export default function PostSplitSheets() {
             {/* Image previews */}
             <div style={{ margin: "2.5rem 0 0", display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #e5e7eb", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
-                <img src="/split sheet create.png" alt="Creating a split sheet on Influanto" style={{ width: "100%", display: "block" }} />
+                <img src="/split%20sheet%20create.png" alt="Creating a split sheet on Influanto" style={{ width: "100%", display: "block" }} />
               </div>
               <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #e5e7eb", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
-                <img src="/split sheet dashboard.png" alt="Split sheet dashboard on Influanto" style={{ width: "100%", display: "block" }} />
+                <img src="/split%20sheet%20dashboard.png" alt="Split sheet dashboard on Influanto" style={{ width: "100%", display: "block" }} />
               </div>
             </div>
 
