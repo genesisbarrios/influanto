@@ -1074,7 +1074,7 @@ useEffect(() => {
       } else {
         if (presets[0]?.settings) applySettings(presets[0].settings);
       }
-    } catch {}
+    } catch (err) { console.error("Import failed", err); }
     e.target.value = "";
   };
 
