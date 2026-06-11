@@ -85,9 +85,18 @@ const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
 const accColor = (pct: number) => pct >= 80 ? "#16a34a" : pct >= 50 ? "#d97706" : "#dc2626";
 
 type Mode = "pitch" | "interval" | "chord";
+type Voicing = "baritone" | "tenor" | "alto" | "soprano";
+
+const VOICINGS: { id: Voicing; label: string; melodyBase: number; rootMin: number; rootMax: number }[] = [
+  { id: "baritone", label: "Baritone", melodyBase: 53, rootMin: 41, rootMax: 53 },
+  { id: "tenor",    label: "Tenor",    melodyBase: 60, rootMin: 48, rootMax: 60 },
+  { id: "alto",     label: "Alto",     melodyBase: 67, rootMin: 55, rootMax: 67 },
+  { id: "soprano",  label: "Soprano",  melodyBase: 72, rootMin: 60, rootMax: 72 },
+];
 
 export default function EarTraining() {
   const [mode, setMode] = useState<Mode | null>(null);
+  const [voicing, setVoicing] = useState<Voicing>("tenor");
 
   // Pitch matching
   const [melody, setMelody] = useState<number[]>([]);
@@ -173,7 +182,8 @@ export default function EarTraining() {
 
   const startPitchRound = async () => {
     cancelRef.current = false;
-    const notes = Array.from({ length: 4 }, () => 60 + pick(PENTATONIC));
+    const vc = VOICINGS.find(v => v.id === voicing)!;
+    const notes = Array.from({ length: 4 }, () => vc.melodyBase + pick(PENTATONIC));
     setMelody(notes);
     setPhase("playing");
     setActiveNote(-1);
@@ -262,7 +272,8 @@ export default function EarTraining() {
   const newIntervalQuestion = async () => {
     setSelected(null);
     setIsCorrect(null);
-    const root = 48 + Math.floor(Math.random() * 12);
+    const vc = VOICINGS.find(v => v.id === voicing)!;
+    const root = vc.rootMin + Math.floor(Math.random() * (vc.rootMax - vc.rootMin));
     const interval = pick(INTERVALS);
     intervalPayloadRef.current = { root, semitones: interval.n };
     const choices = shuffle([interval.name, ...shuffle(INTERVALS.filter(i => i.n !== interval.n)).slice(0, 3).map(i => i.name)]);
@@ -303,7 +314,8 @@ export default function EarTraining() {
   const newChordQuestion = async () => {
     setSelected(null);
     setIsCorrect(null);
-    const root = 48 + Math.floor(Math.random() * 12);
+    const vc = VOICINGS.find(v => v.id === voicing)!;
+    const root = vc.rootMin + Math.floor(Math.random() * (vc.rootMax - vc.rootMin));
     const chord = pick(CHORDS);
     chordPayloadRef.current = { root, intervals: chord.intervals };
     setQuestion({ answer: chord.label, choices: shuffle(CHORDS.map(c => c.label)) });
@@ -391,9 +403,22 @@ export default function EarTraining() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-2xl mx-auto px-4 py-10">
 
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">🎵 Ear Training</h1>
             <p className="text-gray-500">Train your ear to match pitches and recognize intervals and chords.</p>
+          </div>
+
+          {/* Voicing selector */}
+          <div className="flex justify-center gap-2 mb-8 flex-wrap">
+            {VOICINGS.map(v => (
+              <button
+                key={v.id}
+                onClick={() => setVoicing(v.id)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${voicing === v.id ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-600 hover:border-gray-400"}`}
+              >
+                {v.label}
+              </button>
+            ))}
           </div>
 
           {/* Mode selection */}
