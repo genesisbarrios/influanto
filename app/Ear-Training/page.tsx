@@ -97,6 +97,7 @@ export default function EarTraining() {
   const [roundScore, setRoundScore] = useState<number | null>(null);
   const [rollingAvg, setRollingAvg] = useState<number | null>(null);
   const [liveFreq, setLiveFreq] = useState(0);
+  const [singProgress, setSingProgress] = useState(0);
   const allScoresRef = useRef<number[]>([]);
 
   // Interval / chord
@@ -105,6 +106,11 @@ export default function EarTraining() {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
+
+  // Session tracking
+  const SESSION_ROUNDS = 10;
+  const [sessionDone, setSessionDone] = useState(false);
+  const sessionStatsRef = useRef<Partial<Record<Mode, number>>>({});
 
   const [micError, setMicError] = useState("");
 
@@ -174,10 +180,12 @@ export default function EarTraining() {
     setNoteAccuracies([]);
     setRoundScore(null);
     setLiveFreq(0);
+    setSingProgress(0);
 
     const ctx = getCtx();
     if (ctx.state === "suspended") await ctx.resume();
 
+    // Play full melody with visual highlighting
     for (let i = 0; i < notes.length; i++) {
       if (cancelRef.current) return;
       setActiveNote(i);
@@ -193,35 +201,39 @@ export default function EarTraining() {
     if (!ok || cancelRef.current) { setPhase("idle"); return; }
 
     setPhase("singing");
-    const accuracies: number[] = [];
 
-    for (let i = 0; i < notes.length; i++) {
+    // Record the full melody duration in one go, split into per-note windows
+    const singWindowMs = 2000;
+    const totalMs = notes.length * singWindowMs;
+    const windowFreqs: number[][] = Array.from({ length: notes.length }, () => []);
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < totalMs) {
       if (cancelRef.current) break;
-      setActiveNote(i);
-      const freqs: number[] = [];
-      const start = Date.now();
+      const elapsed = Date.now() - startTime;
+      const windowIdx = Math.min(Math.floor(elapsed / singWindowMs), notes.length - 1);
+      setSingProgress(elapsed / totalMs);
+      setActiveNote(windowIdx);
 
-      while (Date.now() - start < 2000) {
-        if (cancelRef.current) break;
-        const analyser = analyserRef.current, buf = bufRef.current;
-        if (analyser && buf) {
-          analyser.getFloatTimeDomainData(buf);
-          const f = autoCorrelate(buf, ctx.sampleRate);
-          if (f > 0) { freqs.push(f); setLiveFreq(f); }
-        }
-        await sleep(60);
+      const analyser = analyserRef.current, buf = bufRef.current;
+      if (analyser && buf) {
+        analyser.getFloatTimeDomainData(buf);
+        const f = autoCorrelate(buf, ctx.sampleRate);
+        if (f > 0) { windowFreqs[windowIdx].push(f); setLiveFreq(f); }
       }
-
-      if (cancelRef.current) break;
-
-      const sorted = [...freqs].sort((a, b) => a - b);
-      const median = sorted.length ? sorted[Math.floor(sorted.length / 2)] : 0;
-      const semitoneOff = median > 0 ? Math.abs(freqToMidi(median) - notes[i]) : 12;
-      accuracies.push(Math.max(0, 100 - semitoneOff * 20));
+      await sleep(60);
     }
 
     stopMic();
     if (cancelRef.current) return;
+    setSingProgress(1);
+
+    const accuracies = windowFreqs.map((freqs, i) => {
+      const sorted = [...freqs].sort((a, b) => a - b);
+      const median = sorted.length ? sorted[Math.floor(sorted.length / 2)] : 0;
+      const semitoneOff = median > 0 ? Math.abs(freqToMidi(median) - notes[i]) : 12;
+      return Math.max(0, 100 - semitoneOff * 20);
+    });
 
     const avg = accuracies.reduce((a, b) => a + b, 0) / accuracies.length;
     allScoresRef.current = [...allScoresRef.current, avg];
@@ -232,6 +244,11 @@ export default function EarTraining() {
     setRollingAvg(newAvg);
     setActiveNote(-1);
     setPhase("result");
+
+    if (allScoresRef.current.length >= SESSION_ROUNDS) {
+      sessionStatsRef.current = { ...sessionStatsRef.current, pitch: newAvg };
+      setSessionDone(true);
+    }
   };
 
   const replayMelody = () => {
@@ -271,8 +288,14 @@ export default function EarTraining() {
     setSelected(choice);
     const right = choice === question.answer;
     setIsCorrect(right);
-    setTotal(t => t + 1);
-    if (right) setScore(s => s + 1);
+    const newTotal = total + 1;
+    const newScore = right ? score + 1 : score;
+    setTotal(newTotal);
+    if (right) setScore(newScore);
+    if (newTotal >= SESSION_ROUNDS) {
+      sessionStatsRef.current = { ...sessionStatsRef.current, interval: Math.round((newScore / newTotal) * 100) };
+      setSessionDone(true);
+    }
   };
 
   // ── Chord Recognition ─────────────────────────────────────────────────────
@@ -303,8 +326,14 @@ export default function EarTraining() {
     setSelected(choice);
     const right = choice === question.answer;
     setIsCorrect(right);
-    setTotal(t => t + 1);
-    if (right) setScore(s => s + 1);
+    const newTotal = total + 1;
+    const newScore = right ? score + 1 : score;
+    setTotal(newTotal);
+    if (right) setScore(newScore);
+    if (newTotal >= SESSION_ROUNDS) {
+      sessionStatsRef.current = { ...sessionStatsRef.current, chord: Math.round((newScore / newTotal) * 100) };
+      setSessionDone(true);
+    }
   };
 
   // ── Reset ─────────────────────────────────────────────────────────────────
@@ -323,6 +352,24 @@ export default function EarTraining() {
     setRollingAvg(null);
     setRoundScore(null);
     setMicError("");
+    setSessionDone(false);
+  };
+
+  const restartSession = () => {
+    cancelRef.current = false;
+    setPhase("idle");
+    setScore(0);
+    setTotal(0);
+    setQuestion(null);
+    setSelected(null);
+    setIsCorrect(null);
+    allScoresRef.current = [];
+    setRollingAvg(null);
+    setRoundScore(null);
+    setMicError("");
+    setSessionDone(false);
+    if (mode === "interval") newIntervalQuestion();
+    if (mode === "chord") newChordQuestion();
   };
 
   // ── Choice button helper ──────────────────────────────────────────────────
@@ -373,21 +420,49 @@ export default function EarTraining() {
             </div>
           )}
 
-          {mode && (
+          {mode && !sessionDone && (
             <button onClick={resetMode} className="mb-6 text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1">
               ← Back to modes
             </button>
           )}
 
+          {/* ── Session Complete ── */}
+          {sessionDone && (
+            <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
+              <div className="text-5xl mb-4">🏆</div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Session Complete!</h2>
+              <p className="text-gray-500 text-sm mb-6">{SESSION_ROUNDS} rounds finished</p>
+
+              <div className="flex flex-col gap-3 mb-8 max-w-xs mx-auto">
+                {(["pitch", "interval", "chord"] as Mode[]).map(m => {
+                  const s = sessionStatsRef.current[m];
+                  if (s === undefined) return null;
+                  const labels: Record<Mode, string> = { pitch: "🎤 Pitch Matching", interval: "🎼 Interval Recognition", chord: "🎹 Chord Recognition" };
+                  return (
+                    <div key={m} className="flex justify-between items-center px-4 py-3 rounded-xl bg-gray-50 border border-gray-200">
+                      <span className="text-sm font-medium text-gray-700">{labels[m]}</span>
+                      <span className="text-lg font-bold" style={{ color: accColor(s) }}>{s}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-center gap-3">
+                <button onClick={restartSession} className="btn btn-primary btn-sm">Play Again</button>
+                <button onClick={resetMode} className="btn btn-outline btn-sm">Change Mode</button>
+              </div>
+            </div>
+          )}
+
           {/* ── Pitch Matching ── */}
-          {mode === "pitch" && (
+          {mode === "pitch" && !sessionDone && (
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
               <div className="flex justify-between items-start mb-4">
                 <h2 className="text-2xl font-bold text-gray-900">Pitch Matching</h2>
                 {rollingAvg !== null && (
                   <span className="text-sm text-gray-500">
                     Avg: <span className="font-bold" style={{ color: accColor(rollingAvg) }}>{rollingAvg.toFixed(0)}%</span>
-                    <span className="text-gray-400"> · {allScoresRef.current.length} rounds</span>
+                    <span className="text-gray-400"> · {allScoresRef.current.length}/{SESSION_ROUNDS}</span>
                   </span>
                 )}
               </div>
@@ -396,7 +471,7 @@ export default function EarTraining() {
               {melody.length > 0 && (
                 <div className="flex justify-center gap-3 mb-6">
                   {melody.map((note, i) => {
-                    const isActive = activeNote === i;
+                    const isActive = (phase === "singing" || phase === "playing") && activeNote === i;
                     const hasResult = phase === "result" && noteAccuracies[i] !== undefined;
                     const acc = noteAccuracies[i];
                     const bg = hasResult ? (acc >= 80 ? "#dcfce7" : acc >= 50 ? "#fef3c7" : "#fee2e2")
@@ -416,7 +491,7 @@ export default function EarTraining() {
               {phase === "idle" && (
                 <div className="text-center">
                   <button onClick={startPitchRound} className="btn btn-primary px-8">Start Round</button>
-                  <p className="text-xs text-gray-400 mt-3">A 4-note melody will play. Then sing each note back.</p>
+                  <p className="text-xs text-gray-400 mt-3">A 4-note melody will play — then sing the whole melody back.</p>
                 </div>
               )}
 
@@ -433,14 +508,14 @@ export default function EarTraining() {
 
               {phase === "singing" && (
                 <div className="text-center">
-                  <p className="text-xl font-semibold text-green-600 mb-1">🎤 Sing it back!</p>
-                  <p className="text-gray-600 mb-2">
-                    Note {activeNote + 1} of {melody.length}:{" "}
-                    <span className="font-bold text-gray-900">{melody[activeNote] !== undefined ? midiToName(melody[activeNote]) : ""}</span>
-                  </p>
+                  <p className="text-xl font-semibold text-green-600 mb-1">🎤 Sing the whole melody back!</p>
                   {liveFreq > 0 && (
-                    <p className="text-xs text-gray-400">{liveFreq.toFixed(1)} Hz · {midiToName(freqToMidi(liveFreq))}</p>
+                    <p className="text-xs text-gray-400 mb-3">{liveFreq.toFixed(1)} Hz · {midiToName(freqToMidi(liveFreq))}</p>
                   )}
+                  {/* Progress bar */}
+                  <div className="w-full bg-gray-100 rounded-full h-2 max-w-xs mx-auto overflow-hidden">
+                    <div className="h-2 rounded-full bg-green-500 transition-all" style={{ width: `${singProgress * 100}%` }} />
+                  </div>
                   {micError && <p className="text-red-500 text-sm mt-2">{micError}</p>}
                 </div>
               )}
@@ -463,11 +538,11 @@ export default function EarTraining() {
           )}
 
           {/* ── Interval Recognition ── */}
-          {mode === "interval" && (
+          {mode === "interval" && !sessionDone && (
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
               <div className="flex justify-between items-center mb-5">
                 <h2 className="text-2xl font-bold text-gray-900">Interval Recognition</h2>
-                <span className="text-sm font-medium text-gray-500">{score} / {total}</span>
+                <span className="text-sm font-medium text-gray-500">{total}/{SESSION_ROUNDS}</span>
               </div>
 
               <div className="text-center mb-6">
@@ -483,7 +558,7 @@ export default function EarTraining() {
                     ))}
                   </div>
 
-                  {selected !== null && (
+                  {selected !== null && !sessionDone && (
                     <div className="text-center mt-2">
                       <p className={`font-bold mb-3 ${isCorrect ? "text-green-600" : "text-red-500"}`}>
                         {isCorrect ? "Correct! 🎉" : `Not quite — it was ${question.answer}`}
@@ -497,11 +572,11 @@ export default function EarTraining() {
           )}
 
           {/* ── Chord Recognition ── */}
-          {mode === "chord" && (
+          {mode === "chord" && !sessionDone && (
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
               <div className="flex justify-between items-center mb-5">
                 <h2 className="text-2xl font-bold text-gray-900">Chord Recognition</h2>
-                <span className="text-sm font-medium text-gray-500">{score} / {total}</span>
+                <span className="text-sm font-medium text-gray-500">{total}/{SESSION_ROUNDS}</span>
               </div>
 
               <div className="text-center mb-6">
@@ -517,7 +592,7 @@ export default function EarTraining() {
                     ))}
                   </div>
 
-                  {selected !== null && (
+                  {selected !== null && !sessionDone && (
                     <div className="text-center mt-2">
                       <p className={`font-bold mb-3 ${isCorrect ? "text-green-600" : "text-red-500"}`}>
                         {isCorrect ? "Correct! 🎉" : `Not quite — it was ${question.answer}`}
