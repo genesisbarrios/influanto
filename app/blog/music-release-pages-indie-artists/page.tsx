@@ -79,7 +79,7 @@ export default function PostReleasePages() {
               A music release page — sometimes called a smart link or pre-save link — is a dedicated webpage for a single release. It houses all your streaming platform links in one place, shows your cover art, and gives fans a clean destination to find your music regardless of which platform they use.
             </p>
             <p>
-              Instead of saying "Spotify link in bio," you share one URL — something like <code style={{ background: "#f3f4f6", padding: "2px 6px", borderRadius: 4, fontSize: "0.9rem" }}>influanto.com/r/your-artist-name/song-title</code> — and it works for everyone. Spotify users click Spotify. Apple Music users click Apple Music. The page handles the routing.
+              Instead of saying "Spotify link in bio," you share one URL — something like <code style={{ background: "#f3f4f6", padding: "2px 6px", borderRadius: 4, fontSize: "0.9rem" }}>influanto.com/release/song-title</code> — and it works for everyone. Spotify users click Spotify. Apple Music users click Apple Music. The page handles the routing.
             </p>
 
             <h2 style={{ color: "#111827", fontWeight: 800, fontSize: "1.4rem", margin: "2rem 0 1rem" }}>The Problem with Just Dropping a Platform Link</h2>
