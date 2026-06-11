@@ -736,11 +736,11 @@ const removeCustomLink = (index: number) => {
   const renderMerchSection = () => {
     return (
       <>
-        <div className="mb-4 p-4 bg-blue-50 rounded-md">
-          <h4 className="font-bold mb-2 text-blue-800" style={{
+        <div className="mb-4 p-4 bg-purple-50 rounded-md border border-purple-200">
+          <h4 className="font-bold mb-2 text-purple-800" style={{
             fontFamily: font || 'inherit'
-          }}>Merch Integration</h4>
-          <p className="text-blue-600 text-sm" style={{
+          }}>🛒 Merch Integration</h4>
+          <p className="text-purple-600 text-sm" style={{
             fontFamily: font || 'inherit'
           }}>
             {!userData?.printifyShopId 
@@ -1037,7 +1037,7 @@ const removeCustomLink = (index: number) => {
               <div className="w-full">
                 {/* BG on its own line with an opacity fader */}
                 <div className="flex items-center flex-wrap gap-2 mb-2">
-                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-1">Card BG</h2>
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-1">Card BG</h2>
                   <input
                     type="color"
                     value={parseColorValue(bgColor, "#ffffff").hex}
@@ -1057,14 +1057,14 @@ const removeCustomLink = (index: number) => {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 mb-2">
-                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-2">Text</h2>
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-2">Text</h2>
                   <input
                     type="color"
                     value={textColor}
                     onChange={(e) => setTextColor(e.target.value)}
                     className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
                   />
-                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
                   <input
                     type="color"
                     value={linksColor}
@@ -1073,7 +1073,7 @@ const removeCustomLink = (index: number) => {
                   />
                 </div>
                 <div className="flex items-center gap-1">
-                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-1">Font:</h2>
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-1">Font:</h2>
                   <select
                     value={font || "sans-serif"}
                     onChange={e => setFont(e.target.value)}
@@ -1347,7 +1347,7 @@ const removeCustomLink = (index: number) => {
               <div className="w-full">
                 {/* BG on its own line with an opacity fader */}
                 <div className="flex items-center flex-wrap gap-2 mb-2">
-                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-1">Card BG</h2>
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-1">Card BG</h2>
                   <input
                     type="color"
                     value={parseColorValue(bgColor, "#ffffff").hex}
@@ -1367,14 +1367,14 @@ const removeCustomLink = (index: number) => {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 mb-2">
-                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-2">Text</h2>
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-2">Text</h2>
                   <input
                     type="color"
                     value={textColor}
                     onChange={(e) => setTextColor(e.target.value)}
                     className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
                   />
-                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
                   <input
                     type="color"
                     value={linksColor}
@@ -1383,7 +1383,7 @@ const removeCustomLink = (index: number) => {
                   />
                 </div>
                 <div className="flex items-center gap-1">
-                  <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-1">Font:</h2>
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-1">Font:</h2>
                   <select
                     value={font || "sans-serif"}
                     onChange={e => setFont(e.target.value)}
