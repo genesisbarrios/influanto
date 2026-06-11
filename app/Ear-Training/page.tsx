@@ -88,10 +88,10 @@ type Mode = "pitch" | "interval" | "chord";
 type Voicing = "bass" | "tenor" | "alto" | "soprano";
 
 const VOICINGS: { id: Voicing; label: string; melodyBase: number; rootMin: number; rootMax: number }[] = [
-  { id: "bass",    label: "Bass",    melodyBase: 36, rootMin: 28, rootMax: 40 },
-  { id: "tenor",   label: "Tenor",   melodyBase: 48, rootMin: 36, rootMax: 48 },
-  { id: "alto",    label: "Alto",    melodyBase: 60, rootMin: 48, rootMax: 60 },
-  { id: "soprano", label: "Soprano", melodyBase: 72, rootMin: 60, rootMax: 84 },
+  { id: "bass",    label: "Bass",    melodyBase: 36, rootMin: 36, rootMax: 48 },  // C2–C3
+  { id: "tenor",   label: "Tenor",   melodyBase: 48, rootMin: 48, rootMax: 60 },  // C3–C4
+  { id: "alto",    label: "Alto",    melodyBase: 60, rootMin: 60, rootMax: 72 },  // C4–C5
+  { id: "soprano", label: "Soprano", melodyBase: 72, rootMin: 72, rootMax: 84 },  // C5–C6
 ];
 
 export default function EarTraining() {
