@@ -16,7 +16,7 @@ const Hero = () => {
           The platform with all you need to market and promote your music.
         </p>
         <p className="text-lg opacity-80 leading-relaxed">
-          Link In Bio, Release Pages, Split Sheet Generator, Outreach / Newsletter Management, QR Code Generator, and Playlist Curator Search and Contact Tool.
+          Link In Bio, Release Pages, Split Sheet Generator, Newsletter and Contact Management, QR Code Generator, and Playlist Curator Search and Contact Tool.
         </p>
         <p className="text-lg opacity-80 leading-relaxed">
           Free Musician Tools: Split Sheet Generator, Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner, + more.

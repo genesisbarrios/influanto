@@ -34,6 +34,7 @@ const ReleasePages = () => {
   const [showMerchSection, setShowMerchSection] = useState(false);
   const [expandedAnalytics, setExpandedAnalytics] = useState<string | null>(null);
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
+  const [brandLogoPickerOpen, setBrandLogoPickerOpen] = useState(false);
 
 
   useEffect(() => {
@@ -1005,6 +1006,29 @@ const removeCustomLink = (index: number) => {
             </div>
             
 
+            {/* Brand Logo (Premium) */}
+            {userData?.hasAccess && (
+              <div className="mt-4 p-4 bg-purple-50 rounded-md border border-purple-200">
+                <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>✨ Brand Logo</h4>
+                <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: font || 'inherit' }}>
+                  Shown at the bottom of your release page.
+                </p>
+                {brandLogoUrl && (
+                  <div className="flex items-center gap-3 mb-3">
+                    <img src={brandLogoUrl} alt="Brand logo" className="h-12 object-contain rounded border border-purple-200 bg-white p-1" />
+                    <button type="button" className="btn btn-xs btn-error text-white" onClick={async () => { const old = brandLogoUrl; setBrandLogoUrl(""); await deleteCloudinaryImage(old); }}>🗑️ Remove</button>
+                  </div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <button type="button" onClick={() => setBrandLogoPickerOpen(true)} className="btn btn-sm btn-outline w-fit" style={{ fontFamily: font || 'inherit' }}>
+                    {brandLogoUrl ? 'Replace Logo' : 'Upload Brand Logo'}
+                  </button>
+                  <p className="text-xs text-gray-400">Or paste a logo URL:</p>
+                  <input type="url" className="input input-sm w-full" placeholder="https://example.com/logo.png" value={brandLogoUrl} onChange={e => setBrandLogoUrl(e.target.value)} style={{ fontFamily: font || 'inherit' }} />
+                </div>
+              </div>
+            )}
+
             {/* Add merch section for create */}
             {renderMerchSection()}
 
@@ -1104,30 +1128,6 @@ const removeCustomLink = (index: number) => {
                 </div>
               )}
             </div>
-
-            {/* Brand Logo (Premium) */}
-            {userData?.hasAccess && (
-              <div className="mt-4 p-4 bg-purple-50 rounded-md border border-purple-200">
-                <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>✨ Brand Logo</h4>
-                <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: font || 'inherit' }}>
-                  Shown at the bottom of your release page.
-                </p>
-                {brandLogoUrl && (
-                  <div className="flex items-center gap-3 mb-3">
-                    <img src={brandLogoUrl} alt="Brand logo" className="h-12 object-contain rounded border border-purple-200 bg-white p-1" />
-                    <button type="button" className="btn btn-xs btn-error text-white" onClick={() => setBrandLogoUrl("")}>🗑️ Remove</button>
-                  </div>
-                )}
-                <input
-                  type="url"
-                  className="input input-sm w-full"
-                  placeholder="Paste logo URL (https://...)"
-                  value={brandLogoUrl}
-                  onChange={e => setBrandLogoUrl(e.target.value)}
-                  style={{ fontFamily: font || 'inherit' }}
-                />
-              </div>
-            )}
 
             <div className="flex justify-end">
               <button
@@ -1418,6 +1418,29 @@ const removeCustomLink = (index: number) => {
               </div>
             </div>
 
+            {/* Brand Logo (Premium) */}
+            {userData?.hasAccess && (
+              <div className="mt-4 p-4 bg-purple-50 rounded-md border border-purple-200">
+                <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>✨ Brand Logo</h4>
+                <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: font || 'inherit' }}>
+                  Shown at the bottom of your release page.
+                </p>
+                {brandLogoUrl && (
+                  <div className="flex items-center gap-3 mb-3">
+                    <img src={brandLogoUrl} alt="Brand logo" className="h-12 object-contain rounded border border-purple-200 bg-white p-1" />
+                    <button type="button" className="btn btn-xs btn-error text-white" onClick={async () => { const old = brandLogoUrl; setBrandLogoUrl(""); await deleteCloudinaryImage(old); }}>🗑️ Remove</button>
+                  </div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <button type="button" onClick={() => setBrandLogoPickerOpen(true)} className="btn btn-sm btn-outline w-fit" style={{ fontFamily: font || 'inherit' }}>
+                    {brandLogoUrl ? 'Replace Logo' : 'Upload Brand Logo'}
+                  </button>
+                  <p className="text-xs text-gray-400">Or paste a logo URL:</p>
+                  <input type="url" className="input input-sm w-full" placeholder="https://example.com/logo.png" value={brandLogoUrl} onChange={e => setBrandLogoUrl(e.target.value)} style={{ fontFamily: font || 'inherit' }} />
+                </div>
+              </div>
+            )}
+
             {renderMerchSection()}
 
             {/* Newsletter signup */}
@@ -1449,30 +1472,6 @@ const removeCustomLink = (index: number) => {
                 </div>
               )}
             </div>
-
-            {/* Brand Logo (Premium) */}
-            {userData?.hasAccess && (
-              <div className="mt-4 p-4 bg-purple-50 rounded-md border border-purple-200">
-                <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>✨ Brand Logo</h4>
-                <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: font || 'inherit' }}>
-                  Shown at the bottom of your release page.
-                </p>
-                {brandLogoUrl && (
-                  <div className="flex items-center gap-3 mb-3">
-                    <img src={brandLogoUrl} alt="Brand logo" className="h-12 object-contain rounded border border-purple-200 bg-white p-1" />
-                    <button type="button" className="btn btn-xs btn-error text-white" onClick={() => setBrandLogoUrl("")}>🗑️ Remove</button>
-                  </div>
-                )}
-                <input
-                  type="url"
-                  className="input input-sm w-full"
-                  placeholder="Paste logo URL (https://...)"
-                  value={brandLogoUrl}
-                  onChange={e => setBrandLogoUrl(e.target.value)}
-                  style={{ fontFamily: font || 'inherit' }}
-                />
-              </div>
-            )}
 
             <div className="flex justify-end">
               <button
@@ -1517,6 +1516,17 @@ const removeCustomLink = (index: number) => {
           onUploaded={(result: any) => handleImageUpload(result)}
           onSelect={(url: string) => setEditingPage({ ...editingPage, image: url })}
           onClose={() => setImagePickerOpen(false)}
+        />
+      )}
+
+      {brandLogoPickerOpen && (
+        <ImagePicker
+          images={galleryImages}
+          uploadPreset="ReleasePageImages"
+          uploadOptions={{ publicId: `user_${data?.user?.id}_brandLogo_${Date.now()}` }}
+          onUploaded={(result: any) => { setBrandLogoUrl(result.info?.secure_url || ""); setBrandLogoPickerOpen(false); }}
+          onSelect={(url: string) => { setBrandLogoUrl(url); setBrandLogoPickerOpen(false); }}
+          onClose={() => setBrandLogoPickerOpen(false)}
         />
       )}
     </>
