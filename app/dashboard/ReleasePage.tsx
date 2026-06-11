@@ -358,7 +358,7 @@ const ReleasePages = () => {
       return false;
     }
     
-    if (value.length > 500) {
+    if (value.length > 2000) {
       setAlert(`${fieldName} URL is too long.`);
       return false;
     }
@@ -1473,7 +1473,7 @@ const removeCustomLink = (index: number) => {
               )}
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end mt-6">
               <button
                 className="btn btn-primary btn-sm mr-2"
                 onClick={handleSave}

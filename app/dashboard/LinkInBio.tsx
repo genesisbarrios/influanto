@@ -1260,7 +1260,7 @@ const LinkInBio = () => {
           )}
 
           {/* ── Action Buttons ── */}
-          <div style={{ textAlign: "center" }}>
+          <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
             <button
               className="btn btn-alert btn-block btn-sm btn-narrow"
               style={{ width: "35%", display: "inline", margin: "2% 5%", fontFamily: linkInBio?.font || 'inherit' }}
