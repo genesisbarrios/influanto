@@ -85,13 +85,13 @@ const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
 const accColor = (pct: number) => pct >= 80 ? "#16a34a" : pct >= 50 ? "#d97706" : "#dc2626";
 
 type Mode = "pitch" | "interval" | "chord";
-type Voicing = "baritone" | "tenor" | "alto" | "soprano";
+type Voicing = "bass" | "tenor" | "alto" | "soprano";
 
 const VOICINGS: { id: Voicing; label: string; melodyBase: number; rootMin: number; rootMax: number }[] = [
-  { id: "baritone", label: "Baritone", melodyBase: 53, rootMin: 41, rootMax: 53 },
-  { id: "tenor",    label: "Tenor",    melodyBase: 60, rootMin: 48, rootMax: 60 },
-  { id: "alto",     label: "Alto",     melodyBase: 67, rootMin: 55, rootMax: 67 },
-  { id: "soprano",  label: "Soprano",  melodyBase: 72, rootMin: 60, rootMax: 72 },
+  { id: "bass",    label: "Bass",    melodyBase: 36, rootMin: 28, rootMax: 40 },
+  { id: "tenor",   label: "Tenor",   melodyBase: 48, rootMin: 36, rootMax: 48 },
+  { id: "alto",    label: "Alto",    melodyBase: 60, rootMin: 48, rootMax: 60 },
+  { id: "soprano", label: "Soprano", melodyBase: 72, rootMin: 60, rootMax: 84 },
 ];
 
 export default function EarTraining() {
@@ -213,7 +213,7 @@ export default function EarTraining() {
     setPhase("singing");
 
     // Record the full melody duration in one go, split into per-note windows
-    const singWindowMs = 1000;
+    const singWindowMs = 1500;
     const totalMs = notes.length * singWindowMs;
     const windowFreqs: number[][] = Array.from({ length: notes.length }, () => []);
     const startTime = Date.now();
