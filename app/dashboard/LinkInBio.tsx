@@ -992,58 +992,58 @@ const LinkInBio = () => {
 
               </div>
 
-              {/* ── Brand Logo (Premium) ── */}
-              {user?.hasAccess && (
-                <div className="mt-4 p-4 bg-purple-50 rounded-md border border-purple-200">
-                  <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
-                    ✨ Brand Logo
-                  </h4>
-                  <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
-                    Shown at the bottom of your link-in-bio page. Replaces the Influanto badge.
-                  </p>
-
-                  {brandLogoUrl ? (
-                    <div className="flex items-center gap-3 mb-3">
-                      <img
-                        src={brandLogoUrl}
-                        alt="Brand logo"
-                        className="h-12 object-contain rounded border border-purple-200 bg-white p-1"
-                      />
-                      <button
-                        type="button"
-                        className="btn btn-xs btn-error text-white"
-                        title="Delete logo"
-                        onClick={async () => { const old = brandLogoUrl; setBrandLogoUrl(""); await deleteCloudinaryImage(old); }}
-                      >
-                        🗑️ Delete
-                      </button>
-                    </div>
-                  ) : null}
-
-                  <div className="flex flex-col gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPicker({ type: 'brand' })}
-                      className="btn btn-sm btn-outline w-fit"
-                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                    >
-                      {brandLogoUrl ? 'Replace Logo' : 'Upload Brand Logo'}
-                    </button>
-                    <p className="text-xs text-gray-400">Or paste a logo URL:</p>
-                    <input
-                      type="url"
-                      className="input input-sm w-full"
-                      placeholder="https://example.com/logo.png"
-                      value={brandLogoUrl}
-                      onChange={e => setBrandLogoUrl(e.target.value)}
-                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                    />
-                  </div>
-                </div>
-              )}
-
             </div>
           </div>
+
+          {/* ── Brand Logo (Premium) ── */}
+          {user?.hasAccess && (
+            <div className="mb-4 p-4 bg-purple-50 rounded-md border border-purple-200">
+              <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
+                ✨ Brand Logo
+              </h4>
+              <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
+                Shown at the bottom of your link-in-bio page. Replaces the Influanto badge.
+              </p>
+
+              {brandLogoUrl ? (
+                <div className="flex items-center gap-3 mb-3">
+                  <img
+                    src={brandLogoUrl}
+                    alt="Brand logo"
+                    className="h-12 object-contain rounded border border-purple-200 bg-white p-1"
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-xs btn-error text-white"
+                    title="Delete logo"
+                    onClick={async () => { const old = brandLogoUrl; setBrandLogoUrl(""); await deleteCloudinaryImage(old); }}
+                  >
+                    🗑️ Delete
+                  </button>
+                </div>
+              ) : null}
+
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPicker({ type: 'brand' })}
+                  className="btn btn-sm btn-outline w-fit"
+                  style={{ fontFamily: linkInBio?.font || 'inherit' }}
+                >
+                  {brandLogoUrl ? 'Replace Logo' : 'Upload Brand Logo'}
+                </button>
+                <p className="text-xs text-gray-400">Or paste a logo URL:</p>
+                <input
+                  type="url"
+                  className="input input-sm w-full"
+                  placeholder="https://example.com/logo.png"
+                  value={brandLogoUrl}
+                  onChange={e => setBrandLogoUrl(e.target.value)}
+                  style={{ fontFamily: linkInBio?.font || 'inherit' }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* ── Merch Integration Banner ── */}
           <div className="mb-4 p-4 bg-blue-50 rounded-md">

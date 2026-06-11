@@ -27,7 +27,7 @@ interface Feature {
 // - alt: The alt text of the image (if type is 'image')
 const features = [
   {
-    title: "Link in Bio",
+    title: "Link in Bio / Release Pages with Analytics",
     description: "Create a Link in Bio Page and Promotional Pages for your Releases",
     type: "image",
     path: link,
@@ -48,8 +48,8 @@ const features = [
     ),
   },
   {
-    title: "Outreach / Contacts / Email Campaigns",
-    description: "Use our Outreach Dashboard to manage your contacts, and send email campaigns to your fans.",
+    title: "Newsletters and Contact Management",
+    description: "Use our Outreach Dashboard to manage your contacts, send email campaigns to your fans, and track analytics.",
     type: "image",
     path: outreach,
     alt: "A computer",
@@ -61,7 +61,7 @@ const features = [
     ),
   },
   {
-    title: "Playlist Curator Search / Contact Tool",
+    title: "Playlist Curator Search and Contact Tool",
     description: "Use our Curator Search Tool to find the right contacts for your music, and reach out to them directly from the platform.",
     type: "image",
     path: playlist,
@@ -86,30 +86,30 @@ const features = [
 
     ),
   },
-  // {
-  //   title: "Social Media Bulk Comments and DMs (Coming Soon)",
-  //   description:
-  //     "Instagram, Youtube, Tiktok, Twitter",
-  //     type: "image",
-  //     path: "https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3540&q=80",
-  //     alt: "A computer",
-  //   svg: (
-  //     <svg
-  //       xmlns="http://www.w3.org/2000/svg"
-  //       fill="none"
-  //       viewBox="0 0 24 24"
-  //       strokeWidth={1.5}
-  //       stroke="currentColor"
-  //       className="w-6 h-6"
-  //     >
-  //       <path
-  //         strokeLinecap="round"
-  //         strokeLinejoin="round"
-  //         d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
-  //       />
-  //     </svg>
-  //   ),
-  // },
+  {
+    title: "Crossposting (Coming Soon)",
+    description:
+      "Instagram, Facebook, Youtube, Tiktok, X, Linkedin",
+      type: "image",
+      path: "https://images.unsplash.com/photo-1683721003111-070bcc053d8b?q=80&w=2600&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      alt: "A computer",
+    svg: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+        className="w-6 h-6"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
+        />
+      </svg>
+    ),
+  },
   // {
   //   title: "Promo Content Generator (Coming Soon)",
   //   description:
