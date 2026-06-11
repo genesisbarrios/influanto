@@ -59,14 +59,14 @@ export default function Dashboard() {
           {/* <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('curator-search')}>Curator Search</button>
           </li> */}
-          <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('split-sheets')}>
-              Split Sheets
+           <li>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('outreach')}>
+              Outreach
             </button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('outreach')}>
-              Outreach
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('split-sheets')}>
+              Split Sheets
             </button>
           </li>
           <li>
