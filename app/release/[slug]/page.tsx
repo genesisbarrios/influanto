@@ -922,6 +922,31 @@ const renderMerchSection = () => {
           </div>
         )}
 
+        {/* ── Brand logo (premium users) ── */}
+        {user?.hasAccess && releasePage?.brandLogoUrl && (
+          <div className="mt-12 flex justify-center">
+            {user?.website ? (
+              <a
+                href={/^https?:\/\//i.test(user.website) ? user.website : `https://${user.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src={releasePage.brandLogoUrl}
+                  alt="Brand logo"
+                  style={{ maxHeight: "30px", maxWidth: "30px", objectFit: "contain", cursor: "pointer" }}
+                />
+              </a>
+            ) : (
+              <img
+                src={releasePage.brandLogoUrl}
+                alt="Brand logo"
+                style={{ maxHeight: "30px", maxWidth: "30px", objectFit: "contain" }}
+              />
+            )}
+          </div>
+        )}
+
         {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
       </div>
 

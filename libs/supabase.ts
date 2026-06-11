@@ -113,6 +113,7 @@ export function mapReleasePage(row: any) {
     selectedProducts: row.selected_products ?? [],
     newsletterEnabled: row.newsletter_enabled ?? false,
     newsletterFields: row.newsletter_fields ?? ["name", "email"],
+    brandLogoUrl: row.brand_logo_url ?? null,
   };
 }
 
