@@ -8,6 +8,7 @@ import nextDynamic from "next/dynamic";
 import Header from "@/components/Header";
 import { Stage, Layer, Line } from "react-konva";
 import { Suspense } from "react";
+import { useSession } from "next-auth/react";
 
 type BlobPart = any; 
 
@@ -234,7 +235,7 @@ export default function Synthfluanto() {
   const [sustain, setSustain] = useState(0.5);
   const [release, setRelease] = useState(1);
   const [glide, setGlide] = useState(0); // portamento
-  const [gain, setGain] = useState(0.6);
+  const [gain, setGain] = useState(0.9);
   const [lowpass, setLowpass] = useState(20000); // Hz
   const [hipass, setHipass] = useState(20); // Hz
 
@@ -819,6 +820,22 @@ const stopNote = useCallback((noteName: string) => {
 
 
   const [isMobile, setIsMobile] = useState(false);
+  const { data: session } = useSession();
+
+  const [savedPresets, setSavedPresets] = useState<{id: string; name: string; settings: any}[]>([]);
+  const [savedMelodies, setSavedMelodies] = useState<{id: string; name: string; audio_url: string}[]>([]);
+  const [showSavePreset, setShowSavePreset] = useState(false);
+  const [showSaveMelody, setShowSaveMelody] = useState(false);
+  const [savePresetName, setSavePresetName] = useState("");
+  const [saveMelodyName, setSaveMelodyName] = useState("");
+  const [savingPreset, setSavingPreset] = useState(false);
+  const [savingMelody, setSavingMelody] = useState(false);
+  const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
+  const [editingMelodyId, setEditingMelodyId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [tuningHz, setTuningHz] = useState(440);
+  const importFileRef = useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
     function handleResize() {
       setIsMobile(window.innerWidth <= 700);
@@ -859,6 +876,12 @@ const stopNote = useCallback((noteName: string) => {
       }
     };
   }, [synthType, oscType]);
+
+  useEffect(() => {
+    if (!session) return;
+    fetch('/api/synth/presets').then(r => r.json()).then(d => { if (Array.isArray(d)) setSavedPresets(d); });
+    fetch('/api/synth/melodies').then(r => r.json()).then(d => { if (Array.isArray(d)) setSavedMelodies(d); });
+  }, [session]);
 
 // --- Keyboard support (robust fix for stuck notes) ---
 useEffect(() => {
@@ -975,6 +998,158 @@ useEffect(() => {
     } as any;
   }
 };
+
+  const getCurrentSettings = () => ({
+    synthType, oscType, attack, decay, sustain, release, glide, gain, lowpass, hipass, filterRolloff,
+    reverb, feedbackDelay, feedbackDelayTime, feedbackDelayFeedback,
+    pingPong, pingPongDelayTime, pingPongFeedback, distortion, chorusWet, chorusFreq, chorusDepth, tremolo, tremoloFreq
+  });
+
+  const applySettings = (s: any) => {
+    if (s.synthType != null) setSynthType(s.synthType);
+    if (s.oscType != null) setOscType(s.oscType);
+    if (s.attack != null) setAttack(s.attack);
+    if (s.decay != null) setDecay(s.decay);
+    if (s.sustain != null) setSustain(s.sustain);
+    if (s.release != null) setRelease(s.release);
+    if (s.glide != null) setGlide(s.glide);
+    if (s.gain != null) setGain(s.gain);
+    if (s.lowpass != null) setLowpass(s.lowpass);
+    if (s.hipass != null) setHipass(s.hipass);
+    if (s.filterRolloff != null) setFilterRolloff(s.filterRolloff);
+    if (s.reverb != null) setReverb(s.reverb);
+    if (s.feedbackDelay != null) setFeedbackDelay(s.feedbackDelay);
+    if (s.feedbackDelayTime != null) setFeedbackDelayTime(s.feedbackDelayTime);
+    if (s.feedbackDelayFeedback != null) setFeedbackDelayFeedback(s.feedbackDelayFeedback);
+    if (s.pingPong != null) setPingPong(s.pingPong);
+    if (s.pingPongDelayTime != null) setPingPongDelayTime(s.pingPongDelayTime);
+    if (s.pingPongFeedback != null) setPingPongFeedback(s.pingPongFeedback);
+    if (s.distortion != null) setDistortion(s.distortion);
+    if (s.chorusWet != null) setChorusWet(s.chorusWet);
+    if (s.chorusFreq != null) setChorusFreq(s.chorusFreq);
+    if (s.chorusDepth != null) setChorusDepth(s.chorusDepth);
+    if (s.tremolo != null) setTremolo(s.tremolo);
+    if (s.tremoloFreq != null) setTremoloFreq(s.tremoloFreq);
+  };
+
+  useEffect(() => {
+    if (!synthRef.current) return;
+    const cents = 1200 * Math.log2(tuningHz / 440);
+    synthRef.current.set({ detune: cents });
+  }, [tuningHz]);
+
+  const handleExportPresets = () => {
+    const presets = session
+      ? savedPresets.map(p => ({ name: p.name, settings: p.settings }))
+      : [{ name: "Current Settings", settings: getCurrentSettings() }];
+    const blob = new Blob([JSON.stringify({ version: 1, presets }, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "influanto_presets.json"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportPresets = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const presets: { name: string; settings: any }[] = Array.isArray(data.presets)
+        ? data.presets
+        : Array.isArray(data) ? data : [];
+      if (presets.length === 0) return;
+      if (session) {
+        for (const p of presets) {
+          const res = await fetch("/api/synth/presets", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: p.name || "Imported Preset", settings: p.settings || p })
+          });
+          if (res.ok) {
+            const preset = await res.json();
+            setSavedPresets(prev => [...prev, preset]);
+          }
+        }
+      } else {
+        if (presets[0]?.settings) applySettings(presets[0].settings);
+      }
+    } catch {}
+    e.target.value = "";
+  };
+
+  const handleSavePreset = async () => {
+    if (!savePresetName.trim()) return;
+    setSavingPreset(true);
+    const res = await fetch('/api/synth/presets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: savePresetName.trim(), settings: getCurrentSettings() })
+    });
+    if (res.ok) {
+      const preset = await res.json();
+      setSavedPresets(prev => [preset, ...prev]);
+      setSavePresetName(""); setShowSavePreset(false);
+    }
+    setSavingPreset(false);
+  };
+
+  const handleDeletePreset = async (id: string) => {
+    await fetch(`/api/synth/presets/${id}`, { method: 'DELETE' });
+    setSavedPresets(prev => prev.filter(p => p.id !== id));
+  };
+
+  const handleRenamePreset = async (id: string) => {
+    if (!editingName.trim()) return;
+    await fetch(`/api/synth/presets/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: editingName.trim() })
+    });
+    setSavedPresets(prev => prev.map(p => p.id === id ? { ...p, name: editingName.trim() } : p));
+    setEditingPresetId(null);
+  };
+
+  const handleSaveMelody = async () => {
+    if (!saveMelodyName.trim()) return;
+    const blob = recordedBlobs[currentMelody];
+    if (!blob) return;
+    setSavingMelody(true);
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = async () => {
+      const dataUrl = reader.result as string;
+      const base64 = dataUrl.split(',')[1];
+      const mimeType = blob.type || 'audio/webm';
+      const res = await fetch('/api/synth/melodies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: saveMelodyName.trim(), audio: base64, mimeType })
+      });
+      if (res.ok) {
+        const melody = await res.json();
+        setSavedMelodies(prev => [melody, ...prev]);
+        setSaveMelodyName(""); setShowSaveMelody(false);
+      }
+      setSavingMelody(false);
+    };
+  };
+
+  const handleDeleteMelody = async (id: string) => {
+    await fetch(`/api/synth/melodies/${id}`, { method: 'DELETE' });
+    setSavedMelodies(prev => prev.filter(m => m.id !== id));
+  };
+
+  const handleRenameMelody = async (id: string) => {
+    if (!editingName.trim()) return;
+    await fetch(`/api/synth/melodies/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: editingName.trim() })
+    });
+    setSavedMelodies(prev => prev.map(m => m.id === id ? { ...m, name: editingName.trim() } : m));
+    setEditingMelodyId(null);
+  };
 
   // --- Canvas waveform/fft visualizer ---
   function VisualizerSketch({ data }: { data: number[] }) {
@@ -1309,154 +1484,186 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
         {/* Melody/Recording Controls - under FX, above piano */}
         <div style={{
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "center",
-          gap: 12,
+          gap: 32,
           margin: "2rem 0 0.5rem 0",
           width: isMobile ? "95%" : "100%",
+          flexWrap: "wrap"
         }}>
-          {/* Melody Dropdown */}
-          <select
-            value={currentMelody}
-            onChange={e => setCurrentMelody(e.target.value)}
-            style={{ borderRadius: 8, padding: "4px 12px", fontWeight: 600, fontSize: 16 }}
-          >
-            {melodyList.map(mel => (
-              <option key={mel} value={mel}>{mel}</option>
-            ))}
-          </select>
-          {/* Add Melody Button */}
-          <button
-            style={{
-              marginLeft: 4,
-              background: "#6366f1",
-              color: "#fff",
-              border: "none",
-              borderRadius: "50%",
-              width: 32,
-              height: 32,
-              fontSize: 22,
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-            title="Add Melody"
-            onClick={handleAddMelody}
-          >+</button>
-         {/* Record Button */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <button
-          onClick={recording ? stopAll : startRecording}
-          style={{
-            background: "transparent",
-            border: "none",
-            borderRadius: "50%",
-            width: 40,
-            height: 40,
-            padding: 0,
-            cursor: "pointer",
-            outline: recording ? "2px solid #ef4444" : "none",
-            animation: recording ? "recordFlash 1s infinite" : "none",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center"
-          }}
-          title={recording ? "Stop Recording" : "Record"}
-        >
-          <RecordSVG overdub={!!recordedBlobs[currentMelody] && !recording} />
-        </button>
-        {/* Layer label */}
-       {recordedBlobs[currentMelody] && !recording && (
-        <span
-          style={{
-            fontSize: 10,
-            color: "#e11d74",
-            fontWeight: 500,
-            marginTop: 0,
-            letterSpacing: 1,
-            textTransform: "uppercase",
-            width: "40px", // match button width
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            alignSelf: "center",
-            marginLeft: 16
-          }}
-        >
-          layer
-        </span>
-      )}
-      </div>
+          {/* LEFT: Saved Presets & Melodies (logged-in only) */}
+          {session && (
+            <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+              {/* Presets */}
+              <div style={{ minWidth: 220, background: "#f3f4f6", borderRadius: 10, padding: "10px 12px", border: "1px solid #e5e7eb" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: "#6366f1", letterSpacing: 1 }}>PRESETS</span>
+                  {showSavePreset ? (
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <input
+                        autoFocus
+                        value={savePresetName}
+                        onChange={e => setSavePresetName(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter") handleSavePreset(); if (e.key === "Escape") setShowSavePreset(false); }}
+                        placeholder="Name..."
+                        style={{ fontSize: 12, padding: "2px 6px", borderRadius: 6, border: "1px solid #6366f1", width: 90 }}
+                      />
+                      <button onClick={handleSavePreset} disabled={savingPreset} style={{ fontSize: 12, padding: "2px 8px", borderRadius: 6, background: "#6366f1", color: "#fff", border: "none", cursor: "pointer" }}>
+                        {savingPreset ? "…" : "✓"}
+                      </button>
+                      <button onClick={() => setShowSavePreset(false)} style={{ fontSize: 12, padding: "2px 6px", borderRadius: 6, background: "#e5e7eb", border: "none", cursor: "pointer" }}>✕</button>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <button onClick={() => setShowSavePreset(true)} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 6, background: "#6366f1", color: "#fff", border: "none", cursor: "pointer" }}>Save</button>
+                      <button onClick={handleExportPresets} title="Export presets as JSON" style={{ fontSize: 11, padding: "2px 6px", borderRadius: 6, background: "#0ea5e9", color: "#fff", border: "none", cursor: "pointer" }}>↓</button>
+                      <button onClick={() => importFileRef.current?.click()} title="Import presets from JSON" style={{ fontSize: 11, padding: "2px 6px", borderRadius: 6, background: "#8b5cf6", color: "#fff", border: "none", cursor: "pointer" }}>↑</button>
+                      <input ref={importFileRef} type="file" accept=".json,application/json" onChange={handleImportPresets} style={{ display: "none" }} />
+                    </div>
+                  )}
+                </div>
+                <div style={{ maxHeight: 110, overflowY: "auto", display: "flex", flexDirection: "column", gap: 2 }}>
+                  {savedPresets.length === 0 && <span style={{ fontSize: 12, color: "#9ca3af", fontStyle: "italic" }}>No saved presets</span>}
+                  {savedPresets.map(p => (
+                    <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 4, background: "#fff", borderRadius: 6, padding: "3px 6px" }}>
+                      {editingPresetId === p.id ? (
+                        <>
+                          <input
+                            autoFocus
+                            value={editingName}
+                            onChange={e => setEditingName(e.target.value)}
+                            onKeyDown={e => { if (e.key === "Enter") handleRenamePreset(p.id); if (e.key === "Escape") setEditingPresetId(null); }}
+                            style={{ fontSize: 12, padding: "1px 4px", borderRadius: 4, border: "1px solid #6366f1", flex: 1, minWidth: 0 }}
+                          />
+                          <button onClick={() => handleRenamePreset(p.id)} style={{ fontSize: 11, padding: "1px 5px", borderRadius: 4, background: "#6366f1", color: "#fff", border: "none", cursor: "pointer" }}>✓</button>
+                          <button onClick={() => setEditingPresetId(null)} style={{ fontSize: 11, padding: "1px 5px", borderRadius: 4, background: "#e5e7eb", border: "none", cursor: "pointer" }}>✕</button>
+                        </>
+                      ) : (
+                        <>
+                          <span style={{ flex: 1, fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
+                          <button onClick={() => applySettings(p.settings)} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#22c55e", color: "#fff", border: "none", cursor: "pointer" }}>Load</button>
+                          <button onClick={() => { setEditingPresetId(p.id); setEditingName(p.name); }} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#f59e0b", color: "#fff", border: "none", cursor: "pointer" }}>Edit</button>
+                          <button onClick={() => handleDeletePreset(p.id)} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#ef4444", color: "#fff", border: "none", cursor: "pointer" }}>Del</button>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          {/* Play Button */}
-         <button
-          onClick={handlePlayToggle}
-          disabled={!audioUrl || recording}
-          style={{
-            marginLeft: 8,
-            background: "transparent",
-            border: "none",
-            borderRadius: "50%",
-            width: 40,
-            height: 40,
-            padding: 0,
-            cursor: !audioUrl || recording ? "not-allowed" : "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-          title={playing ? "Stop" : "Play"}
-        >
-          {playing ? <StopSVG /> : <PlaySVG />}
-        </button>
-          {/* Clear Button */}
+              {/* Melodies */}
+              <div style={{ minWidth: 220, background: "#f3f4f6", borderRadius: 10, padding: "10px 12px", border: "1px solid #e5e7eb" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: "#6366f1", letterSpacing: 1 }}>MELODIES</span>
+                  {showSaveMelody ? (
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <input
+                        autoFocus
+                        value={saveMelodyName}
+                        onChange={e => setSaveMelodyName(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter") handleSaveMelody(); if (e.key === "Escape") setShowSaveMelody(false); }}
+                        placeholder="Name..."
+                        style={{ fontSize: 12, padding: "2px 6px", borderRadius: 6, border: "1px solid #6366f1", width: 90 }}
+                      />
+                      <button onClick={handleSaveMelody} disabled={savingMelody || !recordedBlobs[currentMelody]} style={{ fontSize: 12, padding: "2px 8px", borderRadius: 6, background: "#6366f1", color: "#fff", border: "none", cursor: "pointer" }}>
+                        {savingMelody ? "…" : "✓"}
+                      </button>
+                      <button onClick={() => setShowSaveMelody(false)} style={{ fontSize: 12, padding: "2px 6px", borderRadius: 6, background: "#e5e7eb", border: "none", cursor: "pointer" }}>✕</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => setShowSaveMelody(true)} disabled={!recordedBlobs[currentMelody]} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 6, background: !recordedBlobs[currentMelody] ? "#d1d5db" : "#6366f1", color: "#fff", border: "none", cursor: !recordedBlobs[currentMelody] ? "not-allowed" : "pointer" }}>Save</button>
+                  )}
+                </div>
+                <div style={{ maxHeight: 110, overflowY: "auto", display: "flex", flexDirection: "column", gap: 2 }}>
+                  {savedMelodies.length === 0 && <span style={{ fontSize: 12, color: "#9ca3af", fontStyle: "italic" }}>No saved melodies</span>}
+                  {savedMelodies.map(m => (
+                    <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 4, background: "#fff", borderRadius: 6, padding: "3px 6px" }}>
+                      {editingMelodyId === m.id ? (
+                        <>
+                          <input
+                            autoFocus
+                            value={editingName}
+                            onChange={e => setEditingName(e.target.value)}
+                            onKeyDown={e => { if (e.key === "Enter") handleRenameMelody(m.id); if (e.key === "Escape") setEditingMelodyId(null); }}
+                            style={{ fontSize: 12, padding: "1px 4px", borderRadius: 4, border: "1px solid #6366f1", flex: 1, minWidth: 0 }}
+                          />
+                          <button onClick={() => handleRenameMelody(m.id)} style={{ fontSize: 11, padding: "1px 5px", borderRadius: 4, background: "#6366f1", color: "#fff", border: "none", cursor: "pointer" }}>✓</button>
+                          <button onClick={() => setEditingMelodyId(null)} style={{ fontSize: 11, padding: "1px 5px", borderRadius: 4, background: "#e5e7eb", border: "none", cursor: "pointer" }}>✕</button>
+                        </>
+                      ) : (
+                        <>
+                          <span style={{ flex: 1, fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.name}</span>
+                          <button onClick={() => { setAudioUrl(m.audio_url); }} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#22c55e", color: "#fff", border: "none", cursor: "pointer" }}>Load</button>
+                          <button onClick={() => { setEditingMelodyId(m.id); setEditingName(m.name); }} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#f59e0b", color: "#fff", border: "none", cursor: "pointer" }}>Edit</button>
+                          <button onClick={() => handleDeleteMelody(m.id)} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#ef4444", color: "#fff", border: "none", cursor: "pointer" }}>Del</button>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* RIGHT: Transport controls + tuning */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {/* Record Button */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <button
+                onClick={recording ? stopAll : startRecording}
+                style={{ background: "transparent", border: "none", borderRadius: "50%", width: 40, height: 40, padding: 0, cursor: "pointer", outline: recording ? "2px solid #ef4444" : "none", animation: recording ? "recordFlash 1s infinite" : "none", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" }}
+                title={recording ? "Stop Recording" : "Record"}
+              >
+                <RecordSVG overdub={!!recordedBlobs[currentMelody] && !recording} />
+              </button>
+              {recordedBlobs[currentMelody] && !recording && (
+                <span style={{ fontSize: 10, color: "#e11d74", fontWeight: 500, marginTop: 0, letterSpacing: 1, textTransform: "uppercase", width: "40px", display: "flex", alignItems: "center", justifyContent: "center", alignSelf: "center", marginLeft: 16 }}>layer</span>
+              )}
+            </div>
+            {/* Play Button */}
+            <button
+              onClick={handlePlayToggle}
+              disabled={!audioUrl || recording}
+              style={{ marginLeft: 8, background: "transparent", border: "none", borderRadius: "50%", width: 40, height: 40, padding: 0, cursor: !audioUrl || recording ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+              title={playing ? "Stop" : "Play"}
+            >
+              {playing ? <StopSVG /> : <PlaySVG />}
+            </button>
+            {/* Clear Button */}
             {audioUrl && (
               <button
                 onClick={clearRecording}
                 disabled={recording || playing}
-                style={{
-                  marginLeft: 8,
-                  background: "transparent",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: 40,
-                  height: 40,
-                  padding: 0,
-                  cursor: recording || playing ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}
+                style={{ marginLeft: 8, background: "transparent", border: "none", borderRadius: "50%", width: 40, height: 40, padding: 0, cursor: recording || playing ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                 title="Clear"
               >
                 <TrashSVG />
               </button>
             )}
-
-          {/* Save Button */}
-          <button
-            onClick={saveRecording}
-            disabled={!audioUrl}
-            style={{
-              marginLeft: 8,
-              background: "transparent",
-              border: "none",
-              borderRadius: "50%",
-              width: 40,
-              height: 40,
-              padding: 0,
-              cursor: !audioUrl ? "not-allowed" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-            title="Save"
-          >
-            <SaveSVG />
-          </button>
+            {/* Download Button */}
+            <button
+              onClick={saveRecording}
+              disabled={!audioUrl}
+              style={{ marginLeft: 8, background: "transparent", border: "none", borderRadius: "50%", width: 40, height: 40, padding: 0, cursor: !audioUrl ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+              title="Download"
+            >
+              <SaveSVG />
+            </button>
+            {/* Tuning knob */}
+            <div style={{ marginLeft: 16, display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <SvgKnob
+                label="A ="
+                min={420}
+                max={460}
+                step={0.5}
+                value={tuningHz}
+                onChange={setTuningHz}
+                displayValue={tuningHz.toFixed(1) + "Hz"}
+                size={isMobile ? 46 : 52}
+                color={tuningHz === 440 ? "#6366f1" : "#f59e0b"}
+              />
+            </div>
+          </div>
         </div>
 
 {/* Piano */}
