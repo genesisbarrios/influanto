@@ -33,6 +33,7 @@ const ReleasePages = () => {
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [showMerchSection, setShowMerchSection] = useState(false);
   const [expandedAnalytics, setExpandedAnalytics] = useState<string | null>(null);
+  const [brandLogoUrl, setBrandLogoUrl] = useState("");
 
 
   useEffect(() => {
@@ -212,6 +213,7 @@ const ReleasePages = () => {
     });
     setCreatePage(true);
     setSelectedProductIds([]);
+    setBrandLogoUrl("");
   };
 
   const handleEdit = (page: any) => {
@@ -222,7 +224,8 @@ const ReleasePages = () => {
     setTextColor(page.textColor || "#000000");
     setLinksColor(page.linksColor || "#0000ff");
     setFont(page.font || "sans-serif");
-    
+    setBrandLogoUrl(page.brandLogoUrl || "");
+
     // Load selected products for this page
     if (page.selectedProducts && Array.isArray(page.selectedProducts)) {
       setSelectedProductIds(page.selectedProducts);
@@ -669,6 +672,7 @@ const removeCustomLink = (index: number) => {
         selectedProducts: selectedProductIds,
         newsletterEnabled: !!editingPage?.newsletterEnabled,
         newsletterFields: nlFields.includes("email") ? nlFields : [...nlFields, "email"],
+        brandLogoUrl: brandLogoUrl || null,
       };
 
       const isNew = !editingPage?._id;
@@ -1101,6 +1105,30 @@ const removeCustomLink = (index: number) => {
               )}
             </div>
 
+            {/* Brand Logo (Premium) */}
+            {userData?.hasAccess && (
+              <div className="mt-4 p-4 bg-purple-50 rounded-md border border-purple-200">
+                <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>✨ Brand Logo</h4>
+                <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: font || 'inherit' }}>
+                  Shown at the bottom of your release page.
+                </p>
+                {brandLogoUrl && (
+                  <div className="flex items-center gap-3 mb-3">
+                    <img src={brandLogoUrl} alt="Brand logo" className="h-12 object-contain rounded border border-purple-200 bg-white p-1" />
+                    <button type="button" className="btn btn-xs btn-error text-white" onClick={() => setBrandLogoUrl("")}>🗑️ Remove</button>
+                  </div>
+                )}
+                <input
+                  type="url"
+                  className="input input-sm w-full"
+                  placeholder="Paste logo URL (https://...)"
+                  value={brandLogoUrl}
+                  onChange={e => setBrandLogoUrl(e.target.value)}
+                  style={{ fontFamily: font || 'inherit' }}
+                />
+              </div>
+            )}
+
             <div className="flex justify-end">
               <button
                 className="btn btn-primary btn-sm mr-2"
@@ -1421,6 +1449,30 @@ const removeCustomLink = (index: number) => {
                 </div>
               )}
             </div>
+
+            {/* Brand Logo (Premium) */}
+            {userData?.hasAccess && (
+              <div className="mt-4 p-4 bg-purple-50 rounded-md border border-purple-200">
+                <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>✨ Brand Logo</h4>
+                <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: font || 'inherit' }}>
+                  Shown at the bottom of your release page.
+                </p>
+                {brandLogoUrl && (
+                  <div className="flex items-center gap-3 mb-3">
+                    <img src={brandLogoUrl} alt="Brand logo" className="h-12 object-contain rounded border border-purple-200 bg-white p-1" />
+                    <button type="button" className="btn btn-xs btn-error text-white" onClick={() => setBrandLogoUrl("")}>🗑️ Remove</button>
+                  </div>
+                )}
+                <input
+                  type="url"
+                  className="input input-sm w-full"
+                  placeholder="Paste logo URL (https://...)"
+                  value={brandLogoUrl}
+                  onChange={e => setBrandLogoUrl(e.target.value)}
+                  style={{ fontFamily: font || 'inherit' }}
+                />
+              </div>
+            )}
 
             <div className="flex justify-end">
               <button
