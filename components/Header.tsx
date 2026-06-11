@@ -31,6 +31,10 @@ const links: {
     href: "/tools",
     label: "Music Tools",
   },
+  {
+    href: "/blog",
+    label: "Blog",
+  },
   
   {
     href: "/dashboard",

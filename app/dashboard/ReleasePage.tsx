@@ -743,17 +743,16 @@ const removeCustomLink = (index: number) => {
           <p className="text-purple-600 text-sm" style={{
             fontFamily: font || 'inherit'
           }}>
-            {!userData?.printifyShopId 
-              ? "Connect your Printify store to your Profile to add merch to your release pages" 
+            {!userData?.printifyShopId
+              ? "Connect your Printify store to your Profile to add merch to your release pages"
               : "Your Printify store is connected. Select products to feature below."
             }
           </p>
-        </div>
 
         {userData?.printifyShopId && (
           <>
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-bold" style={{ fontFamily: font || 'inherit' }}>Merch Products</h4>
+            <div className="flex items-center justify-between mb-2 mt-3">
+              <h4 className="font-bold text-purple-800" style={{ fontFamily: font || 'inherit' }}>Merch Products</h4>
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
@@ -832,6 +831,7 @@ const removeCustomLink = (index: number) => {
             )}
           </>
         )}
+        </div>
       </>
     );
   };
@@ -1008,7 +1008,7 @@ const removeCustomLink = (index: number) => {
 
             {/* Brand Logo (Premium) */}
             {userData?.hasAccess && (
-              <div className="mt-4 p-4 bg-purple-50 rounded-md border border-purple-200">
+              <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
                 <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>✨ Brand Logo</h4>
                 <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: font || 'inherit' }}>
                   Shown at the bottom of your release page.
@@ -1402,7 +1402,7 @@ const removeCustomLink = (index: number) => {
 
             {/* Brand Logo (Premium) */}
             {userData?.hasAccess && (
-              <div className="mt-4 p-4 bg-purple-50 rounded-md border border-purple-200">
+              <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
                 <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>✨ Brand Logo</h4>
                 <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: font || 'inherit' }}>
                   Shown at the bottom of your release page.
