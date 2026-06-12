@@ -5,7 +5,10 @@ import PlausibleProvider from "next-plausible";
 import { getSEOTags } from "@/libs/seo";
 import ClientLayout from "@/components/LayoutClient";
 import config from "@/config";
+import { Analytics } from "@vercel/analytics/next"
+import { PostHogWrapper } from "@/app/providers";
 import "./globals.css";
+
 
 const font = Inter({ subsets: ["latin"] });
 
@@ -39,11 +42,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               gtag('config', 'G-Y8YZX4PWTB');
           `,
         }}/>
+        <script src="https://analytics.ahrefs.com/analytics.js" data-key="V99pP2dI1JT1hXRZGzOaIQ" async></script>
+        <meta name="facebook-domain-verification" content="wlmap6a9b74lr7qzry02c1y7qo9bq7" />
         </head>
       )}
       <body>
         {/* ClientLayout contains all the client wrappers (Crisp chat support, toast messages, tooltips, etc.) */}
-        <ClientLayout>{children}</ClientLayout>
+        <PostHogWrapper>
+          <ClientLayout>
+            {children}
+            <Analytics />
+          </ClientLayout>
+        </PostHogWrapper>
       </body>
     </html>
   );

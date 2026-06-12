@@ -29,13 +29,13 @@ export const getSEOTags = ({
     metadataBase: new URL(
       process.env.NODE_ENV === "development"
         ? "http://localhost:3000/"
-        : `https://${config.domainName}/`
+        : `https://www.${config.domainName}/`
     ),
 
     openGraph: {
       title: openGraph?.title || config.appName,
       description: openGraph?.description || config.appDescription,
-      url: openGraph?.url || `https://${config.domainName}/`,
+      url: openGraph?.url || `https://www.${config.domainName}/`,
       siteName: openGraph?.title || config.appName,
       // If you add an opengraph-image.(jpg|jpeg|png|gif) image to the /app folder, you don't need the code below
       // images: [
@@ -85,7 +85,7 @@ export const renderSchemaTags = () => {
           name: config.appName,
           description: config.appDescription,
           image: `https://${config.domainName}/icon.png`,
-          url: `https://${config.domainName}/`,
+          url: `https://www.${config.domainName}/`,
           author: {
             "@type": "Person",
             name: "Genesis Barrios",

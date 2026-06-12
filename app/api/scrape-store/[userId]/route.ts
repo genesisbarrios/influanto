@@ -1,7 +1,5 @@
-// Create app/api/scrape-store/[userId]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import connectMongo from "@/libs/mongoose";
-import User from "@/models/User";
+import supabase from "@/libs/supabase";
 
 export async function GET(
   request: NextRequest,
@@ -10,17 +8,20 @@ export async function GET(
   try {
     const { userId } = params;
 
-    await connectMongo();
-    const user = await User.findById(userId);
-    
-    if (!user?.printifyStoreUrl) {
+    const { data: user } = await supabase
+      .from("users")
+      .select("printify_store_url")
+      .eq("id", userId)
+      .single();
+
+    if (!user?.printify_store_url) {
       return NextResponse.json({ error: 'No store URL found' }, { status: 404 });
     }
 
-    console.log('🔍 Scraping store:', user.printifyStoreUrl);
+    console.log('🔍 Scraping store:', user.printify_store_url);
 
     // Fetch the public storefront
-    const storeResponse = await fetch(user.printifyStoreUrl);
+    const storeResponse = await fetch(user.printify_store_url);
     
     if (!storeResponse.ok) {
       return NextResponse.json({ error: 'Failed to fetch store' }, { status: 500 });

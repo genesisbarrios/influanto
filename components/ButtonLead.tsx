@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { toast } from "react-hot-toast";
 import apiClient from "@/libs/api";
+import posthog from "posthog-js";
 
 // This component is used to collect the emails from the landing page
 // You'd use this if your product isn't ready yet or you want to collect leads
@@ -21,6 +22,8 @@ const ButtonLead = ({ extraStyle }: { extraStyle?: string }) => {
     try {
       await apiClient.post("/lead", { email });
 
+      posthog.capture("lead_captured", { email });
+
       toast.success("Thanks for joining the waitlist!");
 
       // just remove the focus on the input
@@ -29,6 +32,7 @@ const ButtonLead = ({ extraStyle }: { extraStyle?: string }) => {
       setIsDisabled(true);
     } catch (error) {
       console.log(error);
+      posthog.captureException(error);
     } finally {
       setIsLoading(false);
     }

@@ -20,12 +20,8 @@ const links: {
   label: string;
 }[] = [
   {
-    href: "/#pricing",
-    label: "Pricing",
-  },
-  {
-    href: "/#faq",
-    label: "FAQ",
+    href: "/blog",
+    label: "Blog",
   },
   {
     href: "/tools",
@@ -38,6 +34,14 @@ const links: {
   {
     href: "/dashboard",
     label: "Dashboard",
+  },
+  {
+    href: "/#pricing",
+    label: "Pricing",
+  },
+  {
+    href: "/#faq",
+    label: "FAQ",
   },
 
 ];
@@ -188,7 +192,7 @@ const Header = () => {
             </div>
             <div className="divider"></div>
             {/* Your CTA on small screens */}
-            <div className="flex flex-col">{cta}</div>
+            <div className="flex flex-col">{data ? ctaAuth : cta}</div>
           </div>
         </div>
       </div>

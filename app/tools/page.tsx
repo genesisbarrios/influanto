@@ -11,6 +11,24 @@ const calcDelayMs = (bpm: number, note: number) => {
 };
 
 const tools = [
+   {
+    title: "Split Sheet Generator",
+    description: "Create and export split sheets for your music collaborations.",
+    href: "/Split-Sheet-Generator",   
+    icon: "📄",
+  },
+   {
+    title: "Song Key Finder",
+    description: "Upload a song or use your mic to detect its musical key.",
+    href: "/Key-Finder",
+    icon: "🎼",
+  },
+  {
+    title: "BPM Calculator",
+    description: "Tap/click on beat or upload the audio to find the tempo of your track.",
+    href: "/BPM-Calculator",
+    icon: "🎵",
+  },
   {
     title: "Delay & Reverb Time Calculator",
     description: "Calculate delay and reverb times for your song.",
@@ -18,28 +36,41 @@ const tools = [
     icon: "⏱️",
   },
   {
-    title: "Split Sheet Generator",
-    description: "Create and export split sheets for your music collaborations.",
-    href: "/Split-Sheet-Generator",
-    icon: "📄",
+    title: "Music Metadata Editor",
+    description: "Edit MP3 & WAV tags — artist, composer, cover art, copyright — and download.",
+    href: "/Metadata-Editor",
+    icon: "🏷️",
   },
   {
-    title: "BPM Calculator",
-    description: "Tap or click on beat to find the tempo of your track.",
-    href: "/BPM-Calculator",
-    icon: "🎵",
+    title: "Chromatic Tuner",
+    description: "Tune guitar, bass, violin, or any instrument with your mic.",
+    href: "/Tuner",
+    icon: "🎻",
   },
+  {
+    title: "Synthfluanto",
+    description: "Create and share your own melodies with our synth.",
+    href: "/Synthfluanto",
+    icon: "🎹",
+  },
+  {
+    title: "Ear Training",
+    description: "Pitch matching, interval recognition, and chord recognition for musicians, producers, and singers.",
+    href: "/Ear-Training",
+    icon: "👂",
+  },
+  {
+    title: "Image Privacy Cleaner",
+    description: "Strip GPS location & camera data (EXIF) from your photos.",
+    href: "/Image-Privacy",
+    icon: "🛡️",
+  },
+  
 //   {
 //     title: "WAV to MP3 Converter",
 //     description: "Convert WAV files to MP3 format easily.",
 //     href: "/MP3Converter",
 //     icon: "🎛️",
-//   },
-//   {
-//     title: "Synthfluanto",
-//     description: "Create and share your own melodies in our app.",
-//     href: "/Synthfluanto",
-//     icon: "🎹",
 //   },
   {
     title: "More Tools",
@@ -63,7 +94,7 @@ useEffect(() => {
       metaDescription.setAttribute('name', 'description');
       document.head.appendChild(metaDescription);
     }
-    metaDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more');
+    metaDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner, Split Sheet Generator + more');
 
     // Update og:title
     let ogTitle = document.querySelector('meta[property="og:title"]');
@@ -81,7 +112,7 @@ useEffect(() => {
       ogDescription.setAttribute('property', 'og:description');
       document.head.appendChild(ogDescription);
     }
-    ogDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more');
+    ogDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner,Split Sheet Generator + more');
 
     // Update twitter:title
     let twitterTitle = document.querySelector('meta[name="twitter:title"]');
@@ -99,7 +130,7 @@ useEffect(() => {
       twitterDescription.setAttribute('name', 'twitter:description');
       document.head.appendChild(twitterDescription);
     }
-    twitterDescription.setAttribute('content', 'Delay & Reverb Calculator, BPM Calculator, Split Sheet Generator + more');
+    twitterDescription.setAttribute('content', 'Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner, Split Sheet Generator + more');
   }, []);
 
 

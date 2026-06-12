@@ -92,10 +92,16 @@ const Pricing = () => {
                 <div className="space-y-2 mx-auto">
                   {plan.priceId && (
                     <>
-                      <ButtonCheckout priceId={plan.priceId} />
+                      <ButtonCheckout
+                        priceId={plan.priceId}
+                        mode={plan.mode ?? "subscription"}
+                        buttonText={plan.name}
+                      />
+                      {plan.mode === "subscription" && (
                         <p className="flex items-center justify-center text-sm text-center text-base-content/80 font-medium relative">
-                        Start with a 14-day free trial. Cancel anytime!
+                          Start with a 14-day free trial. Cancel anytime!
                         </p>
+                      )}
                     </>
                   )}        
 

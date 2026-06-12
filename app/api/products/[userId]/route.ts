@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectMongo from "@/libs/mongoose";
-import User from "@/models/User";
+import supabase, { mapUser } from "@/libs/supabase";
 
 export async function GET(
   request: NextRequest,
@@ -15,30 +14,40 @@ export async function GET(
       return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
     }
 
-    await connectMongo();
-    const user = await User.findById(userId);
-    
-    if (!user) {
+    const { data: userRow } = await supabase.from("users").select().eq("id", userId).single();
+    if (!userRow) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+    const user = mapUser(userRow)!;
 
     // First, try to get products from Printify API if user has access
     if (user.printifyAccessToken && user.printifyShopId) {
-      //console.log('🔍 Fetching products from Printify API...');
       try {
-        const printifyResponse = await fetch(`https://api.printify.com/v1/shops/${user.printifyShopId}/products.json`, {
-          headers: {
-            'Authorization': `Bearer ${user.printifyAccessToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        const allProducts: any[] = [];
+        let page = 1;
+        let lastPage = 1;
 
-        if (printifyResponse.ok) {
+        do {
+          const printifyResponse = await fetch(
+            `https://api.printify.com/v1/shops/${user.printifyShopId}/products.json?page=${page}&limit=100`,
+            {
+              headers: {
+                'Authorization': `Bearer ${user.printifyAccessToken}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+
+          if (!printifyResponse.ok) break;
+
           const printifyData = await printifyResponse.json();
-          //console.log('✅ Printify API products fetched:', printifyData.data?.length || 0);
+          lastPage = printifyData.last_page ?? 1;
+          if (Array.isArray(printifyData.data)) allProducts.push(...printifyData.data);
+          page++;
+        } while (page <= lastPage);
 
-          // Transform the data to include the actual URLs
-          const productsWithUrls = printifyData.data?.map((product: any) => {
+        if (allProducts.length > 0) {
+          const productsWithUrls = allProducts.map((product: any) => {
             // Construct the actual Printify shop URL
             let productUrl = '#';
             
@@ -71,12 +80,7 @@ export async function GET(
             };
           }) || [];
 
-          if (productsWithUrls.length > 0) {
-           // console.log('✅ Returning Printify API products with URLs');
-            return NextResponse.json(productsWithUrls);
-          }
-        } else {
-          console.log('❌ Printify API failed, falling back to scraping...');
+          return NextResponse.json(productsWithUrls);
         }
       } catch (printifyError) {
         console.error('❌ Printify API error, falling back to scraping:', printifyError);

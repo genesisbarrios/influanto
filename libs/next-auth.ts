@@ -2,52 +2,48 @@ import NextAuth from "next-auth";
 import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import EmailProvider from "next-auth/providers/email";
-import { MongoDBAdapter } from "@auth/mongodb-adapter";
+import { SupabaseAdapter } from "./supabase-adapter";
+import supabase from "./supabase";
 import config from "@/config";
-import connectMongo from "./mongo";
 
-interface NextAuthOptionsExtended extends NextAuthOptions {
-  adapter?: any;
-}
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export const authOptions: NextAuthOptionsExtended  = {
-  // Set any random key in .env.local
-  secret: process.env.NEXTAUTH_SECRET || (() => { throw new Error("NEXTAUTH_SECRET is not defined in environment variables"); })(),
+export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET || (() => { throw new Error("NEXTAUTH_SECRET is not defined"); })(),
   providers: [
     GoogleProvider({
-      // Follow the "Login with Google" tutorial to get your credentials
-      clientId: process.env.GOOGLE_ID || (() => { throw new Error("GOOGLE_ID is not defined in environment variables"); })(),
-      clientSecret: process.env.GOOGLE_SECRET || (() => { throw new Error("GOOGLE_SECRET is not defined in environment variables"); })(),
+      clientId: process.env.GOOGLE_ID || (() => { throw new Error("GOOGLE_ID is not defined"); })(),
+      clientSecret: process.env.GOOGLE_SECRET || (() => { throw new Error("GOOGLE_SECRET is not defined"); })(),
       async profile(profile) {
         return {
           id: profile.sub,
           name: profile.given_name ? profile.given_name : profile.name,
           email: profile.email,
           image: profile.picture,
-          createdAt: new Date(),
         };
       },
     }),
-    // Follow the "Login with Email" tutorial to set up your email server
-    // Requires a MongoDB database. Set MONOGODB_URI env variable.
-    ...(connectMongo
-      ? [
-          EmailProvider({
-            server: process.env.EMAIL_SERVER,
-            from: config.mailgun.fromNoReply,
-          }),
-        ]
-      : []),
+    EmailProvider({
+      server: process.env.EMAIL_SERVER,
+      from: config.mailgun.fromNoReply,
+    }),
   ],
-  // New users will be saved in Database (MongoDB Atlas). Each user (model) has some fields like name, email, image, etc..
-  // Requires a MongoDB database. Set MONOGODB_URI env variable.
-  // Learn more about the model type: https://next-auth.js.org/v3/adapters/models
-  ...(connectMongo && { adapter: MongoDBAdapter(connectMongo) }),
-
+  adapter: SupabaseAdapter(),
   callbacks: {
     session: async ({ session, token }: { session: any; token: any }) => {
       if (session?.user) {
-        session.user.id = token.sub;
+        if (UUID_RE.test(token.sub ?? "")) {
+          // Normal post-migration login — token already has a Supabase UUID
+          session.user.id = token.sub;
+        } else if (token.email) {
+          // Legacy JWT with old MongoDB ObjectId — resolve to Supabase UUID by email
+          const { data } = await supabase
+            .from("users")
+            .select("id")
+            .eq("email", token.email)
+            .single();
+          session.user.id = data?.id ?? token.sub;
+        }
       }
       return session;
     },
@@ -57,8 +53,6 @@ export const authOptions: NextAuthOptionsExtended  = {
   },
   theme: {
     brandColor: config.colors.main,
-    // Add you own logo below. Recommended size is rectangle (i.e. 200x50px) and show your logo + name.
-    // It will be used in the login flow to display your logo. If you don't add it, it will look faded.
     logo: `/TRANSPARENT_LOGO.png`,
   },
 };

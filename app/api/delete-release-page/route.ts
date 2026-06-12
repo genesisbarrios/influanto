@@ -1,46 +1,36 @@
-import { NextResponse } from "next/server";
-import { NextRequest } from "next/server";
-import ReleasePage from "@/models/ReleasePage";
+import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
-import connectMongo from "@/libs/mongoose";
 import { authOptions } from "@/libs/next-auth";
+import supabase from "@/libs/supabase";
 
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  
-  if (session) {
-    await connectMongo();
-    const userId = session.user.id; // Assuming the session contains the user ID
-    const { id } = await req.json();  // Get the release page ID to delete
-    console.log("User ID:", userId);
-    console.log("Release Page ID to delete:", id);
+  if (!session) {
+    return NextResponse.json({ error: "Please Sign In." }, { status: 401 });
+  }
 
-    try {
-      // Find the release page by id and userId
-      const releasePage = await ReleasePage.findOneAndDelete({ _id: id, userId: userId });
+  const { id } = await req.json();
+  const userId = session.user.id;
 
-      if (!releasePage) {
-        return NextResponse.json(
-          { error: "Release page not found or you don't have permission to delete it." },
-          { status: 404 }
-        );
-      }
+  try {
+    const { data, error } = await supabase
+      .from("release_pages")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", userId)
+      .select()
+      .single();
 
+    if (error || !data) {
       return NextResponse.json(
-        { message: "Release page deleted successfully." },
-        { status: 200 }
-      );
-    } catch (e) {
-      console.error(e);
-      return NextResponse.json(
-        { error: "Something went wrong" },
-        { status: 500 }
+        { error: "Release page not found or you don't have permission to delete it." },
+        { status: 404 }
       );
     }
-  } else {
-    return NextResponse.json(
-      { error: "Please Sign In." },
-      { status: 401 }
-    );
+
+    return NextResponse.json({ message: "Release page deleted successfully." }, { status: 200 });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

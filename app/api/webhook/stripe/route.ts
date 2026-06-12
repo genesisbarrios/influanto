@@ -1,10 +1,10 @@
 import { NextResponse, NextRequest } from "next/server";
 import { headers } from "next/headers";
 import Stripe from "stripe";
-import connectMongo from "@/libs/mongoose";
 import configFile from "@/config";
-import User from "@/models/User";
 import { findCheckoutSession } from "@/libs/stripe";
+import { getPostHogClient } from "@/libs/posthog-server";
+import supabase from "@/libs/supabase";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY is not defined in the environment variables");
@@ -14,159 +14,158 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-08-16",
   typescript: true,
 });
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
+// Live and test endpoints have different signing secrets — verify against
+// whichever matches so both work on the same /api/webhook/stripe URL.
+const webhookSecrets = [
+  process.env.STRIPE_WEBHOOK_SECRET_PROD,
+  process.env.STRIPE_WEBHOOK_SECRET,
+].filter((s): s is string => !!s);
 
-// This is where we receive Stripe webhook events
-// It used to update the user data, send emails, etc...
-// By default, it'll store the user in the database
 export async function POST(req: NextRequest) {
-  await connectMongo();
-
   const body = await req.text();
-
   const signature = headers().get("stripe-signature");
 
-  let eventType;
-  let event;
+  let event: Stripe.Event;
 
-  // verify Stripe event is legit
   try {
-    if (!signature) {
-      throw new Error("Stripe signature is missing");
+    if (!signature) throw new Error("Stripe signature is missing");
+    if (!webhookSecrets.length) throw new Error("No Stripe webhook secret is configured");
+
+    let constructed: Stripe.Event | null = null;
+    let lastErr: any;
+    for (const secret of webhookSecrets) {
+      try {
+        constructed = stripe.webhooks.constructEvent(body, signature, secret);
+        break;
+      } catch (e) {
+        lastErr = e;
+      }
     }
-    if (!webhookSecret) {
-      throw new Error("STRIPE_WEBHOOK_SECRET is not defined in the environment variables");
-    }
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-  } catch (err) {
+    if (!constructed) throw lastErr ?? new Error("Signature verification failed");
+    event = constructed;
+  } catch (err: any) {
     console.error(`Webhook signature verification failed. ${err.message}`);
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
-  eventType = event.type;
-
   try {
-    switch (eventType) {
+    switch (event.type) {
       case "checkout.session.completed": {
-        // First payment is successful and a subscription is created (if mode was set to "subscription" in ButtonCheckout)
-        // ✅ Grant access to the product
-        const stripeObject: Stripe.Checkout.Session = event.data
-          .object as Stripe.Checkout.Session;
-
-        const session = await findCheckoutSession(stripeObject.id);
-
-        const customerId = session?.customer;
-        const priceId = session?.line_items?.data[0]?.price?.id ?? null;
+        const stripeObject = event.data.object as Stripe.Checkout.Session;
+        const checkoutSession = await findCheckoutSession(stripeObject.id);
+        const customerId = checkoutSession?.customer as string;
+        const priceId = checkoutSession?.line_items?.data[0]?.price?.id ?? null;
         const userId = stripeObject.client_reference_id;
         const plan = configFile.stripe.plans.find((p) => p.priceId === priceId);
 
         if (!plan) break;
 
-        const customer = (await stripe.customers.retrieve(
-          customerId as string
-        )) as Stripe.Customer;
+        const customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer;
 
-        let user;
+        let user: any = null;
 
-        // Get or create the user. userId is normally pass in the checkout session (clientReferenceID) to identify the user when we get the webhook event
         if (userId) {
-          user = await User.findById(userId);
+          const { data } = await supabase.from("users").select().eq("id", userId).single();
+          user = data;
         } else if (customer.email) {
-          user = await User.findOne({ email: customer.email });
+          const { data: existing } = await supabase
+            .from("users")
+            .select()
+            .eq("email", customer.email)
+            .maybeSingle();
 
-          if (!user) {
-            user = await User.create({
-              email: customer.email,
-              name: customer.name,
-            });
-
-            await user.save();
+          if (existing) {
+            user = existing;
+          } else {
+            const { data: newUser } = await supabase
+              .from("users")
+              .insert({ email: customer.email, name: customer.name })
+              .select()
+              .single();
+            user = newUser;
           }
-        } else {
-          console.error("No user found");
-          throw new Error("No user found");
         }
 
-        // Update user data + Grant user access to your product. It's a boolean in the database, but could be a number of credits, etc...
-        user.priceId = priceId;
-        user.customerId = customerId;
-        user.hasAccess = true;
-        await user.save();
+        if (!user) throw new Error("No user found");
 
-        // Extra: send email with user link, product page, etc...
-        // try {
-        //   await sendEmail(...);
-        // } catch (e) {
-        //   console.error("Email issue:" + e?.message);
-        // }
+        await supabase
+          .from("users")
+          .update({ price_id: priceId, customer_id: customerId, has_access: true })
+          .eq("id", user.id);
 
+        const posthog = getPostHogClient();
+        posthog.capture({
+          distinctId: user.id,
+          event: "subscription_completed",
+          properties: {
+            price_id: priceId,
+            plan_name: plan.name,
+            customer_id: customerId,
+            email: customer.email,
+          },
+        });
+        await posthog.shutdown();
         break;
       }
 
-      case "checkout.session.expired": {
-        // User didn't complete the transaction
-        // You don't need to do anything here, by you can send an email to the user to remind him to complete the transaction, for instance
+      case "checkout.session.expired":
         break;
-      }
 
-      case "customer.subscription.updated": {
-        // The customer might have changed the plan (higher or lower plan, cancel soon etc...)
-        // You don't need to do anything here, because Stripe will let us know when the subscription is canceled for good (at the end of the billing cycle) in the "customer.subscription.deleted" event
-        // You can update the user data to show a "Cancel soon" badge for instance
+      case "customer.subscription.updated":
         break;
-      }
 
       case "customer.subscription.deleted": {
-        // The customer subscription stopped
-        // ❌ Revoke access to the product
-        const stripeObject: Stripe.Subscription = event.data
-          .object as Stripe.Subscription;
+        const stripeObject = event.data.object as Stripe.Subscription;
+        const subscription = await stripe.subscriptions.retrieve(stripeObject.id);
+        const { data: user } = await supabase
+          .from("users")
+          .select()
+          .eq("customer_id", subscription.customer)
+          .single();
 
-        const subscription = await stripe.subscriptions.retrieve(
-          stripeObject.id
-        );
-        const user = await User.findOne({ customerId: subscription.customer });
+        if (!user) break;
 
-        // Revoke access to your product
-        user.hasAccess = false;
-        await user.save();
+        const userPlan = configFile.stripe.plans.find((p) => p.priceId === user.price_id);
+        if (userPlan?.mode === "payment") break;
 
+        await supabase.from("users").update({ has_access: false }).eq("id", user.id);
+
+        const posthogCancel = getPostHogClient();
+        posthogCancel.capture({
+          distinctId: user.id,
+          event: "subscription_cancelled",
+          properties: {
+            customer_id: subscription.customer,
+            price_id: stripeObject.items?.data[0]?.price?.id ?? null,
+          },
+        });
+        await posthogCancel.shutdown();
         break;
       }
 
       case "invoice.paid": {
-        // Customer just paid an invoice (for instance, a recurring payment for a subscription)
-        // ✅ Grant access to the product
-
-        const stripeObject: Stripe.Invoice = event.data
-          .object as Stripe.Invoice;
+        const stripeObject = event.data.object as Stripe.Invoice;
         const priceId = stripeObject.lines.data[0]?.price?.id ?? null;
-        const customerId = stripeObject.customer;
-        const user = await User.findOne({ customerId });
+        const customerId = stripeObject.customer as string;
+        const { data: user } = await supabase
+          .from("users")
+          .select()
+          .eq("customer_id", customerId)
+          .single();
 
-        // Make sure the invoice is for the same plan (priceId) the user subscribed to
-        if (user.priceId !== priceId) break;
+        if (!user || user.price_id !== priceId) break;
 
-        // Grant user access to your product. It's a boolean in the database, but could be a number of credits, etc...
-        user.hasAccess = true;
-        await user.save();
-
+        await supabase.from("users").update({ has_access: true }).eq("id", user.id);
         break;
       }
 
       case "invoice.payment_failed":
-        // A payment failed (for instance the customer does not have a valid payment method)
-        // ❌ Revoke access to the product
-        // ⏳ OR wait for the customer to pay (more friendly):
-        //      - Stripe will automatically email the customer (Smart Retries)
-        //      - We will receive a "customer.subscription.deleted" when all retries were made and the subscription has expired
-
         break;
 
       default:
-      // Unhandled event type
+        break;
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error("stripe error: ", e.message);
   }
 

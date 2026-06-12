@@ -2,7 +2,6 @@
 "use client";
 
 import { useSession, signIn } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import config from "@/config";
 
@@ -17,7 +16,7 @@ const ButtonGetInfluanto = ({
   extraStyle?: string;
 }) => {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   const handleClick = () => {
     if (status === "authenticated") {
@@ -29,6 +28,7 @@ const ButtonGetInfluanto = ({
 
   return (
     <button
+      type="button"
       className={`btn btn-primary ${extraStyle ? extraStyle : ""}`}
       onClick={handleClick}
     >

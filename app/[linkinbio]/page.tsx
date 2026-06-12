@@ -1,22 +1,24 @@
 "use client"
 /* eslint-disable */
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/libs/next-auth";
-import User from "@/models/User";
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
-import { useSession, signOut } from "next-auth/react";
+import MetaPixel, { trackLinkClick, trackStreamingClick, trackMerchClick } from "@/components/MetaPixel";
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
+import NewsletterSignup from "@/components/NewsletterSignup";
+import * as HeroPatterns from 'hero-patterns';
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobe, faLocation, faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { set } from "mongoose";
+
 import config from "@/config";
 import { getSEOTags } from "@/libs/seo";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import { useRouter } from 'next/navigation'; 
 import { usePathname, useSearchParams } from 'next/navigation'
+
+// Background patterns are rendered via the shared hero-patterns library (see
+// HeroPatterns import) so the saved patternId matches the dashboard picker.
 
 const LinkInBioPage =  () => {
   const router = useRouter();
@@ -289,6 +291,17 @@ useEffect(() => {
       fetchAvailableProducts();
     }
   }, [user?.id, user?.printifyShopId, linkInBio?.selectedProducts]);
+
+  // Track page visit once user data is loaded
+  useEffect(() => {
+    if (user && userName) {
+      fetch('/api/analytics/linkinbio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: userName }),
+      }).catch(() => {});
+    }
+  }, [user?.id]);
   
   useEffect(() => {
     // Apply background color
@@ -296,8 +309,30 @@ useEffect(() => {
       document.body.style.backgroundColor = bgColor;
     }
     
-    // Apply background image
-    if (bgImage) {
+    // Apply pattern if bgMode is 'pattern'. Use the hero-patterns library — the
+    // same source the dashboard picker uses — so the saved patternId renders
+    // identically here (a hardcoded list got out of sync with the picker).
+    if (linkInBio?.bgMode === 'pattern') {
+      const HP = HeroPatterns as Record<string, (color: string, opacity: number) => string>;
+      const patternId: string = linkInBio?.patternId || Object.keys(HP)[0];
+      const fn = HP[patternId];
+      document.body.style.backgroundImage = fn
+        ? fn(linkInBio?.patternFg || '#000000', linkInBio?.patternOpacity ?? 0.5)
+        : 'none';
+      document.body.style.backgroundColor = linkInBio?.patternBg || '#ffffff';
+      document.body.style.backgroundSize = '';
+      document.body.style.backgroundPosition = '';
+    }
+    // Apply custom uploaded background
+    else if (linkInBio?.bgMode === 'upload' && linkInBio?.bgImageCustom) {
+      document.body.style.backgroundImage = `url('${linkInBio.bgImageCustom}')`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundRepeat = 'no-repeat';
+      document.body.style.backgroundAttachment = 'fixed';
+    }
+    // Apply regular background image
+    else if (bgImage) {
       document.body.style.backgroundImage = `url(${bgImage})`;
       document.body.style.backgroundSize = 'cover';
       document.body.style.backgroundPosition = 'center';
@@ -324,7 +359,7 @@ useEffect(() => {
       document.body.style.fontFamily = "";
       document.documentElement.style.removeProperty('--page-font');
     };
-  }, [bgColor, bgImage, font]);
+  }, [bgColor, bgImage, font, linkInBio?.bgMode, linkInBio?.patternId, linkInBio?.patternFg, linkInBio?.patternBg, linkInBio?.patternOpacity, linkInBio?.bgImageCustom]);
   
    // Check if user data is not yet loaded
   if (!user) {
@@ -333,6 +368,14 @@ useEffect(() => {
 
 return (
  <>
+  {console.log("[LinkinBio] user.metaPixelId:", user?.metaPixelId) as any}
+  {user?.metaPixelId && (
+    <MetaPixel
+      pixelId={user.metaPixelId}
+      contentName={user.name || userName}
+      contentType="link_in_bio"
+    />
+  )}
   {/* Main container with proper spacing for mobile */}
   <div style={{
     minHeight: "100vh",
@@ -342,7 +385,7 @@ return (
     justifyContent: "flex-start"
   }}>
     <div 
-      className="p-6 shadow rounded-lg w-[90%] max-w-[90%] md:w-[50%] md:max-w-[50%] lg:w-[40%] lg:max-w-[40%]" 
+      className="p-6 shadow rounded-lg w-[84%] max-w-[84%] md:w-[50%] md:max-w-[50%] lg:w-[40%] lg:max-w-[40%]"
       style={{
         margin: "0 auto", 
         textAlign: "center", 
@@ -374,14 +417,20 @@ return (
                 
         <p style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>{user.name}</p>
         <p style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>
-          {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} color="darkred" />{user.location}</span>}
-          {user.website && <a href={ user.website } target="_blank" style={{ color: textColor || "#333333" }}><FontAwesomeIcon icon={faGlobe} color="lightblue" /> Website</a>}
+          {user.location && <span ><FontAwesomeIcon icon={faLocation} color={linksColor} className='mr-2'/>{user.location}</span>}
+          {user.website && <a href={ user.website } target="_blank" style={{ color: textColor || "#333333" }} className='ml-2'><FontAwesomeIcon icon={faGlobe} color={linksColor} /> Website</a>}
         </p>
       
         <p style={{marginBottom:"2%", fontFamily: font || 'inherit', color: textColor || "#333333"}}>{user.bio}</p>
 
         {/* Social media links */}
-        <div style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>
+        <div
+          style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}
+          onClick={(e) => {
+            const a = (e.target as Element).closest('a');
+            if (a?.href) trackLinkClick(new URL(a.href).hostname.replace(/^www\./, ''), a.href, 'social');
+          }}
+        >
           {user.instagram && <a href={"https://instagram.com/" + user.instagram } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faInstagram} /></a>}
           {user.tiktok && <a href={"https://tiktok.com/@" + user.tiktok } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faTiktok} /></a>}
           {user.twitter && <a href={"https://twitter.com/" + user.twitter } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTwitter} /></a>}
@@ -390,17 +439,69 @@ return (
           {user.telegram && <a href={"https://t.me/" + user.telegram } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTelegram} /></a>}
           {user.linkedin && <a href={"https://linkedin.com/" + user.linkedin } target="_blank" style={{marginRight:"10px", color:"darkblue"}}><FontAwesomeIcon icon={faLinkedin} /></a>}
           {user.github && <a href={"https://github.com/" + user.github } target="_blank" style={{marginRight:"10px"}}><FontAwesomeIcon icon={faGithub} /></a>}
-          {user.patreon && <a href={"https://patreon.com/" + user.patreon } target="_blank" style={{marginRight:"10px", color:"black"}}><FontAwesomeIcon icon={faPatreon} /></a>}
+           {user.patreon && (
+            <a href={"https://patreon.com/" + user.patreon } target="_blank" style={{marginRight:"10px", textDecoration: 'none'}}>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 15,
+                height: 15,
+                borderRadius: '50%',
+                backgroundColor: '#fff',
+                boxSizing: 'border-box'
+              }}>
+                <FontAwesomeIcon icon={faPatreon} color="black" />
+              </span>
+            </a>
+          )}
           {user.substack && <a href={"https://substack.com/" + user.substack } target="_blank" style={{display:"inline-block"}}><img src="/substack.png" width={16}/></a>}
           {displayEmail && <a href={`mailto:${user.email}`} style={{ color: textColor || "#333333" }}><FontAwesomeIcon icon={faEnvelope} color="grey" /></a>}
         </div>
 
         {/* Music platforms */}
         {user.spotify && <h3 className="mt-5" style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>Listen</h3>}
-        <div style={{ fontFamily: font || 'inherit', color: textColor || "#333333", marginBottom:"2%" }}>
+        <div
+          style={{ fontFamily: font || 'inherit', color: textColor || "#333333", marginBottom:"28px" }}
+          onClick={(e) => {
+            const a = (e.target as Element).closest('a');
+            if (a?.href) {
+              const platform = new URL(a.href).hostname.replace(/^www\./, '').split('.')[0];
+              trackStreamingClick(platform, a.href);
+            }
+          }}
+        >
           {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{marginRight:"10px", color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
           {user.appleMusic && <a href={"https://music.apple.com/" + user.appleMusic } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
-          {user.tidal && <a href={"https://tidal.com/" + user.tidal } target="_blank" style={{marginRight:"10px", color:"black", display:"inline-block"}}><img src="/tidal.png" width={16}/></a>}
+          {user.tidal && (
+                      <a href={"https://tidal.com/" + user.tidal } target="_blank" style={{marginRight:"10px", textDecoration: 'none'}}>
+                        <span style={{
+                           display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: 18,
+                            height: 18,
+                            borderRadius: "50%",
+                            backgroundColor: "#fff",
+                            boxSizing: "border-box",
+                            lineHeight: 0, // remove inline baseline space
+                            overflow: "hidden",
+                            padding: 2,
+                        }}>
+                          <img
+                          src="/tidal.png"
+                          alt="Tidal"
+                          style={{
+                            display: "block",
+                            width: 12,
+                            height: 12,
+                            objectFit: "contain",
+                            margin: "0 auto",
+                          }}
+                        />
+                        </span>
+                      </a>
+                    )}
           {user.youtubeMusic && <a href={"https://music.youtube.com/channel/" + user.youtubeMusic } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faSquareYoutube} /></a>}
           {user.amazonMusic && <a href={"https://music.amazon.com/" + user.amazonMusic } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faAmazon} /></a>}
           {user.soundcloud && <a href={"https://soundcloud.com/" + user.soundcloud } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faSoundcloud} /></a>}
@@ -438,10 +539,11 @@ return (
             ) : (
               <>
                 {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
-                <a 
-                  href={link.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackLinkClick(link.name, link.url)}
                   style={{
                     color: linksColor,
                     fontFamily: font || 'inherit'
@@ -457,7 +559,7 @@ return (
 
       
       {/* MERCH SECTION */}
-      {user?.hasAccess && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
+      {user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
         <div className="mt-6 mb-4">
           <hr style={{margin: "5% 0"}}></hr>
           <h3 className="text-lg font-semibold mb-3 text-center" style={{
@@ -482,19 +584,11 @@ return (
               width: "100%",
               overflow: "hidden"
             }}>
-              {/* Responsive Grid Container */}
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: linkInBio.selectedProducts.length === 1 
-                  ? "1fr" // 1 item: center it
-                  : linkInBio.selectedProducts.length === 2 
-                  ? "repeat(2, 1fr)" // 2 items: side by side
-                  : "repeat(auto-fit, minmax(140px, 1fr))", // 3+ items: responsive grid
-                gap: "12px",
-                width: "100%",
-                padding: "0 4px",
-                justifyItems: "center"
-              }}>
+              {/* Responsive Grid Container — 2 per row on mobile, 3 on desktop */}
+              <div
+                className={`grid gap-3 w-full justify-items-center ${linkInBio.selectedProducts.length === 1 ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3"}`}
+                style={{ padding: "0 4px" }}
+              >
                 {linkInBio.selectedProducts.map((productId: string) => {
                   const product = availableProducts.find(p => p.id === productId);
                   if (!product) {
@@ -505,11 +599,12 @@ return (
                   const productUrl = product.url || '#';
                   
                   return (
-                    <a 
+                    <a
                       key={productId}
                       href={productUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => trackMerchClick(product.title, productUrl)}
                       style={{
                         display: 'block',
                         padding: '8px',
@@ -607,13 +702,52 @@ return (
         </div>
       )}
 
+        {/* ── Newsletter signup (above the brand / Influanto logo) ── */}
+        {linkInBio?.newsletterEnabled && (
+          <div className="mt-8 px-4">
+            <NewsletterSignup
+              username={userName}
+              source="link_in_bio"
+              fields={linkInBio.newsletterFields}
+              textColor={textColor}
+              linksColor={linksColor}
+              style={user?.newsletterStyle}
+            />
+          </div>
+        )}
+
+        {/* ── Brand logo (premium users) ── */}
+        {user?.hasAccess && linkInBio?.brandLogoUrl && (
+          <div className="mt-12 flex justify-center" style={{ fontFamily: font || 'inherit' }}>
+            {user?.website ? (
+              <a
+                href={/^https?:\/\//i.test(user.website) ? user.website : `https://${user.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src={linkInBio.brandLogoUrl}
+                  alt="Brand logo"
+                  style={{ maxHeight: "30px", maxWidth: "30px", objectFit: "contain", cursor: "pointer" }}
+                />
+              </a>
+            ) : (
+              <img
+                src={linkInBio.brandLogoUrl}
+                alt="Brand logo"
+                style={{ maxHeight: "30px", maxWidth: "30px", objectFit: "contain" }}
+              />
+            )}
+          </div>
+        )}
+
         {alert && <div className="alert mt-10 w-1/2 m-auto" style={{ fontFamily: font || 'inherit' }}>{alert}</div>}
         <br></br>
       </div>
     </div>
   </div>
 
-  {/* Fixed logo with enhanced mobile styling */}
+  {/* Fixed Influanto badge — only for free users */}
   {!user.hasAccess && (
     <div style={{ 
       position: "fixed",

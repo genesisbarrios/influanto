@@ -1,0 +1,104 @@
+name: Database Backup
+
+# Nightly logical backup of the Supabase Postgres database.
+# Dumps with pg_dump 17 (custom, compressed format) and uploads to a
+# private Supabase Storage bucket, keeping the last RETENTION_DAYS dumps.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL            Session-pooler connection string (see notes below)
+#   SUPABASE_URL               https://<project-ref>.supabase.co
+#   SUPABASE_SERVICE_ROLE_KEY  Settings → API → service_role secret key
+#
+# NOTE on SUPABASE_DB_URL: use the **Session pooler** string
+# (Dashboard → Settings → Database → Connection string → "Session pooler"),
+# host looks like aws-0-<region>.pooler.supabase.com:5432 and user is
+# postgres.<project-ref>. The *direct* db.<ref>.supabase.co host is IPv6-only
+# and GitHub's runners are IPv4, so direct connections fail here.
+
+on:
+  schedule:
+    - cron: "0 7 * * *" # every day at 07:00 UTC
+  workflow_dispatch: {} # allow manual "Run workflow"
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      BUCKET: db-backups
+      RETENTION_DAYS: "30"
+    steps:
+      - name: Install pg_dump 17
+        run: |
+          set -euo pipefail
+          sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+          # The runner ships pg_dump 16 on PATH, which shadows 17. Put 17 first.
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      - name: Dump database
+        run: |
+          set -euo pipefail
+          pg_dump --version   # must report 17.x
+          STAMP=$(date -u +%Y%m%d-%H%M%S)
+          FILE="influanto-${STAMP}.dump"
+          echo "FILE=$FILE" >> "$GITHUB_ENV"
+          pg_dump "${{ secrets.SUPABASE_DB_URL }}" \
+            --no-owner --no-privileges -Fc -Z 9 -f "$FILE"
+          ls -lh "$FILE"
+
+      - name: Ensure bucket exists
+        run: |
+          set -euo pipefail
+          # Idempotent: a 400 "already exists" here is fine.
+          curl -s -X POST "${{ secrets.SUPABASE_URL }}/storage/v1/bucket" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"id\":\"${BUCKET}\",\"name\":\"${BUCKET}\",\"public\":false}" || true
+          echo
+
+      - name: Upload dump to Supabase Storage
+        run: |
+          set -euo pipefail
+          curl -s -X POST \
+            "${{ secrets.SUPABASE_URL }}/storage/v1/object/${BUCKET}/${FILE}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/octet-stream" \
+            -H "x-upsert: true" \
+            --data-binary "@${FILE}" \
+            --fail-with-body
+          echo "Uploaded ${FILE} to ${BUCKET}"
+
+      # Cleanup only — the dump is already safely uploaded, so never fail the job here.
+      - name: Prune backups older than retention window
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          CUTOFF=$(date -u -d "-${RETENTION_DAYS} days" +%s)
+          OBJECTS=$(curl -s -X POST \
+            "${{ secrets.SUPABASE_URL }}/storage/v1/object/list/${BUCKET}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"prefix":"","limit":1000,"sortBy":{"column":"created_at","order":"asc"}}')
+
+          # Bail out gracefully if the list call didn't return a JSON array.
+          if ! echo "$OBJECTS" | jq -e 'type=="array"' >/dev/null 2>&1; then
+            echo "List response was not a JSON array; skipping prune. First 400 chars:"
+            echo "$OBJECTS" | head -c 400; echo
+            exit 0
+          fi
+
+          echo "$OBJECTS" | jq -r '.[] | select(.created_at != null) | "\(.name)\t\(.created_at)"' | while IFS=$'\t' read -r name created; do
+            [ -z "$name" ] && continue
+            ts=$(date -u -d "$created" +%s 2>/dev/null || echo 0)
+            if [ "$ts" -gt 0 ] && [ "$ts" -lt "$CUTOFF" ]; then
+              echo "Deleting old backup: $name ($created)"
+              curl -s -X DELETE \
+                "${{ secrets.SUPABASE_URL }}/storage/v1/object/${BUCKET}/${name}" \
+                -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+                -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >/dev/null
+            fi
+          done
+          echo "Prune complete."

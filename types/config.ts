@@ -34,6 +34,7 @@ export interface ConfigProps {
     plans: {
       isFeatured?: boolean;
       priceId: string;
+      mode?: "payment" | "subscription";
       name: string;
       description?: string;
       price: number;

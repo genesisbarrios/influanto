@@ -54,8 +54,8 @@ const PrintifyIntegration = ({ user }: { user: any }) => {
 
   // Show connection form only if not connected
   return (
-    <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
-      <div className="text-sm font-medium text-purple-800 mb-3">
+    <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg">
+      <div className="text-sm font-medium text-green-800 mb-3">
         🛍️ Connect Your Printify Store
       </div>
       
@@ -77,7 +77,7 @@ const PrintifyIntegration = ({ user }: { user: any }) => {
         </button>
       </div>
       
-      <div className="mt-3 text-xs text-purple-600">
+      <div className="mt-3 text-xs text-green-600">
         Enter your Printify store URL (e.g., yourstore.printify.me)
       </div>
     </div>

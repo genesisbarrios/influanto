@@ -1,8 +1,5 @@
 "use client"
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/libs/next-auth";
-import User from "@/models/User";
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
 import { useSession, signOut } from "next-auth/react";
@@ -26,6 +23,7 @@ const Community = () => {
         user.name !== null &&
         user.name !== "" &&
         user.bio !== null && 
+        user.bio !== undefined &&
         user.bio !== ""   
       );
       setUsers(filteredUsers);
@@ -118,7 +116,7 @@ const Community = () => {
                   />
                   <h3 className="text-sm text-blue-500 font-semibold">{user.name}</h3>
                 </div>
-                <p className="text-xs text-gray-500 mb-2">{user.bio || "No bio available"}</p>
+                <p className="text-xs text-gray-500 mb-2">  {user.bio && user.bio.length > 60 ? user.bio.slice(0, 60) + "..." : user.bio}</p>
                 <div className="flex justify-center space-x-3">
                   {user.instagram && (
                     <a href={user.instagram} target="_blank" rel="noopener noreferrer">

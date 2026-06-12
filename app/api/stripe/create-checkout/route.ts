@@ -1,42 +1,30 @@
-// app/api/stripe/create-checkout/route.ts
 import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import { createCheckout } from "@/libs/stripe";
-import connectMongo from "@/libs/mongoose";
-import User from "@/models/User";
+import supabase, { mapUser } from "@/libs/supabase";
 
-// This function handles the POST request for creating a Stripe Checkout session
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
   if (!body.priceId) {
-    return NextResponse.json(
-      { error: "Price ID is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Price ID is required" }, { status: 400 });
   } else if (!body.successUrl || !body.cancelUrl) {
-    return NextResponse.json(
-      { error: "Success and cancel URLs are required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Success and cancel URLs are required" }, { status: 400 });
   } else if (!body.mode) {
     return NextResponse.json(
-      {
-        error:
-          "Mode is required (either 'payment' for one-time payments or 'subscription' for recurring subscription)",
-      },
+      { error: "Mode is required (either 'payment' for one-time payments or 'subscription' for recurring subscription)" },
       { status: 400 }
     );
   }
 
   try {
     const session = await getServerSession(authOptions);
+    const { data: userRow } = session?.user?.id
+      ? await supabase.from("users").select().eq("id", session.user.id).single()
+      : { data: null };
 
-    await connectMongo();
-
-    const user = await User.findById(session?.user?.id);
-
+    const user = userRow ? mapUser(userRow) : null;
     const { priceId, mode, successUrl, cancelUrl } = body;
 
     const stripeSessionURL = await createCheckout({
@@ -44,16 +32,12 @@ export async function POST(req: NextRequest) {
       mode,
       successUrl,
       cancelUrl,
-      // If user is logged in, it will pass the user ID to the Stripe Session so it can be retrieved in the webhook later
-      clientReferenceId: user?._id?.toString(),
-      // If user is logged in, this will automatically prefill Checkout data like email and/or credit card for faster checkout
-      user,
-      // If you send coupons from the frontend, you can pass it here
-      // couponId: body.couponId,
+      clientReferenceId: user?.id?.toString(),
+      user: user ? { customerId: user.customerId, email: user.email } : undefined,
     });
 
     return NextResponse.json({ url: stripeSessionURL });
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
     return NextResponse.json({ error: e?.message }, { status: 500 });
   }
