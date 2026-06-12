@@ -16,14 +16,12 @@ const Hero = () => {
           The platform with all you need to market and promote your music.
         </p>
         <p className="text-lg opacity-80 leading-relaxed">
-          Link In Bio, Release Pages, QR Code Generator, and Playlist Curator Search.
+          Link In Bio, Release Pages, Split Sheet Generator, Newsletter and Contact Management, QR Code Generator, and Playlist Curator Search and Contact Tool.
         </p>
         <p className="text-lg opacity-80 leading-relaxed">
-          Free Musician Tools: Split Sheet Generator, Delay & Reverb Calculator, BPM Calculator + more.
+          Free Musician Tools: Split Sheet Generator, Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner, + more.
         </p>
-        <a href="/api/auth/signin">
-          <ButtonGetInfluanto />
-        </a>
+        <ButtonGetInfluanto />
 
         <TestimonialsAvatars priority={true} />
       </div>

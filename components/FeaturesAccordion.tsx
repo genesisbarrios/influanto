@@ -6,6 +6,7 @@ import Image from "next/image";
 import image from "@/app/qrcode.png";
 import playlist from "@/app/Playlist.png";
 import link from "@/app/linkInBio.png";
+import outreach from "@/app/outreach_horizontal.png";
 
 interface Feature {
   title: string;
@@ -26,7 +27,7 @@ interface Feature {
 // - alt: The alt text of the image (if type is 'image')
 const features = [
   {
-    title: "Link in Bio",
+    title: "Link in Bio / Release Pages with Analytics",
     description: "Create a Link in Bio Page and Promotional Pages for your Releases",
     type: "image",
     path: link,
@@ -47,8 +48,21 @@ const features = [
     ),
   },
   {
-    title: "Playlist Curator Search Tool",
-    description: "Use our Curator Search Tool to find and contact Playlist Curators!",
+    title: "Newsletters and Contact Management",
+    description: "Use our Outreach Dashboard to manage your contacts, send email campaigns to your fans, and track analytics.",
+    type: "image",
+    path: outreach,
+    alt: "A computer",
+    svg: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 15.553Z" />
+      </svg>
+
+    ),
+  },
+  {
+    title: "Playlist Curator Search and Contact Tool",
+    description: "Use our Curator Search Tool to find the right contacts for your music, and reach out to them directly from the platform.",
     type: "image",
     path: playlist,
     alt: "A computer",
@@ -72,30 +86,30 @@ const features = [
 
     ),
   },
-  // {
-  //   title: "Social Media Bulk Comments and DMs (Coming Soon)",
-  //   description:
-  //     "Instagram, Youtube, Tiktok, Twitter",
-  //     type: "image",
-  //     path: "https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3540&q=80",
-  //     alt: "A computer",
-  //   svg: (
-  //     <svg
-  //       xmlns="http://www.w3.org/2000/svg"
-  //       fill="none"
-  //       viewBox="0 0 24 24"
-  //       strokeWidth={1.5}
-  //       stroke="currentColor"
-  //       className="w-6 h-6"
-  //     >
-  //       <path
-  //         strokeLinecap="round"
-  //         strokeLinejoin="round"
-  //         d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
-  //       />
-  //     </svg>
-  //   ),
-  // },
+  {
+    title: "Crossposting (Coming Soon)",
+    description:
+      "Instagram, Facebook, Youtube, Tiktok, X, Linkedin",
+      type: "image",
+      path: "https://images.unsplash.com/photo-1683721003111-070bcc053d8b?q=80&w=2600&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      alt: "A computer",
+    svg: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+        className="w-6 h-6"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
+        />
+      </svg>
+    ),
+  },
   // {
   //   title: "Promo Content Generator (Coming Soon)",
   //   description:
@@ -199,13 +213,16 @@ const Media = ({ feature }: { feature: Feature }) => {
       </video>
     );
   } else if (type === "image") {
+    // Use each image's real dimensions so wide/horizontal art keeps its aspect
+    // ratio instead of being cropped into a square.
+    const isStatic = typeof path === "object" && path !== null;
     return (
       <Image
         src={path || "/fallback-image.png"}
         alt={alt || "Default alt text"}
-        className={`${style} object-cover object-center`}
-        width={size.width}
-        height={size.height}
+        className="rounded-2xl w-full sm:w-[26rem] h-auto"
+        width={isStatic ? (path as any).width : size.width}
+        height={isStatic ? (path as any).height : size.height}
       />
     );
   } else {

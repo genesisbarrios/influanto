@@ -4,6 +4,8 @@ import { useSession } from 'next-auth/react';
 import apiClient from "@/libs/api";
 import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
+import posthog from "posthog-js";
+import QRCodeAnalytics from "@/components/QRCodeAnalytics";
 
 // Define a TypeScript interface for the user prop to ensure type safety
 interface User {
@@ -13,7 +15,7 @@ interface User {
 }
 
 const QRCodeGenerator = () => {
-  const [qrCodes, setQRCodes] = useState<any>();
+  const [qrCodes, setQRCodes] = useState<any[]>([]);
   const [newLink, setNewLink] = useState('');
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('#000000');
@@ -34,6 +36,11 @@ const QRCodeGenerator = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setEditing] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [expandedAnalytics, setExpandedAnalytics] = useState<string | null>(null);
+  const [editingCodeId, setEditingCodeId] = useState<string | null>(null);
+  const [editUrl, setEditUrl] = useState("");
+  const [editName, setEditName] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
   const [QRCodeStyling, setQRCodeStyling] = useState<any>(null);
   const [previewQR, setPreviewQR] = useState<any>(null);
 
@@ -161,14 +168,14 @@ const addQRCode = async () => {
     }
     
     // Check if name is unique
-    if (qrCodes && qrCodes.some((code: any) => code.name.toLowerCase() === newName.toLowerCase())) {
+    if (qrCodes.some((code: any) => code.name?.toLowerCase() === newName.toLowerCase())) {
       setAlert("A QR code with this name already exists. Please choose a different name.");
       return;
     }
     
     const maxCodes = getMaxCodes();
     
-    if (qrCodes && qrCodes.length >= maxCodes) {
+    if (qrCodes.length >= maxCodes) {
       const userType = user?.hasAccess ? "premium" : "free";
       setAlert(`You can only create up to ${maxCodes} QR codes on the ${userType} plan.`);
       return;
@@ -191,6 +198,11 @@ const addQRCode = async () => {
     });
 
     console.log(data);
+    posthog.capture("qr_code_created", {
+      name: newName,
+      dot_style: dotStyle,
+      is_premium: !!user?.hasAccess,
+    });
     setAlert("✅ QR Code saved successfully");
     setShowCreateView(false);
     
@@ -211,6 +223,7 @@ const addQRCode = async () => {
     getQrCodes();
   } catch (e: any) {
     console.error('Create QR error:', e);
+    posthog.captureException(e);
     const errorMessage = e?.response?.data?.message || e?.message || "Failed to create QR code.";
     setAlert(`❌ ${errorMessage}`);
   } finally {
@@ -338,10 +351,24 @@ useEffect(() => {
     }
   };
 
+  // Returns the URL encoded in the QR image:
+  // premium users get the /code/[id] redirect (enables analytics);
+  // free users get the raw destination URL directly.
+  const getQRData = (code: any): string => {
+    const codeKey = code.id ?? code._id;
+    if (user?.hasAccess && codeKey) {
+      // Always encode the canonical production domain — a QR is a physical
+      // artifact, so it must never bake in localhost or a preview URL.
+      return `https://${config.domainName}/code/${codeKey}`;
+    }
+    return code.url;
+  };
+
   const createQRCodeForDisplay = (code: any) => {
     if (!QRCodeStyling) return;
 
-    const container = qrRefs.current[code._id];
+    const codeKey = code.id ?? code._id;
+    const container = qrRefs.current[codeKey];
     if (!container) return;
 
     try {
@@ -352,7 +379,7 @@ useEffect(() => {
         width: 128,
         height: 128,
         type: "svg" as const,
-        data: code.url,
+        data: getQRData(code),
         dotsOptions: {
           color: code.color || "#000000", // Use individual colors if available
           type: (code.dotStyle || "rounded") as any
@@ -385,10 +412,10 @@ useEffect(() => {
 
     try {
       const qrCodeOptions = {
-        width: 512, // High resolution for download
+        width: 512,
         height: 512,
         type: "svg" as const,
-        data: code.url,
+        data: getQRData(code),
         dotsOptions: {
           color: code.color || "#000000", // Use individual colors if available
           type: (code.dotStyle || "rounded") as any
@@ -412,6 +439,7 @@ useEffect(() => {
         extension: format
       });
 
+      posthog.capture("qr_code_downloaded", { name: code.name, format });
       setAlert(`✅ QR code downloaded as ${format.toUpperCase()}`);
     } catch (error) {
       console.error('Download error:', error);
@@ -424,12 +452,14 @@ useEffect(() => {
       const response = await apiClient.delete(`/delete-code`, {
         data: { id }
       });
-      
-      setQRCodes(qrCodes.filter((code: any) => code._id !== id));
+
+      posthog.capture("qr_code_deleted", { qr_code_id: id });
+      setQRCodes(qrCodes.filter((code: any) => (code.id ?? code._id) !== id));
       setAlert("QR Code deleted successfully.");
-      
+
     } catch (e: any) {
       console.error('Delete error:', e);
+      posthog.captureException(e);
       const errorMessage = e?.response?.data?.error || e?.response?.data?.message || "An error occurred while deleting the QR Code.";
       setAlert(errorMessage);
     }
@@ -455,12 +485,34 @@ useEffect(() => {
   const getQrCodes = async () => {
     try {
       const { data } = await apiClient.get("/get-codes");
-      console.log(data[0].codes);
-      setQRCodes(data[0].codes);
-    } catch (e) {
-      setAlert(e?.message);
-    } 
+      setQRCodes(data[0]?.codes ?? []);
+    } catch (e: any) {
+      // Silently ignore "no codes yet" — don't show an error alert
+      setQRCodes([]);
+    }
   }
+
+  // Edit a code's destination (dynamic QR — the image/URL it encodes stays the same)
+  const startEditCode = (code: any) => {
+    setEditingCodeId(code.id ?? code._id);
+    setEditUrl(code.url || "");
+    setEditName(code.name || "");
+  };
+
+  const handleSaveEdit = async (codeKey: string) => {
+    if (!editUrl.trim()) return;
+    setSavingEdit(true);
+    try {
+      await apiClient.patch("/codes", { id: codeKey, url: editUrl.trim(), name: editName });
+      posthog.capture("qr_code_edited", { qr_code_id: codeKey });
+      await getQrCodes();
+      setEditingCodeId(null);
+    } catch (e: any) {
+      // surface nothing intrusive; leave the editor open
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   return (
     <>
@@ -468,7 +520,7 @@ useEffect(() => {
     <div className="p-4 bg-white shadow rounded-md text-black">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold mb-2">QR Codes</h2>
-        {!showCreateView && qrCodes?.length < getMaxCodes() && (
+        {!showCreateView && qrCodes.length < getMaxCodes() && (
           <button
             onClick={() => setShowCreateView(true)}
             className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -777,10 +829,14 @@ useEffect(() => {
       )}
 
       {/* QR Codes Grid */}
-      {qrCodes && (
+      {qrCodes.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {qrCodes.map((code: any) => (
-            <div key={code._id} className="border border-gray-300 p-4 rounded-lg shadow-sm">
+          {qrCodes.map((code: any) => {
+            const codeKey = code.id ?? code._id;
+            const analyticsOpen = expandedAnalytics === codeKey;
+            return (
+            <div key={codeKey} className="border border-gray-300 rounded-lg shadow-sm overflow-hidden">
+            <div className="p-4">
               <h3 className="mb-3 text-lg font-bold">{code.name}</h3>
               
               {/* QR Code Display with proper background */}
@@ -794,10 +850,9 @@ useEffect(() => {
                     backgroundPosition: code.transparentBg ? '0 0, 0 4px, 4px -4px, -4px 0px' : 'auto'
                   }}
                 >
-                  <div 
+                  <div
                     ref={el => {
-                      qrRefs.current[code._id] = el;
-                      // Trigger QR code creation when ref is set
+                      qrRefs.current[codeKey] = el;
                       if (el && QRCodeStyling) {
                         setTimeout(() => createQRCodeForDisplay(code), 100);
                       }
@@ -824,15 +879,19 @@ useEffect(() => {
                 </div>
               )}
               
-              <p className="mb-3 text-sm break-words text-gray-600">{code.url}</p>
+              {/* Destination URL + tracking badge */}
+              <p className="mb-1 text-sm break-words text-gray-600">{code.url}</p>
+              {user?.hasAccess && (
+                <p className="mb-3 text-xs text-indigo-500">📊 Tracking via /code/{codeKey}</p>
+              )}
 
-              {/* Style Info - Enhanced for premium */}
+              {/* Style Info */}
               <div className="mb-3 text-xs text-gray-500 space-y-1">
                 <div>Style: {code.dotType || 'square'} dots, {code.cornerType || 'square'} corners</div>
                 {code.dotsColor || code.cornerDotColor || code.cornerSquareColor ? (
                   <div>
-                    Colors: 
-                    <span className="ml-1">🌐 {code.color}</span> <br></br>
+                    Colors:
+                    <span className="ml-1">🌐 {code.color}</span> <br />
                     <span className="ml-1">💠 {code.cornerSquareColor || code.color}</span>
                     <span className="ml-1">⚫ {code.cornerDotColor || code.color}</span>
                   </div>
@@ -841,8 +900,8 @@ useEffect(() => {
                 )}
               </div>
 
-              {/* Download Buttons */}
-              <div className="flex gap-2 mb-2">
+              {/* Download + Analytics Buttons */}
+              <div className="flex gap-2 mb-2 flex-wrap">
                 <button
                   onClick={() => handleDownload(code, 'png')}
                   disabled={!QRCodeStyling}
@@ -850,7 +909,6 @@ useEffect(() => {
                 >
                   PNG
                 </button>
-                
                 <button
                   onClick={() => handleDownload(code, 'svg')}
                   disabled={!QRCodeStyling}
@@ -858,25 +916,76 @@ useEffect(() => {
                 >
                   SVG
                 </button>
+                {user?.hasAccess && (
+                  <button
+                    onClick={() => setExpandedAnalytics(analyticsOpen ? null : codeKey)}
+                    className={`flex-1 px-3 py-2 text-sm rounded ${analyticsOpen ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}
+                  >
+                    📊
+                  </button>
+                )}
               </div>
+
+              {/* Edit destination (dynamic QR) */}
+              {editingCodeId === codeKey ? (
+                <div className="mb-2 p-2 border border-indigo-200 rounded bg-indigo-50">
+                  <label className="block text-xs font-medium mb-1">
+                    Destination URL{user?.hasAccess ? " — dynamic, the QR stays the same" : " (free: re-download the QR after saving)"}
+                  </label>
+                  <input
+                    className="w-full mb-2 px-2 py-1 text-sm border border-gray-300 rounded"
+                    placeholder="https://..."
+                    value={editUrl}
+                    onChange={(e) => setEditUrl(e.target.value)}
+                  />
+                  <label className="block text-xs font-medium mb-1">Name</label>
+                  <input
+                    className="w-full mb-2 px-2 py-1 text-sm border border-gray-300 rounded"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <button onClick={() => handleSaveEdit(codeKey)} disabled={savingEdit || !editUrl.trim()} className="flex-1 px-3 py-1.5 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:bg-gray-400">
+                      {savingEdit ? "Saving…" : "Save"}
+                    </button>
+                    <button onClick={() => setEditingCodeId(null)} className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => startEditCode(code)}
+                  className="w-full mb-2 px-3 py-2 text-sm bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200"
+                >
+                  ✏️ Edit destination
+                </button>
+              )}
 
               {/* Delete Button */}
               <button
-                onClick={() => handleDelete(code._id)}
+                onClick={() => handleDelete(codeKey)}
                 className="w-full px-3 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
               >
                 Delete
               </button>
+            </div>{/* end p-4 */}
+
+            {/* Analytics panel */}
+            {analyticsOpen && user?.hasAccess && (
+              <div className="border-t border-gray-200 px-4 pb-4 bg-gray-50">
+                <QRCodeAnalytics codeId={codeKey} codeName={code.name} />
+              </div>
+            )}
             </div>
-          ))}
+          );
+          })}
         </div>
       )}
 
-      {/* Show message if no QR codes */}
-      {qrCodes && qrCodes.length === 0 && (
-        <div className="text-center py-8">
-          <div className="text-gray-400 text-lg mb-2">📱 No QR codes yet</div>
-          <div className="text-gray-500 text-sm">Create your first QR code to get started!</div>
+      {/* Empty state — only shown when not in create view */}
+      {!showCreateView && qrCodes.length === 0 && (
+        <div className="text-center py-8 text-gray-400">
+          <div className="text-4xl mb-3">📱</div>
+          <div className="text-sm">No QR codes yet. Hit <strong>Create QR</strong> to get started!</div>
         </div>
       )}
       

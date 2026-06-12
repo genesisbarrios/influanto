@@ -37,16 +37,19 @@ const config = {
             name: "Link In Bio Page",
           },
           { name: "Release Pages (10)" },
-          { name: "Playlist Pitching" },
           { name: "QR Code Generator" },
+          { name: "Split Sheet Generator" },
+          { name: "Playlist Curator Search / Contact Tool" },
+          { name: "Display your Merch with Printify" },
         ],
       },
       {
-        priceId: "price_1Rxb4IHYk9DUtBP3UrdhTmAl", 
-          // process.env.NODE_ENV === "development"
-          //   ? "price_1PTHqhHYk9DUtBP3l9IFqCPx"
-          //   : "prod_StNpQhydjH8pQO", 
-
+        priceId:
+          process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID ||
+          "price_1Rxb4IHYk9DUtBP3UrdhTmAl",
+        mode: "subscription",
+        // In development, set NEXT_PUBLIC_STRIPE_PRO_PRICE_ID to the test-mode price.
+        // In production, set it to the live-mode price.
         // This plan will look different on the pricing page, it will be highlighted. You can only have one plan with isFeatured: true
         isFeatured: true,
         name: "Influanto Pro",
@@ -58,10 +61,33 @@ const config = {
             name: "Link in Bio Page",
           },
           { name: "Release Pages (50)" },
-          { name: "Extra Styling Features" },
-          { name: "Playlist Pitching" },
+          { name: "Outreach / Contacts / Email Campaigns" },
+          { name: "Split Sheet Dashboard" },
+          { name: "Analytics" },
           { name: "Advanced QR Code Generator" },
-          // { name: "Bulk Comments and DMs" },
+        ],
+      },
+      {
+        priceId:
+          process.env.NEXT_PUBLIC_STRIPE_FOREVER_PRICE_ID ||
+          "price_1TdjLpHYk9DUtBP36C1IRYhC",
+        mode: "payment",
+        // In development, set NEXT_PUBLIC_STRIPE_FOREVER_PRICE_ID to the test-mode price.
+        // In production, set it to the live-mode price.
+        isFeatured: true,
+        name: "Influanto Forever",
+        description: "Influanto Pro but for life, one payment, no subscription",
+        price: "69.99",
+        priceAnchor: 99.99,
+        features: [
+          {
+            name: "Link in Bio Page",
+          },
+          { name: "Release Pages (50)" },
+          { name: "Outreach / Contacts / Email Campaigns"},
+          { name: "Split Sheet Dashboard" },
+          { name: "Analytics" },
+          { name: "Advanced QR Code Generator" },
         ],
       },
     ],

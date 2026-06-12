@@ -1,0 +1,90 @@
+import pg from 'pg';
+const { Client } = pg;
+
+const client = new Client({
+  connectionString: 'postgresql://postgres:influanti2121!@db.dayeptxjepptzhmjhvjg.supabase.co:5432/postgres',
+  ssl: { rejectUnauthorized: false }
+});
+
+const migrations = [
+  // brand logo for link-in-bio
+  `ALTER TABLE link_in_bio ADD COLUMN IF NOT EXISTS brand_logo_url TEXT`,
+
+  // split sheet signers (in case not yet run)
+  `CREATE TABLE IF NOT EXISTS split_sheet_signers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    split_sheet_id UUID NOT NULL REFERENCES split_sheets(id) ON DELETE CASCADE,
+    token UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    contributor_name TEXT NOT NULL DEFAULT '',
+    contributor_email TEXT NOT NULL DEFAULT '',
+    signed_at TIMESTAMPTZ,
+    signature_data TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(split_sheet_id, contributor_email)
+  )`,
+
+  // meta pixel for users (in case not yet run)
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS meta_pixel_id TEXT`,
+
+  // release page visits (in case not yet run)
+  `CREATE TABLE IF NOT EXISTS release_page_visits (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    release_page_id UUID NOT NULL REFERENCES release_pages(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    country TEXT DEFAULT 'Unknown',
+    country_code TEXT DEFAULT '',
+    city TEXT DEFAULT '',
+    device TEXT DEFAULT 'unknown',
+    browser TEXT DEFAULT 'Other',
+    os TEXT DEFAULT 'Other',
+    referrer TEXT DEFAULT 'Direct',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+
+  // split sheets (in case not yet run)
+  `CREATE TABLE IF NOT EXISTS split_sheets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL DEFAULT '',
+    date TEXT DEFAULT '',
+    artists TEXT DEFAULT '',
+    state_country TEXT DEFAULT '',
+    contributors JSONB DEFAULT '[]',
+    publishing JSONB DEFAULT '[]',
+    status TEXT DEFAULT 'draft',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+
+  // collaborator contacts (in case not yet run)
+  `CREATE TABLE IF NOT EXISTS collaborator_contacts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    role TEXT DEFAULT '',
+    phone TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+];
+
+async function run() {
+  await client.connect();
+  console.log('✅ Connected to Supabase PostgreSQL\n');
+
+  for (const sql of migrations) {
+    const preview = sql.trim().split('\n')[0].slice(0, 80);
+    try {
+      await client.query(sql);
+      console.log(`  ✅ ${preview}`);
+    } catch (e) {
+      console.error(`  ✗  ${preview}\n     ${e.message}`);
+    }
+  }
+
+  await client.end();
+  console.log('\n🎉 Migrations complete');
+}
+
+run().catch(e => { console.error(e); process.exit(1); });

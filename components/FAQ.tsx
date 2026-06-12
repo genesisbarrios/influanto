@@ -14,7 +14,7 @@ interface FAQItemProps {
 const faqList: FAQItemProps[] = [
   {
     question: "What do I get exactly?",
-    answer: <div className="space-y-2 leading-relaxed">With influanto, you can create custom links pages, an EPK, a Website, submit to Spotify Curators, and Bulk Comment and DM supporters on Social Media Platforms. </div>,
+    answer: <div className="space-y-2 leading-relaxed">With influanto, you can create custom links pages, a link in bio with your merch and music, create split sheets and QR Codes, and manage and update your newsletter. </div>,
   },
   {
     question: "Can I get a refund?",

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { default as nextDynamic } from 'next/dynamic';
+import posthog from "posthog-js";
 
 // Regular imports for components that don't use window
 import Profile from './Profile';
@@ -10,8 +11,10 @@ import QRCodeGenerator from './QRCodeGenerator';
 import CuratorSearch from './CuratorSearch';
 import Community from './Community';
 import ReleasePage from './ReleasePage';
+import SplitSheets from './SplitSheets';
+import Outreach from './Outreach';
+// import Crossposting from './Crossposting'; // hidden until TikTok API approval
 
-// Dynamic import ONLY for Collectibles to prevent SSR issues
 const DynamicCollectibles = nextDynamic(() => import('./Collectibles'), {
   ssr: false,
   loading: () => (
@@ -26,19 +29,33 @@ const DynamicCollectibles = nextDynamic(() => import('./Collectibles'), {
   )
 });
 
-// Change this line - use 'dynamic' not 'dynamicRoute'
 export const dynamic = 'force-dynamic';
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
 
-  // Components mapping - use DynamicCollectibles instead of Collectibles
+  // Allow deep-linking to a tab, e.g. /dashboard?tab=split-sheets (used after signing)
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    if (tab && tab in components) setActiveComponent(tab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleTabSwitch = (tab: string) => {
+    setActiveComponent(tab);
+    posthog.capture("dashboard_tab_switched", { tab });
+  };
+
+  // Components mapping
   const components: any = {
     'profile': <Profile />,
     'link-in-bio': <LinkInBio />,
     'release-page': <ReleasePage />,
     'qr-code-generator': <QRCodeGenerator />,
+    'split-sheets': <SplitSheets />,
+    'outreach': <Outreach />,
     'curator-search': <CuratorSearch />,
+    // 'crossposting': <Crossposting />, // hidden until TikTok API approval
     'community': <Community />,
     'collectibles': <DynamicCollectibles />
   };
@@ -46,35 +63,50 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-screen bg-base-200">
       {/* Sidebar menu */}
-      <aside className="w-1/4 sm:w-1/3 p-0.5 sm:p-4 bg-base-100 sm:p-8">
-        <ul className="menu bg-base-100 w-full p-2 rounded-box text-xs sm:text-sm md:text-base lg:text-lg">
+      <aside className="w-1/4 sm:w-1/5 lg:w-[180px] p-0.5 sm:p-4 bg-base-100 shrink-0">
+        <ul className="menu bg-base-100 w-full p-2 rounded-box text-xs sm:text-sm md:text-base">
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('profile')}>Profile</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('profile')}>Profile</button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('link-in-bio')}>Link in Bio</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('link-in-bio')}>Link in Bio</button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('release-page')}>Release Pages</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('release-page')}>Release Pages</button>
+          </li>
+          {/* <li>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('curator-search')}>Curator Search</button>
+          </li> */}
+           <li>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('outreach')}>
+              Outreach
+            </button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('qr-code-generator')}>QR Codes</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('split-sheets')}>
+              Split Sheets
+            </button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('collectibles')}>Collectibles</button>
-          </li>
-            <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('curator-search')}>Curator Search</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('collectibles')}>Collectibles</button>
           </li>
           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => setActiveComponent('community')}>Community</button>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('curator-search')}>
+              Curator Search
+            </button>
+          </li>
+          <li>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('qr-code-generator')}>QR Codes</button>
+          </li>
+          <li>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('community')}>Community</button>
           </li>
         </ul>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 p-8 pb-24">
-        <section className="max-w-xl mx-auto space-y-8">
+      <main className="flex-1 p-4 sm:p-8 pb-24 min-w-0">
+        <section className="max-w-5xl mx-auto space-y-8">
           {/* Render the active component */}
           {components[activeComponent]}
         </section>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
@@ -19,12 +19,21 @@ export default function SplitSheetTemplate() {
     stateCountry: "" // Added state/country field for dispute resolution
   });
 
-  const [contributors, setContributors] = useState([
-    { name: "", role: "", ownership: "", contact: "" }
-  ]);
+  const [contributors, setContributors] = useState([{
+    name: "",
+    role: "",
+    ownership: "",
+    contact: "",
+    signature: "",
+    signatureDate: ""
+  }]);
   const [publishing, setPublishing] = useState([
     { contributorName: "", publisher: "", percent: "" }
   ]);
+  const [signatureEditor, setSignatureEditor] = useState<{ active: boolean; index: number | null }>({ active: false, index: null });
+  const [isDrawing, setIsDrawing] = useState(false);
+  const signatureCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const lastPointerPosition = useRef<{ x: number; y: number } | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -97,12 +106,125 @@ export default function SplitSheetTemplate() {
     twitterDescription.setAttribute('content', 'Generate and share your Split Sheets easily. Free musician tools by Influanto.');
   }, []);
 
-  const addContributor = () => setContributors([...contributors, { name: "", role: "", ownership: "", contact: "" }]);
+  const addContributor = () => setContributors([...contributors, { name: "", role: "", ownership: "", contact: "", signature: "", signatureDate: "" }]);
   const removeContributor = (idx: number) => setContributors(contributors.filter((_, i) => i !== idx));
 
   const addPublishing = () => setPublishing([...publishing, { contributorName: "", publisher: "", percent: "" }]);
   const removePublishing = (idx: number) => setPublishing(publishing.filter((_, i) => i !== idx));
-  
+
+  const openSignatureEditor = (idx: number) => {
+    setSignatureEditor({ active: true, index: idx });
+  };
+
+  const closeSignatureEditor = () => {
+    setSignatureEditor({ active: false, index: null });
+    setIsDrawing(false);
+    lastPointerPosition.current = null;
+  };
+
+  const prepareEditorCanvas = () => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "#111";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    if (signatureEditor.active && signatureEditor.index !== null) {
+      const existingSignature = contributors[signatureEditor.index].signature;
+      if (existingSignature) {
+        const image = new Image();
+        image.onload = () => {
+          ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        };
+        image.src = existingSignature;
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (signatureEditor.active) {
+      prepareEditorCanvas();
+    }
+  }, [signatureEditor.active, signatureEditor.index]);
+
+  const pointerToCanvas = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * canvas.width;
+    const y = ((event.clientY - rect.top) / rect.height) * canvas.height;
+    return { x, y };
+  };
+
+  const handleSignaturePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    const position = pointerToCanvas(event);
+    if (!position) return;
+    const canvas = signatureCanvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!ctx) return;
+    ctx.beginPath();
+    ctx.moveTo(position.x, position.y);
+    lastPointerPosition.current = position;
+    setIsDrawing(true);
+    canvas?.setPointerCapture(event.pointerId);
+  };
+
+  const handleSignaturePointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const position = pointerToCanvas(event);
+    if (!position) return;
+    const canvas = signatureCanvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!ctx || !lastPointerPosition.current) return;
+    ctx.lineTo(position.x, position.y);
+    ctx.stroke();
+    lastPointerPosition.current = position;
+  };
+
+  const handleSignaturePointerUp = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = signatureCanvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (ctx) {
+      ctx.closePath();
+    }
+    setIsDrawing(false);
+    lastPointerPosition.current = null;
+    canvas?.releasePointerCapture(event.pointerId);
+  };
+
+  const clearSignatureCanvas = () => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const saveSignature = () => {
+    if (signatureEditor.index === null) {
+      return;
+    }
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const signatureData = canvas.toDataURL("image/png");
+    const currentDate = new Date().toLocaleDateString("en-US");
+
+    setContributors(prev => {
+      const next = [...prev];
+      next[signatureEditor.index!] = {
+        ...next[signatureEditor.index!],
+        signature: signatureData,
+        signatureDate: currentDate,
+      };
+      return next;
+    });
+
+    closeSignatureEditor();
+  };
 
 const handleDownloadPDF = () => {
   const doc = new jsPDF();
@@ -309,7 +431,7 @@ const handleDownloadPDF = () => {
   // Signature rows
   contributors.forEach((c) => {
     const nameLines = Math.ceil((c.name || "").length / 25) || 1;
-    const rowHeight = Math.max(nameLines * 8, 15); // Increased minimum from 12 to 15
+    const rowHeight = Math.max(nameLines * 8, 20);
     
     // Check if we need a new page for individual rows
     if (currentY + rowHeight > pageHeight - 20) {
@@ -333,6 +455,14 @@ const handleDownloadPDF = () => {
     doc.rect(130, currentY, 60, rowHeight);
     
     doc.text(c.name || "", 12, currentY + 6, { maxWidth: 58 });
+    if (c.signature) {
+      try {
+        doc.addImage(c.signature, "PNG", 72, currentY + 2, 56, rowHeight - 4);
+      } catch (error) {
+        // ignore invalid image data
+      }
+    }
+    doc.text(c.signatureDate || "", 132, currentY + 6, { maxWidth: 58 });
     currentY += rowHeight;
   });
 
@@ -579,12 +709,87 @@ const handleDownloadPDF = () => {
                 {contributors.map((c, idx) => (
                   <React.Fragment key={idx}>
                     <div className="border-t border-[#cbd5e1] p-2">{c.name}</div>
-                    <div className="border-t border-[#cbd5e1] p-2">&nbsp;</div>
-                    <div className="border-t border-[#cbd5e1] p-2">&nbsp;</div>
+                    <div className="border-t border-[#cbd5e1] p-2">
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                        <div style={{ flex: 1, overflow: "hidden", minHeight: 28 }}>
+                          {c.signature ? (
+                            <img src={c.signature} alt="signature" style={{ maxHeight: 38, width: "100%", objectFit: "contain" }} />
+                          ) : (
+                            <span style={{ color: "#6b7280" }}>No signature yet</span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openSignatureEditor(idx)}
+                          style={{
+                            marginLeft: 8,
+                            borderRadius: 8,
+                            border: "1px solid #cbd5e1",
+                            padding: "0.35rem 0.75rem",
+                            background: "#fff",
+                            color: "#111",
+                            cursor: "pointer",
+                            whiteSpace: "nowrap"
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </div>
+                    <div className="border-t border-[#cbd5e1] p-2">{c.signatureDate || ""}</div>
                   </React.Fragment>
                 ))}
               </div>
             </div>
+
+            {signatureEditor.active && signatureEditor.index !== null && (
+              <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.7)", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+                <div style={{ width: "100%", maxWidth: 720, background: "#fff", borderRadius: 16, boxShadow: "0 20px 60px rgba(15, 23, 42, 0.25)", overflow: "hidden" }}>
+                  <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid #e5e7eb" }}>
+                    <h3 className="text-xl font-semibold">Draw Signature</h3>
+                    <p className="text-sm text-[#6b7280] mt-1">Use your mouse or touch device to sign below. Save to record the date.</p>
+                  </div>
+                  <div style={{ padding: "1rem 1.25rem" }}>
+                    <div style={{ border: "1px solid #cbd5e1", borderRadius: 12, overflow: "hidden", background: "#fff" }}>
+                      <canvas
+                        ref={signatureCanvasRef}
+                        width={680}
+                        height={220}
+                        onPointerDown={handleSignaturePointerDown}
+                        onPointerMove={handleSignaturePointerMove}
+                        onPointerUp={handleSignaturePointerUp}
+                        onPointerLeave={handleSignaturePointerUp}
+                        style={{ width: "100%", height: 220, touchAction: "none", background: "#fff", display: "block" }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ padding: "0 1.25rem 1.25rem", display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      onClick={clearSignatureCanvas}
+                      style={{ borderRadius: 8, border: "1px solid #cbd5e1", background: "#fff", color: "#111", padding: "0.6rem 1rem", cursor: "pointer" }}
+                    >
+                      Clear
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closeSignatureEditor}
+                      style={{ borderRadius: 8, border: "1px solid #cbd5e1", background: "#fff", color: "#111", padding: "0.6rem 1rem", cursor: "pointer" }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={saveSignature}
+                      style={{ borderRadius: 8, border: "none", background: "#2563eb", color: "#fff", padding: "0.6rem 1rem", cursor: "pointer" }}
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <button
               type="submit"
               className="btn btn-primary"

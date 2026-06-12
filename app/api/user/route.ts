@@ -1,127 +1,115 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
-import connectMongo from "@/libs/mongoose";
-import User from "@/models/User";
-import { v2 as cloudinary } from 'cloudinary';
-import fs from 'fs';
-import axios from 'axios';
-import FormData from 'form-data';
-import { Readable } from 'stream';
+import supabase, { mapUser } from "@/libs/supabase";
+import { v2 as cloudinary } from "cloudinary";
 
-export const dynamic = 'force-dynamic'; // Ensures dynamic behavior
-// export const bodyParser = false; // Disables the body parser
+export const dynamic = "force-dynamic";
 
-// Cloudinary configuration
 cloudinary.config({
-  cloud_name: 'duwwnsyur',
-  api_key: '929533944976281',
-  api_secret: process.env.CLOUDINARY_API_SECRET, // Replace with your actual API secret
+  cloud_name: "duwwnsyur",
+  api_key: "929533944976281",
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Function to upload image to Cloudinary
-async function uploadImageToCloudinary(imageBuffer: Buffer, fileName: string, userId: string): Promise<string> {
-  try {
-    if (!imageBuffer) {
-      throw new Error("Invalid image buffer");
-    }
-
-    // Convert Buffer to a readable stream
-    const bufferStream = new Readable();
-    bufferStream.push(imageBuffer);
-    bufferStream.push(null); // End the stream
-
-    // Upload the image using stream
-    const uploadResult = await new Promise<any>((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          public_id: `user-${userId}-profile`, // Use the userId to create a unique public ID
-          resource_type: 'auto', // Automatically detect the file type
-        },
+async function uploadImageToCloudinary(imageBuffer: Buffer, userId: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream(
+        { public_id: `user-${userId}-profile`, resource_type: "auto" },
         (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result);
-          }
+          if (error) reject(error);
+          else resolve(result!.secure_url);
         }
-      ).end(imageBuffer);
-    });
-
-    console.log('Image uploaded to Cloudinary:', uploadResult);
-
-    return uploadResult.secure_url; // Return the secure URL of the uploaded image
-  } catch (error) {
-    console.error("Cloudinary image upload error:", error);
-    throw error;
-  }
+      )
+      .end(imageBuffer);
+  });
 }
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-
   if (!session) {
-    return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
 
-  await connectMongo();
   const id = session.user.id;
 
   try {
     const formData = await req.formData();
 
-    const user = await User.findOne({ _id: id });
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-    let image;
-
-    if (formData.get("image")) {
-      image = formData.get("image") as File;
-
-      const arrayBuffer = await image.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      // Upload image to HubSpot
-      const imageUrl = await uploadImageToCloudinary(buffer, `${user._id}-profile.jpg`, id);
-      user.image = imageUrl;
+    const { data: existing } = await supabase.from("users").select("id").eq("id", id).single();
+    if (!existing) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Update user fields from form data
-    user.name = formData.get("name") as string || user.name;
-    user.username = formData.get("username") as string || user.username;
-    user.email = formData.get("email") as string || user.email;
-    user.displayEmail = formData.get("displayEmail") === "true" ? true : formData.get("displayEmail") === "false" ? false : user.displayEmail;
-    user.location = formData.get("location") as string || user.location;
-    user.website = formData.get("website") as string || user.website;
-    user.bio = formData.get("bio") as string || user.bio;
-    user.instagram = formData.get("instagram") as string || user.instagram;
-    user.twitter = formData.get("twitter") as string || user.twitter;
-    user.facebook = formData.get("facebook") as string || user.facebook;
-    user.linkedin = formData.get("linkedin") as string || user.linkedin;
-    user.youtube = formData.get("youtube") as string || user.youtube;
-    user.tiktok = formData.get("tiktok") as string || user.tiktok;
-    user.github = formData.get("github") as string || user.github;
-    user.patreon = formData.get("patreon") as string || user.patreon;
-    user.substack = formData.get("substack") as string || user.substack;
-    user.telegram = formData.get("telegram") as string || user.telegram;
-    user.etsy = formData.get("etsy") as string || user.etsy;
-    user.spotify = formData.get("spotify") as string || user.spotify;
-    user.appleMusic = formData.get("appleMusic") as string || user.appleMusic;
-    user.tidal = formData.get("tidal") as string || user.tidal;
-    user.amazonMusic = formData.get("amazonMusic") as string || user.amazonMusic;
-    user.soundcloud = formData.get("soundcloud") as string || user.soundcloud;
-    user.deezer = formData.get("deezer") as string || user.deezer;
-    user.pandora = formData.get("pandora") as string || user.pandora;
-    user.youtubeMusic = formData.get("youtubeMusic") as string || user.youtubeMusic;
-    user.bandcamp = formData.get("bandcamp") as string || user.bandcamp;
-    user.soundxyz = formData.get("soundxyz") as string || user.soundxyz;
+    const updates: Record<string, any> = {};
 
-    await user.save();
+    const imageFile = formData.get("image") as File | null;
+    if (imageFile && imageFile.size > 0) {
+      const buffer = Buffer.from(await imageFile.arrayBuffer());
+      updates.image = await uploadImageToCloudinary(buffer, id);
+    }
 
-    return NextResponse.json({ data: user }, { status: 200 });
+    const textFields: [string, string][] = [
+      ["metaPixelId", "meta_pixel_id"],
+      ["metaCapiToken", "meta_capi_token"],
+      ["name", "name"],
+      ["username", "username"],
+      ["email", "email"],
+      ["location", "location"],
+      ["website", "website"],
+      ["bio", "bio"],
+      ["etsy", "etsy"],
+      ["instagram", "instagram"],
+      ["twitter", "twitter"],
+      ["facebook", "facebook"],
+      ["linkedin", "linkedin"],
+      ["youtube", "youtube"],
+      ["bluesky", "bluesky"],
+      ["upscrolled", "upscrolled"],
+      ["tiktok", "tiktok"],
+      ["github", "github"],
+      ["patreon", "patreon"],
+      ["substack", "substack"],
+      ["telegram", "telegram"],
+      ["discord", "discord"],
+      ["spotify", "spotify"],
+      ["appleMusic", "apple_music"],
+      ["tidal", "tidal"],
+      ["amazonMusic", "amazon_music"],
+      ["soundcloud", "soundcloud"],
+      ["deezer", "deezer"],
+      ["pandora", "pandora"],
+      ["youtubeMusic", "youtube_music"],
+      ["bandcamp", "bandcamp"],
+    ];
+
+    for (const [formKey, dbKey] of textFields) {
+      const val = formData.get(formKey) as string | null;
+      if (val !== null && val !== "") updates[dbKey] = val;
+    }
+
+    const displayEmail = formData.get("displayEmail");
+    if (displayEmail === "true") updates.display_email = true;
+    else if (displayEmail === "false") updates.display_email = false;
+
+    const newsletterStyle = formData.get("newsletterStyle") as string | null;
+    if (newsletterStyle) {
+      try { updates.newsletter_style = JSON.parse(newsletterStyle); } catch { /* ignore bad json */ }
+    }
+
+    const { data: updated, error } = await supabase
+      .from("users")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({ data: mapUser(updated) }, { status: 200 });
   } catch (error) {
-    console.error("Error handling form data:", error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Error updating user:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

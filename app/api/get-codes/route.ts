@@ -1,44 +1,28 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
-import Codes from "@/models/Codes";
 import { getServerSession } from "next-auth/next";
-import connectMongo from "@/libs/mongoose";
 import { authOptions } from "@/libs/next-auth";
+import supabase, { mapQRCodes } from "@/libs/supabase";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (session) {
-    await connectMongo();
-    const id = session.user.id;
-    console.log("User ID:", id);
+  if (!session) {
+    return NextResponse.json({ error: "Please Sign In." }, { status: 401 });
+  }
 
-    try {
-      // Use find instead of findAll to retrieve the matching codes
-      const codes = await Codes.find({ userId: id });
-      console.log("Codes:", codes);
+  try {
+    const { data, error } = await supabase
+      .from("qr_codes")
+      .select()
+      .eq("user_id", session.user.id)
+      .maybeSingle();
 
-      if (!codes || codes.length === 0) {
-        return NextResponse.json(
-          { error: "Links Not Found" },
-          { status: 404 }
-        );
-      }
-      return NextResponse.json(
-        { data: codes },
-        { status: 200 }
-      );
-    } catch (e) {
-      console.error(e);
-      return NextResponse.json(
-        { error: "Something went wrong" },
-        { status: 500 }
-      );
-    }
-  } else {
-    return NextResponse.json(
-      { error: "Please Sign In." },
-      { status: 401 }
-    );
+    if (error) throw error;
+
+    // Always return 200 — empty array when no codes so the UI shows the Create button
+    return NextResponse.json({ data: data ? [mapQRCodes(data)] : [] }, { status: 200 });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

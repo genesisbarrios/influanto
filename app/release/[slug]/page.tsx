@@ -2,10 +2,12 @@
 /* eslint-disable */
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
+import MetaPixel, { trackStreamingClick, trackMerchClick, trackLinkClick } from "@/components/MetaPixel";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare } from "@fortawesome/free-brands-svg-icons";
 import { faGlobe } from "@fortawesome/free-solid-svg-icons";
 import { usePathname } from 'next/navigation'
+import NewsletterSignup from "@/components/NewsletterSignup";
 
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
@@ -167,6 +169,17 @@ const ReleasePageView = () => {
       getReleasePage();
     }
   }, [slug]);
+
+  // Track page visit once release page data is loaded
+  useEffect(() => {
+    if (releasePage?.id) {
+      fetch('/api/analytics/release', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ releasePageId: releasePage.id }),
+      }).catch(() => {});
+    }
+  }, [releasePage?.id]);
 
   // Set metadata after all data is loaded
   // Replace the metadata useEffect with this complete version:
@@ -517,10 +530,9 @@ const renderMerchSection = () => {
           No merch available
         </div>
       ) : (
-        <div 
-          className="merch-grid"
-          style={{ 
-            display: "grid", 
+        <div
+          className="grid grid-cols-2 md:grid-cols-3"
+          style={{
             gap: "20px",
             padding: "0 20px"
           }}
@@ -545,6 +557,7 @@ const renderMerchSection = () => {
               }}
               onClick={() => {
                 if (product.url) {
+                  trackMerchClick(product.title, product.url);
                   window.open(product.url, '_blank');
                 }
               }}
@@ -627,7 +640,7 @@ const renderMerchSection = () => {
   return (
     <div
       style={{
-        textAlign: "center", 
+        textAlign: "center",
         minHeight: "100vh",
         padding: "5% 0",
         color: textColor || "white",
@@ -635,6 +648,13 @@ const renderMerchSection = () => {
         fontFamily: releasePage?.font || 'inherit',
       }}
     >
+      {user?.metaPixelId && (
+        <MetaPixel
+          pixelId={user.metaPixelId}
+          contentName={releasePage.name || "Release"}
+          contentType="release_page"
+        />
+      )}
       <div>
         {/* Image */}
         <img
@@ -747,6 +767,7 @@ const renderMerchSection = () => {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackStreamingClick(platformName, link.url)}
                   style={{
                     padding: "8px 16px",
                     fontSize: "14px",
@@ -769,11 +790,10 @@ const renderMerchSection = () => {
 
         {/* User Social Icons */}
         <div
-          style={{
-            marginTop: "50px",
-            display: "flex",
-            justifyContent: "center",
-            gap: "15px",
+          style={{ marginTop: "50px", display: "flex", justifyContent: "center", gap: "15px" }}
+          onClick={(e) => {
+            const a = (e.target as Element).closest('a');
+            if (a?.href) trackLinkClick(new URL(a.href).hostname.replace(/^www\./, ''), a.href, 'social');
           }}
         >
           {instagram && (
@@ -838,7 +858,17 @@ const renderMerchSection = () => {
           )}
           {tidal && (
             <a href={`https://tidal.com/${user.tidal}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faGlobe} style={{ fontSize: "24px", color: linksColor || "white" }} />
+               <img
+              src="/tidal.png"
+              alt="Tidal"
+              style={{
+                width: 24,
+                height: 20,
+                margin: "0 auto",
+                borderRadius:"15%",
+                backgroundColor: linksColor || "white" 
+              }}
+            />
             </a>
           )}
           {deezer && (
@@ -877,6 +907,45 @@ const renderMerchSection = () => {
             </a>
           )}
         </div>
+
+        {/* ── Newsletter signup ── */}
+        {releasePage?.newsletterEnabled && (
+          <div className="mt-8 px-4">
+            <NewsletterSignup
+              username={userName}
+              source="release_page"
+              fields={releasePage.newsletterFields}
+              textColor={textColor}
+              linksColor={linksColor}
+              style={user?.newsletterStyle}
+            />
+          </div>
+        )}
+
+        {/* ── Brand logo (premium users) ── */}
+        {user?.hasAccess && releasePage?.brandLogoUrl && (
+          <div className="mt-12 flex justify-center">
+            {user?.website ? (
+              <a
+                href={/^https?:\/\//i.test(user.website) ? user.website : `https://${user.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src={releasePage.brandLogoUrl}
+                  alt="Brand logo"
+                  style={{ maxHeight: "30px", maxWidth: "30px", objectFit: "contain", cursor: "pointer" }}
+                />
+              </a>
+            ) : (
+              <img
+                src={releasePage.brandLogoUrl}
+                alt="Brand logo"
+                style={{ maxHeight: "30px", maxWidth: "30px", objectFit: "contain" }}
+              />
+            )}
+          </div>
+        )}
 
         {alert && <div className="alert mt-10 w-1/2 m-auto">{alert}</div>}
       </div>

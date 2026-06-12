@@ -3,8 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
 import { useSession } from "next-auth/react";
+import ReleasePageAnalytics from "@/components/ReleasePageAnalytics";
 import { CldUploadWidget } from 'next-cloudinary';
 import { debounce } from "lodash";
+import posthog from "posthog-js";
+import { parseColorValue, combineColor } from "@/libs/color";
+import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
+import ImagePicker from "@/components/ImagePicker";
 
 const ReleasePages = () => {
   const { data, status } = useSession();
@@ -15,6 +20,9 @@ const ReleasePages = () => {
   const [createPage, setCreatePage] = useState(false);
   const [isNameUnique, setIsNameUnique] = useState(true);
   const [bgColor, setBgColor] = useState("#ffffff");
+  const [bgOpacity, setBgOpacity] = useState(100);
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [textColor, setTextColor] = useState("#000000");
   const [linksColor, setLinksColor] = useState("#0000ff");
   const [font, setFont] = useState("sans-serif");
@@ -24,6 +32,9 @@ const ReleasePages = () => {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [showMerchSection, setShowMerchSection] = useState(false);
+  const [expandedAnalytics, setExpandedAnalytics] = useState<string | null>(null);
+  const [brandLogoUrl, setBrandLogoUrl] = useState("");
+  const [brandLogoPickerOpen, setBrandLogoPickerOpen] = useState(false);
 
 
   useEffect(() => {
@@ -146,9 +157,11 @@ const ReleasePages = () => {
       const { data } = await apiClient.get("/get-release-pages", {
         params: { userId: userId },
       });
-      setReleasePages(data);
+      if(data != null ){
+        setReleasePages(data);
+      }
     } catch (e: any) {
-      console.error(e?.message);
+      console.log(e?.message);
       //setAlert(e?.message);
     }
   };
@@ -159,6 +172,12 @@ const ReleasePages = () => {
       getUserData(data?.user?.id);
     }
   }, [data]);
+
+  // Load the user's existing images for the picker gallery
+  const loadGallery = () => {
+    fetch('/api/my-images').then(r => r.json()).then(j => setGalleryImages(Array.isArray(j?.images) ? j.images : [])).catch(() => {});
+  };
+  useEffect(() => { loadGallery(); }, []);
 
   // Add useEffect to fetch products when user data is available
   useEffect(() => {
@@ -177,30 +196,37 @@ const ReleasePages = () => {
   }, [editingPage?.selectedProducts]);
 
   const handleCreate = async () => {
-    setEditingPage({ 
+    setBgColor("#ffffff");
+    setBgOpacity(100);
+    setEditingPage({
       name: "", 
       description: "", 
       links: [], 
       image: "", 
       video: "", 
-      bgColor, 
-      linksColor, 
+      bgColor,
+      linksColor,
       textColor,
       font,
-      selectedProducts: []
-    }); 
+      selectedProducts: [],
+      newsletterEnabled: false,
+      newsletterFields: ["name", "email"]
+    });
     setCreatePage(true);
     setSelectedProductIds([]);
+    setBrandLogoUrl("");
   };
 
   const handleEdit = (page: any) => {
     setEditingPage(page);
     // Populate color states with values from the selected page
     setBgColor(page.bgColor || "#ffffff");
+    setBgOpacity(parseColorValue(page.bgColor, "#ffffff").opacity);
     setTextColor(page.textColor || "#000000");
     setLinksColor(page.linksColor || "#0000ff");
     setFont(page.font || "sans-serif");
-    
+    setBrandLogoUrl(page.brandLogoUrl || "");
+
     // Load selected products for this page
     if (page.selectedProducts && Array.isArray(page.selectedProducts)) {
       setSelectedProductIds(page.selectedProducts);
@@ -210,8 +236,13 @@ const ReleasePages = () => {
   };
 
   const handleImageUpload = (result: any) => {
-    const imageUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/v1742637738/${result.info.publicId}.png`;
+    const imageUrl = result.info?.secure_url ||
+      `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/v${result.info.version}/${result.info.public_id || result.info.publicId}.${result.info.format || "png"}`;
+    const oldImage = editingPage?.image;
     setEditingPage({ ...editingPage, image: imageUrl });
+    // Replacing — clean up the previous image from Cloudinary
+    if (oldImage && oldImage !== imageUrl) deleteCloudinaryImage(oldImage);
+    loadGallery();
   };
 
   const getYouTubeVideoId = (url: string): { videoId: string | null; playlistId: string | null } => {
@@ -327,7 +358,7 @@ const ReleasePages = () => {
       return false;
     }
     
-    if (value.length > 500) {
+    if (value.length > 2000) {
       setAlert(`${fieldName} URL is too long.`);
       return false;
     }
@@ -632,12 +663,7 @@ const removeCustomLink = (index: number) => {
         return;
       }
 
-      // Validate selected products (if any)
-      if (selectedProductIds.length > 0 && !userData?.hasAccess) {
-        setAlert("Merch integration is only available for premium users.");
-        return;
-      }
-
+      const nlFields: string[] = Array.isArray(editingPage?.newsletterFields) ? editingPage.newsletterFields : ["name", "email"];
       const dataToSend = {
         ...editingPage,
         bgColor,
@@ -645,9 +671,19 @@ const removeCustomLink = (index: number) => {
         linksColor,
         font,
         selectedProducts: selectedProductIds,
+        newsletterEnabled: !!editingPage?.newsletterEnabled,
+        newsletterFields: nlFields.includes("email") ? nlFields : [...nlFields, "email"],
+        brandLogoUrl: brandLogoUrl || null,
       };
 
+      const isNew = !editingPage?._id;
       await apiClient.post(`/release/`, dataToSend);
+
+      if (isNew) {
+        posthog.capture("release_page_created", { page_name: editingPage?.name });
+      } else {
+        posthog.capture("release_page_saved", { page_name: editingPage?.name, page_id: editingPage?._id });
+      }
 
       setEditingPage(null);
       setCreatePage(false);
@@ -655,7 +691,8 @@ const removeCustomLink = (index: number) => {
       getReleasePages(data?.user?.id);
       setAlert("Release page saved successfully!");
     } catch (e: any) {
-      console.error('❌ Save error:', e?.message); 
+      console.error('❌ Save error:', e?.message);
+      posthog.captureException(e);
       setAlert(e?.response?.data?.message || e?.message || "Failed to save release page.");
     }
   };
@@ -697,105 +734,105 @@ const removeCustomLink = (index: number) => {
 
   // Render merch section component
   const renderMerchSection = () => {
-    if (!userData?.hasAccess || !userData?.printifyShopId) {
-      return (
-        <div className="mb-4 p-4 bg-blue-50 rounded-md">
-          <h4 className="font-bold mb-2 text-blue-800" style={{
+    return (
+      <>
+        <div className="mb-4 p-4 bg-purple-50 rounded-md border border-purple-200">
+          <h4 className="font-bold mb-2 text-purple-800" style={{
             fontFamily: font || 'inherit'
-          }}>Merch Integration</h4>
-          <p className="text-blue-600 text-sm" style={{
+          }}>🛒 Merch Integration</h4>
+          <p className="text-purple-600 text-sm" style={{
             fontFamily: font || 'inherit'
           }}>
-            {!userData?.hasAccess 
-              ? "Upgrade to Premium to add merch to your release pages" 
-              : "Connect your Printify store to add merch products"
+            {!userData?.printifyShopId
+              ? "Connect your Printify store to your Profile to add merch to your release pages"
+              : "Your Printify store is connected. Select products to feature below."
             }
           </p>
-        </div>
-      );
-    }
 
-    return (
-      <div className="mb-4" style={{ fontFamily: font || 'inherit' }}>
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="font-bold" style={{ fontFamily: font || 'inherit' }}>Merch Products</h4>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={() => setShowMerchSection(!showMerchSection)}
-            style={{ fontFamily: font || 'inherit' }}
-          >
-            {showMerchSection ? 'Hide Products' : 'Select Products'}
-          </button>
-        </div>
-        
-        {selectedProductIds.length > 0 && (
-          <div className="mb-2 text-sm text-gray-600" style={{ fontFamily: font || 'inherit' }}>
-            {selectedProductIds.length} product{selectedProductIds.length !== 1 ? 's' : ''} selected
-          </div>
-        )}
-
-        {showMerchSection && (
-          <div className="border rounded-md p-4 bg-gray-50" style={{ fontFamily: font || 'inherit' }}>
-            {isLoadingProducts ? (
-              <div className="text-center py-4">
-                <div className="animate-pulse" style={{ fontFamily: font || 'inherit' }}>Loading products...</div>
-              </div>
-            ) : availableProducts.length === 0 ? (
-              <div className="text-center py-4 text-gray-600" style={{ fontFamily: font || 'inherit' }}>
-                No products found. Make sure your Printify store has products.
-              </div>
-            ) : (
-              <div className="max-h-96 overflow-y-auto">
-                <div className="grid grid-cols-1 gap-2">
-                  {availableProducts.map((product: any) => (
-                    <div
-                      key={product.id}
-                      className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
-                        selectedProductIds.includes(product.id) 
-                          ? 'bg-blue-50 border-blue-500' 
-                          : 'bg-white border-gray-200'
-                      }`}
-                      onClick={() => toggleProductSelection(product.id)}
-                      style={{ fontFamily: font || 'inherit' }}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedProductIds.includes(product.id)}
-                          onChange={() => toggleProductSelection(product.id)}
-                          className="form-checkbox h-4 w-4"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        
-                        {product.images && product.images[0] && (
-                          <img
-                            src={product.images[0]}
-                            alt={product.title}
-                            className="w-12 h-12 object-cover rounded"
-                            onError={(e) => {
-                              e.currentTarget.src = 'https://via.placeholder.com/48x48/4ecdc4/ffffff?text=P';
-                            }}
-                          />
-                        )}
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate" style={{ fontFamily: font || 'inherit' }}>
-                            {product.title || 'Untitled Product'}
-                          </div>
-                          <div className="text-xs text-gray-500" style={{ fontFamily: font || 'inherit' }}>
-                            ${product.variants?.[0]?.price || product.price || 'N/A'}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+        {userData?.printifyShopId && (
+          <>
+            <div className="flex items-center justify-between mb-2 mt-3">
+              <h4 className="font-bold text-purple-800" style={{ fontFamily: font || 'inherit' }}>Merch Products</h4>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setShowMerchSection(!showMerchSection)}
+                style={{ fontFamily: font || 'inherit' }}
+              >
+                {showMerchSection ? 'Hide Products' : 'Select Products'}
+              </button>
+            </div>
+            
+            {selectedProductIds.length > 0 && (
+              <div className="mb-2 text-sm text-gray-600" style={{ fontFamily: font || 'inherit' }}>
+                {selectedProductIds.length} product{selectedProductIds.length !== 1 ? 's' : ''} selected
               </div>
             )}
-          </div>
+
+            {showMerchSection && (
+              <div className="border rounded-md p-4 bg-gray-50" style={{ fontFamily: font || 'inherit' }}>
+                {isLoadingProducts ? (
+                  <div className="text-center py-4">
+                    <div className="animate-pulse" style={{ fontFamily: font || 'inherit' }}>Loading products...</div>
+                  </div>
+                ) : availableProducts.length === 0 ? (
+                  <div className="text-center py-4 text-gray-600" style={{ fontFamily: font || 'inherit' }}>
+                    No products found. Make sure your Printify store has products.
+                  </div>
+                ) : (
+                  <div className="max-h-96 overflow-y-auto">
+                    <div className="grid grid-cols-1 gap-2">
+                      {availableProducts.map((product: any) => (
+                        <div
+                          key={product.id}
+                          className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
+                            selectedProductIds.includes(product.id) 
+                              ? 'bg-blue-50 border-blue-500' 
+                              : 'bg-white border-gray-200'
+                          }`}
+                          onClick={() => toggleProductSelection(product.id)}
+                          style={{ fontFamily: font || 'inherit' }}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              checked={selectedProductIds.includes(product.id)}
+                              onChange={() => toggleProductSelection(product.id)}
+                              className="form-checkbox h-4 w-4"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            
+                            {product.images && product.images[0] && (
+                              <img
+                                src={product.images[0]}
+                                alt={product.title}
+                                className="w-12 h-12 object-cover rounded"
+                                onError={(e) => {
+                                  e.currentTarget.src = 'https://via.placeholder.com/48x48/4ecdc4/ffffff?text=P';
+                                }}
+                              />
+                            )}
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate" style={{ fontFamily: font || 'inherit' }}>
+                                {product.title || 'Untitled Product'}
+                              </div>
+                              <div className="text-xs text-gray-500" style={{ fontFamily: font || 'inherit' }}>
+                                ${product.variants?.[0]?.price || product.price || 'N/A'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
-      </div>
+        </div>
+      </>
     );
   };
 
@@ -864,31 +901,26 @@ const removeCustomLink = (index: number) => {
             {editingPage?.name && (
               <div className="mb-4">
                 <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Image</label>
-                <CldUploadWidget
-                  uploadPreset="ReleasePageImages"
-                  options={{ publicId: `user_${data?.user?.id}_releasePage_thumbnail_${releasePages.length + 1}` }}
-                  onUploadAdded={(result: any) => {
-                    handleImageUpload(result);
-                  }}
-                >
-                  {({ open }: { open: () => void }) => (
-                    <button
-                      type="button"
-                      onClick={() => open()}
-                      className="btn btn-primary btn-sm"
-                      style={{ fontFamily: font || 'inherit' }}
-                    >
-                      Upload Image
-                    </button>
-                  )}
-                </CldUploadWidget>
-                {editingPage?.image && (
-                  <img
-                    src={editingPage.image}
-                    alt="Release Page"
-                    className="mt-2 rounded-md"
-                    style={{ width: "100%", maxHeight: "200px", objectFit: "cover" }}
-                  />
+                {editingPage?.image ? (
+                  <div style={{ position: "relative", display: "inline-block", width: "100%", maxWidth: 400 }}>
+                    <img
+                      src={editingPage.image}
+                      alt="Release Page"
+                      className="rounded-md"
+                      style={{ width: "100%", maxHeight: "200px", objectFit: "cover", display: "block" }}
+                    />
+                    <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6 }}>
+                      <button type="button" title="Change image" onClick={() => setImagePickerOpen(true)}
+                        style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", fontSize: 14 }}>✏️</button>
+                      <button type="button" title="Delete image"
+                        onClick={async () => { const old = editingPage.image; setEditingPage({ ...editingPage, image: "" }); await deleteCloudinaryImage(old); }}
+                        style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(220,38,38,0.85)", color: "#fff", cursor: "pointer", fontSize: 14 }}>🗑️</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => setImagePickerOpen(true)} className="btn btn-primary btn-sm" style={{ fontFamily: font || 'inherit' }}>
+                    + Add Image
+                  </button>
                 )}
               </div>
             )}
@@ -974,49 +1006,78 @@ const removeCustomLink = (index: number) => {
             </div>
             
 
+            {/* Brand Logo (Premium) */}
+            {userData?.hasAccess && (
+              <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
+                <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>✨ Brand Logo</h4>
+                <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: font || 'inherit' }}>
+                  Shown at the bottom of your release page.
+                </p>
+                {brandLogoUrl && (
+                  <div className="flex items-center gap-3 mb-3">
+                    <img src={brandLogoUrl} alt="Brand logo" className="h-12 object-contain rounded border border-purple-200 bg-white p-1" />
+                    <button type="button" className="btn btn-xs btn-error text-white" onClick={async () => { const old = brandLogoUrl; setBrandLogoUrl(""); await deleteCloudinaryImage(old); }}>🗑️ Remove</button>
+                  </div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <button type="button" onClick={() => setBrandLogoPickerOpen(true)} className="btn btn-sm btn-outline w-fit" style={{ fontFamily: font || 'inherit' }}>
+                    {brandLogoUrl ? 'Replace Logo' : 'Upload Brand Logo'}
+                  </button>
+                  <p className="text-xs text-gray-400">Or paste a logo URL:</p>
+                  <input type="url" className="input input-sm w-full" placeholder="https://example.com/logo.png" value={brandLogoUrl} onChange={e => setBrandLogoUrl(e.target.value)} style={{ fontFamily: font || 'inherit' }} />
+                </div>
+              </div>
+            )}
+
             {/* Add merch section for create */}
             {renderMerchSection()}
 
             <div className="mb-4">
               <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Colors</h4>
-              <div className="flex flex-wrap w-full">
-                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-2">BG</h2>
-                <input
-                  type="color"
-                  value={bgColor}
-                  onChange={(e) => setBgColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Text</h2>
-                <input
-                  type="color"
-                  value={textColor}
-                  onChange={(e) => setTextColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
-                <input
-                  type="color"
-                  value={linksColor}
-                  onChange={(e) => setLinksColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-              </div>
-            </div>
-
-             {/* Premium Styling Options */}
-              <div className="mt-4 w-full">
-               <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Premium Styles</h4>
-
-                {/* Font Picker */}
-                <div className="mb-3">
-                  <label className="mr-2" style={{
-                    fontFamily: font || 'inherit'
-                  }}>Font:</label>
+              <div className="w-full">
+                {/* BG on its own line with an opacity fader */}
+                <div className="flex items-center flex-wrap gap-2 mb-2">
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-1">Card BG</h2>
+                  <input
+                    type="color"
+                    value={parseColorValue(bgColor, "#ffffff").hex}
+                    onChange={(e) => setBgColor(combineColor(e.target.value, bgOpacity))}
+                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                  />
+                  <span className="text-sm ml-2 mr-1" style={{ fontFamily: font || 'inherit' }}>Opacity</span>
+                  <input
+                    type="range" min={0} max={100} value={bgOpacity}
+                    onChange={(e) => { const o = Number(e.target.value); setBgOpacity(o); setBgColor(combineColor(parseColorValue(bgColor, "#ffffff").hex, o)); }}
+                    className="w-32"
+                  />
+                  <span className="text-xs text-gray-500 w-9">{bgOpacity}%</span>
+                  {/* Live preview so transparency is visible (a color input can't show alpha) */}
+                  <div title="Card preview" style={{ width: 32, height: 32, borderRadius: 6, border: '1px solid #d1d5db', overflow: 'hidden', backgroundImage: 'linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%)', backgroundSize: '8px 8px', backgroundPosition: '0 0,0 4px,4px -4px,-4px 0' }}>
+                    <div style={{ width: '100%', height: '100%', backgroundColor: bgColor || '#ffffff' }} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 mb-2">
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-2">Text</h2>
+                  <input
+                    type="color"
+                    value={textColor}
+                    onChange={(e) => setTextColor(e.target.value)}
+                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                  />
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
+                  <input
+                    type="color"
+                    value={linksColor}
+                    onChange={(e) => setLinksColor(e.target.value)}
+                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-1">Font:</h2>
                   <select
                     value={font || "sans-serif"}
                     onChange={e => setFont(e.target.value)}
-                    className="input w-40"
+                    className="input w-36"
                     style={{ fontFamily: font || 'inherit' }}
                   >
                     <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
@@ -1027,7 +1088,38 @@ const removeCustomLink = (index: number) => {
                   </select>
                 </div>
               </div>
-            
+            </div>
+
+            {/* Newsletter signup */}
+            <div className="mt-4 w-full p-4 bg-indigo-50 rounded-md border border-indigo-100">
+              <div className="flex items-center gap-2">
+                <button type="button" role="switch" aria-checked={!!editingPage?.newsletterEnabled}
+                  onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}
+                  style={{ width: 46, height: 26, borderRadius: 999, background: editingPage?.newsletterEnabled ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
+                  <span style={{ position: 'absolute', top: 3, left: editingPage?.newsletterEnabled ? 23 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
+                </button>
+                <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}>📣 Collect newsletter signups</span>
+              </div>
+              <p className="text-indigo-600 text-sm mt-1">Show a signup form on this release page so fans can join your Outreach contacts.</p>
+              {editingPage?.newsletterEnabled && (
+                <div className="mt-3">
+                  <p className="text-xs font-semibold text-indigo-700 mb-2">Fields to collect (email is always required):</p>
+                  <div className="flex flex-wrap gap-3">
+                    {[["name", "Name"], ["phone", "Phone"], ["instagram", "Instagram"], ["tiktok", "TikTok"]].map(([key, label]) => {
+                      const fields: string[] = Array.isArray(editingPage?.newsletterFields) ? editingPage.newsletterFields : ["name", "email"];
+                      return (
+                        <label key={key} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                          <input type="checkbox" style={{ width: 16, height: 16, accentColor: '#4f46e5', cursor: 'pointer' }} checked={fields.includes(key)}
+                            onChange={() => setEditingPage({ ...editingPage, newsletterFields: fields.includes(key) ? fields.filter(f => f !== key) : [...fields, key] })} />
+                          {label}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="flex justify-end">
               <button
                 className="btn btn-primary btn-sm mr-2"
@@ -1050,47 +1142,67 @@ const removeCustomLink = (index: number) => {
           </div>
         ) : !editingPage ? (
           <div className="grid grid-cols-1 gap-4">
-            {Array.isArray(releasePages) && releasePages.map((page: any) => (
-              <div
-                key={page.id || page._id}
-                className="relative rounded-lg overflow-hidden shadow-lg"
-                style={{
-                  backgroundImage: `url(${page.image})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  height: "200px",
-                  fontFamily: page.font || 'inherit'  // Apply the page's font to preview
-                }}
-              >
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white">
-                  <h3 className="text-lg font-bold" style={{ fontFamily: page.font || 'inherit' }}>{page.name}</h3>
-                  <p className="text-sm" style={{ fontFamily: page.font || 'inherit' }}>{page.description}</p>
-                  <div className="flex space-x-2 mt-2">
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => handleEdit(page)}
-                      style={{ fontFamily: page.font || 'inherit' }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => window.location.href = `/release/${page.name}`}
-                      style={{ fontFamily: page.font || 'inherit' }}
-                    >
-                      Visit
-                    </button>
-                    <button
-                      className="btn btn-alert btn-sm"
-                      onClick={() => handleDelete(page.id || page._id)}
-                      style={{ fontFamily: page.font || 'inherit' }}
-                    >
-                      Delete
-                    </button>
+            {Array.isArray(releasePages) && releasePages.map((page: any) => {
+              const pageId = page.id || page._id;
+              const analyticsOpen = expandedAnalytics === pageId;
+              return (
+                <div key={pageId}>
+                  {/* Page card */}
+                  <div
+                    className="relative rounded-lg overflow-hidden shadow-lg"
+                    style={{
+                      backgroundImage: `url(${page.image})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      height: "200px",
+                      fontFamily: page.font || 'inherit',
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white">
+                      <h3 className="text-lg font-bold" style={{ fontFamily: page.font || 'inherit' }}>{page.name}</h3>
+                      <p className="text-sm" style={{ fontFamily: page.font || 'inherit' }}>{page.description}</p>
+                      <div className="flex space-x-2 mt-2 flex-wrap justify-center gap-y-1">
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => handleEdit(page)}
+                          style={{ fontFamily: page.font || 'inherit' }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => window.location.href = `/release/${page.name}`}
+                          style={{ fontFamily: page.font || 'inherit' }}
+                        >
+                          Visit
+                        </button>
+                        <button
+                          className="btn btn-sm"
+                          style={{ backgroundColor: analyticsOpen ? "#4f46e5" : "rgba(255,255,255,0.2)", color: "white", fontFamily: page.font || 'inherit' }}
+                          onClick={() => setExpandedAnalytics(analyticsOpen ? null : pageId)}
+                        >
+                          {analyticsOpen ? "Hide Analytics" : "Analytics"}
+                        </button>
+                        <button
+                          className="btn btn-alert btn-sm"
+                          onClick={() => handleDelete(pageId)}
+                          style={{ fontFamily: page.font || 'inherit' }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Collapsible analytics panel */}
+                  {analyticsOpen && (
+                    <div className="border border-gray-200 rounded-b-lg bg-gray-50 px-4 pb-4 -mt-1">
+                      <ReleasePageAnalytics releasePageId={pageId} releasePageName={page.name} />
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="p-4 bg-gray-100 rounded-md" style={{ fontFamily: font || 'inherit' }}>
@@ -1232,58 +1344,118 @@ const removeCustomLink = (index: number) => {
 
             <div className="mb-4">
               <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Colors</h4>
-              <div className="flex flex-wrap w-full">
-                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="mr-2">BG</h2>
-                <input
-                  type="color"
-                  value={bgColor}
-                  onChange={(e) => setBgColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Text</h2>
-                <input
-                  type="color"
-                  value={textColor}
-                  onChange={(e) => setTextColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
-                <h2 style={{ display: "block", fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
-                <input
-                  type="color"
-                  value={linksColor}
-                  onChange={(e) => setLinksColor(e.target.value)}
-                  className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                />
+              <div className="w-full">
+                {/* BG on its own line with an opacity fader */}
+                <div className="flex items-center flex-wrap gap-2 mb-2">
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-1">Card BG</h2>
+                  <input
+                    type="color"
+                    value={parseColorValue(bgColor, "#ffffff").hex}
+                    onChange={(e) => setBgColor(combineColor(e.target.value, bgOpacity))}
+                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                  />
+                  <span className="text-sm ml-2 mr-1" style={{ fontFamily: font || 'inherit' }}>Opacity</span>
+                  <input
+                    type="range" min={0} max={100} value={bgOpacity}
+                    onChange={(e) => { const o = Number(e.target.value); setBgOpacity(o); setBgColor(combineColor(parseColorValue(bgColor, "#ffffff").hex, o)); }}
+                    className="w-32"
+                  />
+                  <span className="text-xs text-gray-500 w-9">{bgOpacity}%</span>
+                  {/* Live preview so transparency is visible (a color input can't show alpha) */}
+                  <div title="Card preview" style={{ width: 32, height: 32, borderRadius: 6, border: '1px solid #d1d5db', overflow: 'hidden', backgroundImage: 'linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%)', backgroundSize: '8px 8px', backgroundPosition: '0 0,0 4px,4px -4px,-4px 0' }}>
+                    <div style={{ width: '100%', height: '100%', backgroundColor: bgColor || '#ffffff' }} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 mb-2">
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-2">Text</h2>
+                  <input
+                    type="color"
+                    value={textColor}
+                    onChange={(e) => setTextColor(e.target.value)}
+                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                  />
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
+                  <input
+                    type="color"
+                    value={linksColor}
+                    onChange={(e) => setLinksColor(e.target.value)}
+                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-1">Font:</h2>
+                  <select
+                    value={font || "sans-serif"}
+                    onChange={e => setFont(e.target.value)}
+                    className="input w-36"
+                    style={{ fontFamily: font || 'inherit' }}
+                  >
+                    <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
+                    <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
+                    <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
+                    <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
+                    <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
+                  </select>
+                </div>
               </div>
             </div>
 
-            {/* Premium Styles Section for Edit Form */}
-            <div className="mt-4 w-full">
-              <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Premium Styles</h4>
-
-              {/* Font Picker */}
-              <div className="mb-3">
-                <label className="mr-2" style={{
-                  fontFamily: font || 'inherit'
-                }}>Font:</label>
-                <select
-                  value={font || "sans-serif"}
-                  onChange={e => setFont(e.target.value)}
-                  className="input w-40"
-                  style={{ fontFamily: font || 'inherit' }}
-                >
-                  <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
-                  <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
-                  <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
-                  <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
-                  <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
-                </select>
+            {/* Brand Logo (Premium) */}
+            {userData?.hasAccess && (
+              <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
+                <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>✨ Brand Logo</h4>
+                <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: font || 'inherit' }}>
+                  Shown at the bottom of your release page.
+                </p>
+                {brandLogoUrl && (
+                  <div className="flex items-center gap-3 mb-3">
+                    <img src={brandLogoUrl} alt="Brand logo" className="h-12 object-contain rounded border border-purple-200 bg-white p-1" />
+                    <button type="button" className="btn btn-xs btn-error text-white" onClick={async () => { const old = brandLogoUrl; setBrandLogoUrl(""); await deleteCloudinaryImage(old); }}>🗑️ Remove</button>
+                  </div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <button type="button" onClick={() => setBrandLogoPickerOpen(true)} className="btn btn-sm btn-outline w-fit" style={{ fontFamily: font || 'inherit' }}>
+                    {brandLogoUrl ? 'Replace Logo' : 'Upload Brand Logo'}
+                  </button>
+                  <p className="text-xs text-gray-400">Or paste a logo URL:</p>
+                  <input type="url" className="input input-sm w-full" placeholder="https://example.com/logo.png" value={brandLogoUrl} onChange={e => setBrandLogoUrl(e.target.value)} style={{ fontFamily: font || 'inherit' }} />
+                </div>
               </div>
-            </div>
+            )}
 
             {renderMerchSection()}
 
-            <div className="flex justify-end">
+            {/* Newsletter signup */}
+            <div className="mt-4 w-full p-4 bg-indigo-50 rounded-md border border-indigo-100">
+              <div className="flex items-center gap-2">
+                <button type="button" role="switch" aria-checked={!!editingPage?.newsletterEnabled}
+                  onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}
+                  style={{ width: 46, height: 26, borderRadius: 999, background: editingPage?.newsletterEnabled ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
+                  <span style={{ position: 'absolute', top: 3, left: editingPage?.newsletterEnabled ? 23 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
+                </button>
+                <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}>📣 Collect newsletter signups</span>
+              </div>
+              <p className="text-indigo-600 text-sm mt-1">Show a signup form on this release page so fans can join your Outreach contacts.</p>
+              {editingPage?.newsletterEnabled && (
+                <div className="mt-3">
+                  <p className="text-xs font-semibold text-indigo-700 mb-2">Fields to collect (email is always required):</p>
+                  <div className="flex flex-wrap gap-3">
+                    {[["name", "Name"], ["phone", "Phone"], ["instagram", "Instagram"], ["tiktok", "TikTok"]].map(([key, label]) => {
+                      const fields: string[] = Array.isArray(editingPage?.newsletterFields) ? editingPage.newsletterFields : ["name", "email"];
+                      return (
+                        <label key={key} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                          <input type="checkbox" style={{ width: 16, height: 16, accentColor: '#4f46e5', cursor: 'pointer' }} checked={fields.includes(key)}
+                            onChange={() => setEditingPage({ ...editingPage, newsletterFields: fields.includes(key) ? fields.filter(f => f !== key) : [...fields, key] })} />
+                          {label}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end mt-6">
               <button
                 className="btn btn-primary btn-sm mr-2"
                 onClick={handleSave}
@@ -1317,6 +1489,28 @@ const removeCustomLink = (index: number) => {
           </div>
         )}
       </div>
+
+      {imagePickerOpen && (
+        <ImagePicker
+          images={galleryImages}
+          uploadPreset="ReleasePageImages"
+          uploadOptions={{ publicId: `user_${data?.user?.id}_releasePage_${Date.now()}` }}
+          onUploaded={(result: any) => handleImageUpload(result)}
+          onSelect={(url: string) => setEditingPage({ ...editingPage, image: url })}
+          onClose={() => setImagePickerOpen(false)}
+        />
+      )}
+
+      {brandLogoPickerOpen && (
+        <ImagePicker
+          images={galleryImages}
+          uploadPreset="ReleasePageImages"
+          uploadOptions={{ publicId: `user_${data?.user?.id}_brandLogo_${Date.now()}` }}
+          onUploaded={(result: any) => { setBrandLogoUrl(result.info?.secure_url || ""); setBrandLogoPickerOpen(false); }}
+          onSelect={(url: string) => { setBrandLogoUrl(url); setBrandLogoPickerOpen(false); }}
+          onClose={() => setBrandLogoPickerOpen(false)}
+        />
+      )}
     </>
   );
 };

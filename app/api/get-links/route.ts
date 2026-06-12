@@ -1,49 +1,32 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from "next";
-import LinkInBio from "@/models/LinkInBio";
-import { getServerSession } from "next-auth/next";
-import connectMongo from "@/libs/mongoose";
-import { authOptions } from "@/libs/next-auth";
 import { NextResponse } from "next/server";
-import { NextRequest } from 'next/server';
-import { useSession, signOut } from "next-auth/react";
+import { NextRequest } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/libs/next-auth";
+import supabase, { mapLinkInBio } from "@/libs/supabase";
 
-
-
-export async function GET(req: NextRequest, {params}: {params: {id: string}}) {
+export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions);
-   if(session){
-    await connectMongo();
-    const id = session.user.id;
-    console.log(id);
+  if (!session) {
+    return NextResponse.json({ error: "Please Sign In." }, { status: 401 });
+  }
 
-    try {
-      const linkInBio = await LinkInBio.findOne({userId: id});
-      console.log(linkInBio);
+  try {
+    const { data, error } = await supabase
+      .from("link_in_bio")
+      .select()
+      .eq("user_id", session.user.id)
+      .single();
 
-
-      if (!linkInBio) {
-        return NextResponse.json(
-          { error: "Link In Bio not found. Start creating yours now!" },
-          { status: 404 }
-        );
-      }
+    if (error || !data) {
       return NextResponse.json(
-        { data: linkInBio},
-        { status: 200 }
-      );
-
-    } catch (e) {
-      console.error(e);
-      return NextResponse.json(
-        { error: "Something went wrong" },
-        { status: 500 }
+        { error: "Link In Bio not found. Start creating yours now!" },
+        { status: 404 }
       );
     }
-   }else{
-     return NextResponse.json(
-       { error: "Please Sign In." },
-       { status: 401 }
-     );
-   }
+
+    return NextResponse.json({ data: mapLinkInBio(data) }, { status: 200 });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+  }
 }

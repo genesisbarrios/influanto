@@ -9,6 +9,7 @@ import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "react-hot-toast";
 import { Tooltip } from "react-tooltip";
 import config from "@/config";
+import posthog from "posthog-js";
 
 // Crisp customer chat support:
 // This component is separated from ClientLayout because it needs to be wrapped with <SessionProvider> to use useSession() hook
@@ -39,6 +40,16 @@ const CrispChat = (): null => {
   useEffect(() => {
     if (data?.user && config?.crisp?.id) {
       Crisp.session.setData({ userId: data.user?.id });
+    }
+  }, [data]);
+
+  // Identify user in PostHog when session is available
+  useEffect(() => {
+    if (data?.user?.id) {
+      posthog.identify(data.user.id, {
+        email: data.user.email ?? undefined,
+        name: data.user.name ?? undefined,
+      });
     }
   }, [data]);
 

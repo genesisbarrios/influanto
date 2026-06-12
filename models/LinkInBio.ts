@@ -28,6 +28,32 @@ const linkInBioSchema = new mongoose.Schema(
     bgImage: {
       type: String,
     },
+    bgMode: {
+      type: String,
+      enum: ['color', 'preset', 'upload', 'pattern'],
+      default: 'color',
+    },
+    bgImageCustom: {
+      type: String,
+    },
+    patternId: {
+      type: String,
+      default: 'topography',
+    },
+    patternFg: {
+      type: String,
+      default: '#000000',
+    },
+    patternBg: {
+      type: String,
+      default: '#ffffff',
+    },
+    patternOpacity: {
+      type: Number,
+      default: 0.5,
+      min: 0.05,
+      max: 1,
+    },
     selectedProducts: {
       type: [String], // Fixed: Changed from [{ type: number }] to [String]
       default: [],
