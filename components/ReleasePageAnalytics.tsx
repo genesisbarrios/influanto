@@ -22,6 +22,23 @@ const PALETTE = [
   "#7c3aed","#8b5cf6","#a78bfa","#c4b5fd","#ddd6fe",
 ];
 
+const COUNTRY_NAMES: Record<string, string> = {
+  US:"United States",GB:"United Kingdom",CA:"Canada",AU:"Australia",MX:"Mexico",
+  BR:"Brazil",DE:"Germany",FR:"France",ES:"Spain",IT:"Italy",JP:"Japan",
+  KR:"South Korea",IN:"India",NG:"Nigeria",ZA:"South Africa",AR:"Argentina",
+  CO:"Colombia",CL:"Chile",PE:"Peru",VE:"Venezuela",NL:"Netherlands",SE:"Sweden",
+  NO:"Norway",DK:"Denmark",FI:"Finland",PT:"Portugal",PL:"Poland",RU:"Russia",
+  UA:"Ukraine",TR:"Turkey",SA:"Saudi Arabia",AE:"United Arab Emirates",EG:"Egypt",
+  GH:"Ghana",KE:"Kenya",ET:"Ethiopia",TZ:"Tanzania",CM:"Cameroon",SN:"Senegal",
+  CI:"Ivory Coast",PH:"Philippines",ID:"Indonesia",TH:"Thailand",VN:"Vietnam",
+  MY:"Malaysia",SG:"Singapore",NZ:"New Zealand",PK:"Pakistan",BD:"Bangladesh",
+  CN:"China",HK:"Hong Kong",TW:"Taiwan",IE:"Ireland",BE:"Belgium",CH:"Switzerland",
+  AT:"Austria",CZ:"Czech Republic",RO:"Romania",GR:"Greece",HU:"Hungary",
+  JM:"Jamaica",TT:"Trinidad and Tobago",DO:"Dominican Republic",PR:"Puerto Rico",
+  GT:"Guatemala",CR:"Costa Rica",PA:"Panama",BO:"Bolivia",EC:"Ecuador",
+  PY:"Paraguay",UY:"Uruguay",IL:"Israel",LB:"Lebanon",QA:"Qatar",KW:"Kuwait",
+};
+
 const TABS = ["Views", "Location", "Devices", "Sources"];
 
 function ComingSoon({ icon = "📊", title, subtitle }: { icon?: string; title: string; subtitle: string }) {
@@ -34,15 +51,35 @@ function ComingSoon({ icon = "📊", title, subtitle }: { icon?: string; title: 
   );
 }
 
-function HBar({ data, height = 200 }: { data: { name: string; count: number }[]; height?: number }) {
+function HBar({ data, height = 200, isCountry = false }: { data: { name: string; count: number }[]; height?: number; isCountry?: boolean }) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const chartData = isCountry
+    ? data.map(d => ({ code: d.name, name: isMobile ? d.name : (COUNTRY_NAMES[d.name] ?? d.name), count: d.count }))
+    : data;
+
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <BarChart layout="vertical" data={data} margin={{ top: 0, right: 16, left: 8, bottom: 0 }}>
+      <BarChart layout="vertical" data={chartData} margin={{ top: 0, right: 16, left: 8, bottom: 0 }}>
         <XAxis type="number" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} allowDecimals={false} />
-        <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={90} />
-        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e5e7eb" }} cursor={{ fill: "#f3f4f6" }} />
+        <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={isCountry && !isMobile ? 145 : 90} />
+        <Tooltip
+          contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e5e7eb" }}
+          cursor={{ fill: "#f3f4f6" }}
+          labelFormatter={(label: any, payload: any) =>
+            isCountry && isMobile && payload?.[0]?.payload?.code
+              ? (COUNTRY_NAMES[payload[0].payload.code] ?? label)
+              : label
+          }
+        />
         <Bar dataKey="count" radius={[0, 4, 4, 0]} name="Visits">
-          {data.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
+          {chartData.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
         </Bar>
       </BarChart>
     </ResponsiveContainer>
@@ -159,7 +196,7 @@ export default function ReleasePageAnalytics({ releasePageId, releasePageName }:
           ) : (
             <>
               <p className="text-xs text-gray-400 mb-3">Top countries — all time</p>
-              <HBar data={data!.visitsByCountry} height={Math.max(180, data!.visitsByCountry.length * 26)} />
+              <HBar data={data!.visitsByCountry} height={Math.max(180, data!.visitsByCountry.length * 26)} isCountry />
             </>
           )
         )}
