@@ -1,5 +1,5 @@
-// components/PrintifyProducts.tsx
-import { useState, useEffect } from 'react';
+'use client';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface PrintifyProduct {
   id: string;
@@ -13,6 +13,7 @@ interface PrintifyProduct {
     color?: string;
   }[];
   tags: string[];
+  url?: string;
 }
 
 interface PrintifyProductsProps {
@@ -25,50 +26,84 @@ interface PrintifyProductsProps {
   font?: string;
 }
 
-const PrintifyProducts = ({ 
-  userId, 
-  shopId, 
+const LIMIT = 20;
+
+const PrintifyProducts = ({
+  userId,
+  shopId,
   selectedProductIds = [],
-  textColor = '#000000', 
+  textColor = '#000000',
   linksColor = '#0066cc',
   cardBgColor = 'transparent',
   font = 'inherit'
 }: PrintifyProductsProps) => {
   const [products, setProducts] = useState<PrintifyProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetchProducts();
-  }, [userId, shopId]);
-
-  const fetchProducts = async () => {
-    setIsLoading(true);
+  const fetchProducts = useCallback(async (pageNum: number, append: boolean) => {
+    if (pageNum === 1) setIsLoading(true);
+    else setIsFetchingMore(true);
     setError(null);
-    
+
     try {
-      const response = await fetch(`/api/printify/products/${userId}`);
-      
+      const response = await fetch(`/api/products/${userId}?page=${pageNum}&limit=${LIMIT}`);
+
       if (!response.ok) {
         throw new Error(`Failed to fetch: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      setProducts(data || []);
+
+      // Support both old array format and new paginated format
+      const incoming: PrintifyProduct[] = Array.isArray(data) ? data : (data.products ?? []);
+      const more: boolean = Array.isArray(data) ? false : (data.hasMore ?? false);
+
+      setProducts(prev => append ? [...prev, ...incoming] : incoming);
+      setHasMore(more);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load products');
-      setProducts([]);
+      if (!append) setProducts([]);
     } finally {
       setIsLoading(false);
+      setIsFetchingMore(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    setProducts([]);
+    setPage(1);
+    setHasMore(false);
+    fetchProducts(1, false);
+  }, [userId, shopId, fetchProducts]);
+
+  // Sentinel-based infinite scroll (horizontal)
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isFetchingMore && !isLoading) {
+          const nextPage = page + 1;
+          setPage(nextPage);
+          fetchProducts(nextPage, true);
+        }
+      },
+      { root: scrollRef.current, threshold: 0.1 }
+    );
+
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, isFetchingMore, isLoading, page, fetchProducts]);
 
   if (isLoading) {
     return (
-      <div className="text-center py-4" style={{ 
-        color: textColor,
-        fontFamily: font 
-      }}>
+      <div className="text-center py-4" style={{ color: textColor, fontFamily: font }}>
         <div className="animate-pulse">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {[...Array(6)].map((_, i) => (
@@ -82,13 +117,10 @@ const PrintifyProducts = ({
 
   if (error) {
     return (
-      <div className="text-center py-4" style={{ 
-        color: textColor,
-        fontFamily: font 
-      }}>
+      <div className="text-center py-4" style={{ color: textColor, fontFamily: font }}>
         <p className="text-sm">❌ {error}</p>
-        <button 
-          onClick={fetchProducts}
+        <button
+          onClick={() => fetchProducts(1, false)}
           className="text-xs underline mt-2"
           style={{ color: linksColor }}
         >
@@ -100,21 +132,18 @@ const PrintifyProducts = ({
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-4" style={{ 
-        color: textColor,
-        fontFamily: font 
-      }}>
+      <div className="text-center py-4" style={{ color: textColor, fontFamily: font }}>
         <p className="text-sm">No products found in your store.</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div ref={scrollRef} className="overflow-x-auto">
       <div className="flex gap-3 pb-2" style={{ minWidth: 'max-content' }}>
         {products.map((product: PrintifyProduct) => (
-          <ProductCard 
-            key={product.id} 
+          <ProductCard
+            key={product.id}
             product={product}
             textColor={textColor}
             linksColor={linksColor}
@@ -122,21 +151,33 @@ const PrintifyProducts = ({
             font={font}
           />
         ))}
+
+        {/* Sentinel — triggers load-more when scrolled into view */}
+        <div ref={sentinelRef} className="flex-none w-4 self-stretch" />
+
+        {isFetchingMore && (
+          <div className="flex-none flex items-center justify-center w-32 h-40">
+            <div
+              className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+              style={{ borderColor: linksColor, borderTopColor: 'transparent' }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-const ProductCard = ({ 
-  product, 
-  textColor, 
-  linksColor, 
-  cardBgColor, 
-  font 
-}: { 
+const ProductCard = ({
+  product,
+  textColor,
+  linksColor,
+  cardBgColor,
+  font
+}: {
   product: PrintifyProduct;
   textColor: string;
-  linksColor: string; 
+  linksColor: string;
   cardBgColor: string;
   font: string;
 }) => {
@@ -144,26 +185,18 @@ const ProductCard = ({
 
   if (!product.variants || product.variants.length === 0) {
     return (
-      <div 
+      <div
         className="flex-none w-40 border border-gray-200 rounded-lg overflow-hidden shadow-sm"
         style={{ backgroundColor: cardBgColor }}
       >
         <div className="aspect-square bg-gray-100 flex items-center justify-center">
-          <span className="text-gray-400 text-xs" style={{ fontFamily: font }}>
-            No image
-          </span>
+          <span className="text-gray-400 text-xs" style={{ fontFamily: font }}>No image</span>
         </div>
         <div className="p-3">
-          <h4 className="font-medium text-xs truncate" style={{ 
-            color: textColor,
-            fontFamily: font 
-          }}>
+          <h4 className="font-medium text-xs truncate" style={{ color: textColor, fontFamily: font }}>
             {product.title}
           </h4>
-          <p className="text-xs mt-1" style={{ 
-            color: textColor,
-            fontFamily: font 
-          }}>
+          <p className="text-xs mt-1" style={{ color: textColor, fontFamily: font }}>
             Price not available
           </p>
         </div>
@@ -172,7 +205,7 @@ const ProductCard = ({
   }
 
   return (
-    <div 
+    <div
       className="flex-none w-40 border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
       style={{ backgroundColor: cardBgColor }}
     >
@@ -186,27 +219,19 @@ const ProductCard = ({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-gray-400 text-xs" style={{ fontFamily: font }}>
-              No image
-            </span>
+            <span className="text-gray-400 text-xs" style={{ fontFamily: font }}>No image</span>
           </div>
         )}
       </div>
-      
+
       <div className="p-3">
-        <h4 className="font-medium text-xs truncate" style={{ 
-          color: textColor,
-          fontFamily: font 
-        }}>
+        <h4 className="font-medium text-xs truncate" style={{ color: textColor, fontFamily: font }}>
           {product.title}
         </h4>
-        <p className="text-xs mt-1" style={{ 
-          color: textColor,
-          fontFamily: font 
-        }}>
+        <p className="text-xs mt-1" style={{ color: textColor, fontFamily: font }}>
           ${selectedVariant?.price || 0}
         </p>
-        
+
         {product.variants.length > 1 && (
           <select
             value={selectedVariant?.id || ''}
@@ -215,10 +240,7 @@ const ProductCard = ({
               if (variant) setSelectedVariant(variant);
             }}
             className="w-full mt-2 text-xs border border-gray-300 rounded px-1 py-1"
-            style={{ 
-              fontFamily: font,
-              fontSize: '10px'
-            }}
+            style={{ fontFamily: font, fontSize: '10px' }}
           >
             {product.variants.map(variant => (
               <option key={variant.id} value={variant.id}>
@@ -228,18 +250,13 @@ const ProductCard = ({
             ))}
           </select>
         )}
-        
+
         <button
           className="w-full mt-2 px-2 py-1 text-white text-xs rounded transition-colors"
-          style={{ 
-            backgroundColor: linksColor,
-            fontFamily: font,
-            fontSize: '10px'
-          }}
+          style={{ backgroundColor: linksColor, fontFamily: font, fontSize: '10px' }}
           onClick={() => {
-            // Open product page or handle purchase
-            const printifyUrl = `https://printify.com/app/products/${product.id}`;
-            window.open(printifyUrl, '_blank');
+            const url = product.url || `https://printify.com/app/products/${product.id}`;
+            window.open(url, '_blank');
           }}
         >
           Buy Now

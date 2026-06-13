@@ -462,6 +462,7 @@ return (
         {/* Music platforms */}
         {user.spotify && <h3 className="mt-5" style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>Listen</h3>}
         <div
+          className="text-base flex flex-wrap items-center gap-x-2 gap-y-1"
           style={{ fontFamily: font || 'inherit', color: textColor || "#333333", marginBottom:"28px" }}
           onClick={(e) => {
             const a = (e.target as Element).closest('a');
@@ -471,44 +472,42 @@ return (
             }
           }}
         >
-          {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{marginRight:"10px", color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
-          {user.appleMusic && <a href={"https://music.apple.com/" + user.appleMusic } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
+          {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
+          {user.appleMusic && <a href={"https://music.apple.com/" + user.appleMusic } target="_blank" style={{color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
           {user.tidal && (
-                      <a href={"https://tidal.com/" + user.tidal } target="_blank" style={{marginRight:"10px", textDecoration: 'none'}}>
-                        <span style={{
-                           display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: 18,
-                            height: 18,
-                            borderRadius: "50%",
-                            backgroundColor: "#fff",
-                            boxSizing: "border-box",
-                            lineHeight: 0, // remove inline baseline space
-                            overflow: "hidden",
-                            padding: 2,
-                        }}>
-                          <img
-                          src="/tidal.png"
-                          alt="Tidal"
-                          style={{
-                            display: "block",
-                            width: 12,
-                            height: 12,
-                            objectFit: "contain",
-                            margin: "0 auto",
-                          }}
-                        />
-                        </span>
-                      </a>
-                    )}
-          {user.youtubeMusic && <a href={"https://music.youtube.com/channel/" + user.youtubeMusic } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faSquareYoutube} /></a>}
-          {user.amazonMusic && <a href={"https://music.amazon.com/" + user.amazonMusic } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faAmazon} /></a>}
-          {user.soundcloud && <a href={"https://soundcloud.com/" + user.soundcloud } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faSoundcloud} /></a>}
-          {user.deezer && <a href={"https://deezer.com/" + user.deezer } target="_blank" style={{marginRight:"10px", color:"purple"}}><FontAwesomeIcon icon={faDeezer} /></a>}
-          {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{marginRight:"10px", color:"darkblue", display:"inline-block"}}><img src="/pandora.png" width={16}/></a>}
-          {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
-          {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{marginRight:"10px", display:"inline-block"}}><img src="/soundxyz.png" width={16}/></a>}
+            <a href={"https://tidal.com/" + user.tidal} target="_blank" style={{textDecoration: 'none', display: "inline-flex", alignItems: "center"}}>
+              <span style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "1em",
+                height: "1em",
+                borderRadius: "50%",
+                backgroundColor: "#fff",
+                boxSizing: "border-box",
+                overflow: "hidden",
+                padding: 2,
+              }}>
+                <img
+                  src="/tidal.png"
+                  alt="Tidal"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                  }}
+                />
+              </span>
+            </a>
+          )}
+          {user.youtubeMusic && <a href={"https://music.youtube.com/channel/" + user.youtubeMusic } target="_blank" style={{color:"red"}}><FontAwesomeIcon icon={faSquareYoutube} /></a>}
+          {user.amazonMusic && <a href={"https://music.amazon.com/" + user.amazonMusic } target="_blank" style={{color:"orange"}}><FontAwesomeIcon icon={faAmazon} /></a>}
+          {user.soundcloud && <a href={"https://soundcloud.com/" + user.soundcloud } target="_blank" style={{color:"orange"}}><FontAwesomeIcon icon={faSoundcloud} /></a>}
+          {user.deezer && <a href={"https://deezer.com/" + user.deezer } target="_blank" style={{color:"purple"}}><FontAwesomeIcon icon={faDeezer} /></a>}
+          {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{color:"darkblue", display:"inline-flex", alignItems:"center"}}><img src="/pandora.png" style={{width:"1em", height:"1em", objectFit:"contain"}}/></a>}
+          {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
+          {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{display:"inline-flex", alignItems:"center"}}><img src="/soundxyz.png" style={{width:"1em", height:"1em", objectFit:"contain"}}/></a>}
         </div>
 
         {/* Custom links */}
