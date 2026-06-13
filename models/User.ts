@@ -27,9 +27,17 @@ const userSchema = new mongoose.Schema(
     location: {
       type: String,
     },
-    walletAddress:{
+    walletAddresses: {
+      type: [String],
+      default: [],
+    },
+    ensName: {
       type: String,
-      default: null
+      default: null,
+    },
+    privyUserId: {
+      type: String,
+      default: null,
     },
     instagram: {
       type: String,

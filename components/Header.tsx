@@ -19,21 +19,22 @@ const links: {
   href: string;
   label: string;
 }[] = [
-  {
-    href: "/blog",
-    label: "Blog",
-  },
+ 
   {
     href: "/tools",
     label: "Music Tools",
   },
   {
-    href: "/collectibles",
-    label: "Collectibles",
-  },
-  {
     href: "/dashboard",
     label: "Dashboard",
+  },
+  {
+    href: "/collectibles",
+    label: "Music",
+  }, 
+  {
+    href: "/blog",
+    label: "Blog",
   },
   {
     href: "/#pricing",

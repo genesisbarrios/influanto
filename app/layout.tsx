@@ -7,6 +7,7 @@ import ClientLayout from "@/components/LayoutClient";
 import config from "@/config";
 import { Analytics } from "@vercel/analytics/next"
 import { PostHogWrapper } from "@/app/providers";
+import PrivyClientProvider from "@/libs/privy-provider";
 import "./globals.css";
 
 
@@ -48,12 +49,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       )}
       <body>
         {/* ClientLayout contains all the client wrappers (Crisp chat support, toast messages, tooltips, etc.) */}
-        <PostHogWrapper>
-          <ClientLayout>
-            {children}
-            <Analytics />
-          </ClientLayout>
-        </PostHogWrapper>
+        <PrivyClientProvider>
+          <PostHogWrapper>
+            <ClientLayout>
+              {children}
+              <Analytics />
+            </ClientLayout>
+          </PostHogWrapper>
+        </PrivyClientProvider>
       </body>
     </html>
   );

@@ -82,13 +82,13 @@ export default function Dashboard() {
               Outreach
             </button>
           </li>
+           <li>
+            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('collectibles')}>Collectibles</button>
+          </li>
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('split-sheets')}>
               Split Sheets
             </button>
-          </li>
-          <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('collectibles')}>Collectibles</button>
           </li>
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('curator-search')}>

@@ -43,6 +43,9 @@ CREATE TABLE IF NOT EXISTS users (
   printify_store_name TEXT,
   printify_access_token TEXT,
   printify_shop_url TEXT,
+  wallet_addresses TEXT[] DEFAULT '{}',
+  ens_name TEXT,
+  privy_user_id TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -20,9 +20,9 @@ export default function Collectibles() {
           page: 1,
         }
       });
-      
+
       console.log('Full response:', response.data);
-      
+
       if (response.data.success && response.data.data && response.data.data.collectibles) {
         setCollectibles(response.data.data.collectibles);
       } else if (response.data.collectibles) {
@@ -35,7 +35,7 @@ export default function Collectibles() {
       }
     } catch (error) {
       console.error('Error fetching collectibles:', error);
-      
+
       // Add more detailed error logging
       if (error.response) {
         console.error('Response status:', error.response.status);
@@ -52,7 +52,7 @@ export default function Collectibles() {
   // ✅ Second useEffect for meta tags
   useEffect(() => {
     document.title = "Music Collectibles | Influanto";
-    
+
     // Update meta description
     let metaDescription = document.querySelector('meta[name="description"]');
     if (!metaDescription) {
@@ -100,17 +100,17 @@ export default function Collectibles() {
   }, []);
 
   return (
-    <>  
+    <>
       <Suspense>
         <Header />
-      </Suspense> 
-      <div 
+      </Suspense>
+      <div
         id="tools-bg"
-        style={{ 
+        style={{
           display: "flex",
           flexDirection: "column",
-          minHeight: "80vh", 
-          width: "100%" 
+          minHeight: "80vh",
+          width: "100%"
         }}
       >
         <div
@@ -244,7 +244,7 @@ export default function Collectibles() {
         #tools-bg {
           background: #638bcf !important;
         }
-        
+
         @media (min-width: 640px) {
           #tools-bg {
             flex-direction: row !important;
