@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faLock } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faLock, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { usePrivy, useWallets, useLogin } from "@privy-io/react-auth";
 import dynamic from "next/dynamic";
 import apiClient from "@/libs/api";
@@ -16,35 +16,23 @@ const WalletManagerModal = dynamic(() => import("../../components/WalletManagerM
   ssr: false,
 });
 
-interface Collectible {
-  _id?: string;
-  id?: string;
+interface ChainCollectible {
+  tokenId: number;
+  creator: string;
   title: string;
   description?: string;
   imageUrl?: string;
   audioUrl: string;
   artist: string;
-  genres: string[];
-  bpm?: number;
-  lyrics?: string;
-  editionSize: number;
-  priceUsd?: number;
-  type: "single" | "album";
-  status: string;
-  trackCount?: number;
-  tracks?: any[];
-}
-
-interface UserProfile {
-  name?: string;
-  email?: string;
-  id?: string;
+  genres: string | string[];
+  priceMatic: string;
+  minted: number;
+  maxEditions: number;
 }
 
 const Collectibles = () => {
   const [mounted, setMounted] = useState(false);
-  const [collectibles, setCollectibles] = useState<Collectible[]>([]);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [collectibles, setCollectibles] = useState<ChainCollectible[]>([]);
   const [walletAddresses, setWalletAddresses] = useState<string[]>([]);
   const [ensName, setEnsName] = useState<string | null>(null);
   const [isModalOpen, setModalOpen] = useState(false);
@@ -52,43 +40,25 @@ const Collectibles = () => {
   const [walletConnecting, setWalletConnecting] = useState(false);
   const [walletError, setWalletError] = useState<string | null>(null);
   const [walletInfoLoaded, setWalletInfoLoaded] = useState(false);
-  // true only when fetchWalletInfo returned a successful response
   const [walletInfoFetchOk, setWalletInfoFetchOk] = useState(false);
-  // track addresses we've already attempted to save this session to prevent duplicate calls
+  const [deletingTokenId, setDeletingTokenId] = useState<number | null>(null);
   const attemptedSavesRef = useRef<Set<string>>(new Set());
-  // set to true when the user explicitly clicks "Create" — allows save even if walletInfoFetchOk is false
   const userTriggeredRef = useRef(false);
 
   const { ready, authenticated, user: privyUser } = usePrivy();
   const { wallets } = useWallets();
-  const { login } = useLogin({
-    onError: () => setWalletConnecting(false),
-  });
+  const { login } = useLogin({ onError: () => setWalletConnecting(false) });
 
-  // Is Privy actively connected to the user's primary saved wallet?
   const privyHasPrimary =
-    ready &&
-    authenticated &&
-    walletAddresses.length > 0 &&
-    wallets.some(
-      (w) => w.address?.toLowerCase() === walletAddresses[0]?.toLowerCase()
-    );
+    ready && authenticated && walletAddresses.length > 0 &&
+    wallets.some((w) => w.address?.toLowerCase() === walletAddresses[0]?.toLowerCase());
 
-  // Whenever Privy has a wallet that isn't saved in our DB yet, save it.
-  // walletInfoLoaded guard ensures we don't race against fetchWalletInfo —
-  // without it, Privy wallets can populate before the DB fetch returns,
-  // causing a false "unsaved" detection for wallets that are already stored.
   useEffect(() => {
-    // Block auto-save if we don't know what's already in the DB (fetch failed),
-    // unless the user explicitly triggered the connection this session.
     if (!mounted || !authenticated || wallets.length === 0 || !walletInfoLoaded) return;
     if (!walletInfoFetchOk && !userTriggeredRef.current) return;
 
     const unsaved = wallets.find(
-      (w) =>
-        w.address &&
-        !walletAddresses.includes(w.address) &&
-        !attemptedSavesRef.current.has(w.address)
+      (w) => w.address && !walletAddresses.includes(w.address) && !attemptedSavesRef.current.has(w.address)
     );
     if (!unsaved) return;
 
@@ -105,14 +75,12 @@ const Collectibles = () => {
         setEnsName(result.ensName ?? null);
         setWalletConnecting(false);
         if (newAddresses.length > 0) {
-          fetchNFTs();
+          fetchNFTs(newAddresses[0]);
           if (isFirstWallet) setModalOpen(true);
         }
       })
       .catch((err) => {
-        const msg: string =
-          err?.response?.data?.error ?? err?.message ?? "Unknown error";
-        console.error("Wallet save failed:", msg, err);
+        const msg: string = err?.response?.data?.error ?? err?.message ?? "Unknown error";
         attemptedSavesRef.current.delete(unsaved.address);
         userTriggeredRef.current = false;
         setWalletConnecting(false);
@@ -121,70 +89,56 @@ const Collectibles = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wallets, walletAddresses, authenticated, mounted, walletInfoLoaded, walletInfoFetchOk]);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    fetchUserProfile();
-    fetchWalletInfo();
-  }, [mounted]);
+  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { if (mounted) fetchWalletInfo(); }, [mounted]);
 
   if (!mounted) {
     return (
-      <div className="p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4" />
-            <p className="text-gray-600">Loading collectibles...</p>
-          </div>
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4" />
+          <p className="text-gray-600">Loading collectibles...</p>
         </div>
       </div>
     );
   }
 
-  const fetchUserProfile = async () => {
-    try {
-      const user: any = await apiClient.get("/get-user");
-      setUserProfile(user);
-      fetchNFTs();
-    } catch (err) {
-      console.error("Failed to fetch user profile:", err);
-    }
-  };
-
   const fetchWalletInfo = async () => {
     try {
       const result: any = await apiClient.get("/wallet/info");
-      setWalletAddresses(result.walletAddresses ?? []);
+      const addrs: string[] = result.walletAddresses ?? [];
+      setWalletAddresses(addrs);
       setEnsName(result.ensName ?? null);
       setWalletInfoFetchOk(true);
-      if ((result.walletAddresses ?? []).length > 0) fetchNFTs();
+      if (addrs.length > 0) fetchNFTs(addrs[0]);
     } catch (err: any) {
       console.error("fetchWalletInfo failed:", err?.message);
-      // walletInfoFetchOk stays false — auto-save will be suppressed
     } finally {
       setWalletInfoLoaded(true);
     }
   };
 
-  const fetchNFTs = async () => {
+  const fetchNFTs = async (primaryWallet?: string) => {
     try {
-      const response = await apiClient.get("/musiccollectibles/get", {
-        params: { limit: 10, page: 1 },
-      });
-      if (response.data.success && response.data.data?.collectibles) {
-        setCollectibles(response.data.data.collectibles);
-      } else if (response.data.collectibles) {
-        setCollectibles(response.data.collectibles);
-      } else if (Array.isArray(response.data)) {
-        setCollectibles(response.data);
-      } else {
-        setCollectibles([]);
-      }
+      const result: any = await apiClient.get("/collectibles/chain");
+      const all: ChainCollectible[] = result.collectibles ?? [];
+      const wallet = (primaryWallet ?? walletAddresses[0])?.toLowerCase();
+      setCollectibles(wallet ? all.filter((c) => c.creator?.toLowerCase() === wallet) : all);
     } catch {
       setCollectibles([]);
+    }
+  };
+
+  const handleDelete = async (tokenId: number) => {
+    if (!confirm("Remove this collectible from your dashboard? It stays on-chain permanently.")) return;
+    setDeletingTokenId(tokenId);
+    try {
+      await apiClient.delete(`/collectibles/${tokenId}`);
+      setCollectibles((prev) => prev.filter((c) => c.tokenId !== tokenId));
+    } catch (err: any) {
+      alert("Delete failed: " + (err?.message ?? "Unknown error"));
+    } finally {
+      setDeletingTokenId(null);
     }
   };
 
@@ -204,30 +158,22 @@ const Collectibles = () => {
 
   return (
     <div className="p-6">
-      {/* Header row */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">My Collectibles</h1>
 
         {!walletInfoLoaded ? (
-          // Skeleton while DB wallet info loads
           <div className="w-36 h-8 bg-gray-100 rounded-full animate-pulse" />
         ) : hasWallet ? (
-          // ENS/wallet pill — green when Privy is live, amber when session needs reconnect
           <button
             onClick={() => setShowWalletManager(true)}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold transition ${
-              privyHasPrimary
-                ? "bg-blue-50 hover:bg-blue-100 text-blue-700"
-                : "bg-amber-50 hover:bg-amber-100 text-amber-700"
+              privyHasPrimary ? "bg-blue-50 hover:bg-blue-100 text-blue-700" : "bg-amber-50 hover:bg-amber-100 text-amber-700"
             }`}
           >
-            <span className={`text-xs ${privyHasPrimary ? "text-green-500" : "text-amber-400"}`}>
-              ●
-            </span>
+            <span className={`text-xs ${privyHasPrimary ? "text-green-500" : "text-amber-400"}`}>●</span>
             {ensName ?? `${primaryAddress!.slice(0, 6)}…${primaryAddress!.slice(-4)}`}
-            {!privyHasPrimary && ready && (
-              <span className="text-[10px] font-normal opacity-75">· Reconnect</span>
-            )}
+            {!privyHasPrimary && ready && <span className="text-[10px] font-normal opacity-75">· Reconnect</span>}
           </button>
         ) : (
           <div className="flex flex-col items-end gap-1">
@@ -236,61 +182,63 @@ const Collectibles = () => {
               disabled={walletConnecting}
               className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {walletConnecting && (
-                <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              )}
+              {walletConnecting && <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
               {walletConnecting ? "Connecting…" : "Create"}
             </button>
-            {walletError && (
-              <p className="text-xs text-red-500">{walletError}</p>
-            )}
+            {walletError && <p className="text-xs text-red-500">{walletError}</p>}
           </div>
         )}
       </div>
 
-      {/* Collectibles grid */}
-      <div className="relative">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {collectibles.map((collectible) => (
+      {/* Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {collectibles.map((c) => (
+          <div key={c.tokenId} className="border rounded-lg shadow hover:shadow-lg transition overflow-hidden group relative">
+            {/* Delete button — visible on hover */}
+            <button
+              onClick={(e) => { e.preventDefault(); handleDelete(c.tokenId); }}
+              disabled={deletingTokenId === c.tokenId}
+              title="Remove from dashboard"
+              className="absolute top-2 right-2 z-10 w-8 h-8 bg-white/90 hover:bg-white rounded-full shadow flex items-center justify-center text-gray-400 hover:text-red-600 transition opacity-0 group-hover:opacity-100 disabled:opacity-50"
+            >
+              <FontAwesomeIcon icon={faTrash} className="text-xs" />
+            </button>
+
             <a
-              key={collectible._id}
-              href={`/collectible/${userProfile?.id || userProfile?.name}/${encodeURIComponent(collectible.title)}`}
+              href={`/collectible/${c.creator}/${encodeURIComponent(c.title)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="border rounded-lg shadow hover:shadow-lg transition cursor-pointer overflow-hidden block"
+              className="block"
             >
               <img
-                src={collectible.imageUrl || "/placeholder.png"}
-                alt={collectible.title}
+                src={c.imageUrl || "/placeholder.png"}
+                alt={c.title}
                 className="w-full h-48 object-cover"
               />
-              <h3 className="p-2 text-center font-semibold">{collectible.title}</h3>
+              <div className="p-3">
+                <h3 className="font-semibold text-gray-800 truncate">{c.title}</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{c.artist}</p>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-xs font-medium text-purple-600">{parseFloat(c.priceMatic).toFixed(4)} MATIC</span>
+                  <span className="text-xs text-gray-400">{c.minted}/{c.maxEditions} minted</span>
+                </div>
+              </div>
             </a>
-          ))}
-
-          {/* Create collectible card */}
-          <div
-            onClick={handleCreateNFT}
-            className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg h-48 transition
-              ${collectibles.length === 0 ? "col-span-3" : ""}
-              ${hasWallet
-                ? "cursor-pointer hover:bg-gray-100 border-gray-300"
-                : "cursor-pointer border-gray-200 bg-gray-50 hover:bg-gray-100"
-              }`}
-          >
-            <FontAwesomeIcon
-              icon={hasWallet ? faPlus : faLock}
-              className={`text-5xl ${hasWallet ? "text-gray-400" : "text-gray-300"}`}
-            />
-            <p className={`mt-2 font-semibold text-center ${hasWallet ? "text-gray-500" : "text-gray-400"}`}>
-              {hasWallet ? "Create New Collectible" : "Create to Get Started"}
-            </p>
-            {!hasWallet && (
-              <p className="text-xs text-gray-400 mt-1 text-center px-4">
-                Set up your wallet to create collectibles
-              </p>
-            )}
           </div>
+        ))}
+
+        {/* Create card */}
+        <div
+          onClick={handleCreateNFT}
+          className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg h-48 transition
+            ${collectibles.length === 0 ? "sm:col-span-2 md:col-span-3" : ""}
+            ${hasWallet ? "cursor-pointer hover:bg-gray-100 border-gray-300" : "cursor-pointer border-gray-200 bg-gray-50 hover:bg-gray-100"}`}
+        >
+          <FontAwesomeIcon icon={hasWallet ? faPlus : faLock} className={`text-5xl ${hasWallet ? "text-gray-400" : "text-gray-300"}`} />
+          <p className={`mt-2 font-semibold text-center ${hasWallet ? "text-gray-500" : "text-gray-400"}`}>
+            {hasWallet ? "Create New Collectible" : "Create to Get Started"}
+          </p>
+          {!hasWallet && <p className="text-xs text-gray-400 mt-1 text-center px-4">Set up your wallet to create collectibles</p>}
         </div>
       </div>
 
@@ -299,21 +247,23 @@ const Collectibles = () => {
         onClose={() => setModalOpen(false)}
         walletAddresses={walletAddresses}
         ensName={ensName}
-        onWalletUpdate={(addresses, ens) => {
-          setWalletAddresses(addresses);
-          setEnsName(ens);
-        }}
+        onWalletUpdate={(addresses, ens) => { setWalletAddresses(addresses); setEnsName(ens); }}
         onCreate={(newNFT) =>
-          setCollectibles([
-            ...collectibles,
+          setCollectibles((prev) => [
+            ...prev,
             {
-              ...newNFT,
-              id: Date.now().toString(),
+              tokenId: Date.now(),
+              creator: walletAddresses[0] ?? "",
+              title: newNFT.title,
+              description: newNFT.description,
+              imageUrl: newNFT.image,
               audioUrl: newNFT.audio ?? "",
-              editionSize: typeof newNFT.editionSize === "number" ? newNFT.editionSize : 1,
-              genres: Array.isArray(newNFT.genre) ? newNFT.genre : newNFT.genre ? [newNFT.genre] : [],
-              status: "created",
-            } as Collectible,
+              artist: newNFT.artist,
+              genres: newNFT.genre ?? "",
+              priceMatic: "0",
+              minted: 0,
+              maxEditions: newNFT.editionSize ?? 1,
+            },
           ])
         }
       />
@@ -326,10 +276,7 @@ const Collectibles = () => {
           onUpdate={(addresses, ens) => {
             setWalletAddresses(addresses);
             setEnsName(ens);
-            if (addresses.length === 0) {
-              setShowWalletManager(false);
-              setCollectibles([]);
-            }
+            if (addresses.length === 0) { setShowWalletManager(false); setCollectibles([]); }
           }}
         />
       )}

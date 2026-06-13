@@ -248,10 +248,8 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
 
       setUploadProgress('Uploading to Walrus...');
       
-      // apiClient interceptor returns response.data directly — `result` IS the body
-      const result: any = await apiClient.post('/walrus/upload-single', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      // Do NOT set Content-Type manually — axios must add the multipart boundary automatically
+      const result: any = await apiClient.post('/walrus/upload-single', formData);
 
       if (!result) {
         throw new Error('No response received from upload');
@@ -436,21 +434,47 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
           
           mintResult = await mintNFTOnContract(ipfsData);
           console.log('✅ Mint successful:', mintResult);
-          
+
           // Extract token ID from mint result
           if (mintResult && mintResult.tokenId) {
             tokenId = mintResult.tokenId;
           } else if (contract) {
-            // Get the latest token ID
             try {
               const nextId = await contract.nextId();
               tokenId = Number(nextId) - 1;
-            } catch (tokenIdError) {
-              console.warn('Could not get token ID:', tokenIdError);
-              tokenId = Date.now(); // Fallback ID
+            } catch {
+              tokenId = Date.now();
             }
           }
-          
+
+          // Save to DB only after confirmed on-chain mint
+          setUploadProgress('Saving collectible...');
+          try {
+            await apiClient.post('/collectibles/save', {
+              title:       ipfsData.title || title,
+              description: ipfsData.description || description,
+              artist:      ipfsData.artist || artist,
+              genres,
+              bpm,
+              lyrics,
+              releaseDate,
+              priceUsd,
+              editionSize: ipfsData.editionSize || editionSize || 1,
+              audioUrl:    ipfsData.audio,
+              audioBlobId: ipfsData.audioBlobId,
+              imageUrl:    ipfsData.image,
+              imageBlobId: ipfsData.imageBlobId,
+              metadataUri: ipfsData.metadataCID,
+              metadataHash: ipfsData.metadataHash,
+              tokenId,
+              txHash:      mintResult?.transactionHash,
+              blockNumber: mintResult?.blockNumber,
+              contractAddress: typeof contract?.target === 'string' ? contract.target : contract?.address,
+            });
+          } catch (saveErr: any) {
+            console.warn('DB save failed (non-fatal):', saveErr?.message);
+          }
+
           setUploadProgress('NFT successfully created and minted!');
           
         } catch (mintError: any) {
@@ -466,7 +490,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
           setUploadProgress(`IPFS upload successful, but minting failed: ${mintError.message}`);
           
           // Show detailed error to user
-          alert(`IPFS upload successful!\n\nMinting failed: ${mintError.message}\n\nFiles are uploaded to IPFS. You can retry minting later.`);
+          alert(`Walrus upload successful!\n\nMinting failed: ${mintError.message}\n\nFiles are uploaded to Walrus. You can retry minting later.`);
         }
 
         // Create NFT data object

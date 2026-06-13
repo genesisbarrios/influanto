@@ -18,7 +18,7 @@ export async function uploadToWalrus(
 
   let res: Response;
   try {
-    res = await fetch(`${PUBLISHER}/v1/store?epochs=${epochs}`, {
+    res = await fetch(`${PUBLISHER}/v1/blobs?epochs=${epochs}`, {
       method: "PUT",
       body: data as BodyInit,
       signal: controller.signal,
@@ -55,5 +55,5 @@ export async function uploadJsonToWalrus(obj: unknown, epochs = 5): Promise<stri
 
 /** Returns the public URL to read a blob via the aggregator. */
 export function walrusUrl(blobId: string): string {
-  return `${AGGREGATOR}/v1/${blobId}`;
+  return `${AGGREGATOR}/v1/blobs/${blobId}`;
 }
