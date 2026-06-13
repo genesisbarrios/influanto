@@ -305,8 +305,8 @@ const LinkInBio = () => {
     try {
       const response = await fetch(`/api/products/${user.id}`);
       if (response.ok) {
-        const products = await response.json();
-        setAvailableProducts(products);
+        const data = await response.json();
+        setAvailableProducts(Array.isArray(data) ? data : (data.products ?? []));
       } else {
         console.error('Error fetching products:', await response.text());
       }

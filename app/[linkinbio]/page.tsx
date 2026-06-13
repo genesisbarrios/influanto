@@ -211,9 +211,8 @@ useEffect(() => {
       //console.log('📡 Response ok:', response.ok);
       
       if (response.ok) {
-        const products = await response.json();
-        //console.log('✅ Products received:', products);
-        setAvailableProducts(products);
+        const data = await response.json();
+        setAvailableProducts(Array.isArray(data) ? data : (data.products ?? []));
       } else {
         const errorText = await response.text();
         console.error('❌ Error response:', errorText);

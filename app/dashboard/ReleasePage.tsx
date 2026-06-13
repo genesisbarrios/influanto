@@ -32,6 +32,7 @@ const ReleasePages = () => {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [showMerchSection, setShowMerchSection] = useState(false);
+  const [productsNextPage, setProductsNextPage] = useState<number | null>(null);
   const [expandedAnalytics, setExpandedAnalytics] = useState<string | null>(null);
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
   const [brandLogoPickerOpen, setBrandLogoPickerOpen] = useState(false);
@@ -99,21 +100,19 @@ const ReleasePages = () => {
   };
 
   // Add function to fetch products
-  const fetchAvailableProducts = async () => {
+  const fetchAvailableProducts = async (page = 1) => {
     if (!userData?.id) return;
-    
-    console.log('🔍 Fetching products for release page...');
+
     setIsLoadingProducts(true);
     try {
-      const url = `/api/products/${userData.id}`;
-      console.log('📞 Fetching:', url);
-      
+      const url = `/api/products/${userData.id}?page=${page}&limit=20`;
       const response = await fetch(url);
-      
+
       if (response.ok) {
-        const products = await response.json();
-        console.log('✅ Products received:', products);
-        setAvailableProducts(products);
+        const data = await response.json();
+        const fetched: any[] = Array.isArray(data) ? data : (data.products ?? []);
+        setAvailableProducts(prev => page === 1 ? fetched : [...prev, ...fetched]);
+        setProductsNextPage(data.hasMore ? page + 1 : null);
       } else {
         const errorText = await response.text();
         console.error('❌ Error response:', errorText);
@@ -182,7 +181,9 @@ const ReleasePages = () => {
   // Add useEffect to fetch products when user data is available
   useEffect(() => {
     if (userData?.id && userData?.printifyShopId) {
-      fetchAvailableProducts();
+      setAvailableProducts([]);
+      setProductsNextPage(null);
+      fetchAvailableProducts(1);
     }
   }, [userData?.id, userData?.printifyShopId]);
 
@@ -786,8 +787,8 @@ const removeCustomLink = (index: number) => {
                         <div
                           key={product.id}
                           className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
-                            selectedProductIds.includes(product.id) 
-                              ? 'bg-blue-50 border-blue-500' 
+                            selectedProductIds.includes(product.id)
+                              ? 'bg-blue-50 border-blue-500'
                               : 'bg-white border-gray-200'
                           }`}
                           onClick={() => toggleProductSelection(product.id)}
@@ -801,7 +802,7 @@ const removeCustomLink = (index: number) => {
                               className="form-checkbox h-4 w-4"
                               onClick={(e) => e.stopPropagation()}
                             />
-                            
+
                             {product.images && product.images[0] && (
                               <img
                                 src={product.images[0]}
@@ -812,7 +813,7 @@ const removeCustomLink = (index: number) => {
                                 }}
                               />
                             )}
-                            
+
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm truncate" style={{ fontFamily: font || 'inherit' }}>
                                 {product.title || 'Untitled Product'}
@@ -825,6 +826,17 @@ const removeCustomLink = (index: number) => {
                         </div>
                       ))}
                     </div>
+                    {productsNextPage !== null && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm w-full mt-3"
+                        onClick={() => fetchAvailableProducts(productsNextPage)}
+                        disabled={isLoadingProducts}
+                        style={{ fontFamily: font || 'inherit' }}
+                      >
+                        {isLoadingProducts ? 'Loading...' : 'Load More Products'}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
