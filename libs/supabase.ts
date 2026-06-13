@@ -68,6 +68,9 @@ export function mapUser(row: any) {
     metaPixelId: row.meta_pixel_id,
     hasMetaCapiToken: !!row.meta_capi_token, // never expose the token itself
     newsletterStyle: row.newsletter_style ?? {},
+    walletAddresses: row.wallet_addresses ?? [],
+    ensName: row.ens_name ?? null,
+    privyUserId: row.privy_user_id ?? null,
   };
 }
 
