@@ -246,9 +246,9 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
       console.log('📤 Uploading with metadata:', metadata);
       formData.append('metadata', JSON.stringify(metadata));
 
-      setUploadProgress('Uploading to IPFS...');
+      setUploadProgress('Uploading to Walrus...');
       
-      const response = await apiClient.post('/pinata/upload-single', formData, {
+      const response = await apiClient.post('/walrus/upload-single', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -265,7 +265,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
 
       // The response.data contains the actual track data, which means success
       console.log('✅ IPFS upload successful:', response.data);
-      setUploadProgress('IPFS upload completed successfully!');
+      setUploadProgress('Walrus upload completed!');
       
       // Return the actual data (response.data IS the data)
       return response.data;
