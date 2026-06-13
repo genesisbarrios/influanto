@@ -790,7 +790,8 @@ const renderMerchSection = () => {
 
         {/* User Social Icons */}
         <div
-          style={{ marginTop: "50px", display: "flex", justifyContent: "center", gap: "15px" }}
+          className="text-lg md:text-2xl"
+          style={{ marginTop: "50px", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "12px" }}
           onClick={(e) => {
             const a = (e.target as Element).closest('a');
             if (a?.href) trackLinkClick(new URL(a.href).hostname.replace(/^www\./, ''), a.href, 'social');
@@ -798,112 +799,111 @@ const renderMerchSection = () => {
         >
           {instagram && (
             <a href={`https://instagram.com/${user.instagram}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faInstagram} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faInstagram} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {twitter && (
             <a href={`https://twitter.com/${user.twitter}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faTwitter} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faTwitter} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {facebook && (
             <a href={user.facebook} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faFacebook} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faFacebook} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {linkedin && (
             <a href={`https://linkedin.com/in/${user.linkedin}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faLinkedin} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faLinkedin} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {telegram && (
             <a href={`https://t.me/${user.telegram}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faTelegram} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faTelegram} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {github && (
             <a href={`https://github.com/${user.github}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faGithub} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faGithub} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {tiktok && (
             <a href={`https://tiktok.com/@${user.tiktok}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faTiktok} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faTiktok} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {youtube && (   
             <a href={`https://youtube.com/${user.youtube}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faYoutube} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faYoutube} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {youtubeMusic && (
             <a href={`https://music.youtube.com/${user.youtubeMusic}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faYoutubeSquare} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faYoutubeSquare} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {amazonMusic && (
             <a href={`https://music.amazon.com/${user.amazonMusic}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faAmazon} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faAmazon} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {soundcloud && (
             <a href={`https://soundcloud.com/${user.soundcloud}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faSoundcloud} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faSoundcloud} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {pandora && (
             <a href={`https://pandora.com/${user.pandora}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faGlobe} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faGlobe} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {tidal && (
             <a href={`https://tidal.com/${user.tidal}`} target="_blank" rel="noopener noreferrer">
-               <img
-              src="/tidal.png"
-              alt="Tidal"
-              style={{
-                width: 24,
-                height: 20,
-                margin: "0 auto",
-                borderRadius:"15%",
-                backgroundColor: linksColor || "white" 
-              }}
-            />
+              <img
+                src="/tidal.png"
+                alt="Tidal"
+                className="w-[18px] h-[18px] md:w-[24px] md:h-[24px]"
+                style={{
+                  objectFit: "contain",
+                  borderRadius: "15%",
+                  backgroundColor: linksColor || "white"
+                }}
+              />
             </a>
           )}
           {deezer && (
             <a href={`https://deezer.com/${user.deezer}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faDeezer} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faDeezer} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {bandcamp && (
             <a href={`https://bandcamp.com/${user.bandcamp}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faBandcamp} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faBandcamp} style={{ color: linksColor || "white" }} />
             </a>
           )}  
           {soundxyz && (  
             <a href={`https://sound.xyz/${user.soundxyz}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faWebAwesome} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faWebAwesome} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {patreon && (
             <a href={`https://patreon.com/${user.patreon}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faPatreon} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faPatreon} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {substack && (
             <a href={`https://substack.com/${user.substack}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faWebflow} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faWebflow} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {etsy && (
             <a href={`https://etsy.com/${user.etsy}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faEtsy} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faEtsy} style={{ color: linksColor || "white" }} />
             </a>
           )}
           {website && (
             <a href={user.website} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faGlobe} style={{ fontSize: "24px", color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faGlobe} style={{ color: linksColor || "white" }} />
             </a>
           )}
         </div>
