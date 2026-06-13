@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ethers, BrowserProvider } from 'ethers';
+import { useWallets } from '@privy-io/react-auth';
 
 // Add your actual contract address here
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS || '';
@@ -169,6 +170,8 @@ const CONTRACT_ABI = [
 
 
 export const useContract = () => {
+  const { wallets } = useWallets();
+
   const [contract, setContract] = useState<ethers.Contract | null>(null);
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
@@ -179,56 +182,50 @@ export const useContract = () => {
   const [networkId, setNetworkId] = useState<number | null>(null);
   const [contractStatus, setContractStatus] = useState<'unknown' | 'testing' | 'accessible' | 'error'>('unknown');
 
-  const initContract = async () => {
-    if (typeof window === 'undefined' || !window.ethereum) {
-      console.error('MetaMask not found');
-      return;
+  const getEip1193Provider = async () => {
+    // Prefer Privy wallet (works for both embedded and external wallets)
+    if (wallets.length > 0) {
+      return await wallets[0].getEthereumProvider();
     }
+    // Fall back to injected provider (MetaMask etc.)
+    if (typeof window !== 'undefined' && window.ethereum) {
+      return window.ethereum;
+    }
+    throw new Error('No wallet found. Please connect a wallet via the app.');
+  };
 
+  const initContract = async () => {
     try {
       setIsLoading(true);
       console.log('🔄 Starting wallet connection...');
-      
-      const web3Provider = new BrowserProvider(window.ethereum);
-      
-      // Check network first
+
+      const eip1193 = await getEip1193Provider();
+      const web3Provider = new BrowserProvider(eip1193);
+
       const network = await web3Provider.getNetwork();
       const chainId = Number(network.chainId);
       setNetworkId(chainId);
-      
-      console.log('🌐 Current network:', {
-        chainId,
-        name: network.name,
-        expected: 80002 // Polygon Amoy Testnet
-      });
+      console.log('🌐 Network:', chainId);
 
-      const signer = await web3Provider.getSigner();
-      const userAccount = await signer.getAddress();
-      const wallet = await signer.getAddress();
-      setWallet(wallet);
-      
-      console.log('✅ Wallet connected:', {
-        account: userAccount,
-        network: chainId
-      });
+      const signerObj = await web3Provider.getSigner();
+      const userAccount = await signerObj.getAddress();
 
-      // Set basic connection info first
       setProvider(web3Provider);
-      setSigner(signer);
+      setSigner(signerObj);
       setAccount(userAccount);
+      setWallet(userAccount);
       setIsConnected(true);
 
-      // Only test contract if we have the address and we're on the right network
-      if (CONTRACT_ADDRESS && chainId === 80002) {
-        await testContract(web3Provider, signer);
-      } else if (!CONTRACT_ADDRESS) {
-        console.warn('⚠️ No contract address configured');
-        setContractStatus('error');
+      // Always create the contract instance — mintTrack checks the chain before sending
+      if (CONTRACT_ADDRESS) {
+        const musicContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signerObj);
+        setContract(musicContract);
+        setContractStatus('accessible');
+        console.log('✅ Contract ready at', CONTRACT_ADDRESS);
       } else {
-        console.warn('⚠️ Wrong network for contract testing');
-        setContractStatus('unknown');
+        console.warn('⚠️ NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS not set');
+        setContractStatus('error');
       }
-      
     } catch (error: any) {
       console.error('❌ Failed to initialize wallet/contract:', error);
       setIsConnected(false);
@@ -412,18 +409,21 @@ export const useContract = () => {
     }
   };
 
+  // Re-init whenever the Privy wallet list changes (login, logout, wallet added)
   useEffect(() => {
+    if (wallets.length > 0) {
+      initContract().catch(console.error);
+      return;
+    }
+
+    // Fall back to injected provider if no Privy wallets
     if (typeof window !== 'undefined' && window.ethereum) {
-      // Check if already connected
       window.ethereum.request({ method: 'eth_accounts' })
         .then((accounts: string[]) => {
-          if (accounts.length > 0) {
-            initContract().catch(console.error);
-          }
+          if (accounts.length > 0) initContract().catch(console.error);
         })
         .catch(console.error);
 
-      // Listen for account changes
       const handleAccountsChanged = (accounts: string[]) => {
         if (accounts.length === 0) {
           setIsConnected(false);
@@ -434,17 +434,13 @@ export const useContract = () => {
           initContract().catch(console.error);
         }
       };
-
-      // Listen for network changes
       const handleChainChanged = (chainId: string) => {
-        console.log('🔄 Network changed to:', parseInt(chainId, 16));
         setNetworkId(parseInt(chainId, 16));
         initContract().catch(console.error);
       };
 
       window.ethereum.on('accountsChanged', handleAccountsChanged);
       window.ethereum.on('chainChanged', handleChainChanged);
-
       return () => {
         if (window.ethereum.removeListener) {
           window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
@@ -452,23 +448,23 @@ export const useContract = () => {
         }
       };
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wallets]);
 
   const connectWallet = async () => {
-    if (typeof window === 'undefined' || !window.ethereum) {
-      alert('Please install MetaMask');
-      return;
-    }
-
     try {
       setIsLoading(true);
       console.log('🔄 Requesting wallet connection...');
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      // If using Privy, wallet connection is handled by Privy's login flow.
+      // If a legacy injected provider is present, request accounts from it.
+      if (wallets.length === 0 && typeof window !== 'undefined' && window.ethereum) {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+      }
       await initContract();
     } catch (error: any) {
       console.error('Failed to connect wallet:', error);
       if (error.code === 4001) {
-        alert('Please connect to MetaMask.');
+        alert('Please approve the wallet connection request.');
       } else {
         alert('Failed to connect wallet: ' + error.message);
       }
@@ -478,52 +474,51 @@ export const useContract = () => {
   };
 
   const switchToPolygon = async () => {
-    if (typeof window === 'undefined' || !window.ethereum) {
-      alert('Please install MetaMask');
-      return;
-    }
-
     try {
       setIsLoading(true);
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x13882' }], // 80002 decimal = Polygon Amoy Testnet
-      });
+
+      // Privy wallet: use switchChain directly
+      if (wallets.length > 0) {
+        await wallets[0].switchChain(80002);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await initContract();
+        return;
+      }
+
+      // Injected provider fallback
+      if (typeof window === 'undefined' || !window.ethereum) {
+        alert('Please install MetaMask or connect a wallet');
+        return;
+      }
+
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x13882' }],
+        });
+      } catch (switchError: any) {
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x13882',
+              chainName: 'Polygon Amoy Testnet',
+              nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+              rpcUrls: POLYGON_RPC_ENDPOINTS,
+              blockExplorerUrls: ['https://amoy.polygonscan.com'],
+            }],
+          });
+        } else {
+          throw switchError;
+        }
+      }
 
       await new Promise(resolve => setTimeout(resolve, 1000));
       await initContract();
 
-    } catch (switchError: any) {
-      if (switchError.code === 4902) {
-        try {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [
-              {
-                chainId: '0x13882',
-                chainName: 'Polygon Amoy Testnet',
-                nativeCurrency: {
-                  name: 'MATIC',
-                  symbol: 'MATIC',
-                  decimals: 18,
-                },
-                rpcUrls: POLYGON_RPC_ENDPOINTS,
-                blockExplorerUrls: ['https://amoy.polygonscan.com'],
-              },
-            ],
-          });
-
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          await initContract();
-
-        } catch (addError) {
-          console.error('Failed to add Polygon network:', addError);
-          alert('Failed to add Polygon network');
-        }
-      } else {
-        console.error('Failed to switch to Polygon:', switchError);
-        alert('Failed to switch to Polygon network');
-      }
+    } catch (error: any) {
+      console.error('Failed to switch to Polygon:', error);
+      alert('Failed to switch to Polygon Amoy: ' + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -820,115 +815,77 @@ const debugContract = async () => {
     });
   };
 
-// mintTrack function to skip the nextId test temporarily:
 const mintTrack = async (hash: string, price: bigint | string, maxEditions: number) => {
-  // Log current status first
-  console.log('🔍 Pre-mint status check:', {
-    contractStatus,
-    contract: !!contract,
-    isConnected,
-    networkId,
-    contractAddress: CONTRACT_ADDRESS
-  });
+  if (!isConnected) throw new Error('Wallet not connected. Please connect your wallet first.');
+  if (!CONTRACT_ADDRESS) throw new Error('Contract address not configured.');
+  if (!hash || hash.trim() === '') throw new Error('Metadata URI cannot be empty.');
 
-  if (!contract) throw new Error('Contract not initialized');
-  if (!isConnected) throw new Error('Wallet not connected');
-  if (networkId !== 80002) throw new Error('Please switch to Polygon Amoy Testnet');
+  const priceWei = typeof price === 'string' ? ethers.parseEther(price) : price;
+  if (priceWei <= BigInt(0)) throw new Error('Price must be greater than 0.');
+  if (maxEditions <= 0 || maxEditions > 10000) throw new Error('Max editions must be between 1 and 10000.');
 
-  try {
-    console.log('🔨 Minting track with params:', { hash, price, maxEditions });
-    
-    // Convert price to Wei if it's a string
-    const priceWei = typeof price === 'string' ? ethers.parseEther(price) : price;
-    
-    console.log('💰 Price in Wei:', priceWei.toString());
-    console.log('🎯 Contract address:', CONTRACT_ADDRESS);
-    console.log('👤 Account:', account);
-    
-    // Validate parameters
-    if (!hash || hash.trim() === '') {
-      throw new Error('Hash cannot be empty');
-    }
-    
-    if (priceWei <= 0) {
-      throw new Error('Price must be greater than 0');
-    }
-    
-    if (maxEditions <= 0 || maxEditions > 10000) {
-      throw new Error('Max editions must be between 1 and 10000');
-    }
+  // ── 1. Check chain and auto-switch if needed ─────────────────────────
+  const eip1193 = await getEip1193Provider();
+  const freshProvider = new BrowserProvider(eip1193);
+  const { chainId } = await freshProvider.getNetwork();
 
-    // SKIP the nextId test for now and go straight to mint
-    console.log('⚠️ Skipping nextId() test and attempting mint directly...');
-
-    // Estimate gas first - this will tell us if the mint function exists
-    try {
-      console.log('🧪 Testing mint function with gas estimation...');
-      const gasEstimate = await contract.mint.estimateGas(hash, priceWei, maxEditions);
-      console.log('✅ Gas estimation succeeded:', gasEstimate.toString());
-      console.log('✅ Mint function exists and parameters are valid!');
-    } catch (gasError: any) {
-      console.error('❌ Gas estimation failed:', gasError);
-      
-      // Try to get more info about why it failed
-      if (gasError.code === 'CALL_EXCEPTION') {
-        throw new Error(`Mint function failed validation. This might mean:
-1. The contract doesn't have a mint() function
-2. The function exists but reverted due to invalid parameters
-3. This is a different contract than expected
-
-Error: ${gasError.message}`);
+  if (Number(chainId) !== 80002) {
+    console.log('🔄 Wrong chain, switching to Polygon Amoy...');
+    if (wallets.length > 0) {
+      await wallets[0].switchChain(80002);
+    } else if (typeof window !== 'undefined' && window.ethereum) {
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x13882' }],
+        });
+      } catch (e: any) {
+        if (e.code === 4902) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x13882',
+              chainName: 'Polygon Amoy Testnet',
+              nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+              rpcUrls: POLYGON_RPC_ENDPOINTS,
+              blockExplorerUrls: ['https://amoy.polygonscan.com'],
+            }],
+          });
+        } else throw e;
       }
-      throw new Error(`Gas estimation failed: ${gasError.message}`);
+    } else {
+      throw new Error('Please switch your wallet to Polygon Amoy Testnet (chain ID 80002).');
     }
-    
-    // If gas estimation worked, proceed with the actual transaction
-    console.log('🚀 Proceeding with mint transaction...');
-    const tx = await contract.mint(hash, priceWei, maxEditions, {
-      gasLimit: 500000 // Set a reasonable gas limit
-    });
-    
-    console.log('📝 Transaction sent:', tx.hash);
-    
-    // Wait for transaction confirmation
+    await new Promise(r => setTimeout(r, 1000));
+  }
+
+  // ── 2. Get fresh signer + contract after potential chain switch ───────
+  const postSwitchEip1193 = await getEip1193Provider();
+  const postSwitchProvider = new BrowserProvider(postSwitchEip1193);
+  const freshSigner = await postSwitchProvider.getSigner();
+  const activeContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, freshSigner);
+
+  // ── 3. Send mint transaction ──────────────────────────────────────────
+  try {
+    console.log('🚀 Minting:', { hash, priceWei: priceWei.toString(), maxEditions });
+    const tx = await activeContract.mint(hash, priceWei, maxEditions, { gasLimit: 500_000 });
+    console.log('📝 Tx sent:', tx.hash);
     const receipt = await tx.wait();
-    console.log('✅ Transaction confirmed:', receipt);
-    
-    // Try to get token ID, but don't fail if nextId doesn't work
-    let tokenId;
+    console.log('✅ Tx confirmed:', receipt);
+
+    let tokenId: number;
     try {
-      const nextId = await contract.nextId();
+      const nextId = await activeContract.nextId();
       tokenId = Number(nextId) - 1;
-      console.log('✅ Got token ID from nextId():', tokenId);
-    } catch (idError) {
-      console.warn('⚠️ Could not get token ID from nextId(), using fallback:', idError.message);
-      tokenId = Date.now(); // Fallback
+    } catch {
+      tokenId = Date.now();
     }
-    
-    return {
-      tokenId,
-      transactionHash: tx.hash,
-      blockNumber: receipt.blockNumber,
-      receipt,
-      gasUsed: receipt.gasUsed
-    };
-    
+
+    return { tokenId, transactionHash: tx.hash, blockNumber: receipt.blockNumber, receipt };
   } catch (error: any) {
-    console.error('❌ Mint failed:', error);
-    
-    // Enhanced error handling
-    if (error.code === 'CALL_EXCEPTION') {
-      throw new Error('Contract call failed. Please check your parameters and network connection.');
-    } else if (error.code === 'INSUFFICIENT_FUNDS') {
-      throw new Error('Insufficient MATIC for gas fees.');
-    } else if (error.code === 4001) {
-      throw new Error('Transaction cancelled by user.');
-    } else if (error.message?.includes('user rejected')) {
-      throw new Error('Transaction cancelled by user.');
-    } else if (error.message?.includes('network')) {
-      throw new Error('Network error. Please check your connection and try again.');
-    }
-    
+    if (error.code === 4001 || error.message?.includes('user rejected')) throw new Error('Transaction cancelled by user.');
+    if (error.code === 'INSUFFICIENT_FUNDS' || error.message?.includes('insufficient funds')) throw new Error('Insufficient MATIC for gas fees.');
+    if (error.code === 'CALL_EXCEPTION') throw new Error(`Contract call failed: ${error.reason ?? error.message}`);
     throw error;
   }
 };

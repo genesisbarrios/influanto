@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadToWalrus, uploadJsonToWalrus, walrusUrl } from "@/libs/walrus";
-import connectMongo from "@/libs/mongoose";
-import { Collectible } from "@/models/Collectible";
 
 export async function POST(request: NextRequest) {
   try {
@@ -85,45 +83,7 @@ export async function POST(request: NextRequest) {
     const metadataUrl = walrusUrl(metadataBlobId);
     console.log("Metadata blob ID:", metadataBlobId);
 
-    // ── 4. Save to database ───────────────────────────────────────────
-    try {
-      await connectMongo();
-      const collectible = new Collectible({
-        userId:      metadata.userId,
-        title:       metadata.title,
-        description: metadata.description,
-        artist:      metadata.artist,
-        type:        "single",
-
-        // Storage
-        storageProvider: "walrus",
-        metadataUri:  metadataUrl,
-        metadataHash: metadataBlobId,
-        audioBlobId,
-        audioUrl,
-        ...(imageBlobId && { imageBlobId, imageUrl }),
-
-        // Metadata
-        genres:      metadata.genres ?? [],
-        bpm:         metadata.bpm,
-        lyrics:      metadata.lyrics,
-        releaseDate: metadata.releaseDate ? new Date(metadata.releaseDate) : null,
-
-        // Commercial
-        priceUsd:    metadata.priceUsd ?? 0,
-        editionSize: metadata.editionSize ?? 1,
-
-        // Status
-        status:  "uploaded",
-        network: "polygon",
-      });
-      await collectible.save();
-      console.log("Collectible saved:", collectible._id);
-    } catch (dbErr) {
-      console.error("DB save failed (non-fatal):", dbErr);
-    }
-
-    // ── 5. Return result ──────────────────────────────────────────────
+    // ── 4. Return result (DB save happens after on-chain mint succeeds) ─
     return NextResponse.json({
       title:       metadata.title,
       description: metadata.description,
@@ -145,7 +105,7 @@ export async function POST(request: NextRequest) {
   } catch (err: any) {
     console.error("Walrus upload-single error:", err);
     return NextResponse.json(
-      { error: "Upload failed", details: err?.message ?? "Unknown error" },
+      { error: `Upload failed: ${err?.message ?? "Unknown error"}` },
       { status: 500 }
     );
   }

@@ -52,8 +52,9 @@ interface UserProfile {
 
 const CollectibleMintPage: React.FC = () => {
   const params = useParams();
-  const { userId, title } = params;
-  const decodedTitle = decodeURIComponent(title as string);
+  const userId = Array.isArray(params?.userId) ? params.userId[0] : params?.userId;
+  const title = Array.isArray(params?.title) ? params.title[0] : params?.title;
+  const decodedTitle = title ? decodeURIComponent(title) : '';
   
   const [collectible, setCollectible] = useState<Collectible | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -149,90 +150,63 @@ const CollectibleMintPage: React.FC = () => {
   };
 }, []);
 
-  // Fetch collectible data
+  // Fetch collectible from Polygon chain data
   useEffect(() => {
-  const fetchCollectible = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log('🔍 Fetching collectible:', { userId, title: decodedTitle });
-      
-      // Fetch collectible by userId and title
-      const response = await apiClient.get('/musiccollectibles/get-one', {
-        params: {
-          userId: userId,
-          title: decodedTitle
-        }
-      });
-        
-  console.log('📦 API Response:', response.data);
+    const fetchCollectible = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  // Check if response has collectibles directly (no success wrapper)
-  if (response.data.collectibles?.length > 0) {
-    const collectibleData = response.data.collectibles[0];
-    console.log('🎵 Collectible found:', {
-      title: collectibleData.title,
-      artist: collectibleData.artist,
-      hasAudioUrl: !!collectibleData.audioUrl,
-      hasImageUrl: !!collectibleData.imageUrl
-    });
-    
-    setCollectible(collectibleData);
-    
-    // Set user profile if it came with the collectible
-    if (response.data.userProfile) {
-      console.log('👤 User profile found:', response.data.userProfile);
-      setUserProfile(response.data.userProfile);
-    }
-  } else if (response.data.success && response.data.data?.collectibles?.length > 0) {
-    // Fallback: Handle wrapped response format
-    const collectibleData = response.data.data.collectibles[0];
-    setCollectible(collectibleData);
-    
-    if (response.data.data.userProfile) {
-      setUserProfile(response.data.data.userProfile);
-    }
-  } else {
-    console.log('❌ No collectibles found in response');
-    console.log('🐛 Debug info from API:', response.data.debug);
-    setError('Collectible not found');
-  }
-      
-      // Only fetch user profile separately if we didn't get it from the collectible API
-      if (!response.data.data?.userProfile) {
-        try {
-          const userResponse = await apiClient.get(`/users/${userId}`);
-          if (userResponse.data.success) {
-            setUserProfile(userResponse.data.data);
-          }
-        } catch (userErr) {
-          console.warn('⚠️ Could not fetch user profile:', userErr);
-          // Don't set error for user profile failure, collectible is more important
+        // apiClient interceptor returns body directly — no .data
+        const result: any = await apiClient.get('/collectibles/chain');
+        const all: any[] = result.collectibles ?? [];
+
+        const found = all.find((c: any) =>
+          c.creator?.toLowerCase() === (userId as string)?.toLowerCase() &&
+          c.title?.toLowerCase() === decodedTitle?.toLowerCase()
+        );
+
+        if (!found) {
+          setError('Collectible not found');
+          return;
         }
-      }
-      
-    } catch (err: any) {
-      console.error('❌ Error fetching collectible:', err);
-      
-      if (err.response?.status === 404) {
-        setError('Collectible not found');
-      } else if (err.response?.status === 405) {
-        setError('API endpoint not configured correctly');
-      } else {
+
+        const genreList: string[] =
+          typeof found.genres === 'string'
+            ? found.genres.split(',').map((g: string) => g.trim()).filter(Boolean)
+            : Array.isArray(found.genres) ? found.genres : [];
+
+        setCollectible({
+          _id: String(found.tokenId),
+          title: found.title,
+          description: found.description ?? '',
+          imageUrl: found.imageUrl,
+          audioUrl: found.audioUrl,
+          artist: found.artist ?? '',
+          genres: genreList,
+          editionSize: found.maxEditions,
+          priceUsd: parseFloat(found.priceMatic ?? '0'),
+          type: 'single',
+          status: 'minted',
+          mintedEditions: found.minted,
+          tokenId: found.tokenId,
+          contractAddress: process.env.NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS,
+        });
+      } catch (err: any) {
+        console.error('Error fetching collectible:', err);
         setError('Failed to load collectible');
+      } finally {
+        setLoading(false);
       }
-    } finally {
+    };
+
+    if (userId && decodedTitle) {
+      fetchCollectible();
+    } else {
       setLoading(false);
+      setError('Invalid collectible URL');
     }
-  };
-
-    
-
-  if (userId && decodedTitle) {
-    fetchCollectible();
-  }
-}, [userId, decodedTitle]);
+  }, [userId, decodedTitle]);
 
   // Audio player handlers
   useEffect(() => {
@@ -317,10 +291,10 @@ const CollectibleMintPage: React.FC = () => {
       }
 
       // Calculate total price
-      const pricePerToken = collectible.priceUsd || 0.01; // Default to 0.01 PAS
+      const pricePerToken = collectible.priceUsd || 0.01; // Default to 0.01 MATIC
       const totalPrice = pricePerToken * mintQuantity;
       
-      // Convert to wei (18 decimals for PAS)
+      // Convert to wei (18 decimals for MATIC)
       const priceInWei = ethers.parseEther(totalPrice.toString());
       
       // Call mint function
@@ -571,11 +545,11 @@ const CollectibleMintPage: React.FC = () => {
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-600">Price per NFT:</span>
-                  <span className="font-bold">{collectible.priceUsd || 0.01} PAS</span>
+                  <span className="font-bold">{collectible.priceUsd || 0.01} MATIC</span>
                 </div>
                 <div className="flex justify-between items-center text-lg">
                   <span className="font-semibold">Total:</span>
-                  <span className="font-bold text-blue-600">{calculateTotalPrice().toFixed(4)} PAS</span>
+                  <span className="font-bold text-blue-600">{calculateTotalPrice().toFixed(4)} MATIC</span>
                 </div>
               </div>
 
