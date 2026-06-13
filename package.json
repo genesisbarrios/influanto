@@ -22,6 +22,7 @@
     "@mdx-js/loader": "^2.3.0",
     "@mdx-js/react": "^2.3.0",
     "@next/mdx": "^13.5.6",
+    "@openzeppelin/contracts": "^5.6.1",
     "@polkadot/api-contract": "^16.4.8",
     "@polkadot/extension-dapp": "^0.63.1",
     "@privy-io/react-auth": "^3.30.0",
@@ -44,7 +45,6 @@
     "crisp-sdk-web": "^1.0.22",
     "eslint": "8.47.0",
     "eslint-config-next": "13.4.19",
-    "ethers": "^6.15.0",
     "ffmpeg": "^0.0.4",
     "form-data": "^4.0.2",
     "formidable": "^3.5.2",
@@ -92,6 +92,8 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^4.0.13",
+    "@nomicfoundation/hardhat-toolbox": "^7.0.0",
     "@types/jest": "^29.5.12",
     "@types/mdx": "^2.0.12",
     "@types/mongoose": "^5.11.97",
@@ -103,6 +105,9 @@
     "@types/ws": "^8.18.1",
     "autoprefixer": "^10.4.19",
     "daisyui": "^4.10.1",
+    "dotenv": "^17.4.2",
+    "ethers": "^6.16.0",
+    "hardhat": "^3.9.0",
     "pg": "^8.21.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
@@ -119,5 +124,6 @@
   },
   "engines": {
     "node": ">=18.17.0"
-  }
+  },
+  "type": "module"
 }

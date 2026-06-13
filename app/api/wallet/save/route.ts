@@ -27,7 +27,11 @@ export async function POST(req: Request) {
     .single();
 
   if (fetchError || !user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    console.error("wallet/save — user fetch failed:", fetchError?.message ?? "no user row");
+    return NextResponse.json(
+      { error: fetchError?.message ?? "User not found" },
+      { status: 404 }
+    );
   }
 
   const existing: string[] = user.wallet_addresses ?? [];

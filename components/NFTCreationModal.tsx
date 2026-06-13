@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { useSession } from "next-auth/react";
 import apiClient from "@/libs/api";
 import { useContract } from '../hooks/useContract';
 import { ethers } from 'ethers';
+
+const WalletManagerModal = dynamic(() => import('./WalletManagerModal'), { ssr: false });
 
 interface Track {
   id: string;
@@ -53,6 +56,9 @@ interface NFTCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreate: (nft: MusicNFT) => void;
+  walletAddresses: string[];
+  ensName: string | null;
+  onWalletUpdate: (addresses: string[], ensName: string | null) => void;
 }
 
 const presetGenres = [
@@ -65,22 +71,20 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
   isOpen,
   onClose,
   onCreate,
+  walletAddresses,
+  ensName,
+  onWalletUpdate,
 }) => {
   const { data: session } = useSession();
-  
-  const { 
+  const [showWalletManager, setShowWalletManager] = useState(false);
+
+  const {
     contract,
     account,
     isConnected,
     isLoading,
     networkId,
-    connectWallet,
-    switchToPaseo,
     mintTrack,
-    buyTrack,
-    withdrawEarnings,
-    getTrackInfo,
-    getPendingEarnings
   } = useContract();
   
   // Form State
@@ -92,7 +96,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
   const [genreInput, setGenreInput] = useState("");
   const [editionSize, setEditionSize] = useState<number | undefined>();
   const [priceUsd, setPriceUsd] = useState<number | undefined>();
-  const [devUsdPrice, setDevUsdPrice] = useState<number>(0.05); // Moonbeam DEV price
+  const [maticUsdPrice, setMaticUsdPrice] = useState<number>(1.0); // Polygon MATIC price fallback
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>("");
   const [releaseDate, setReleaseDate] = useState("");
@@ -157,44 +161,22 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
     }
   };
 
-  // Add wallet connection handler
-  const handleConnectWallet = async () => {
-    try {
-      await connectWallet();
-    } catch (error: any) {
-      console.error('Failed to connect wallet:', error);
-      alert('Failed to connect wallet: ' + error.message);
-    }
-  };
-
-  // Add network switching handler
-  const handleSwitchNetwork = async () => {
-    try {
-      await switchToPaseo();
-    } catch (error: any) {
-      console.error('Failed to switch network:', error);
-      alert('Failed to switch network: ' + error.message);
-    }
-  };
-
   const handlePriceChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(e.target.value);
     setPriceUsd(value);
 
-    // Fetch DEV price for Moonbeam
+    // Fetch MATIC price for Polygon
     try {
       const resp = await fetch(
-        "https://api.coingecko.com/api/v3/simple/price?ids=moonbeam&vs_currencies=usd"
+        "https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=usd"
       );
       const data = await resp.json();
-      const price = data?.moonbeam?.usd;
+      const price = data?.["matic-network"]?.usd;
       if (typeof price === "number") {
-        setDevUsdPrice(price);
+        setMaticUsdPrice(price);
       }
     } catch (err) {
-      console.error("Failed to fetch DEV price:", err);
-      // Use fallback price
-      setDevUsdPrice(0.05);
+      console.error("Failed to fetch MATIC price:", err);
     }
   };
 
@@ -334,13 +316,13 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
 
       setUploadProgress('Calculating price...');
       
-      // Convert USD to DEV tokens properly for Paseo Testnet
-      const priceInDev = priceUsd ? (priceUsd / devUsdPrice) : 0.1;
+      // Convert USD to MATIC for Polygon
+      const priceInDev = priceUsd ? (priceUsd / maticUsdPrice) : 0.1;
       const priceInWei = ethers.parseEther(priceInDev.toString());
       
       console.log('💰 Price calculation:', {
         priceUsd,
-        devUsdPrice,
+        maticUsdPrice,
         priceInDev,
         priceInWei: priceInWei.toString(),
         editionSize: editionSize || 1
@@ -386,11 +368,11 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         } else if (contractError.code === 4001) {
           throw new Error('Transaction cancelled by user.');
         } else if (contractError.message?.includes('insufficient funds')) {
-          throw new Error('Insufficient DEV tokens for minting and gas fees. Please add more DEV to your wallet.');
+          throw new Error('Insufficient MATIC for minting and gas fees. Please add more MATIC to your wallet.');
         } else if (contractError.message?.includes('user rejected')) {
           throw new Error('Transaction cancelled by user.');
         } else if (contractError.message?.includes('chain')) {
-          throw new Error('Wrong network. Please switch to Paseo Testnet network.');
+          throw new Error('Wrong network. Please switch to Polygon Amoy Testnet.');
         } else if (contractError.reason) {
           throw new Error(`Contract error: ${contractError.reason}`);
         }
@@ -409,9 +391,9 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
       } else if (error.code === 4001) {
         userMessage = 'Transaction cancelled by user.';
       } else if (error.message?.includes('chain')) {
-        userMessage = 'Wrong network detected. Please switch to Paseo Testnet network in your wallet.';
+        userMessage = 'Wrong network detected. Please switch to Polygon Amoy Testnet in your wallet.';
       } else if (error.message?.includes('insufficient funds')) {
-        userMessage = 'Insufficient DEV tokens. Please add more DEV to your wallet for gas fees.';
+        userMessage = 'Insufficient MATIC. Please add more MATIC to your wallet for gas fees.';
       }
       
       throw new Error(userMessage);
@@ -426,16 +408,6 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
 
     if (type === 'single' && !audioFile) {
       alert("Please upload an audio file for the single.");
-      return;
-    }
-
-    if (!isConnected) {
-      alert("Please connect your wallet to mint NFTs on the blockchain.");
-      return;
-    }
-
-    if (networkId && networkId !== 420420422) {
-      alert("Please switch to Paseo Testnet network to mint NFTs.");
       return;
     }
 
@@ -565,83 +537,25 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Create Music Collectible</h2>
-          <button onClick={onClose} disabled={uploading || isLoading}>
-            <FontAwesomeIcon 
-              icon={faTimes} 
-              className={`text-xl ${uploading || isLoading ? 'text-gray-300' : 'text-gray-500 hover:text-gray-700'}`} 
-            />
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Wallet manager pill */}
+            {walletAddresses.length > 0 && (
+              <button
+                onClick={() => setShowWalletManager(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-full text-sm font-semibold transition"
+              >
+                <span className="text-green-500 text-xs">●</span>
+                {ensName ?? `${walletAddresses[0].slice(0, 6)}…${walletAddresses[0].slice(-4)}`}
+              </button>
+            )}
+            <button onClick={onClose} disabled={uploading}>
+              <FontAwesomeIcon
+                icon={faTimes}
+                className={`text-xl ${uploading ? 'text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
+              />
+            </button>
+          </div>
         </div>
-
-        {/* Wallet Connection Status */}
-        {!isConnected && (
-          <div className="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-yellow-800">
-                ⚠️ Wallet not connected. Please connect your wallet to mint NFTs on the blockchain.
-              </div>
-              <button
-                onClick={handleConnectWallet}
-                disabled={isLoading}
-                className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Connecting...' : 'Connect Wallet'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Wrong Network Warning */}
-        {isConnected && networkId && networkId !== 420420422 && (
-          <div className="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-orange-800">
-                ⚠️ Wrong network detected. Please switch to Paseo Testnet network (Chain ID: 420420422).
-                <br />
-                <span className="text-xs">Current network: {networkId}</span>
-              </div>
-              <button
-                onClick={handleSwitchNetwork}
-                disabled={isLoading}
-                className="ml-4 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Switching...' : 'Switch Network'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Connected Status */}
-        {isConnected && account && networkId === 420420422 && (
-          <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
-            <div className="text-sm text-green-800">
-              ✅ Connected: {account.slice(0, 6)}...{account.slice(-4)} | Network: Paseo Testnet
-              {contract && (
-                <span className="ml-2">
-                  | Contract: 
-                  {typeof (contract.target) === 'string'
-                    ? contract.target.slice(0, 6)
-                    : typeof (contract.address) === 'string'
-                      ? (contract.address as string).slice(0, 6)
-                      : ''}
-                  ...
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Loading Status */}
-        {isLoading && (
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center space-x-3">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-              <div className="text-sm text-blue-800">
-                Connecting to wallet and blockchain...
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Upload Progress */}
         {uploading && (
@@ -820,9 +734,9 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
               disabled={uploading || isLoading}
               className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
             />
-            {priceUsd !== undefined && devUsdPrice > 0 && (
+            {priceUsd !== undefined && maticUsdPrice > 0 && (
               <p className="text-sm text-gray-600 mt-1">
-                ≈ {(priceUsd / devUsdPrice).toFixed(4)} DEV | {(priceUsd * 0.0004).toFixed(6)} ETH
+                ≈ {(priceUsd / maticUsdPrice).toFixed(4)} MATIC
               </p>
             )}
           </div>
@@ -945,31 +859,35 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
           <button
             onClick={handleSubmit}
             disabled={
-              uploading || 
-              isLoading || 
-              !title || 
-              !session?.user?.id || 
-              !priceUsd || 
-              !audioFile || 
-              !isConnected || 
-              (networkId && networkId !== 420420422) ||
+              uploading ||
+              !title ||
+              !session?.user?.id ||
+              !priceUsd ||
+              !audioFile ||
               (audioFile && audioFile.size > 50 * 1024 * 1024)
             }
             className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {uploading ? 'Creating...' : isLoading ? 'Loading...' : `Create & Mint ${type === 'single' ? 'Single' : 'Album'}`}
+            {uploading ? 'Creating...' : `Create & Mint ${type === 'single' ? 'Single' : 'Album'}`}
           </button>
         </div>
 
-        {/* Form validation hints */}
         <div className="mt-3 text-xs text-gray-500">
-          <span className="text-red-500">*</span> Required fields | 
-          {!isConnected && ' Wallet connection required |'}
-          {isConnected && networkId !== 420420422 && ' Paseo Testnet network required |'}
-          {isConnected && networkId === 420420422 && ' ✅ Ready to mint |'}
-          {' NFT minting on Paseo Testnet'}
+          <span className="text-red-500">*</span> Required fields
         </div>
       </div>
+
+      {showWalletManager && (
+        <WalletManagerModal
+          walletAddresses={walletAddresses}
+          ensName={ensName}
+          onClose={() => setShowWalletManager(false)}
+          onUpdate={(addresses, ens) => {
+            onWalletUpdate(addresses, ens);
+            if (addresses.length === 0) setShowWalletManager(false);
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -52,8 +52,12 @@ const Collectibles = () => {
   const [walletConnecting, setWalletConnecting] = useState(false);
   const [walletError, setWalletError] = useState<string | null>(null);
   const [walletInfoLoaded, setWalletInfoLoaded] = useState(false);
+  // true only when fetchWalletInfo returned a successful response
+  const [walletInfoFetchOk, setWalletInfoFetchOk] = useState(false);
   // track addresses we've already attempted to save this session to prevent duplicate calls
   const attemptedSavesRef = useRef<Set<string>>(new Set());
+  // set to true when the user explicitly clicks "Create" — allows save even if walletInfoFetchOk is false
+  const userTriggeredRef = useRef(false);
 
   const { ready, authenticated, user: privyUser } = usePrivy();
   const { wallets } = useWallets();
@@ -75,7 +79,10 @@ const Collectibles = () => {
   // without it, Privy wallets can populate before the DB fetch returns,
   // causing a false "unsaved" detection for wallets that are already stored.
   useEffect(() => {
+    // Block auto-save if we don't know what's already in the DB (fetch failed),
+    // unless the user explicitly triggered the connection this session.
     if (!mounted || !authenticated || wallets.length === 0 || !walletInfoLoaded) return;
+    if (!walletInfoFetchOk && !userTriggeredRef.current) return;
 
     const unsaved = wallets.find(
       (w) =>
@@ -92,10 +99,10 @@ const Collectibles = () => {
 
     apiClient
       .post("/wallet/save", { address: unsaved.address, privyUserId: privyUser?.id ?? null })
-      .then(({ data }) => {
-        const newAddresses: string[] = data.walletAddresses ?? [];
+      .then((result: any) => {
+        const newAddresses: string[] = result.walletAddresses ?? [];
         setWalletAddresses(newAddresses);
-        setEnsName(data.ensName ?? null);
+        setEnsName(result.ensName ?? null);
         setWalletConnecting(false);
         if (newAddresses.length > 0) {
           fetchNFTs();
@@ -103,14 +110,16 @@ const Collectibles = () => {
         }
       })
       .catch((err) => {
-        console.error("Wallet save failed:", err);
-        // Allow retry by removing from attempted set
+        const msg: string =
+          err?.response?.data?.error ?? err?.message ?? "Unknown error";
+        console.error("Wallet save failed:", msg, err);
         attemptedSavesRef.current.delete(unsaved.address);
+        userTriggeredRef.current = false;
         setWalletConnecting(false);
-        setWalletError("Failed to save wallet. Please try again.");
+        setWalletError(`Failed to save wallet: ${msg}`);
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wallets, walletAddresses, authenticated, mounted, walletInfoLoaded]);
+  }, [wallets, walletAddresses, authenticated, mounted, walletInfoLoaded, walletInfoFetchOk]);
 
   useEffect(() => {
     setMounted(true);
@@ -137,8 +146,8 @@ const Collectibles = () => {
 
   const fetchUserProfile = async () => {
     try {
-      const { data } = await apiClient.get("/get-user");
-      setUserProfile(data);
+      const user: any = await apiClient.get("/get-user");
+      setUserProfile(user);
       fetchNFTs();
     } catch (err) {
       console.error("Failed to fetch user profile:", err);
@@ -147,12 +156,14 @@ const Collectibles = () => {
 
   const fetchWalletInfo = async () => {
     try {
-      const { data } = await apiClient.get("/wallet/info");
-      setWalletAddresses(data.walletAddresses ?? []);
-      setEnsName(data.ensName ?? null);
-      if ((data.walletAddresses ?? []).length > 0) fetchNFTs();
-    } catch {
-      // not signed in or no wallet yet
+      const result: any = await apiClient.get("/wallet/info");
+      setWalletAddresses(result.walletAddresses ?? []);
+      setEnsName(result.ensName ?? null);
+      setWalletInfoFetchOk(true);
+      if ((result.walletAddresses ?? []).length > 0) fetchNFTs();
+    } catch (err: any) {
+      console.error("fetchWalletInfo failed:", err?.message);
+      // walletInfoFetchOk stays false — auto-save will be suppressed
     } finally {
       setWalletInfoLoaded(true);
     }
@@ -181,6 +192,7 @@ const Collectibles = () => {
     if (walletAddresses.length === 0) {
       setWalletError(null);
       setWalletConnecting(true);
+      userTriggeredRef.current = true;
       login();
       return;
     }
@@ -220,7 +232,7 @@ const Collectibles = () => {
         ) : (
           <div className="flex flex-col items-end gap-1">
             <button
-              onClick={() => { setWalletError(null); setWalletConnecting(true); login(); }}
+              onClick={() => { setWalletError(null); setWalletConnecting(true); userTriggeredRef.current = true; login(); }}
               disabled={walletConnecting}
               className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
             >
@@ -285,6 +297,12 @@ const Collectibles = () => {
       <NFTCreationModal
         isOpen={isModalOpen}
         onClose={() => setModalOpen(false)}
+        walletAddresses={walletAddresses}
+        ensName={ensName}
+        onWalletUpdate={(addresses, ens) => {
+          setWalletAddresses(addresses);
+          setEnsName(ens);
+        }}
         onCreate={(newNFT) =>
           setCollectibles([
             ...collectibles,

@@ -56,8 +56,8 @@ export default function WalletManagerModal({
     setLoadingAddress(address);
     setError(null);
     try {
-      const { data } = await apiClient.post("/wallet/set-primary", { address });
-      onUpdate(data.walletAddresses ?? [], data.ensName ?? null);
+      const result: any = await apiClient.post("/wallet/set-primary", { address });
+      onUpdate(result.walletAddresses ?? [], result.ensName ?? null);
     } catch {
       setError("Failed to set primary wallet. Please try again.");
     } finally {
@@ -69,9 +69,9 @@ export default function WalletManagerModal({
     setLoadingAddress(`${address}-remove`);
     setError(null);
     try {
-      const { data } = await apiClient.post("/wallet/remove", { address });
-      onUpdate(data.walletAddresses ?? [], data.ensName ?? null);
-      if ((data.walletAddresses ?? []).length === 0) onClose();
+      const result: any = await apiClient.post("/wallet/remove", { address });
+      onUpdate(result.walletAddresses ?? [], result.ensName ?? null);
+      if ((result.walletAddresses ?? []).length === 0) onClose();
     } catch {
       setError("Failed to remove wallet. Please try again.");
     } finally {

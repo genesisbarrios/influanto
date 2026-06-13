@@ -18,7 +18,11 @@ export async function GET() {
     .single();
 
   if (error || !user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    console.error("wallet/info — user fetch failed:", error?.message ?? "no user row");
+    return NextResponse.json(
+      { error: error?.message ?? "User not found" },
+      { status: 404 }
+    );
   }
 
   return NextResponse.json({
