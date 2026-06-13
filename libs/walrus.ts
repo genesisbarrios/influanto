@@ -3,6 +3,8 @@ const PUBLISHER =
 const AGGREGATOR =
   process.env.WALRUS_AGGREGATOR_URL ?? "https://aggregator.walrus-testnet.walrus.space";
 
+const UPLOAD_TIMEOUT_MS = 60_000; // 60 s — audio files can be large
+
 /**
  * Upload raw bytes to the Walrus Publisher.
  * Returns the blob ID assigned by the network.
@@ -11,14 +13,23 @@ export async function uploadToWalrus(
   data: ArrayBuffer | Buffer | Uint8Array,
   epochs = 5
 ): Promise<string> {
-  const res = await fetch(`${PUBLISHER}/v1/store?epochs=${epochs}`, {
-    method: "PUT",
-    body: data as BodyInit,
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(`${PUBLISHER}/v1/store?epochs=${epochs}`, {
+      method: "PUT",
+      body: data as BodyInit,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`Walrus upload failed (${res.status}): ${text}`);
+    throw new Error(`Walrus publisher returned ${res.status}: ${text || "(no body)"}`);
   }
 
   const json = await res.json();
@@ -28,7 +39,9 @@ export async function uploadToWalrus(
     json?.newlyCreated?.blobObject?.blobId ?? json?.alreadyCertified?.blobId;
 
   if (!blobId) {
-    throw new Error(`Walrus upload returned no blobId — response: ${JSON.stringify(json)}`);
+    throw new Error(
+      `Walrus upload returned no blobId. Raw response: ${JSON.stringify(json).slice(0, 300)}`
+    );
   }
 
   return blobId;
