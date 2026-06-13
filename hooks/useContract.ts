@@ -6,11 +6,10 @@ import { ethers, BrowserProvider } from 'ethers';
 // Add your actual contract address here
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS || '';
 
-// Alternative RPC endpoints for Paseo Asset Hub (chainId: 420420422)
-const PASEO_RPC_ENDPOINTS = [
-  "https://paseo.rpc.amforc.com/",
-  "https://rpc-paseo.luckyfriday.io/",
-  "https://paseo-rpc.dwellir.com/"
+const POLYGON_RPC_ENDPOINTS = [
+  "https://rpc-amoy.polygon.technology",
+  "https://polygon-amoy.drpc.org",
+  "https://polygon-amoy-bor-rpc.publicnode.com",
 ];
 
 
@@ -20,21 +19,55 @@ declare global {
   }
 }
 
-// Solidity ABI for EVM (your actual deployed contract)
 const CONTRACT_ABI = [
+  // ── ERC1155 standard ──────────────────────────────────────────────────
   {
-    "inputs": [],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    "inputs": [{"internalType": "address", "name": "account", "type": "address"}, {"internalType": "uint256", "name": "id", "type": "uint256"}],
+    "name": "balanceOf",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view", "type": "function"
   },
+  {
+    "inputs": [{"internalType": "uint256", "name": "id", "type": "uint256"}],
+    "name": "uri",
+    "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+    "stateMutability": "view", "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "operator", "type": "address"}, {"internalType": "bool", "name": "approved", "type": "bool"}],
+    "name": "setApprovalForAll",
+    "outputs": [],
+    "stateMutability": "nonpayable", "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "account", "type": "address"}, {"internalType": "address", "name": "operator", "type": "address"}],
+    "name": "isApprovedForAll",
+    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+    "stateMutability": "view", "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "from", "type": "address"},
+      {"internalType": "address", "name": "to", "type": "address"},
+      {"internalType": "uint256", "name": "id", "type": "uint256"},
+      {"internalType": "uint256", "name": "amount", "type": "uint256"},
+      {"internalType": "bytes", "name": "data", "type": "bytes"}
+    ],
+    "name": "safeTransferFrom",
+    "outputs": [],
+    "stateMutability": "nonpayable", "type": "function"
+  },
+  // ── Events ────────────────────────────────────────────────────────────
   {
     "anonymous": false,
     "inputs": [
-      {"indexed": true, "internalType": "address", "name": "account", "type": "address"},
-      {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"}
+      {"indexed": true, "internalType": "uint256", "name": "id", "type": "uint256"},
+      {"indexed": true, "internalType": "address", "name": "creator", "type": "address"},
+      {"indexed": false, "internalType": "uint256", "name": "price", "type": "uint256"},
+      {"indexed": false, "internalType": "uint32", "name": "maxEditions", "type": "uint32"},
+      {"indexed": false, "internalType": "string", "name": "uri", "type": "string"}
     ],
-    "name": "FundsWithdrawn",
-    "type": "event"
+    "name": "TokenCreated", "type": "event"
   },
   {
     "anonymous": false,
@@ -44,72 +77,93 @@ const CONTRACT_ABI = [
       {"indexed": false, "internalType": "uint32", "name": "edition", "type": "uint32"},
       {"indexed": false, "internalType": "uint256", "name": "price", "type": "uint256"}
     ],
-    "name": "TokenBought",
-    "type": "event"
+    "name": "TokenPurchased", "type": "event"
   },
   {
     "anonymous": false,
     "inputs": [
-      {"indexed": true, "internalType": "uint256", "name": "id", "type": "uint256"},
-      {"indexed": true, "internalType": "address", "name": "creator", "type": "address"},
-      {"indexed": false, "internalType": "uint256", "name": "price", "type": "uint256"},
-      {"indexed": false, "internalType": "uint32", "name": "maxEditions", "type": "uint32"}
+      {"indexed": true, "internalType": "address", "name": "account", "type": "address"},
+      {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"}
     ],
-    "name": "TokenMinted",
-    "type": "event"
+    "name": "FundsWithdrawn", "type": "event"
   },
-  {
-    "inputs": [{"internalType": "uint256", "name": "id", "type": "uint256"}],
-    "name": "buy",
-    "outputs": [{"internalType": "uint32", "name": "", "type": "uint32"}],
-    "stateMutability": "payable",
-    "type": "function"
-  },
+  // ── Core functions ────────────────────────────────────────────────────
   {
     "inputs": [
-      {"internalType": "string", "name": "hash", "type": "string"},
+      {"internalType": "string", "name": "metadataURI", "type": "string"},
       {"internalType": "uint256", "name": "price", "type": "uint256"},
       {"internalType": "uint32", "name": "maxEditions", "type": "uint32"}
     ],
     "name": "mint",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "nonpayable", "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "id", "type": "uint256"}],
+    "name": "buy",
+    "outputs": [{"internalType": "uint32", "name": "", "type": "uint32"}],
+    "stateMutability": "payable", "type": "function"
   },
   {
     "inputs": [],
     "name": "withdraw",
     "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "nonpayable", "type": "function"
   },
   {
     "inputs": [{"internalType": "uint256", "name": "id", "type": "uint256"}],
     "name": "getTokenInfo",
     "outputs": [
       {"internalType": "address", "name": "creator", "type": "address"},
-      {"internalType": "string", "name": "hash", "type": "string"},
+      {"internalType": "string", "name": "metadataURI", "type": "string"},
       {"internalType": "uint256", "name": "price", "type": "uint256"},
-      {"internalType": "uint32", "name": "soldCount", "type": "uint32"},
+      {"internalType": "uint32", "name": "minted", "type": "uint32"},
       {"internalType": "uint32", "name": "maxEditions", "type": "uint32"},
       {"internalType": "bool", "name": "exists", "type": "bool"}
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "stateMutability": "view", "type": "function"
   },
   {
     "inputs": [{"internalType": "address", "name": "account", "type": "address"}],
     "name": "getPendingBalance",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
+    "stateMutability": "view", "type": "function"
   },
   {
     "inputs": [],
     "name": "nextId",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
+    "stateMutability": "view", "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getTotalTokens",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view", "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "id", "type": "uint256"}],
+    "name": "isSoldOut",
+    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+    "stateMutability": "view", "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "id", "type": "uint256"}],
+    "name": "getRemainingEditions",
+    "outputs": [{"internalType": "uint32", "name": "", "type": "uint32"}],
+    "stateMutability": "view", "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "id", "type": "uint256"}, {"internalType": "uint256", "name": "newPrice", "type": "uint256"}],
+    "name": "updatePrice",
+    "outputs": [],
+    "stateMutability": "nonpayable", "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+    "stateMutability": "view", "type": "function"
   }
 ] as const;
 
@@ -145,7 +199,7 @@ export const useContract = () => {
       console.log('🌐 Current network:', {
         chainId,
         name: network.name,
-        expected: 420420422 // Westend Asset Hub
+        expected: 80002 // Polygon Amoy Testnet
       });
 
       const signer = await web3Provider.getSigner();
@@ -165,7 +219,7 @@ export const useContract = () => {
       setIsConnected(true);
 
       // Only test contract if we have the address and we're on the right network
-      if (CONTRACT_ADDRESS && chainId === 420420422) {
+      if (CONTRACT_ADDRESS && chainId === 80002) {
         await testContract(web3Provider, signer);
       } else if (!CONTRACT_ADDRESS) {
         console.warn('⚠️ No contract address configured');
@@ -220,7 +274,7 @@ export const useContract = () => {
         console.warn('⚠️ getCode via MetaMask failed:', error.message);
         
         // Method 2: Try with alternative RPC provider
-        for (const rpcUrl of PASEO_RPC_ENDPOINTS) {
+        for (const rpcUrl of POLYGON_RPC_ENDPOINTS) {
           try {
             console.log('🔄 Trying alternative RPC:', rpcUrl);
             const altProvider = new ethers.JsonRpcProvider(rpcUrl);
@@ -268,7 +322,7 @@ export const useContract = () => {
               // If MetaMask provider fails, try with read-only provider
               if (error.message.includes('Timeout') || error.code === -32603) {
                 console.log('🔄 Retrying nextId with alternative RPC...');
-                for (const rpcUrl of PASEO_RPC_ENDPOINTS) {
+                for (const rpcUrl of POLYGON_RPC_ENDPOINTS) {
                   try {
                     const altProvider = new ethers.JsonRpcProvider(rpcUrl);
                     const altContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, altProvider);
@@ -303,7 +357,7 @@ export const useContract = () => {
               // Similar fallback for owner function
               if (error.message.includes('Timeout') || error.code === -32603) {
                 console.log('🔄 Retrying owner with alternative RPC...');
-                for (const rpcUrl of PASEO_RPC_ENDPOINTS) {
+                for (const rpcUrl of POLYGON_RPC_ENDPOINTS) {
                   try {
                     const altProvider = new ethers.JsonRpcProvider(rpcUrl);
                     const altContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, altProvider);
@@ -423,7 +477,7 @@ export const useContract = () => {
     }
   };
 
-  const switchToPaseo = async () => {
+  const switchToPolygon = async () => {
     if (typeof window === 'undefined' || !window.ethereum) {
       alert('Please install MetaMask');
       return;
@@ -433,46 +487,42 @@ export const useContract = () => {
       setIsLoading(true);
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '420420422' }], // 110105 in hex
+        params: [{ chainId: '0x13882' }], // 80002 decimal = Polygon Amoy Testnet
       });
-      
-      // Wait a bit for the network to switch
+
       await new Promise(resolve => setTimeout(resolve, 1000));
       await initContract();
-      
+
     } catch (switchError: any) {
       if (switchError.code === 4902) {
         try {
-            await window.ethereum.request({
+          await window.ethereum.request({
             method: 'wallet_addEthereumChain',
             params: [
               {
-              chainId: '420420422', // Paseo Testnet
-              chainName: 'Paseo Asset Hub',
-              nativeCurrency: {
-                name: 'PAS',
-                symbol: 'PAS',
-                decimals: 18,
-              },
-              rpcUrls: PASEO_RPC_ENDPOINTS,
-              blockExplorerUrls: [
-                'https://paseo.subscan.io/', // Paseo block explorer
-              ],
+                chainId: '0x13882',
+                chainName: 'Polygon Amoy Testnet',
+                nativeCurrency: {
+                  name: 'MATIC',
+                  symbol: 'MATIC',
+                  decimals: 18,
+                },
+                rpcUrls: POLYGON_RPC_ENDPOINTS,
+                blockExplorerUrls: ['https://amoy.polygonscan.com'],
               },
             ],
-            });
-          
-          // Wait for network to be added and switched
+          });
+
           await new Promise(resolve => setTimeout(resolve, 2000));
           await initContract();
-          
+
         } catch (addError) {
-          console.error('Failed to add westend network:', addError);
-          alert('Failed to add Westend network');
+          console.error('Failed to add Polygon network:', addError);
+          alert('Failed to add Polygon network');
         }
       } else {
-        console.error('Failed to switch to Westend:', switchError);
-        alert('Failed to switch to Westend network');
+        console.error('Failed to switch to Polygon:', switchError);
+        alert('Failed to switch to Polygon network');
       }
     } finally {
       setIsLoading(false);
@@ -528,7 +578,7 @@ const debugContract = async () => {
 
     // Test 2: Alternative RPC providers
     if (!contractCode || contractCode === '0x') {
-      for (const rpcUrl of PASEO_RPC_ENDPOINTS) {
+      for (const rpcUrl of POLYGON_RPC_ENDPOINTS) {
         try {
           const altProvider = new ethers.JsonRpcProvider(rpcUrl);
           const code = await altProvider.getCode(CONTRACT_ADDRESS);
@@ -734,14 +784,14 @@ const debugContract = async () => {
         workingFunctions: workingFunctionTests.length,
         totalFunctions: functionTests.length,
         foundMintFunctions: existingMintFunctions.length, // NEW: Count of found mint functions
-        explorerUrl: `https://westend.subscan.io/account/${CONTRACT_ADDRESS}`,
-        recommendations: workingCodeTests.length === 0 ? 
-          ['Contract not found at address', 'Check deployment on Westend Asset Hub', 'Verify contract address'] :
+        explorerUrl: `https://amoy.polygonscan.com/address/${CONTRACT_ADDRESS}`,
+        recommendations: workingCodeTests.length === 0 ?
+          ['Contract not found at address', 'Check deployment on Polygon Amoy Testnet', 'Verify contract address'] :
           workingFunctionTests.length === 0 ?
           ['Contract exists but expected functions are missing', 'This might be a different contract than expected', 'Check if you have the correct contract address', 'Verify the contract was deployed with the expected ABI'] :
           ['Contract is working properly'],
         nextSteps: [
-          'Visit the explorer link to see what contract is actually deployed',
+          'Visit the Polygonscan link to see what contract is actually deployed',
           'Check the contract source code if verified',
           'Compare the expected ABI with the actual contract functions',
           'Verify you have the correct contract address',
@@ -783,8 +833,8 @@ const mintTrack = async (hash: string, price: bigint | string, maxEditions: numb
 
   if (!contract) throw new Error('Contract not initialized');
   if (!isConnected) throw new Error('Wallet not connected');
-  if (networkId !== 420420422) throw new Error('Please switch to Westend network');
-  
+  if (networkId !== 80002) throw new Error('Please switch to Polygon Amoy Testnet');
+
   try {
     console.log('🔨 Minting track with params:', { hash, price, maxEditions });
     
@@ -870,7 +920,7 @@ Error: ${gasError.message}`);
     if (error.code === 'CALL_EXCEPTION') {
       throw new Error('Contract call failed. Please check your parameters and network connection.');
     } else if (error.code === 'INSUFFICIENT_FUNDS') {
-      throw new Error('Insufficient DEV tokens for gas fees.');
+      throw new Error('Insufficient MATIC for gas fees.');
     } else if (error.code === 4001) {
       throw new Error('Transaction cancelled by user.');
     } else if (error.message?.includes('user rejected')) {
@@ -885,7 +935,7 @@ Error: ${gasError.message}`);
 
   const buyTrack = async (tokenId: number, price: string) => {
     if (!contract) throw new Error('Contract not initialized');
-    if (networkId !== 420420422) throw new Error('Please switch to Westend Alpha network');
+    if (networkId !== 80002) throw new Error('Please switch to Polygon Amoy Testnet');
     
     try {
       const priceWei = ethers.parseEther(price);
@@ -899,7 +949,7 @@ Error: ${gasError.message}`);
 
   const withdrawEarnings = async () => {
     if (!contract) throw new Error('Contract not initialized');
-    if (networkId !== 420420422) throw new Error('Please switch to Westend Alpha network');
+    if (networkId !== 80002) throw new Error('Please switch to Polygon Amoy Testnet');
     
     try {
       const tx = await contract.withdraw();
@@ -912,23 +962,16 @@ Error: ${gasError.message}`);
 
   const getTrackInfo = async (tokenId: number) => {
     if (!contract) throw new Error('Contract not initialized');
-    
-    try {
-      const [creator, hash, price, sold, editions] = await Promise.all([
-        contract.creators(tokenId),
-        contract.hashes(tokenId),
-        contract.prices(tokenId),
-        contract.sold(tokenId),
-        contract.editions(tokenId)
-      ]);
 
+    try {
+      const [creator, metadataURI, price, minted, maxEditions] = await contract.getTokenInfo(tokenId);
       return {
         creator,
-        hash,
+        hash: metadataURI,
         price: ethers.formatEther(price),
-        sold: Number(sold),
-        editions: Number(editions),
-        available: Number(editions) - Number(sold)
+        sold: Number(minted),
+        editions: Number(maxEditions),
+        available: Number(maxEditions) - Number(minted)
       };
     } catch (error) {
       console.error('Failed to get track info:', error);
@@ -938,11 +981,11 @@ Error: ${gasError.message}`);
 
   const getPendingEarnings = async (address?: string) => {
     if (!contract) throw new Error('Contract not initialized');
-    
+
     try {
       const targetAddress = address || account;
-      const pending = await contract.pending(targetAddress);
-      return ethers.formatEther(pending);
+      const amount = await contract.getPendingBalance(targetAddress);
+      return ethers.formatEther(amount);
     } catch (error: any) {
       console.error('Failed to get pending earnings:', error);
       throw error;
@@ -960,7 +1003,7 @@ Error: ${gasError.message}`);
     networkId,
     contractStatus,
     connectWallet,
-    switchToPaseo,
+    switchToPolygon,
     mintTrack,
     buyTrack,
     withdrawEarnings,

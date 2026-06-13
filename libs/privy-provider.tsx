@@ -1,7 +1,7 @@
 "use client";
 
 import { PrivyProvider } from "@privy-io/react-auth";
-import { mainnet } from "viem/chains";
+import { polygonAmoy } from "viem/chains";
 
 export default function PrivyClientProvider({
   children,
@@ -23,8 +23,8 @@ export default function PrivyClientProvider({
             createOnLogin: "users-without-wallets",
           },
         },
-        defaultChain: mainnet,
-        supportedChains: [mainnet],
+        defaultChain: polygonAmoy,
+        supportedChains: [polygonAmoy],
         appearance: {
           theme: "dark",
           walletList: ["detected_wallets", "metamask", "rainbow", "coinbase_wallet", "wallet_connect"],

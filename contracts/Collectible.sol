@@ -1,263 +1,168 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.24;
 
-contract MusicNFT {
-    mapping(uint256 => address) public creators;
-    mapping(uint256 => string) public hashes;
-    mapping(uint256 => uint256) public prices;
-    mapping(uint256 => uint32) public sold;
-    mapping(uint256 => uint32) public editions;
-    mapping(address => uint256) public pending;
-    
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+contract MusicNFT is ERC1155, Ownable, ReentrancyGuard {
+
+    struct TokenData {
+        address creator;
+        string  metadataURI;
+        uint256 price;
+        uint32  maxEditions;
+        uint32  minted;
+    }
+
+    mapping(uint256 => TokenData) public tokens;
+    mapping(address => uint256)   public pending;
+
     uint256 public nextId = 1;
-    address public owner;
-    
-    // Reentrancy protection
-    bool private locked;
-    
-    // Paseo Testnet specific settings
-    uint256 public constant MIN_PRICE = 1e16; // 0.01 PAS minimum (18 decimals)
-    uint32 public constant MAX_EDITIONS = 1000; // Reasonable limit for Paseo
-    uint256 public constant MAX_GAS = 2000000; // Gas limit for Paseo testnet
-    
-    // Events for better transparency on Paseo
-    event TokenMinted(uint256 indexed id, address indexed creator, uint256 price, uint32 maxEditions);
-    event TokenBought(uint256 indexed id, address indexed buyer, uint32 edition, uint256 price);
+
+    uint256 public constant MIN_PRICE     = 1e16;  // 0.01 MATIC
+    uint32  public constant MAX_EDITIONS  = 10000;
+    uint16  public constant PLATFORM_FEE  = 500;   // 5% in basis points
+
+    event TokenCreated(
+        uint256 indexed id,
+        address indexed creator,
+        uint256 price,
+        uint32  maxEditions,
+        string  uri
+    );
+    event TokenPurchased(
+        uint256 indexed id,
+        address indexed buyer,
+        uint32  edition,
+        uint256 price
+    );
     event FundsWithdrawn(address indexed account, uint256 amount);
-    
-    modifier nonReentrant() {
-        require(!locked, "ReentrancyGuard: reentrant call");
-        locked = true;
-        _;
-        locked = false;
+
+    constructor() ERC1155("") Ownable(msg.sender) {}
+
+    // Returns per-token metadata URI (overrides ERC1155 base)
+    function uri(uint256 id) public view override returns (string memory) {
+        return tokens[id].metadataURI;
     }
-    
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function");
-        _;
-    }
-    
-    constructor() { 
-        owner = msg.sender;
-    }
-    
-    /**
-     * @dev Mint a new music NFT with Paseo testnet optimizations
-     * @param hash IPFS hash of the music metadata
-     * @param price Price per edition in PAS (minimum 0.01 PAS)
-     * @param maxEditions Maximum number of editions (max 1000)
-     */
-    function mint(string memory hash, uint256 price, uint32 maxEditions) 
-        public 
-        returns (uint256) 
+
+    // Create a new music collectible token type
+    function mint(string memory metadataURI, uint256 price, uint32 maxEditions)
+        public
+        returns (uint256)
     {
-        require(bytes(hash).length > 0, "Hash cannot be empty");
-        require(price >= MIN_PRICE, "Price too low (min 0.01 PAS)");
-        require(maxEditions > 0 && maxEditions <= MAX_EDITIONS, "Invalid max editions (1-1000)");
-        
+        require(bytes(metadataURI).length > 0, "URI cannot be empty");
+        require(price >= MIN_PRICE, "Price too low (min 0.01 MATIC)");
+        require(maxEditions > 0 && maxEditions <= MAX_EDITIONS, "Invalid max editions (1-10000)");
+
         uint256 id = nextId++;
-        creators[id] = msg.sender;
-        hashes[id] = hash;
-        prices[id] = price;
-        editions[id] = maxEditions;
-        
-        emit TokenMinted(id, msg.sender, price, maxEditions);
-        
+        tokens[id] = TokenData({
+            creator:     msg.sender,
+            metadataURI: metadataURI,
+            price:       price,
+            maxEditions: maxEditions,
+            minted:      0
+        });
+
+        emit TokenCreated(id, msg.sender, price, maxEditions, metadataURI);
         return id;
     }
-    
-    /**
-     * @dev Buy an edition of a music NFT
-     * @param id Token ID to purchase
-     */
-    function buy(uint256 id) 
-        public 
-        payable 
-        nonReentrant 
-        returns (uint32) 
+
+    // Purchase one edition — mints an ERC1155 token to the buyer
+    function buy(uint256 id)
+        public
+        payable
+        nonReentrant
+        returns (uint32)
     {
-        require(creators[id] != address(0), "Token does not exist");
-        require(sold[id] < editions[id], "Sold out");
-        require(msg.value >= prices[id], "Insufficient payment");
-        
-        uint32 edition = ++sold[id];
-        
-        // Calculate fees (95% to creator, 5% to platform)
-        uint256 creatorAmount = (prices[id] * 95) / 100;
-        uint256 platformAmount = prices[id] - creatorAmount;
-        
-        pending[creators[id]] += creatorAmount;
-        pending[owner] += platformAmount;
-        
-        // Handle refund using call for Paseo testnet compatibility
-        if (msg.value > prices[id]) {
-            uint256 refund = msg.value - prices[id];
-            (bool success, ) = payable(msg.sender).call{value: refund, gas: 21000}("");
-            require(success, "Refund failed");
+        TokenData storage token = tokens[id];
+        require(token.creator != address(0), "Token does not exist");
+        require(token.minted < token.maxEditions, "Sold out");
+        require(msg.value >= token.price, "Insufficient payment");
+
+        uint32 edition = ++token.minted;
+
+        _mint(msg.sender, id, 1, "");
+
+        uint256 platformAmount = (token.price * PLATFORM_FEE) / 10000;
+        uint256 creatorAmount  = token.price - platformAmount;
+
+        pending[token.creator] += creatorAmount;
+        pending[owner()]       += platformAmount;
+
+        if (msg.value > token.price) {
+            (bool ok, ) = payable(msg.sender).call{value: msg.value - token.price}("");
+            require(ok, "Refund failed");
         }
-        
-        emit TokenBought(id, msg.sender, edition, prices[id]);
-        
+
+        emit TokenPurchased(id, msg.sender, edition, token.price);
         return edition;
     }
-    
-    /**
-     * @dev Withdraw pending earnings
-     */
-    function withdraw() 
-        public 
-        nonReentrant 
-    {
+
+    // Withdraw accumulated earnings
+    function withdraw() public nonReentrant {
         uint256 amount = pending[msg.sender];
         require(amount > 0, "No pending balance");
-        
-        // Update state before external call (CEI pattern)
         pending[msg.sender] = 0;
-        
-        // Use call instead of transfer for Paseo testnet
-        (bool success, ) = payable(msg.sender).call{value: amount, gas: 21000}("");
-        require(success, "Withdrawal failed");
-        
+        (bool ok, ) = payable(msg.sender).call{value: amount}("");
+        require(ok, "Withdrawal failed");
         emit FundsWithdrawn(msg.sender, amount);
     }
-    
-    /**
-     * @dev Get token information
-     */
-    function getTokenInfo(uint256 id) 
-        public 
-        view 
+
+    // --- View helpers ---
+
+    function getTokenInfo(uint256 id)
+        public
+        view
         returns (
             address creator,
-            string memory hash,
+            string  memory metadataURI,
             uint256 price,
-            uint32 soldCount,
-            uint32 maxEditions,
-            bool exists
-        ) 
+            uint32  minted,
+            uint32  maxEditions,
+            bool    exists
+        )
     {
-        return (
-            creators[id],
-            hashes[id],
-            prices[id],
-            sold[id],
-            editions[id],
-            creators[id] != address(0)
-        );
+        TokenData storage t = tokens[id];
+        return (t.creator, t.metadataURI, t.price, t.minted, t.maxEditions, t.creator != address(0));
     }
-    
-    /**
-     * @dev Get pending balance for an account
-     */
-    function getPendingBalance(address account) 
-        public 
-        view 
-        returns (uint256) 
-    {
+
+    function getPendingBalance(address account) public view returns (uint256) {
         return pending[account];
     }
-    
-    /**
-     * @dev Get contract balance
-     */
-    function getContractBalance() 
-        public 
-        view 
-        returns (uint256) 
-    {
-        return address(this).balance;
+
+    function isSoldOut(uint256 id) public view returns (bool) {
+        return tokens[id].minted >= tokens[id].maxEditions;
     }
-    
-    /**
-     * @dev Check if token is sold out
-     */
-    function isSoldOut(uint256 id) 
-        public 
-        view 
-        returns (bool) 
-    {
-        return sold[id] >= editions[id];
+
+    function getRemainingEditions(uint256 id) public view returns (uint32) {
+        if (tokens[id].creator == address(0)) return 0;
+        return tokens[id].maxEditions - tokens[id].minted;
     }
-    
-    /**
-     * @dev Get remaining editions for a token
-     */
-    function getRemainingEditions(uint256 id) 
-        public 
-        view 
-        returns (uint32) 
-    {
-        if (creators[id] == address(0)) return 0;
-        return editions[id] - sold[id];
-    }
-    
-    /**
-     * @dev Update token price (creator only)
-     */
-    function updatePrice(uint256 id, uint256 newPrice) 
-        public 
-    {
-        require(creators[id] == msg.sender, "Only creator can update price");
-        require(newPrice >= MIN_PRICE, "Price too low");
-        
-        prices[id] = newPrice;
-    }
-    
-    /**
-     * @dev Emergency functions for owner
-     */
-    function emergencyWithdraw() 
-        public 
-        onlyOwner 
-    {
-        uint256 balance = address(this).balance;
-        require(balance > 0, "No balance to withdraw");
-        
-        (bool success, ) = payable(owner).call{value: balance}("");
-        require(success, "Emergency withdrawal failed");
-    }
-    
-    /**
-     * @dev Transfer ownership
-     */
-    function transferOwnership(address newOwner) 
-        public 
-        onlyOwner 
-    {
-        require(newOwner != address(0), "New owner cannot be zero address");
-        owner = newOwner;
-    }
-    
-    /**
-     * @dev Get total tokens minted
-     */
-    function getTotalTokens() 
-        public 
-        view 
-        returns (uint256) 
-    {
+
+    function getTotalTokens() public view returns (uint256) {
         return nextId - 1;
     }
 
-    /**
-     * @dev Paseo testnet specific helper functions
-     */
-    function getNetworkInfo() 
-        public 
-        pure 
-        returns (string memory networkName, uint256 chainId, string memory currency) 
-    {
-        return ("Paseo Testnet", 420420422, "PAS");
+    // Creator can update the price while there are still editions left
+    function updatePrice(uint256 id, uint256 newPrice) public {
+        require(tokens[id].creator == msg.sender, "Only creator can update price");
+        require(newPrice >= MIN_PRICE, "Price too low");
+        tokens[id].price = newPrice;
     }
-    
-    /**
-     * @dev Get minimum price in human readable format
-     */
-    function getMinPriceFormatted() 
-        public 
-        pure 
-        returns (string memory) 
+
+    function getNetworkInfo()
+        public
+        pure
+        returns (string memory networkName, uint256 chainId, string memory currency)
     {
-        return "0.01 PAS";
+        return ("Polygon Amoy Testnet", 80002, "MATIC");
+    }
+
+    function emergencyWithdraw() public onlyOwner {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No balance");
+        (bool ok, ) = payable(owner()).call{value: balance}("");
+        require(ok, "Emergency withdrawal failed");
     }
 }
