@@ -248,27 +248,23 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
 
       setUploadProgress('Uploading to Walrus...');
       
-      const response = await apiClient.post('/walrus/upload-single', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      // apiClient interceptor returns response.data directly — `result` IS the body
+      const result: any = await apiClient.post('/walrus/upload-single', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      console.log('📡 Full response object:', response);
-      console.log('📡 Response data:', response.data);
-
-      // FIX: The response.data IS the actual data, not a wrapper
-      // The API client already unwraps the response for us
-      if (!response.data) {
-        throw new Error('No response data received');
+      if (!result) {
+        throw new Error('No response received from upload');
       }
 
-      // The response.data contains the actual track data, which means success
-      console.log('✅ IPFS upload successful:', response.data);
+      if (result.error) {
+        throw new Error(result.details ?? result.error);
+      }
+
+      console.log('✅ Walrus upload successful:', result);
       setUploadProgress('Walrus upload completed!');
-      
-      // Return the actual data (response.data IS the data)
-      return response.data;
+
+      return result;
       
     } catch (error: any) {
       console.error('❌ Error in uploadSingleTrack:', error);
