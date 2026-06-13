@@ -15,7 +15,7 @@ export interface ICollectible extends Document {
   contractAddress?: string; // For parachains with EVM compatibility
   tokenId?: string;
   chainId?: number; // Optional - for parachains
-  network: 'polkadot' | 'kusama' | 'westend' | 'rococo'; // Polkadot networks
+  network: 'polkadot' | 'kusama' | 'westend' | 'rococo' | 'polygon';
   parachain?: string; // e.g., 'moonbeam', 'astar', 'acala', etc.
   txHash?: string; // Transaction hash
   blockNumber?: number;
@@ -23,17 +23,24 @@ export interface ICollectible extends Document {
   extrinsicIndex?: string; // Polkadot extrinsic index
   mintedAt?: Date;
   
-  // IPFS/Pinata Data
-  metadataUri: string; // Main metadata IPFS URL
-  metadataHash: string; // IPFS hash
-  groupId: string; // Pinata group ID
-  groupName: string;
-  
+  // Storage provider
+  storageProvider?: 'ipfs' | 'walrus';
+
+  // Metadata URI (IPFS URL or Walrus aggregator URL)
+  metadataUri: string;
+  metadataHash: string; // IPFS CID or Walrus blob ID
+
+  // Pinata/IPFS — optional, only set for IPFS uploads
+  groupId?: string;
+  groupName?: string;
+
   // Media Files
   audioUrl: string;
-  audioHash: string;
+  audioHash?: string;   // IPFS CID
+  audioBlobId?: string; // Walrus blob ID
   imageUrl?: string;
-  imageHash?: string;
+  imageHash?: string;   // IPFS CID
+  imageBlobId?: string; // Walrus blob ID
   
   // Metadata
   genres: string[];
@@ -126,12 +133,12 @@ const CollectibleSchema = new Schema<ICollectible>({
   contractAddress: { type: String, index: true }, // For EVM-compatible parachains
   tokenId: { type: String, index: true },
   chainId: { type: Number, index: true }, // Optional for parachains
-  network: { 
-    type: String, 
-    enum: ['polkadot', 'kusama', 'westend', 'rococo'], 
-    default: 'polkadot',
+  network: {
+    type: String,
+    enum: ['polkadot', 'kusama', 'westend', 'rococo', 'polygon'],
+    default: 'polygon',
     required: true,
-    index: true 
+    index: true
   },
   parachain: { 
     type: String, 
@@ -143,17 +150,22 @@ const CollectibleSchema = new Schema<ICollectible>({
   extrinsicIndex: { type: String },
   mintedAt: { type: Date },
   
-  // IPFS/Pinata Data
-  metadataUri: { type: String, required: true },
+  // Storage
+  storageProvider: { type: String, enum: ['ipfs', 'walrus'], default: 'walrus' },
+  metadataUri:  { type: String, required: true },
   metadataHash: { type: String, required: true, index: true },
-  groupId: { type: String, required: true, index: true },
-  groupName: { type: String, required: true },
-  
+
+  // Pinata/IPFS (optional)
+  groupId:   { type: String, index: true },
+  groupName: { type: String },
+
   // Media Files
-  audioUrl: { type: String, required: true },
-  audioHash: { type: String, required: true },
-  imageUrl: { type: String },
-  imageHash: { type: String },
+  audioUrl:    { type: String, required: true },
+  audioHash:   { type: String },   // IPFS CID
+  audioBlobId: { type: String },   // Walrus blob ID
+  imageUrl:    { type: String },
+  imageHash:   { type: String },   // IPFS CID
+  imageBlobId: { type: String },   // Walrus blob ID
   
   // Metadata
   genres: [{ type: String, index: true }],

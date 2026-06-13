@@ -82,7 +82,7 @@ const CollectibleMintPage: React.FC = () => {
   contractStatus, 
   mintTrack, 
   connectWallet, 
-  switchToPaseo 
+  switchToPolygon
 } = useContract();
 
 // Audio player handlers

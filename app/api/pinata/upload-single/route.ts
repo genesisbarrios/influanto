@@ -218,8 +218,9 @@ export async function POST(request: NextRequest) {
           editionSize: metadata.editionSize || 1,
           
           // Status
+          storageProvider: 'ipfs',
           status: 'uploaded',
-          network: 'polkadot'
+          network: 'polygon'
         });
 
         const savedCollectible = await collectible.save();
