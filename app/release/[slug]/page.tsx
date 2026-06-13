@@ -73,21 +73,28 @@ const ReleasePageView = () => {
       return;
     }
 
-    console.log('🛍️ Fetching merch products for release page...');
     setIsLoadingMerch(true);
     try {
-      const response = await fetch(`/api/products/${userId}`);
-      if (response.ok) {
-        const allProducts = await response.json();
-        const filteredProducts = allProducts.filter((product: any) => 
-          selectedProductIds.includes(product.id)
-        );
-        console.log('✅ Filtered merch products:', filteredProducts);
-        setMerchProducts(filteredProducts);
-      } else {
-        console.error('❌ Error fetching products');
-        setMerchProducts([]);
+      let allProducts: any[] = [];
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await fetch(`/api/products/${userId}?page=${page}&limit=20`);
+        if (!response.ok) break;
+
+        const data = await response.json();
+        const pageProducts: any[] = Array.isArray(data) ? data : (data.products ?? []);
+        allProducts = [...allProducts, ...pageProducts];
+        hasMore = !!data.hasMore;
+        page++;
+
+        // Early exit once all selected products have been found
+        const foundIds = new Set(allProducts.map((p: any) => p.id));
+        if (selectedProductIds.every(id => foundIds.has(id))) break;
       }
+
+      setMerchProducts(allProducts.filter((p: any) => selectedProductIds.includes(p.id)));
     } catch (error) {
       console.error('❌ Network error:', error);
       setMerchProducts([]);
