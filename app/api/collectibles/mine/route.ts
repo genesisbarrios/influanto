@@ -100,7 +100,7 @@ export async function GET(req: Request) {
           try {
             const bal = await contract.balanceOf(wallet, id);
             if (Number(bal) > 0) owned.add(id);
-          } catch {}
+          } catch { /* ignore per-token errors */ }
         })
       )
     );

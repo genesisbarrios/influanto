@@ -46,7 +46,7 @@ const Collectibles = () => {
   const userTriggeredRef = useRef(false);
   const ensLookupAttemptedRef = useRef(false);
 
-  const { ready, authenticated, user: privyUser } = usePrivy();
+  const { ready, authenticated, user: privyUser, logout } = usePrivy();
   const { wallets } = useWallets();
   const { login } = useLogin({
     onComplete: () => {
@@ -170,11 +170,21 @@ const Collectibles = () => {
     }
   };
 
-  const handleCreateNFT = () => {
+  const handleCreateNFT = async () => {
     if (walletAddresses.length === 0) {
       setWalletError(null);
       setWalletConnecting(true);
       userTriggeredRef.current = true;
+
+      // If Privy already has a session (auto-detected EVM wallet from a prior
+      // connection), clear it so login() always shows the wallet-picker UI.
+      // Without this, login() is a no-op when authenticated=true, the wallets
+      // array never changes, the auto-save effect never fires, and the spinner
+      // gets stuck forever — and the user never gets to choose Privy vs EVM.
+      if (authenticated) {
+        await logout();
+      }
+
       login();
       return;
     }
@@ -214,12 +224,7 @@ const Collectibles = () => {
         ) : (
           <div className="flex flex-col items-end gap-1">
             <button
-              onClick={() => {
-                setWalletError(null);
-                setWalletConnecting(true);
-                userTriggeredRef.current = true;
-                login();
-              }}
+              onClick={handleCreateNFT}
               disabled={walletConnecting}
               className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
             >

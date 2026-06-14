@@ -554,6 +554,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
   if (!isOpen) return null;
 
   return (
+  <>
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-4xl p-6 overflow-y-auto max-h-[95vh]">
         {/* Header */}
@@ -898,19 +899,20 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
           <span className="text-red-500">*</span> Required fields
         </div>
       </div>
-
-      {showWalletManager && (
-        <WalletManagerModal
-          walletAddresses={walletAddresses}
-          ensName={ensName}
-          onClose={() => setShowWalletManager(false)}
-          onUpdate={(addresses, ens) => {
-            onWalletUpdate(addresses, ens);
-            if (addresses.length === 0) setShowWalletManager(false);
-          }}
-        />
-      )}
     </div>
+
+  {showWalletManager && (
+    <WalletManagerModal
+      walletAddresses={walletAddresses}
+      ensName={ensName}
+      onClose={() => setShowWalletManager(false)}
+      onUpdate={(addresses, ens) => {
+        onWalletUpdate(addresses, ens);
+        if (addresses.length === 0) setShowWalletManager(false);
+      }}
+    />
+  )}
+  </>
   );
 };
 
