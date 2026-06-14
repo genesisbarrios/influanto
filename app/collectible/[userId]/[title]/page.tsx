@@ -385,7 +385,7 @@ const CollectibleMintPage: React.FC = () => {
       if (!collectible.tokenId) throw new Error('Token ID not found. Cannot buy this collectible.');
 
       // buyTrack fetches the on-chain price itself and calls contract.buy(tokenId, { value })
-      const result = await buyTrack(collectible.tokenId);
+      const result = await buyTrack(collectible.tokenId, walletAddresses[0]);
       
       setMintSuccess(true);
       

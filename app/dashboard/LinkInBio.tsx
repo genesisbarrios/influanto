@@ -227,7 +227,8 @@ const LinkInBio = () => {
   }, [linkInBio?.selectedNftIds]);
 
   useEffect(() => {
-    if (!isEditing) return;
+    const hasSelected = (linkInBio?.selectedNftIds?.length ?? 0) > 0;
+    if (!isEditing && !hasSelected) return;
     setIsLoadingNfts(true);
     // Fetch wallet address first, then pull collectibles by on-chain creator address
     // (more reliable than user_id lookup if records were saved with a different session)
@@ -242,7 +243,7 @@ const LinkInBio = () => {
       .then((res: any) => setAvailableNfts(res.collectibles ?? []))
       .catch(() => setAvailableNfts([]))
       .finally(() => setIsLoadingNfts(false));
-  }, [isEditing]);
+  }, [isEditing, linkInBio?.selectedNftIds?.length]);
 
   // Load the user's existing images for the picker gallery
   const loadGallery = () => {
@@ -598,6 +599,76 @@ const LinkInBio = () => {
                     </div>
                   )
                 ))}
+
+                {/* MUSIC / COLLECTIBLES SECTION */}
+                {linkInBio?.selectedNftIds?.length > 0 && (
+                  <div style={{ marginTop: "24px", marginBottom: "16px", width: "100%" }}>
+                    <h3 style={{
+                      fontSize: "18px", fontWeight: "600", marginBottom: "12px",
+                      textAlign: "center", color: textColor, fontFamily: linkInBio?.font || 'inherit'
+                    }}>
+                      🎵 Music
+                    </h3>
+                    {isLoadingNfts ? (
+                      <p style={{ textAlign: "center", fontSize: "13px", color: textColor, opacity: 0.6 }}>Loading…</p>
+                    ) : (
+                      <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(80px, 1fr))",
+                        gap: "8px", width: "100%", maxWidth: "100%", padding: "0 4px"
+                      }}>
+                        {linkInBio.selectedNftIds.map((nftId: string) => {
+                          const nft = availableNfts.find((n: any) => n.id === nftId);
+                          if (!nft) return null;
+                          return (
+                            <div key={nftId} style={{ width: "100%", minWidth: "80px", maxWidth: "120px", margin: "0 auto" }}>
+                              <a
+                                href={`/collectible/${nft.userId}/${encodeURIComponent(nft.title)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  display: 'block', padding: '6px', borderRadius: '8px',
+                                  border: '1px solid rgba(255,255,255,0.2)',
+                                  backgroundColor: linkInBio?.cardBgColor || 'rgba(255,255,255,0.1)',
+                                  textDecoration: 'none', width: '100%', boxSizing: 'border-box',
+                                  transition: 'transform 0.2s ease'
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+                              >
+                                <div style={{ width: "100%", height: "60px", borderRadius: "6px", overflow: "hidden", backgroundColor: "#e9d5ff", marginBottom: "6px" }}>
+                                  {nft.imageUrl ? (
+                                    <img src={nft.imageUrl} alt={nft.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                  ) : (
+                                    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                      <span style={{ fontSize: "20px" }}>🎵</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div>
+                                  <div style={{
+                                    fontSize: "10px", fontWeight: "500", marginBottom: "3px",
+                                    color: textColor, fontFamily: linkInBio?.font || 'inherit',
+                                    lineHeight: '1.2', height: '2.4em', overflow: 'hidden',
+                                    wordWrap: 'break-word', textAlign: 'center'
+                                  }}>
+                                    {nft.title && nft.title.length > 12 ? `${nft.title.substring(0, 12)}...` : nft.title}
+                                  </div>
+                                  <div style={{
+                                    fontSize: "10px", fontWeight: "bold", textAlign: "center",
+                                    color: linksColor, fontFamily: linkInBio?.font || 'inherit'
+                                  }}>
+                                    {nft.priceUsd ? `$${nft.priceUsd}` : nft.priceMatic ? `${nft.priceMatic} POL` : ''}
+                                  </div>
+                                </div>
+                              </a>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* MERCH SECTION */}
                 {user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (

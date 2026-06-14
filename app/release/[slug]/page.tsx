@@ -834,9 +834,8 @@ const renderMerchSection = () => {
         {/* Music / NFT Section */}
         {featuredNfts.length > 0 && (
           <div style={{ marginTop: "40px", marginBottom: "20px" }}>
-            <hr style={{ margin: "5% 0", borderColor: "rgba(255,255,255,0.15)" }} />
             <h3 style={{ textAlign: "center", marginBottom: "20px", fontSize: "22px", fontWeight: "bold" }}>
-              Music
+              Collect to Own
             </h3>
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px" }}>
               {featuredNfts.map((nft: any) => (
