@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
 import { useSession } from "next-auth/react";
 import ReleasePageAnalytics from "@/components/ReleasePageAnalytics";
-import { CldUploadWidget } from 'next-cloudinary';
 import { debounce } from "lodash";
 import posthog from "posthog-js";
 import { parseColorValue, combineColor } from "@/libs/color";
@@ -78,6 +77,8 @@ const ReleasePages = () => {
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
   const [brandLogoPickerOpen, setBrandLogoPickerOpen] = useState(false);
   const [bgImagePickerOpen, setBgImagePickerOpen] = useState(false);
+  const [showMerchExpanded, setShowMerchExpanded] = useState(true);
+  const [editImagePickerOpen, setEditImagePickerOpen] = useState(false);
 
 
   useEffect(() => {
@@ -780,34 +781,34 @@ const removeCustomLink = (index: number) => {
     return (
       <>
         <div className="mb-4 p-4 bg-purple-50 rounded-md border border-purple-200">
-          <h4 className="font-bold mb-2 text-purple-800" style={{
-            fontFamily: font || 'inherit'
-          }}>🛒 Merch Integration</h4>
-          <p className="text-purple-600 text-sm" style={{
-            fontFamily: font || 'inherit'
-          }}>
-            {!userData?.printifyShopId
-              ? "Connect your Printify store to your Profile to add merch to your release pages"
-              : "Your Printify store is connected. Select products to feature below."
-            }
-          </p>
-
-        {userData?.printifyShopId && (
-          <>
-            <div className="flex items-center justify-between mb-2 mt-3">
-              <h4 className="font-bold text-purple-800" style={{ fontFamily: font || 'inherit' }}>Merch Products</h4>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-bold text-purple-800" style={{ fontFamily: font || 'inherit' }}>🛒 Merch Integration</h4>
+          </div>
+          {showMerchExpanded && (<>
+          {!userData?.printifyShopId ? (
+            <p className="text-purple-600 text-sm" style={{ fontFamily: font || 'inherit' }}>
+              Connect your Printify store to your Profile to add merch to your release pages
+            </p>
+          ) : (
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <p className="text-purple-600 text-sm" style={{ fontFamily: font || 'inherit' }}>
+                Your Printify store is connected. Select products to feature below.
+              </p>
               <button
                 type="button"
-                className="btn btn-secondary btn-sm"
+                className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors whitespace-nowrap"
                 onClick={() => setShowMerchSection(!showMerchSection)}
                 style={{ fontFamily: font || 'inherit' }}
               >
-                {showMerchSection ? 'Hide Products' : 'Select Products'}
+                {showMerchSection ? 'Hide' : 'Show'}
               </button>
             </div>
-            
+          )}
+
+        {userData?.printifyShopId && (
+          <>
             {selectedProductIds.length > 0 && (
-              <div className="mb-2 text-sm text-gray-600" style={{ fontFamily: font || 'inherit' }}>
+              <div className="mb-2 mt-2 text-sm text-gray-600" style={{ fontFamily: font || 'inherit' }}>
                 {selectedProductIds.length} product{selectedProductIds.length !== 1 ? 's' : ''} selected
               </div>
             )}
@@ -874,6 +875,7 @@ const removeCustomLink = (index: number) => {
             )}
           </>
         )}
+          </>)}
         </div>
       </>
     );
@@ -948,11 +950,11 @@ const removeCustomLink = (index: number) => {
                   <div style={{ position: "relative", display: "inline-block", width: "100%", maxWidth: 400 }}>
                     <img
                       src={editingPage.image}
-                      alt="Release Page"
+                      alt="ReleaseIMG"
                       className="rounded-md"
                       style={{ width: "100%", maxHeight: "200px", objectFit: "cover", display: "block" }}
                     />
-                    <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6 }}>
+                    <div style={{gap: 6 , marginLeft:"20%"}}>
                       <button type="button" title="Change image" onClick={() => setImagePickerOpen(true)}
                         style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", fontSize: 14 }}>✏️</button>
                       <button type="button" title="Delete image"
@@ -1104,8 +1106,8 @@ const removeCustomLink = (index: number) => {
             <div className="mb-4">
               <label className="block mb-2 font-medium" style={{ fontFamily: font || 'inherit' }}>Page Background</label>
               <div className="flex justify-center mb-3">
-                <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-                  {[{ id: 'image', label: '🖼 Stock' }, { id: 'upload', label: '⬆️ Upload' }, { id: 'pattern', label: '🔷 Pattern' }].map((tab) => (
+                <div className="flex gap-1 bg-gray-100 rounded-lg p-1 flex-wrap">
+                  {[{ id: 'image', label: '🖼 Stock' }, { id: 'upload', label: '⬆️ Upload' }, { id: 'pattern', label: '🔷 Pattern' }, { id: 'solid', label: '🎨 Solid' }].map((tab) => (
                     <button key={tab.id} type="button"
                       className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${(editingPage?.bgMode || 'pattern') === tab.id ? 'bg-white shadow text-blue-700' : 'text-gray-500 hover:text-gray-700'}`}
                       onClick={() => setEditingPage({ ...editingPage, bgMode: tab.id })}
@@ -1142,6 +1144,15 @@ const removeCustomLink = (index: number) => {
               )}
               {(editingPage?.bgMode || 'pattern') === 'pattern' && (
                 <HeroPatternPicker page={editingPage} setPage={setEditingPage} />
+              )}
+              {editingPage?.bgMode === 'solid' && (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium" style={{ fontFamily: font || 'inherit' }}>Page Color</label>
+                    <input type="color" value={editingPage?.pageBgColor || '#ffffff'} onChange={e => setEditingPage({ ...editingPage, pageBgColor: e.target.value })} className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer" />
+                  </div>
+                  <div className="w-full h-12 rounded-lg border border-gray-200" style={{ backgroundColor: editingPage?.pageBgColor || '#ffffff' }} />
+                </div>
               )}
             </div>
 
@@ -1262,139 +1273,141 @@ const removeCustomLink = (index: number) => {
         ) : (
           <div className="p-4 bg-gray-100 rounded-md" style={{ fontFamily: font || 'inherit' }}>
             <h3 className="text-xl font-bold mb-4" style={{ fontFamily: font || 'inherit' }}>Edit Release Page</h3>
-            <div className="mb-4">
-             <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Name</label>
-              <input
-                type="text"
-                className="input w-full"
-                placeholder="Enter release page name"
-                value={editingPage?.name || ""}
-                onChange={(e) => {
-                  // Simple handler for edit mode - just update the value
-                  setEditingPage({ ...editingPage, name: e.target.value });
-                }}
-                onBlur={handleNameBlur}
-                style={{ fontFamily: font || 'inherit' }}
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Description</label>
-                <textarea
-                  className="input w-full"
-                  placeholder="Enter release page description"
-                  value={editingPage?.description || ""}
-                  onChange={handleDescriptionChange}
-                  style={{ fontFamily: font || 'inherit' }}
-                />
-            </div>
-            <div className="mb-4">
-              <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Image</label>
-              <CldUploadWidget
-                uploadPreset="ReleasePageImages"
-                options={{ publicId: `user_${data?.user?.id}_releasePage_thumbnail_${releasePages.length + 1}` }}
-                onUploadAdded={(result: any) => {
-                  handleImageUpload(result);
-                }}
-              >
-                {({ open }: { open: () => void }) => (
-                  <button
-                    type="button"
-                    onClick={() => open()}
-                    className="btn btn-primary btn-sm"
-                    style={{ fontFamily: font || 'inherit' }}
-                  >
-                    Upload Image
-                  </button>
-                )}
-              </CldUploadWidget>
-              {editingPage?.image && (
-                <img
-                  src={editingPage.image}
-                  alt="Release Page"
-                  className="mt-2 rounded-md"
-                  style={{ width: "100%", maxHeight: "200px", objectFit: "cover" }}
-                />
-              )}
-            </div>
-            <div className="mb-4">
-              <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>YouTube Video Link</label>
-            <input
-              type="text"
-              className="input w-full"
-              placeholder="Enter YouTube video link"
-              value={editingPage?.video || ""}
-              onChange={handleVideoChange}
-              style={{ fontFamily: font || 'inherit' }}
-            />
-              {editingPage?.video && getYouTubeVideoId(editingPage.video).videoId && (
-                <iframe
-                  width="100%"
-                  height="315"
-                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(editingPage.video).videoId}`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="mt-4"
-                ></iframe>
-              )}
-            </div>
-            <div className="mb-4">
-              <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Predefined Links</h4>
-             {predefinedLinks.map((link, index) => (
-                <div key={index} className="mb-2">
-                  <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>{link.name}</label>
+            <div className="md:flex md:gap-6">
+              {/* Left: Name, Description, Image, Video */}
+              <div className="md:w-1/2">
+                <div className="mb-4">
+                 <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Name</label>
                   <input
                     type="text"
                     className="input w-full"
-                    placeholder={`Enter ${link.name} URL`}
-                    value={
-                      (editingPage?.links || []).find((l: any) => l.name === link.name)?.url || ""
-                    }
-                    onChange={(e) => handlePredefinedLinkChange(link.name, e.target.value)}
+                    placeholder="Enter release page name"
+                    value={editingPage?.name || ""}
+                    onChange={(e) => {
+                      setEditingPage({ ...editingPage, name: e.target.value });
+                    }}
+                    onBlur={handleNameBlur}
                     style={{ fontFamily: font || 'inherit' }}
                   />
                 </div>
-              ))}
-            </div>
-            <div className="mb-4">
-              <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Custom Links</h4>
-           {(editingPage?.links || [])
-              .filter((link: any) => !predefinedLinks.some((p) => p.name === link.name))
-              .map((link: any, index: number) => (
-                <div key={index} className="mb-2">
-                  <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>Name</label>
-                  <input
-                    type="text"
-                    className="input w-full mb-2"
-                    placeholder="Enter link name"
-                    value={link.name || ""}
-                    onChange={(e) => handleCustomLinkNameChange(index, e.target.value)}
+                <div className="mb-4">
+                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Description</label>
+                  <textarea
+                    className="input w-full"
+                    placeholder="Enter release page description"
+                    value={editingPage?.description || ""}
+                    onChange={handleDescriptionChange}
                     style={{ fontFamily: font || 'inherit' }}
                   />
-                  <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>URL</label>
+                </div>
+                <div className="mb-4">
+                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Image</label>
+                  {editingPage?.image ? (
+                    <div style={{ position: "relative", display: "inline-block", marginBottom: 8 }}>
+                      <img
+                        src={editingPage.image}
+                        alt="Release Page"
+                        className="rounded-md"
+                        style={{ maxHeight: "150px", width: "150px", objectFit: "cover", display: "block" }}
+                      />
+                      <div style={{ position: "absolute", top: 4, right: 4, display: "flex", gap: 4 }}>
+                        <button type="button" title="Change image" onClick={() => setEditImagePickerOpen(true)}
+                          style={{ width: 28, height: 28, borderRadius: 6, border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", fontSize: 12 }}>✏️</button>
+                        <button type="button" title="Delete image"
+                          onClick={async () => { const old = editingPage.image; setEditingPage({ ...editingPage, image: "" }); await deleteCloudinaryImage(old); }}
+                          style={{ width: 28, height: 28, borderRadius: 6, border: "none", background: "rgba(220,38,38,0.85)", color: "#fff", cursor: "pointer", fontSize: 12 }}>🗑️</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => setEditImagePickerOpen(true)} className="btn btn-primary btn-sm" style={{ fontFamily: font || 'inherit' }}>
+                      + Add Image
+                    </button>
+                  )}
+                </div>
+                <div className="mb-4">
+                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>YouTube Video Link</label>
                   <input
                     type="text"
                     className="input w-full"
-                    placeholder="Enter link URL"
-                    value={link.url || ""}
-                    onChange={(e) => handleCustomLinkURLChange(index, e.target.value)}
+                    placeholder="Enter YouTube video link"
+                    value={editingPage?.video || ""}
+                    onChange={handleVideoChange}
                     style={{ fontFamily: font || 'inherit' }}
                   />
+                  {editingPage?.video && getYouTubeVideoId(editingPage.video).videoId && (
+                    <iframe
+                      width="100%"
+                      height="315"
+                      src={`https://www.youtube.com/embed/${getYouTubeVideoId(editingPage.video).videoId}`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="mt-4"
+                    ></iframe>
+                  )}
+                </div>
+              </div>
+              {/* Right: Streaming Links, Custom Links */}
+              <div className="md:w-1/2">
+                <div className="mb-4">
+                  <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Predefined Links</h4>
+                  {predefinedLinks.map((link, index) => (
+                    <div key={index} className="mb-2">
+                      <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>{link.name}</label>
+                      <input
+                        type="text"
+                        className="input w-full"
+                        placeholder={`Enter ${link.name} URL`}
+                        value={
+                          (editingPage?.links || []).find((l: any) => l.name === link.name)?.url || ""
+                        }
+                        onChange={(e) => handlePredefinedLinkChange(link.name, e.target.value)}
+                        style={{ fontFamily: font || 'inherit' }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="mb-4">
+                  <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Custom Links</h4>
+                  {(editingPage?.links || [])
+                    .filter((link: any) => !predefinedLinks.some((p) => p.name === link.name))
+                    .map((link: any, index: number) => (
+                      <div key={index} className="mb-2">
+                        <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>Name</label>
+                        <input
+                          type="text"
+                          className="input w-full mb-2"
+                          placeholder="Enter link name"
+                          value={link.name || ""}
+                          onChange={(e) => handleCustomLinkNameChange(index, e.target.value)}
+                          style={{ fontFamily: font || 'inherit' }}
+                        />
+                        <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>URL</label>
+                        <input
+                          type="text"
+                          className="input w-full"
+                          placeholder="Enter link URL"
+                          value={link.url || ""}
+                          onChange={(e) => handleCustomLinkURLChange(index, e.target.value)}
+                          style={{ fontFamily: font || 'inherit' }}
+                        />
+                        <button
+                          className="btn btn-alert btn-sm mt-2"
+                          onClick={() => removeCustomLink(index)}
+                          style={{ fontFamily: font || 'inherit' }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
                   <button
-                    className="btn btn-alert btn-sm mt-2"
-                    onClick={() => removeCustomLink(index)}
+                    className="btn btn-primary btn-sm mt-2"
+                    onClick={addCustomLink}
                     style={{ fontFamily: font || 'inherit' }}
                   >
-                    Remove
+                    Add Custom Link
                   </button>
                 </div>
-              ))}
-              <button
-                className="btn btn-primary btn-sm mt-2"
-                onClick={addCustomLink}
-                style={{ fontFamily: font || 'inherit' }}
-              >
-                Add Custom Link
-              </button>
+              </div>
             </div>
 
             <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
@@ -1427,8 +1440,8 @@ const removeCustomLink = (index: number) => {
             <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
               <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>Page Background</h4>
               <div className="flex justify-center mb-3">
-                <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-                  {[{ id: 'image', label: '🖼 Stock' }, { id: 'upload', label: '⬆️ Upload' }, { id: 'pattern', label: '🔷 Pattern' }].map((tab) => (
+                <div className="flex gap-1 bg-gray-100 rounded-lg p-1 flex-wrap">
+                  {[{ id: 'image', label: '🖼 Stock' }, { id: 'upload', label: '⬆️ Upload' }, { id: 'pattern', label: '🔷 Pattern' }, { id: 'solid', label: '🎨 Solid' }].map((tab) => (
                     <button key={tab.id} type="button"
                       className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${(editingPage?.bgMode || 'pattern') === tab.id ? 'bg-white shadow text-blue-700' : 'text-gray-500 hover:text-gray-700'}`}
                       onClick={() => setEditingPage({ ...editingPage, bgMode: tab.id })}
@@ -1465,6 +1478,15 @@ const removeCustomLink = (index: number) => {
               )}
               {(editingPage?.bgMode || 'pattern') === 'pattern' && (
                 <HeroPatternPicker page={editingPage} setPage={setEditingPage} />
+              )}
+              {editingPage?.bgMode === 'solid' && (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium" style={{ fontFamily: font || 'inherit' }}>Page Color</label>
+                    <input type="color" value={editingPage?.pageBgColor || '#ffffff'} onChange={e => setEditingPage({ ...editingPage, pageBgColor: e.target.value })} className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer" />
+                  </div>
+                  <div className="w-full h-12 rounded-lg border border-gray-200" style={{ backgroundColor: editingPage?.pageBgColor || '#ffffff' }} />
+                </div>
               )}
             </div>
 
@@ -1588,6 +1610,17 @@ const removeCustomLink = (index: number) => {
           onSelect={(url: string) => { setEditingPage({ ...editingPage, bgImageCustom: url }); setBgImagePickerOpen(false); }}
           onClose={() => setBgImagePickerOpen(false)}
           title="Choose Page Background"
+        />
+      )}
+      {editImagePickerOpen && (
+        <ImagePicker
+          images={galleryImages}
+          uploadPreset="ReleasePageImages"
+          uploadOptions={{ publicId: `user_${data?.user?.id}_releasePage_${Date.now()}` }}
+          onUploaded={(result: any) => { handleImageUpload(result); setEditImagePickerOpen(false); loadGallery(); }}
+          onSelect={(url: string) => { setEditingPage({ ...editingPage, image: url }); setEditImagePickerOpen(false); }}
+          onClose={() => setEditImagePickerOpen(false)}
+          title="Choose Release Image"
         />
       )}
     </>
