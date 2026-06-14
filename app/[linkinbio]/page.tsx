@@ -461,7 +461,7 @@ return (
         {/* Music platforms */}
         {user.spotify && <h3 className="mt-5" style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>Listen</h3>}
         <div
-          className="text-base flex flex-wrap items-center gap-x-2 gap-y-1"
+          className="text-base flex flex-wrap items-center justify-center gap-x-2 gap-y-1"
           style={{ fontFamily: font || 'inherit', color: textColor || "#333333", marginBottom:"28px" }}
           onClick={(e) => {
             const a = (e.target as Element).closest('a');
