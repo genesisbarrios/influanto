@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase from "@/libs/supabase";
-import { getEnsNameForAddress, createInfluantoSubname } from "@/libs/ens";
+import { getEnsNameForAddress, createInfluantoSubname, buildInfluantoSubname } from "@/libs/ens";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,8 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { address, privyUserId } = body;
+    const { address, privyUserId, walletClientType } = body;
+    const isPrivyEmbedded = walletClientType === "privy";
 
     if (!address || typeof address !== "string") {
       return NextResponse.json({ error: "address is required" }, { status: 400 });
@@ -58,11 +59,12 @@ export async function POST(req: Request) {
       }
     }
 
-    // ENS lookup runs in the background after the response is sent
-    const needsEns = !user.ens_name && address.startsWith("0x");
-    if (needsEns) {
-      resolveAndSaveEns(session.user.id, address, user.username, user.name).catch((err) =>
-        console.error("wallet/save — ENS background lookup failed:", err?.message)
+    // ENS assignment runs in the background after the response is sent.
+    // Privy embedded wallets (Google / email login) skip the ENS reverse lookup —
+    // they'll never have one — and go straight to assigning an influanto subdomain.
+    if (!user.ens_name && address.startsWith("0x")) {
+      resolveAndSaveEns(session.user.id, address, user.username, user.name, isPrivyEmbedded).catch((err) =>
+        console.error("wallet/save — ENS background task failed:", err?.message)
       );
     }
 
@@ -83,22 +85,31 @@ async function resolveAndSaveEns(
   userId: string,
   address: string,
   username: string | null,
-  name: string | null
+  name: string | null,
+  skipEnsLookup = false
 ): Promise<void> {
   let ensName: string | null = null;
 
-  try {
-    ensName = await getEnsNameForAddress(address);
-  } catch {
-    // ignore — falls through to influanto subname
+  // Privy embedded wallets (Google / email) will never have an ENS reverse record.
+  // Skip the lookup entirely and go straight to assigning an influanto subdomain.
+  if (!skipEnsLookup) {
+    try {
+      ensName = await getEnsNameForAddress(address);
+    } catch {
+      // ignore — falls through to influanto subname
+    }
   }
 
   if (!ensName) {
     const handle = username || name?.replace(/\s+/g, "-") || address.slice(2, 8);
+    const intendedName = buildInfluantoSubname(handle);
     try {
       ensName = await createInfluantoSubname(handle, address);
-    } catch {
-      return;
+    } catch (err: any) {
+      // On-chain write failed (e.g. no private key configured, network error).
+      // Still save the intended subname string to DB so the user has a display name.
+      console.error("wallet/save — on-chain subname write failed:", err?.message);
+      ensName = intendedName;
     }
   }
 

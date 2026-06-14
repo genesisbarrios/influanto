@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faLock, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { usePrivy, useWallets, useLogin } from "@privy-io/react-auth";
+import { usePrivy, useWallets, useLogin, useFundWallet } from "@privy-io/react-auth";
 import dynamic from "next/dynamic";
 import apiClient from "@/libs/api";
 
@@ -47,6 +47,7 @@ const Collectibles = () => {
   const ensLookupAttemptedRef = useRef(false);
 
   const { ready, authenticated, user: privyUser, logout } = usePrivy();
+  const { fundWallet } = useFundWallet();
   const { wallets } = useWallets();
   const { login } = useLogin({
     onComplete: () => {
@@ -66,8 +67,16 @@ const Collectibles = () => {
     // For first-time users (no wallet in DB yet), only save if the user explicitly clicked
     if (walletAddresses.length === 0 && !userTriggeredRef.current) return;
 
+    // If the session has a Privy embedded wallet (Google / email login), never
+    // auto-save external EVM wallets detected from the browser. The user chose
+    // Privy — don't silently add their MetaMask or any injected wallet.
+    const hasEmbedded = wallets.some((w) => w.walletClientType === "privy" && w.address);
     const unsaved = wallets.find(
-      (w) => w.address && !walletAddresses.includes(w.address) && !attemptedSavesRef.current.has(w.address)
+      (w) =>
+        w.address &&
+        !walletAddresses.includes(w.address) &&
+        !attemptedSavesRef.current.has(w.address) &&
+        (!hasEmbedded || w.walletClientType === "privy")
     );
     if (!unsaved) return;
 
@@ -76,7 +85,7 @@ const Collectibles = () => {
     const isFirstWallet = walletAddresses.length === 0;
 
     apiClient
-      .post("/wallet/save", { address: unsaved.address, privyUserId: privyUser?.id ?? null })
+      .post("/wallet/save", { address: unsaved.address, privyUserId: privyUser?.id ?? null, walletClientType: unsaved.walletClientType })
       .then((result: any) => {
         const newAddresses: string[] = result.walletAddresses ?? [];
         setWalletAddresses(newAddresses);
@@ -97,7 +106,16 @@ const Collectibles = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wallets, walletAddresses, authenticated, mounted, walletInfoLoaded, walletInfoFetchOk]);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+    // If the user was mid-OAuth redirect (Google login), the page reloaded and
+    // userTriggeredRef reset to false. Restore the intent from localStorage so
+    // the auto-save effect can fire when Privy's session comes back.
+    if (localStorage.getItem("privy_pending_wallet_save") === "1") {
+      userTriggeredRef.current = true;
+      localStorage.removeItem("privy_pending_wallet_save");
+    }
+  }, []);
   useEffect(() => { if (mounted) fetchWalletInfo(); }, [mounted]);
 
   // After wallet loads: if ENS name is missing or is only an influanto subname,
@@ -173,17 +191,51 @@ const Collectibles = () => {
   const handleCreateNFT = async () => {
     if (walletAddresses.length === 0) {
       setWalletError(null);
-      setWalletConnecting(true);
       userTriggeredRef.current = true;
 
-      // If Privy already has a session (auto-detected EVM wallet from a prior
-      // connection), clear it so login() always shows the wallet-picker UI.
-      // Without this, login() is a no-op when authenticated=true, the wallets
-      // array never changes, the auto-save effect never fires, and the spinner
-      // gets stuck forever — and the user never gets to choose Privy vs EVM.
-      if (authenticated) {
+      if (ready && authenticated && wallets.length > 0) {
+        // Privy embedded wallet (created via Google / email login) — save it directly.
+        // No page redirect needed; the wallet is already available in this session.
+        const embedded = wallets.find(
+          (w) => w.walletClientType === "privy" && w.address && !attemptedSavesRef.current.has(w.address)
+        );
+        if (embedded) {
+          setWalletConnecting(true);
+          attemptedSavesRef.current.add(embedded.address);
+          try {
+            const result: any = await apiClient.post("/wallet/save", {
+              address: embedded.address,
+              privyUserId: privyUser?.id ?? null,
+              walletClientType: "privy",
+            });
+            const newAddresses: string[] = result.walletAddresses ?? [];
+            setWalletAddresses(newAddresses);
+            setEnsName(result.ensName ?? null);
+            setWalletConnecting(false);
+            if (newAddresses.length > 0) {
+              fetchNFTs(newAddresses[0]);
+              setModalOpen(true);
+            }
+          } catch (err: any) {
+            const msg = err?.response?.data?.error ?? err?.message ?? "Unknown error";
+            attemptedSavesRef.current.delete(embedded.address);
+            userTriggeredRef.current = false;
+            setWalletConnecting(false);
+            setWalletError(`Failed to save wallet: ${msg}`);
+          }
+          return;
+        }
+
+        // Only external wallets in the session (stale EVM connection from a different
+        // account). Clear the session so the picker shows fresh for the user to choose.
         await logout();
       }
+
+      setWalletConnecting(true);
+      // Persist intent across the Google OAuth page redirect so auto-save fires on return.
+      localStorage.setItem("privy_pending_wallet_save", "1");
+      // Keep the collectibles tab active after the redirect.
+      window.history.replaceState(null, "", "/dashboard?tab=collectibles");
 
       login();
       return;
