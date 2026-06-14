@@ -1,6 +1,7 @@
 "use client"
 /* eslint-disable */
 import React, { useEffect, useState } from 'react';
+import * as HeroPatterns from 'hero-patterns';
 import apiClient from "@/libs/api";
 import MetaPixel, { trackStreamingClick, trackMerchClick, trackLinkClick } from "@/components/MetaPixel";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -73,28 +74,21 @@ const ReleasePageView = () => {
       return;
     }
 
+    console.log('🛍️ Fetching merch products for release page...');
     setIsLoadingMerch(true);
     try {
-      let allProducts: any[] = [];
-      let page = 1;
-      let hasMore = true;
-
-      while (hasMore) {
-        const response = await fetch(`/api/products/${userId}?page=${page}&limit=20`);
-        if (!response.ok) break;
-
-        const data = await response.json();
-        const pageProducts: any[] = Array.isArray(data) ? data : (data.products ?? []);
-        allProducts = [...allProducts, ...pageProducts];
-        hasMore = !!data.hasMore;
-        page++;
-
-        // Early exit once all selected products have been found
-        const foundIds = new Set(allProducts.map((p: any) => p.id));
-        if (selectedProductIds.every(id => foundIds.has(id))) break;
+      const response = await fetch(`/api/products/${userId}`);
+      if (response.ok) {
+        const allProducts = await response.json();
+        const filteredProducts = allProducts.filter((product: any) => 
+          selectedProductIds.includes(product.id)
+        );
+        console.log('✅ Filtered merch products:', filteredProducts);
+        setMerchProducts(filteredProducts);
+      } else {
+        console.error('❌ Error fetching products');
+        setMerchProducts([]);
       }
-
-      setMerchProducts(allProducts.filter((p: any) => selectedProductIds.includes(p.id)));
     } catch (error) {
       console.error('❌ Network error:', error);
       setMerchProducts([]);
@@ -408,16 +402,49 @@ useEffect(() => {
   }
 }, [user, userName, releasePage, slug]);
 
-  // Set background color
+  // Set background color / pattern / image
   useEffect(() => {
-    if (bgColor) {
+    const HP = HeroPatterns as Record<string, (color: string, opacity: number) => string>;
+    const { bgMode, patternId, patternFg, patternBg, patternOpacity, bgImageCustom, bgImage, pageBgColor } = releasePage || {};
+
+    if (bgMode === 'pattern' && patternId && HP[patternId]) {
+      document.body.style.backgroundImage = HP[patternId](patternFg || '#000000', patternOpacity ?? 0.5);
+      document.body.style.backgroundColor = patternBg || '#ffffff';
+      document.body.style.backgroundSize = '';
+      document.body.style.backgroundPosition = '';
+    } else if (bgMode === 'upload' && bgImageCustom) {
+      document.body.style.backgroundImage = `url('${bgImageCustom}')`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundColor = '';
+    } else if (bgMode === 'image' && bgImage) {
+      document.body.style.backgroundImage = `url('${bgImage}')`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundColor = '';
+    } else if (bgMode === 'solid' && pageBgColor) {
+      document.body.style.backgroundImage = 'none';
+      document.body.style.backgroundColor = pageBgColor;
+      document.body.style.backgroundSize = '';
+      document.body.style.backgroundPosition = '';
+    } else if (bgColor) {
       document.documentElement.style.setProperty("--bg-color", bgColor);
       document.body.style.backgroundColor = bgColor;
+      document.body.style.backgroundImage = 'none';
+      document.body.style.backgroundSize = '';
+      document.body.style.backgroundPosition = '';
+    } else {
+      document.body.style.backgroundImage = 'none';
+      document.body.style.backgroundColor = '#000000';
+      document.body.style.backgroundSize = '';
+      document.body.style.backgroundPosition = '';
     }
+
     return () => {
       document.body.style.backgroundColor = "";
+      document.body.style.backgroundImage = "";
     };
-  }, [bgColor]);
+  }, [releasePage, bgColor]);
 
   // Utility functions
   function isYouTubeLinkCheck(url: string): boolean {
@@ -548,7 +575,7 @@ const renderMerchSection = () => {
             <div
               key={product.id}
               style={{
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                backgroundColor: bgColor || "rgba(255, 255, 255, 0.1)",
                 borderRadius: "10px",
                 padding: "15px",
                 textAlign: "center",
@@ -615,12 +642,12 @@ const renderMerchSection = () => {
   // Loading state
   if (isLoading || !slug) {
     return (
-      <div style={{ 
-        display: "flex", 
-        justifyContent: "center", 
-        alignItems: "center", 
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
         minHeight: "100vh",
-        backgroundColor: bgColor || "black",
+        backgroundColor: "transparent",
         color: textColor || "white"
       }}>
         Loading release page...
@@ -631,18 +658,20 @@ const renderMerchSection = () => {
   // Error state
   if (!user || !releasePage) {
     return (
-      <div style={{ 
-        display: "flex", 
-        justifyContent: "center", 
-        alignItems: "center", 
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
         minHeight: "100vh",
-        backgroundColor: bgColor || "black",
+        backgroundColor: "transparent",
         color: textColor || "white"
       }}>
         {alert || "Release page not found"}
       </div>
     );
   }
+
+  const font = releasePage?.font || 'inherit';
 
   return (
     <div
@@ -651,8 +680,8 @@ const renderMerchSection = () => {
         minHeight: "100vh",
         padding: "5% 0",
         color: textColor || "white",
-        backgroundColor: bgColor || "black",
-        fontFamily: releasePage?.font || 'inherit',
+        backgroundColor: "transparent",
+        fontFamily: font,
       }}
     >
       {user?.metaPixelId && (
@@ -678,8 +707,8 @@ const renderMerchSection = () => {
         />
 
         {/* Name and Description */}
-        <p>{releasePage.name}</p>
-        <p style={{ marginBottom: "2%" }}>{releasePage.description}</p>
+        <p style={{ fontFamily: font, color: textColor || "white" }}>{releasePage.name}</p>
+        <p style={{ marginBottom: "2%", fontFamily: font, color: textColor || "white" }}>{releasePage.description}</p>
             
         {/* Links */}
         <div
@@ -688,7 +717,7 @@ const renderMerchSection = () => {
             margin: "0 auto",
             textAlign: "center",
             marginTop: "2%",
-            fontFamily: releasePage?.font || 'inherit',
+            fontFamily: font,
           }}
         >
        
@@ -742,14 +771,14 @@ const renderMerchSection = () => {
                 justifyContent: "space-between",
                 marginBottom: "20px",
                 padding: "10px",
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                backgroundColor: bgColor || "rgba(255, 255, 255, 0.1)",
                 borderRadius: "8px"
               }}>
                 <div style={{ 
                   display: "flex", 
                   alignItems: "center", 
                   flex: 1,
-                  fontFamily: releasePage?.font || 'inherit'
+                  fontFamily: font
                 }}>
                   {platformIcon && (
                     <FontAwesomeIcon
@@ -765,7 +794,7 @@ const renderMerchSection = () => {
                     margin: 0, 
                     fontWeight: "bold", 
                     color: linksColor || "white",
-                    fontFamily: releasePage?.font || 'inherit'
+                    fontFamily: font
                   }}>
                     {link.name || platformName}
                   </p>
@@ -797,8 +826,7 @@ const renderMerchSection = () => {
 
         {/* User Social Icons */}
         <div
-          className="text-lg md:text-2xl"
-          style={{ marginTop: "50px", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "12px" }}
+          style={{ marginTop: "50px", display: "flex", justifyContent: "center", gap: "15px" }}
           onClick={(e) => {
             const a = (e.target as Element).closest('a');
             if (a?.href) trackLinkClick(new URL(a.href).hostname.replace(/^www\./, ''), a.href, 'social');
@@ -806,111 +834,112 @@ const renderMerchSection = () => {
         >
           {instagram && (
             <a href={`https://instagram.com/${user.instagram}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faInstagram} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faInstagram} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {twitter && (
             <a href={`https://twitter.com/${user.twitter}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faTwitter} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faTwitter} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {facebook && (
             <a href={user.facebook} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faFacebook} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faFacebook} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {linkedin && (
             <a href={`https://linkedin.com/in/${user.linkedin}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faLinkedin} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faLinkedin} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {telegram && (
             <a href={`https://t.me/${user.telegram}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faTelegram} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faTelegram} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {github && (
             <a href={`https://github.com/${user.github}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faGithub} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faGithub} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {tiktok && (
             <a href={`https://tiktok.com/@${user.tiktok}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faTiktok} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faTiktok} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {youtube && (   
             <a href={`https://youtube.com/${user.youtube}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faYoutube} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faYoutube} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {youtubeMusic && (
             <a href={`https://music.youtube.com/${user.youtubeMusic}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faYoutubeSquare} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faYoutubeSquare} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {amazonMusic && (
             <a href={`https://music.amazon.com/${user.amazonMusic}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faAmazon} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faAmazon} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {soundcloud && (
             <a href={`https://soundcloud.com/${user.soundcloud}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faSoundcloud} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faSoundcloud} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {pandora && (
             <a href={`https://pandora.com/${user.pandora}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faGlobe} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faGlobe} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {tidal && (
             <a href={`https://tidal.com/${user.tidal}`} target="_blank" rel="noopener noreferrer">
-              <img
-                src="/tidal.png"
-                alt="Tidal"
-                className="w-[18px] h-[18px] md:w-[24px] md:h-[24px]"
-                style={{
-                  objectFit: "contain",
-                  borderRadius: "15%",
-                  backgroundColor: linksColor || "white"
-                }}
-              />
+               <img
+              src="/tidal.png"
+              alt="Tidal"
+              style={{
+                width: 24,
+                height: 20,
+                margin: "0 auto",
+                borderRadius:"15%",
+                backgroundColor: linksColor || "white" 
+              }}
+            />
             </a>
           )}
           {deezer && (
             <a href={`https://deezer.com/${user.deezer}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faDeezer} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faDeezer} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {bandcamp && (
             <a href={`https://bandcamp.com/${user.bandcamp}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faBandcamp} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faBandcamp} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}  
           {soundxyz && (  
             <a href={`https://sound.xyz/${user.soundxyz}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faWebAwesome} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faWebAwesome} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {patreon && (
             <a href={`https://patreon.com/${user.patreon}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faPatreon} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faPatreon} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {substack && (
             <a href={`https://substack.com/${user.substack}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faWebflow} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faWebflow} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {etsy && (
             <a href={`https://etsy.com/${user.etsy}`} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faEtsy} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faEtsy} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
           {website && (
             <a href={user.website} target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faGlobe} style={{ color: linksColor || "white" }} />
+              <FontAwesomeIcon icon={faGlobe} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
         </div>
