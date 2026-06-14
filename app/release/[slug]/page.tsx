@@ -53,6 +53,7 @@ const ReleasePageView = () => {
   // Merch states
   const [merchProducts, setMerchProducts] = useState<any[]>([]);
   const [isLoadingMerch, setIsLoadingMerch] = useState(false);
+  const [featuredNfts, setFeaturedNfts] = useState<any[]>([]);
 
   const pathname = usePathname();
 
@@ -153,6 +154,15 @@ const ReleasePageView = () => {
         // Fetch merch if available
         if (data.releasePage.selectedProducts && data.releasePage.selectedProducts.length > 0 && data.user?.id) {
           await fetchMerchProducts(data.user.id, data.releasePage.selectedProducts);
+        }
+
+        // Load featured collectibles
+        const nftIds: string[] = data.releasePage.selectedNftIds ?? [];
+        if (nftIds.length > 0) {
+          fetch(`/api/collectibles/user?ids=${nftIds.join(",")}`)
+            .then(r => r.json())
+            .then(({ collectibles }) => setFeaturedNfts(collectibles ?? []))
+            .catch(() => {});
         }
       }
 
@@ -821,6 +831,45 @@ const renderMerchSection = () => {
           })}
         </div>
         
+        {/* Music / NFT Section */}
+        {featuredNfts.length > 0 && (
+          <div style={{ marginTop: "40px", marginBottom: "20px" }}>
+            <hr style={{ margin: "5% 0", borderColor: "rgba(255,255,255,0.15)" }} />
+            <h3 style={{ textAlign: "center", marginBottom: "20px", fontSize: "22px", fontWeight: "bold" }}>
+              Music
+            </h3>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px" }}>
+              {featuredNfts.map((nft: any) => (
+                <div key={nft.id} style={{ textAlign: "center", width: "180px" }}>
+                  {nft.imageUrl && (
+                    <img
+                      src={nft.imageUrl}
+                      alt={nft.title}
+                      style={{ width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: "10px", marginBottom: "8px" }}
+                    />
+                  )}
+                  <p style={{ margin: "0 0 8px", fontWeight: "600", fontSize: "14px" }}>{nft.title}</p>
+                  <a
+                    href={`/collectible/${nft.userId}/${encodeURIComponent(nft.title)}`}
+                    style={{
+                      display: "inline-block",
+                      padding: "6px 16px",
+                      fontSize: "13px",
+                      backgroundColor: releasePage.linksColor || linksColor,
+                      color: "white",
+                      borderRadius: "5px",
+                      textDecoration: "none",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Buy Now
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Merch Section */}
         {renderMerchSection()}
 

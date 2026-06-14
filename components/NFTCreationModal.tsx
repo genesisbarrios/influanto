@@ -62,7 +62,7 @@ interface NFTCreationModalProps {
 }
 
 const presetGenres = [
-  "Hip Hop", "Reggaeton", "Afrobeats", "Pop", "Electronic", "R&B", 
+  "Hip Hop", "R&B", "Latin", "Reggaeton", "Afrobeats", "Pop", "Electronic",  
   "Trap", "Rock", "House", "Techno", "Indie", "Dancehall", 
   "Post Punk", "Jazz", "Instrumental", "Spiritual", "Beats",
 ];
@@ -85,7 +85,14 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
     isLoading,
     networkId,
     mintTrack,
+    setKnownAddresses,
   } = useContract();
+
+  // Keep useContract filtered to only the current user's wallets so stale
+  // Privy wallets from other accounts never appear or sign transactions.
+  useEffect(() => {
+    if (walletAddresses.length > 0) setKnownAddresses(walletAddresses);
+  }, [walletAddresses]);
   
   // Form State
   const [type, setType] = useState<'single' | 'album'>('single');
@@ -202,68 +209,115 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
     setGenres(genres.filter((g) => g !== genre));
   };
 
-  // Upload single track using apiClient with enhanced error handling
+  // Upload raw bytes directly to Walrus from the browser (no server hop → no 413 limit)
+  const walrusUploadRaw = async (body: ArrayBuffer | Uint8Array, epochs = 5): Promise<string> => {
+    const publisher =
+      process.env.NEXT_PUBLIC_WALRUS_PUBLISHER_URL ??
+      "https://publisher.walrus-testnet.walrus.space";
+    const res = await fetch(`${publisher}/v1/blobs?epochs=${epochs}`, {
+      method: "PUT",
+      body: body as BodyInit,
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Walrus upload failed (${res.status}): ${text || "(no body)"}`);
+    }
+    const json = await res.json();
+    const blobId: string | undefined =
+      json?.newlyCreated?.blobObject?.blobId ?? json?.alreadyCertified?.blobId;
+    if (!blobId) {
+      throw new Error(`Walrus returned no blobId: ${JSON.stringify(json).slice(0, 200)}`);
+    }
+    return blobId;
+  };
+
+  const walrusBlobUrl = (blobId: string) => {
+    const aggregator =
+      process.env.NEXT_PUBLIC_WALRUS_AGGREGATOR_URL ??
+      "https://aggregator.walrus-testnet.walrus.space";
+    return `${aggregator}/v1/blobs/${blobId}`;
+  };
+
+  // Upload single track directly from the browser — bypasses Vercel's 4.5 MB body limit
   const uploadSingleTrack = async () => {
     try {
       setUploadProgress('Validating files...');
-      
-      // Validate files
-      if (!audioFile) {
-        throw new Error('No audio file selected');
-      }
 
-      // Check file size (limit to 50MB for audio)
-      const maxSize = 50 * 1024 * 1024; // 50MB
-      if (audioFile.size > maxSize) {
-        throw new Error('Audio file too large. Maximum size is 50MB.');
-      }
+      if (!audioFile) throw new Error('No audio file selected');
+      if (audioFile.size > 50 * 1024 * 1024) throw new Error('Audio file too large. Maximum size is 50MB.');
+      if (imageFile && imageFile.size > 10 * 1024 * 1024) throw new Error('Image file too large. Maximum size is 10MB.');
 
-      if (imageFile && imageFile.size > 10 * 1024 * 1024) { // 10MB for images
-        throw new Error('Image file too large. Maximum size is 10MB.');
-      }
+      setUploadProgress('Uploading audio to Walrus...');
+      const audioBlobId = await walrusUploadRaw(await audioFile.arrayBuffer());
+      const audioUrl = walrusBlobUrl(audioBlobId);
+      console.log('Audio blob ID:', audioBlobId);
 
-      setUploadProgress('Preparing upload data...');
-      
-      const formData = new FormData();
-      formData.append('audioFile', audioFile);
+      let imageUrl = '';
+      let imageBlobId = '';
       if (imageFile) {
-        formData.append('imageFile', imageFile);
+        setUploadProgress('Uploading image to Walrus...');
+        imageBlobId = await walrusUploadRaw(await imageFile.arrayBuffer());
+        imageUrl = walrusBlobUrl(imageBlobId);
+        console.log('Image blob ID:', imageBlobId);
       }
-      
-      const metadata = {
+
+      setUploadProgress('Uploading metadata to Walrus...');
+      const attributes: any[] = [
+        { trait_type: "Type",         value: "Single" },
+        { trait_type: "Artist",       value: artist || 'Unknown' },
+        { trait_type: "Genre",        value: genres.join(", ") || 'Uncategorized' },
+        { trait_type: "Edition Size", value: editionSize ?? 1 },
+        { trait_type: "Price (USD)",  value: priceUsd ?? 0 },
+      ];
+      if (bpm)         attributes.push({ trait_type: "BPM",          value: bpm });
+      if (releaseDate) attributes.push({ trait_type: "Release Date", value: releaseDate });
+
+      const collectibleMetadata = {
+        name:          title,
+        description:   description ?? '',
+        image:         imageUrl,
+        animation_url: audioUrl,
+        attributes,
+        lyrics:        lyrics ?? '',
+        artist:        artist ?? '',
+        genres:        genres.join(", "),
+        bpm,
+        edition_size:  editionSize ?? 1,
+        price_usd:     priceUsd ?? 0,
+        release_date:  releaseDate ?? new Date().toISOString().split('T')[0],
+        content_type:  'single',
+        created_at:    new Date().toISOString(),
+        creator_id:    session?.user?.id,
+        storage:       'walrus',
+        audio_blob_id: audioBlobId,
+        ...(imageBlobId && { image_blob_id: imageBlobId }),
+      };
+
+      const metadataBytes = new TextEncoder().encode(JSON.stringify(collectibleMetadata));
+      const metadataBlobId = await walrusUploadRaw(metadataBytes);
+      const metadataUrl = walrusBlobUrl(metadataBlobId);
+      console.log('Metadata blob ID:', metadataBlobId);
+
+      setUploadProgress('Walrus upload completed!');
+
+      return {
         title,
         description,
         artist,
-        genres,
+        genre: genres.join(", "),
         bpm,
         lyrics,
-        editionSize: editionSize || 1,
-        priceUsd,
+        editionSize: editionSize ?? 1,
+        price: priceUsd ?? 0,
+        audio: audioUrl,
+        image: imageUrl,
         releaseDate,
-        userId: session?.user?.id
+        metadataCID: metadataUrl,
+        metadataHash: metadataBlobId,
+        audioBlobId,
+        ...(imageBlobId && { imageBlobId }),
       };
-      
-      console.log('📤 Uploading with metadata:', metadata);
-      formData.append('metadata', JSON.stringify(metadata));
 
-      setUploadProgress('Uploading to Walrus...');
-      
-      // Do NOT set Content-Type manually — axios must add the multipart boundary automatically
-      const result: any = await apiClient.post('/walrus/upload-single', formData);
-
-      if (!result) {
-        throw new Error('No response received from upload');
-      }
-
-      if (result.error) {
-        throw new Error(result.details ?? result.error);
-      }
-
-      console.log('✅ Walrus upload successful:', result);
-      setUploadProgress('Walrus upload completed!');
-
-      return result;
-      
     } catch (error: any) {
       console.error('❌ Error in uploadSingleTrack:', error);
       setUploadProgress('');
@@ -364,7 +418,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         } else if (contractError.code === 4001) {
           throw new Error('Transaction cancelled by user.');
         } else if (contractError.message?.includes('insufficient funds')) {
-          throw new Error('Insufficient MATIC for minting and gas fees. Please add more MATIC to your wallet.');
+          throw new Error('Insufficient POL for minting and gas fees. Please add more MATIC to your wallet.');
         } else if (contractError.message?.includes('user rejected')) {
           throw new Error('Transaction cancelled by user.');
         } else if (contractError.message?.includes('chain')) {
@@ -389,7 +443,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
       } else if (error.message?.includes('chain')) {
         userMessage = 'Wrong network detected. Please switch to Polygon Amoy Testnet in your wallet.';
       } else if (error.message?.includes('insufficient funds')) {
-        userMessage = 'Insufficient MATIC. Please add more MATIC to your wallet for gas fees.';
+        userMessage = 'Insufficient POL. Please add more MATIC to your wallet for gas fees.';
       }
       
       throw new Error(userMessage);
@@ -759,7 +813,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
             />
             {priceUsd !== undefined && maticUsdPrice > 0 && (
               <p className="text-sm text-gray-600 mt-1">
-                ≈ {(priceUsd / maticUsdPrice).toFixed(4)} MATIC
+                ≈ {(priceUsd / maticUsdPrice).toFixed(4)} POL
               </p>
             )}
           </div>

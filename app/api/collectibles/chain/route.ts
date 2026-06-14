@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { ethers } from "ethers";
 import supabase from "@/libs/supabase";
 
@@ -41,10 +41,14 @@ async function fetchMetadata(uri: string): Promise<Record<string, any>> {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   if (!CONTRACT_ADDRESS) {
     return NextResponse.json({ error: "Contract address not configured" }, { status: 500 });
   }
+
+  const { searchParams } = new URL(request.url);
+  // Optional filter: only return tokens whose on-chain creator matches this address
+  const creatorFilter = searchParams.get("creator")?.toLowerCase() ?? null;
 
   try {
     const provider = new ethers.JsonRpcProvider(AMOY_RPC, 80002);
@@ -69,6 +73,7 @@ export async function GET() {
 
         const [creator, metadataURI, price, minted, maxEditions, exists] = result.value;
         if (!exists) return null;
+        if (creatorFilter && creator.toLowerCase() !== creatorFilter) return null;
 
         const meta = metadataURI ? await fetchMetadata(metadataURI) : {};
 
@@ -98,14 +103,43 @@ export async function GET() {
     const tokenIds = onChain.map((c) => String(c.tokenId));
     const { data: dbRows } = await supabase
       .from("collectibles")
-      .select("token_id")
+      .select("id, token_id, price_usd, status, user_id")
       .in("token_id", tokenIds)
       .eq("network", "polygon");
 
-    const dbTokenIds = new Set((dbRows ?? []).map((r: any) => String(r.token_id)));
+    // Build a map from token_id → DB row for enrichment
+    const dbMap = new Map<string, any>();
+    for (const row of dbRows ?? []) dbMap.set(String(row.token_id), row);
+
+    const visible = onChain.filter((c) => dbMap.has(String(c.tokenId)));
+
+    // Fetch ENS names for all unique creator addresses
+    const { data: userRows } = await supabase
+      .from("users")
+      .select("wallet_addresses, ens_name")
+      .not("ens_name", "is", null);
+
+    const ensMap = new Map<string, string>();
+    for (const row of userRows ?? []) {
+      if (!row.ens_name) continue;
+      for (const addr of row.wallet_addresses ?? []) {
+        ensMap.set(addr.toLowerCase(), row.ens_name);
+      }
+    }
 
     return NextResponse.json({
-      collectibles: onChain.filter((c) => dbTokenIds.has(String(c.tokenId))),
+      collectibles: visible.map((c) => {
+        const db = dbMap.get(String(c.tokenId));
+        return {
+          ...c,
+          // Supabase fields the editor pickers need
+          id:         db?.id        ?? null,
+          priceUsd:   db?.price_usd ?? null,
+          status:     db?.status    ?? "minted",
+          userId:     db?.user_id   ?? null,
+          creatorEns: ensMap.get(c.creator.toLowerCase()) ?? null,
+        };
+      }),
     });
   } catch (err: any) {
     console.error("chain/collectibles error:", err?.message);

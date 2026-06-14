@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
           pattern_opacity: body.patternOpacity,
           links: body.links ?? [],
           selected_products: body.selectedProducts ?? [],
+          selected_nft_ids: body.selectedNftIds ?? [],
           brand_logo_url: body.brandLogoUrl ?? null,
           newsletter_enabled: body.newsletterEnabled ?? false,
           newsletter_fields: body.newsletterFields ?? ["name", "email"],

@@ -181,15 +181,35 @@ export const useContract = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [networkId, setNetworkId] = useState<number | null>(null);
   const [contractStatus, setContractStatus] = useState<'unknown' | 'testing' | 'accessible' | 'error'>('unknown');
+  // Addresses belonging to the current user — set by the host component after
+  // fetching /wallet/info so we never pick up stale Privy wallets from other accounts.
+  const [knownAddresses, setKnownAddresses] = useState<string[]>([]);
+
+  // Return the best wallet for the current user:
+  // 1. If we know the user's addresses, prefer an embedded Privy wallet whose address
+  //    matches one of them (ignores stale wallets from other Privy accounts).
+  // 2. Otherwise fall back to any embedded Privy wallet, then any wallet.
+  const getActiveWallet = () => {
+    // Always prefer the embedded Privy wallet — it doesn't do pre-flight simulation.
+    // If a knownAddresses filter is set, also require the address to match.
+    const embedded = wallets.find((w) => w.walletClientType === 'privy');
+    if (embedded) {
+      if (knownAddresses.length === 0) return embedded;
+      if (knownAddresses.some((a) => a.toLowerCase() === embedded.address?.toLowerCase())) return embedded;
+    }
+    // Fall back to any known-address wallet (but not Rainbow / external wallets)
+    if (knownAddresses.length > 0) {
+      return wallets.find(
+        (w) => w.address && knownAddresses.some((a) => a.toLowerCase() === w.address!.toLowerCase())
+      ) ?? null;
+    }
+    return wallets[0] ?? null;
+  };
 
   const getEip1193Provider = async () => {
-    // Prefer Privy wallet (works for both embedded and external wallets)
-    if (wallets.length > 0) {
-      return await wallets[0].getEthereumProvider();
-    }
-    // Fall back to injected provider (MetaMask etc.)
-    if (typeof window !== 'undefined' && window.ethereum) {
-      return window.ethereum;
+    const wallet = getActiveWallet();
+    if (wallet) {
+      return await wallet.getEthereumProvider();
     }
     throw new Error('No wallet found. Please connect a wallet via the app.');
   };
@@ -414,57 +434,20 @@ export const useContract = () => {
     }
   };
 
-  // Re-init whenever the Privy wallet list changes (login, logout, wallet added)
+  // Re-init whenever the Privy wallet list or known addresses change.
+  // knownAddresses is populated async (after /wallet/info loads), so we must
+  // re-run initContract once it arrives to pick the correct wallet for display.
   useEffect(() => {
     if (wallets.length > 0) {
       initContract().catch(console.error);
-      return;
-    }
-
-    // Fall back to injected provider if no Privy wallets
-    if (typeof window !== 'undefined' && window.ethereum) {
-      window.ethereum.request({ method: 'eth_accounts' })
-        .then((accounts: string[]) => {
-          if (accounts.length > 0) initContract().catch(console.error);
-        })
-        .catch(console.error);
-
-      const handleAccountsChanged = (accounts: string[]) => {
-        if (accounts.length === 0) {
-          setIsConnected(false);
-          setAccount('');
-          setContract(null);
-          setContractStatus('unknown');
-        } else {
-          initContract().catch(console.error);
-        }
-      };
-      const handleChainChanged = (chainId: string) => {
-        setNetworkId(parseInt(chainId, 16));
-        initContract().catch(console.error);
-      };
-
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-      window.ethereum.on('chainChanged', handleChainChanged);
-      return () => {
-        if (window.ethereum.removeListener) {
-          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-          window.ethereum.removeListener('chainChanged', handleChainChanged);
-        }
-      };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wallets]);
+  }, [wallets, knownAddresses]);
 
   const connectWallet = async () => {
     try {
       setIsLoading(true);
       console.log('🔄 Requesting wallet connection...');
-      // If using Privy, wallet connection is handled by Privy's login flow.
-      // If a legacy injected provider is present, request accounts from it.
-      if (wallets.length === 0 && typeof window !== 'undefined' && window.ethereum) {
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-      }
       await initContract();
     } catch (error: any) {
       console.error('Failed to connect wallet:', error);
@@ -484,7 +467,8 @@ export const useContract = () => {
 
       // Privy wallet: use switchChain directly
       if (wallets.length > 0) {
-        await wallets[0].switchChain(80002);
+        const wallet = getActiveWallet();
+        if (wallet) await wallet.switchChain(80002);
         await new Promise(resolve => setTimeout(resolve, 1000));
         await initContract();
         return;
@@ -829,67 +813,111 @@ const mintTrack = async (hash: string, price: bigint | string, maxEditions: numb
   if (priceWei <= BigInt(0)) throw new Error('Price must be greater than 0.');
   if (maxEditions <= 0 || maxEditions > 10000) throw new Error('Max editions must be between 1 and 10000.');
 
-  // ── 1. Check chain and auto-switch if needed ─────────────────────────
-  const eip1193 = await getEip1193Provider();
+  const AMOY_RPC_URL = 'https://rpc-amoy.polygon.technology';
+
+  // ── 1. Pick the Privy-managed wallet with the most Amoy POL ─────────
+  // We only scan wallets from Privy's list (embedded + explicitly connected
+  // external wallets). Raw window.ethereum (Rainbow, MetaMask installed but
+  // not added through Privy) is intentionally excluded: those wallets run
+  // their own simulation against whichever chain they happen to be on and
+  // the user gets misleading "simulation failed" errors.
+  // Always use the embedded Privy wallet. External wallets (Rainbow, MetaMask)
+  // connected via Privy run their own pre-flight simulation against their own
+  // RPC, which fails on Amoy. The embedded wallet uses Privy's RPC directly
+  // and never does simulation.
+  const embeddedWallet = wallets.find((w) => w.walletClientType === 'privy');
+  const bestWallet = embeddedWallet ?? null;
+
+  if (!bestWallet) throw new Error('No embedded Privy wallet found. Please connect your wallet via the app.');
+
+  // ── 2. Force the chosen wallet onto Amoy ─────────────────────────────
+  try { await bestWallet.switchChain(80002); } catch { /* already on Amoy */ }
+  await new Promise(r => setTimeout(r, 400));
+
+  // ── 3. Get signer from the chosen Privy wallet ───────────────────────
+  const eip1193 = await bestWallet.getEthereumProvider();
   const freshProvider = new BrowserProvider(eip1193);
-  const { chainId } = await freshProvider.getNetwork();
-
-  if (Number(chainId) !== 80002) {
-    console.log('🔄 Wrong chain, switching to Polygon Amoy...');
-    if (wallets.length > 0) {
-      await wallets[0].switchChain(80002);
-    } else if (typeof window !== 'undefined' && window.ethereum) {
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x13882' }],
-        });
-      } catch (e: any) {
-        if (e.code === 4902) {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: '0x13882',
-              chainName: 'Polygon Amoy Testnet',
-              nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
-              rpcUrls: POLYGON_RPC_ENDPOINTS,
-              blockExplorerUrls: ['https://amoy.polygonscan.com'],
-            }],
-          });
-        } else throw e;
-      }
-    } else {
-      throw new Error('Please switch your wallet to Polygon Amoy Testnet (chain ID 80002).');
-    }
-    await new Promise(r => setTimeout(r, 1000));
-  }
-
-  // ── 2. Get fresh signer + contract after potential chain switch ───────
-  const postSwitchEip1193 = await getEip1193Provider();
-  const postSwitchProvider = new BrowserProvider(postSwitchEip1193);
-  const freshSigner = await postSwitchProvider.getSigner();
+  const freshSigner = await freshProvider.getSigner();
   const activeContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, freshSigner);
 
-  // ── 2b. Check POL balance — eth_estimateGas fails silently without it ─
+  // ── 2b. Check POL balance via direct Amoy RPC ────────────────────────
   const userAddress = await freshSigner.getAddress();
-  const balance = await postSwitchProvider.getBalance(userAddress);
+  console.log('🔑 Signing address:', userAddress, '(walletClientType:', getActiveWallet()?.walletClientType ?? 'injected', ')');
+
+  const rpcPost = async (method: string, params: any[]) => {
+    const res = await fetch(AMOY_RPC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', method, params, id: 1 }),
+    });
+    return (await res.json()).result;
+  };
+
+  let balance = BigInt(0);
+  try {
+    balance = BigInt(await rpcPost('eth_getBalance', [userAddress, 'latest']) ?? '0x0');
+  } catch {
+    try { balance = await freshProvider.getBalance(userAddress); } catch { /* stay 0 */ }
+  }
   console.log('💰 POL balance:', ethers.formatEther(balance));
-  if (balance === BigInt(0)) {
-    throw new Error('Your wallet has 0 POL on Polygon Amoy. Visit a faucet to get test tokens before minting.');
+
+  // Auto-drip: trigger when balance < 0.01 POL (not just when 0)
+  const DRIP_THRESHOLD = ethers.parseEther('0.01');
+  if (balance < DRIP_THRESHOLD) {
+    console.log('⛽ Low balance — requesting testnet POL drip...');
+    try {
+      const dripRes = await fetch('/api/wallet/drip', { method: 'POST' });
+      const dripData = await dripRes.json();
+      if (dripData.success) {
+        console.log('✅ Drip successful, tx:', dripData.txHash);
+        balance = BigInt(await rpcPost('eth_getBalance', [userAddress, 'latest']) ?? '0x0');
+        console.log('💰 Balance after drip:', ethers.formatEther(balance));
+      } else {
+        console.warn('Drip response:', dripData);
+      }
+    } catch (dripErr) {
+      console.warn('Drip request failed:', dripErr);
+    }
   }
 
-  // ── 3. Dry-run first to surface exact revert reason ──────────────────
+  if (balance === BigInt(0)) {
+    throw new Error('Your wallet has 0 POL on Polygon Amoy. Visit the Polygon faucet to get test tokens.');
+  }
+
+  // ── 3. Dry-run via direct JsonRpcProvider (avoids Privy EIP-1193 issues) ──
+  const readProvider = new ethers.JsonRpcProvider(AMOY_RPC_URL, { chainId: 80002, name: 'polygon-amoy' });
+  const readContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, readProvider);
   try {
-    await activeContract.mint.staticCall(hash, priceWei, maxEditions);
+    await readContract.mint.staticCall(hash, priceWei, maxEditions, { from: userAddress });
   } catch (simErr: any) {
     const reason = simErr.reason ?? simErr.shortMessage ?? simErr.message ?? 'Unknown';
     throw new Error(`Mint would fail: ${reason}`);
   }
 
-  // ── 4. Send mint transaction ──────────────────────────────────────────
+  // ── 4. Gas estimate + price via direct RPC ───────────────────────────
+  const iface = new ethers.Interface(CONTRACT_ABI as any);
+  const callData = iface.encodeFunctionData('mint', [hash, priceWei, maxEditions]);
+  let gasLimit = BigInt(200_000);
   try {
+    const estimated = await rpcPost('eth_estimateGas', [{ from: userAddress, to: CONTRACT_ADDRESS, data: callData }, 'latest']);
+    if (estimated) gasLimit = (BigInt(estimated) * BigInt(130)) / BigInt(100); // +30% buffer
+  } catch { /* use 200k default */ }
+
+  // Fetch gas price from direct RPC so we can pass it explicitly to Privy's provider.
+  // Without this, Privy sometimes throws "Missing or invalid parameters" on testnet.
+  let gasPriceOverride: bigint | undefined;
+  try {
+    const feeData = await readProvider.getFeeData();
+    gasPriceOverride = feeData.gasPrice ?? undefined;
+  } catch { /* let ethers auto-determine */ }
+  console.log('⛽ gasLimit:', gasLimit.toString(), '| gasPrice:', gasPriceOverride?.toString());
+
+  // ── 5. Send mint transaction ──────────────────────────────────────────
+  try {
+    const txOverrides: Record<string, any> = { gasLimit };
+    if (gasPriceOverride) txOverrides.gasPrice = gasPriceOverride;
     console.log('🚀 Minting:', { hash, priceWei: priceWei.toString(), maxEditions });
-    const tx = await activeContract.mint(hash, priceWei, maxEditions, { gasLimit: 500_000 });
+    const tx = await activeContract.mint(hash, priceWei, maxEditions, txOverrides);
     console.log('📝 Tx sent:', tx.hash);
     const receipt = await tx.wait();
     console.log('✅ Tx confirmed:', receipt);
@@ -911,18 +939,77 @@ const mintTrack = async (hash: string, price: bigint | string, maxEditions: numb
   }
 };
 
-  const buyTrack = async (tokenId: number, price: string) => {
-    if (!contract) throw new Error('Contract not initialized');
-    if (networkId !== 80002) throw new Error('Please switch to Polygon Amoy Testnet');
-    
-    try {
-      const priceWei = ethers.parseEther(price);
-      const tx = await contract.buy(tokenId, { value: priceWei });
-      return await tx.wait();
-    } catch (error: any) {
-      console.error('Buy failed:', error);
-      throw error;
+  const buyTrack = async (tokenId: number) => {
+    if (!CONTRACT_ADDRESS) throw new Error('Contract address not configured.');
+
+    const AMOY_RPC_URL = 'https://rpc-amoy.polygon.technology';
+
+    // ── 1. Always use embedded Privy wallet ──────────────────────────────
+    const embeddedWallet = wallets.find((w) => w.walletClientType === 'privy');
+    if (!embeddedWallet) throw new Error('No embedded Privy wallet found. Please connect your wallet via the app.');
+
+    // ── 2. Switch to Amoy ────────────────────────────────────────────────
+    try { await embeddedWallet.switchChain(80002); } catch { /* already on Amoy */ }
+    await new Promise(r => setTimeout(r, 400));
+
+    // ── 3. Get fresh signer ──────────────────────────────────────────────
+    const eip1193 = await embeddedWallet.getEthereumProvider();
+    const freshProvider = new BrowserProvider(eip1193);
+    const freshSigner = await freshProvider.getSigner();
+    const userAddress = await freshSigner.getAddress();
+
+    // ── 4. Fetch on-chain price directly (source of truth) ───────────────
+    const readProvider = new ethers.JsonRpcProvider(AMOY_RPC_URL, { chainId: 80002, name: 'polygon-amoy' });
+    const infoContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, readProvider);
+    const [, , onChainPrice, , , exists] = await infoContract.getTokenInfo(tokenId);
+    if (!exists) throw new Error(`Token #${tokenId} does not exist on-chain.`);
+    const priceWei: bigint = onChainPrice;
+
+    // ── 5. Check balance ─────────────────────────────────────────────────
+    const rpcPost = async (method: string, params: any[]) => {
+      const res = await fetch(AMOY_RPC_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', method, params, id: 1 }),
+      });
+      return (await res.json()).result;
+    };
+    const balance = BigInt(await rpcPost('eth_getBalance', [userAddress, 'latest']) ?? '0x0');
+    console.log('💰 POL balance:', ethers.formatEther(balance), '  price:', ethers.formatEther(priceWei));
+
+    if (balance < priceWei) {
+      // Try drip only when the gap is small enough that it could help
+      const DRIP_AMOUNT = ethers.parseEther('0.015');
+      if (balance + DRIP_AMOUNT >= priceWei) {
+        try {
+          const dripRes = await fetch('/api/wallet/drip', { method: 'POST' });
+          const dripData = await dripRes.json();
+          if (dripData.success) {
+            const newBal = BigInt(await rpcPost('eth_getBalance', [userAddress, 'latest']) ?? '0x0');
+            if (newBal < priceWei) {
+              throw new Error(`Insufficient POL. Need ${ethers.formatEther(priceWei)} POL, wallet has ${ethers.formatEther(newBal)} POL.`);
+            }
+          } else {
+            throw new Error(`Insufficient POL. Need ${ethers.formatEther(priceWei)} POL, wallet has ${ethers.formatEther(balance)} POL. Get testnet POL at faucet.polygon.technology`);
+          }
+        } catch (e: any) {
+          throw new Error(e.message.includes('POL') ? e.message : `Insufficient POL. Need ${ethers.formatEther(priceWei)} POL.`);
+        }
+      } else {
+        throw new Error(`Insufficient POL. Need ${ethers.formatEther(priceWei)} POL but wallet only has ${ethers.formatEther(balance)} POL. Get testnet POL at faucet.polygon.technology`);
+      }
     }
+
+    // ── 6. Send the buy transaction ──────────────────────────────────────
+    const feeData = await readProvider.getFeeData();
+    const txOverrides: Record<string, any> = { value: priceWei };
+    if (feeData.gasPrice) txOverrides.gasPrice = feeData.gasPrice;
+
+    const activeContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, freshSigner);
+    const tx = await activeContract.buy(tokenId, txOverrides);
+    console.log('📤 buy tx sent:', tx.hash);
+    const receipt = await tx.wait();
+    console.log('✅ buy confirmed, block:', receipt?.blockNumber);
+    return receipt;
   };
 
   const withdrawEarnings = async () => {
@@ -980,6 +1067,7 @@ const mintTrack = async (hash: string, price: bigint | string, maxEditions: numb
     isLoading,
     networkId,
     contractStatus,
+    setKnownAddresses,
     connectWallet,
     switchToPolygon,
     mintTrack,
@@ -988,6 +1076,6 @@ const mintTrack = async (hash: string, price: bigint | string, maxEditions: numb
     getTrackInfo,
     getPendingEarnings,
     debugContract,
-    debugContractStatus  // Add this temporarily
+    debugContractStatus,
   };
 };

@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faPlay, 
-  faPause, 
-  faVolumeUp, 
+import {
+  faPlay,
+  faPause,
+  faVolumeUp,
   faVolumeMute,
   faShoppingCart,
   faWallet,
@@ -16,10 +16,18 @@ import {
   faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons';
 import { useContract } from '@/hooks/useContract';
-import { ethers } from 'ethers';
+
 import apiClient from '@/libs/api';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import { useSession } from 'next-auth/react';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+import dynamic from 'next/dynamic';
+
+const WalletManagerModal = dynamic(
+  () => import('@/components/WalletManagerModal'),
+  { ssr: false }
+);
 
 interface Collectible {
   _id: string;
@@ -55,7 +63,15 @@ const CollectibleMintPage: React.FC = () => {
   const userId = Array.isArray(params?.userId) ? params.userId[0] : params?.userId;
   const title = Array.isArray(params?.title) ? params.title[0] : params?.title;
   const decodedTitle = title ? decodeURIComponent(title) : '';
-  
+
+  const { status: authStatus } = useSession();
+  const { ready, authenticated } = usePrivy();
+  const { wallets } = useWallets();
+  const [walletAddresses, setWalletAddresses] = useState<string[]>([]);
+  const [ensName, setEnsName] = useState<string | null>(null);
+  const [showWalletManager, setShowWalletManager] = useState(false);
+  const [polBalance, setPolBalance] = useState<string | null>(null);
+
   const [collectible, setCollectible] = useState<Collectible | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,15 +92,41 @@ const CollectibleMintPage: React.FC = () => {
   const [mintError, setMintError] = useState<string | null>(null);
   
   // Contract integration
- const { 
-  contract, 
-  isConnected, 
-  wallet, // Changed from 'account' to 'wallet'
-  contractStatus, 
-  mintTrack, 
-  connectWallet, 
-  switchToPolygon
+ const {
+  contract,
+  isConnected,
+  wallet,
+  contractStatus,
+  buyTrack,
+  connectWallet,
+  switchToPolygon,
+  setKnownAddresses,
 } = useContract();
+
+  useEffect(() => {
+    if (authStatus !== 'authenticated') return;
+    apiClient.get('/wallet/info').then((result: any) => {
+      const addrs: string[] = result.walletAddresses ?? [];
+      setWalletAddresses(addrs);
+      setEnsName(result.ensName ?? null);
+      // Tell useContract which addresses belong to this user so it ignores
+      // stale Privy wallets from other accounts.
+      setKnownAddresses(addrs);
+    }).catch(() => {});
+  }, [authStatus]);
+
+  useEffect(() => {
+    const primary = walletAddresses[0];
+    if (!primary) { setPolBalance(null); return; }
+    fetch('https://rpc-amoy.polygon.technology', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getBalance', params: [primary, 'latest'], id: 1 }),
+    })
+      .then((r) => r.json())
+      .then((data) => setPolBalance((Number(BigInt(data.result)) / 1e18).toFixed(4)))
+      .catch(() => setPolBalance(null));
+  }, [walletAddresses]);
 
 // Audio player handlers
   useEffect(() => {
@@ -150,48 +192,74 @@ const CollectibleMintPage: React.FC = () => {
   };
 }, []);
 
-  // Fetch collectible from Polygon chain data
+  // Fetch collectible — tries chain first (wallet-address URL), falls back to Supabase (userId URL)
   useEffect(() => {
     const fetchCollectible = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // apiClient interceptor returns body directly — no .data
-        const result: any = await apiClient.get('/collectibles/chain');
-        const all: any[] = result.collectibles ?? [];
-
+        // 1. Try on-chain lookup (creator = wallet address in URL)
+        const chainResult: any = await apiClient.get('/collectibles/chain');
+        const all: any[] = chainResult.collectibles ?? [];
         const found = all.find((c: any) =>
           c.creator?.toLowerCase() === (userId as string)?.toLowerCase() &&
           c.title?.toLowerCase() === decodedTitle?.toLowerCase()
         );
 
-        if (!found) {
-          setError('Collectible not found');
+        if (found) {
+          const genreList: string[] =
+            typeof found.genres === 'string'
+              ? found.genres.split(',').map((g: string) => g.trim()).filter(Boolean)
+              : Array.isArray(found.genres) ? found.genres : [];
+
+          setCollectible({
+            _id: String(found.tokenId),
+            title: found.title,
+            description: found.description ?? '',
+            imageUrl: found.imageUrl,
+            audioUrl: found.audioUrl,
+            artist: found.artist ?? '',
+            genres: genreList,
+            editionSize: found.maxEditions,
+            priceUsd: parseFloat(found.priceMatic ?? '0'),
+            type: 'single',
+            status: 'minted',
+            mintedEditions: found.minted,
+            tokenId: found.tokenId,
+            contractAddress: process.env.NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS,
+          });
           return;
         }
 
-        const genreList: string[] =
-          typeof found.genres === 'string'
-            ? found.genres.split(',').map((g: string) => g.trim()).filter(Boolean)
-            : Array.isArray(found.genres) ? found.genres : [];
+        // 2. Fall back to Supabase lookup (userId = DB user ID in URL)
+        const dbLookup = await fetch(
+          `/api/collectibles/by-title?userId=${encodeURIComponent(userId as string)}&title=${encodeURIComponent(decodedTitle)}`
+        ).then(r => r.json()).catch(() => null);
 
-        setCollectible({
-          _id: String(found.tokenId),
-          title: found.title,
-          description: found.description ?? '',
-          imageUrl: found.imageUrl,
-          audioUrl: found.audioUrl,
-          artist: found.artist ?? '',
-          genres: genreList,
-          editionSize: found.maxEditions,
-          priceUsd: parseFloat(found.priceMatic ?? '0'),
-          type: 'single',
-          status: 'minted',
-          mintedEditions: found.minted,
-          tokenId: found.tokenId,
-          contractAddress: process.env.NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS,
-        });
+        const dbRow = dbLookup?.collectible;
+        if (dbRow) {
+          const genreList: string[] =
+            Array.isArray(dbRow.genres) ? dbRow.genres : [];
+
+          setCollectible({
+            _id: dbRow.id,
+            title: dbRow.title,
+            description: dbRow.description ?? '',
+            imageUrl: dbRow.imageUrl ?? '',
+            audioUrl: dbRow.audioUrl ?? '',
+            artist: dbRow.artist ?? '',
+            genres: genreList,
+            editionSize: dbRow.editionSize ?? 1,
+            priceUsd: dbRow.priceUsd ?? 0,
+            type: 'single',
+            status: dbRow.status ?? 'uploaded',
+            tokenId: dbRow.tokenId ?? undefined,
+          });
+          return;
+        }
+
+        setError('Collectible not found');
       } catch (err: any) {
         console.error('Error fetching collectible:', err);
         setError('Failed to load collectible');
@@ -290,19 +358,10 @@ const CollectibleMintPage: React.FC = () => {
         return;
       }
 
-      // Calculate total price
-      const pricePerToken = collectible.priceUsd || 0.01; // Default to 0.01 MATIC
-      const totalPrice = pricePerToken * mintQuantity;
-      
-      // Convert to wei (18 decimals for MATIC)
-      const priceInWei = ethers.parseEther(totalPrice.toString());
-      
-      // Call mint function
-      const result = await mintTrack(
-        collectible._id, // Use collectible ID as hash
-        priceInWei,
-        mintQuantity
-      );
+      if (!collectible.tokenId) throw new Error('Token ID not found. Cannot buy this collectible.');
+
+      // buyTrack fetches the on-chain price itself and calls contract.buy(tokenId, { value })
+      const result = await buyTrack(collectible.tokenId);
       
       setMintSuccess(true);
       
@@ -353,6 +412,30 @@ const CollectibleMintPage: React.FC = () => {
     <Header />
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
+
+        {/* Wallet pill — top right */}
+        {authStatus === 'authenticated' && walletAddresses.length > 0 && (() => {
+          const primary = walletAddresses[0];
+          const live = authenticated && wallets.some((w) => w.address?.toLowerCase() === primary.toLowerCase());
+          return (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={() => setShowWalletManager(true)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold transition ${
+                  live ? 'bg-blue-50 hover:bg-blue-100 text-blue-700' : 'bg-amber-50 hover:bg-amber-100 text-amber-700'
+                }`}
+              >
+                <span className={`text-xs ${live ? 'text-green-500' : 'text-amber-400'}`}>●</span>
+                {ensName ?? `${primary.slice(0, 6)}…${primary.slice(-4)}`}
+                {polBalance !== null && (
+                  <span className="text-[11px] font-normal opacity-70">{polBalance} POL</span>
+                )}
+                {!live && ready && <span className="text-[10px] font-normal opacity-75">· Reconnect</span>}
+              </button>
+            </div>
+          );
+        })()}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
           {/* Left Side - Image & Audio Player */}
@@ -468,8 +551,8 @@ const CollectibleMintPage: React.FC = () => {
                   <span className="ml-2 font-medium">{collectible.editionSize}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Minted:</span>
-                  <span className="ml-2 font-medium">{collectible.mintedEditions || 0}</span>
+                  <span className="text-gray-500">Sold:</span>
+                  <span className="ml-2 font-medium">{collectible.mintedEditions || 0} / {collectible.editionSize}</span>
                 </div>
               </div>
             </div>
@@ -545,11 +628,11 @@ const CollectibleMintPage: React.FC = () => {
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-600">Price per NFT:</span>
-                  <span className="font-bold">{collectible.priceUsd || 0.01} MATIC</span>
+                  <span className="font-bold">{collectible.priceUsd || 0.01} POL</span>
                 </div>
                 <div className="flex justify-between items-center text-lg">
                   <span className="font-semibold">Total:</span>
-                  <span className="font-bold text-blue-600">{calculateTotalPrice().toFixed(4)} MATIC</span>
+                  <span className="font-bold text-blue-600">{calculateTotalPrice().toFixed(4)} POL</span>
                 </div>
               </div>
 
@@ -635,6 +718,18 @@ const CollectibleMintPage: React.FC = () => {
         }
       `}</style>
 
+    {showWalletManager && (
+      <WalletManagerModal
+        walletAddresses={walletAddresses}
+        ensName={ensName}
+        onClose={() => setShowWalletManager(false)}
+        onUpdate={(addresses, ens) => {
+          setWalletAddresses(addresses);
+          setEnsName(ens);
+          if (addresses.length === 0) setShowWalletManager(false);
+        }}
+      />
+    )}
     <Footer />
     </div>
     </div>

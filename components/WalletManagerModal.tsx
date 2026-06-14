@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { usePrivy, useWallets, useLogin, useConnectWallet } from "@privy-io/react-auth";
+import { usePrivy, useWallets, useLogin, useConnectWallet, useLoginWithOAuth } from "@privy-io/react-auth";
 import apiClient from "@/libs/api";
 
 interface WalletManagerModalProps {
@@ -25,7 +25,12 @@ export default function WalletManagerModal({
   const { ready, authenticated } = usePrivy();
   const { wallets: privyWallets } = useWallets();
 
-  // Reconnect: re-authenticate with Privy to restore the wallet session
+  // Reconnect via Google OAuth directly — avoids the "switch to Ethereum mainnet"
+  // prompt that appears when the general login() modal shows MetaMask as an option.
+  const { initOAuth } = useLoginWithOAuth({
+    onComplete: () => setReconnecting(false),
+    onError: () => setReconnecting(false),
+  });
   const { login } = useLogin({
     onComplete: () => setReconnecting(false),
     onError: () => setReconnecting(false),
@@ -87,7 +92,12 @@ export default function WalletManagerModal({
   const handleReconnect = () => {
     setReconnecting(true);
     setError(null);
-    login();
+    // Use direct Google OAuth to avoid Privy showing MetaMask which prompts
+    // a "switch to Ethereum mainnet" request.
+    initOAuth({ provider: "google" }).catch(() => {
+      // Fall back to generic login if OAuth fails (e.g. user wants email)
+      login();
+    });
   };
 
   const fmt = (addr: string) => `${addr.slice(0, 6)}…${addr.slice(-4)}`;
@@ -124,7 +134,7 @@ export default function WalletManagerModal({
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-amber-800">Wallet session expired</p>
               <p className="text-xs text-amber-600 mt-0.5">
-                Reconnect to sign transactions and mint collectibles
+                Sign in with Google to restore your embedded wallet
               </p>
             </div>
             <button
@@ -138,7 +148,7 @@ export default function WalletManagerModal({
                   Connecting…
                 </span>
               ) : (
-                "Reconnect"
+                "Sign in with Google"
               )}
             </button>
           </div>
