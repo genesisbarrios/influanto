@@ -870,7 +870,23 @@ const mintTrack = async (hash: string, price: bigint | string, maxEditions: numb
   const freshSigner = await postSwitchProvider.getSigner();
   const activeContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, freshSigner);
 
-  // ── 3. Send mint transaction ──────────────────────────────────────────
+  // ── 2b. Check POL balance — eth_estimateGas fails silently without it ─
+  const userAddress = await freshSigner.getAddress();
+  const balance = await postSwitchProvider.getBalance(userAddress);
+  console.log('💰 POL balance:', ethers.formatEther(balance));
+  if (balance === BigInt(0)) {
+    throw new Error('Your wallet has 0 POL on Polygon Amoy. Visit a faucet to get test tokens before minting.');
+  }
+
+  // ── 3. Dry-run first to surface exact revert reason ──────────────────
+  try {
+    await activeContract.mint.staticCall(hash, priceWei, maxEditions);
+  } catch (simErr: any) {
+    const reason = simErr.reason ?? simErr.shortMessage ?? simErr.message ?? 'Unknown';
+    throw new Error(`Mint would fail: ${reason}`);
+  }
+
+  // ── 4. Send mint transaction ──────────────────────────────────────────
   try {
     console.log('🚀 Minting:', { hash, priceWei: priceWei.toString(), maxEditions });
     const tx = await activeContract.mint(hash, priceWei, maxEditions, { gasLimit: 500_000 });

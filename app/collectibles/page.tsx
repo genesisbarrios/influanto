@@ -1,10 +1,12 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import apiClient from "@/libs/api";
+import { useSession } from "next-auth/react";
+import { useWallets } from "@privy-io/react-auth";
 
 interface ChainCollectible {
   tokenId: number;
@@ -21,32 +23,88 @@ interface ChainCollectible {
   available: number;
 }
 
+type View = "browse" | "mine";
+
 export default function Collectibles() {
-  const [collectibles, setCollectibles] = useState<ChainCollectible[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: session, status: authStatus } = useSession();
+  const { wallets } = useWallets();
+  const [view, setView] = useState<View>("browse");
 
-  useEffect(() => {
-    async function fetchFromChain() {
-      try {
-        setLoading(true);
-        const result: any = await apiClient.get("/collectibles/chain");
-        setCollectibles(result.collectibles ?? []);
-      } catch (err: any) {
-        console.error("Failed to load collectibles from chain:", err);
-        setError("Could not load collectibles from the contract.");
-      } finally {
-        setLoading(false);
-      }
+  const [browseItems, setBrowseItems]     = useState<ChainCollectible[]>([]);
+  const [myItems, setMyItems]             = useState<ChainCollectible[]>([]);
+  const [browseLoading, setBrowseLoading] = useState(true);
+  const [myLoading, setMyLoading]         = useState(false);
+  const [browseError, setBrowseError]     = useState<string | null>(null);
+  const [myError, setMyError]             = useState<string | null>(null);
+  const [myFetched, setMyFetched]         = useState(false);
+
+  const fetchBrowse = useCallback(async () => {
+    try {
+      setBrowseLoading(true);
+      setBrowseError(null);
+      const result: any = await apiClient.get("/collectibles/chain");
+      setBrowseItems(result.collectibles ?? []);
+    } catch {
+      setBrowseError("Could not load collectibles from the contract.");
+    } finally {
+      setBrowseLoading(false);
     }
-    fetchFromChain();
   }, []);
+
+  const fetchMine = useCallback(async () => {
+    if (myFetched) return;
+    try {
+      setMyLoading(true);
+      setMyError(null);
+      const walletAddress = wallets[0]?.address ?? "";
+      const url = walletAddress
+        ? `/collectibles/mine?wallet=${walletAddress}`
+        : "/collectibles/mine";
+      const result: any = await apiClient.get(url);
+      setMyItems(result.collectibles ?? []);
+      setMyFetched(true);
+    } catch {
+      setMyError("Could not load your collectibles.");
+    } finally {
+      setMyLoading(false);
+    }
+  }, [myFetched, wallets]);
+
+  useEffect(() => { fetchBrowse(); }, [fetchBrowse]);
+
+  useEffect(() => { document.title = "Music Collectibles | Influanto"; }, []);
 
   useEffect(() => {
-    document.title = "Music Collectibles | Influanto";
-  }, []);
+    if (view === "mine" && session && !myFetched) fetchMine();
+  }, [view, session, myFetched, fetchMine]);
 
-  const fmtAddress = (addr: string) => `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+  const fmtAddress = (addr: string) =>
+    addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : "";
+
+  const isLoggedIn = authStatus === "authenticated";
+  const loading    = view === "browse" ? browseLoading : myLoading;
+  const error      = view === "browse" ? browseError  : myError;
+  const items      = view === "browse" ? browseItems  : myItems;
+
+  const emptyMessage =
+    view === "mine"
+      ? isLoggedIn
+        ? "You haven't minted any collectibles yet."
+        : "Sign in to see your collection."
+      : "No collectibles minted yet.";
+
+  const tabStyle = (active: boolean) => ({
+    padding: "8px 22px",
+    borderRadius: "99px",
+    fontWeight: 600,
+    fontSize: "0.9rem",
+    border: "2px solid",
+    cursor: "pointer" as const,
+    transition: "all 0.15s",
+    borderColor: active ? "#7c3aed" : "#d1d5db",
+    backgroundColor: active ? "#7c3aed" : "#ffffff",
+    color: active ? "#ffffff" : "#6b7280",
+  });
 
   return (
     <>
@@ -59,28 +117,48 @@ export default function Collectibles() {
         style={{ display: "flex", flexDirection: "column", minHeight: "80vh", width: "100%" }}
       >
         <div style={{ padding: "2rem", background: "#f9fafb" }} className="w-full p-8">
-          <div className="flex items-center justify-between max-w-5xl mx-auto mb-8 mt-4">
+          {/* Header */}
+          <div className="flex items-center justify-between max-w-5xl mx-auto mb-6 mt-4 flex-wrap gap-4">
             <h2 className="text-2xl font-bold" style={{ color: "#181b20" }}>
               Music Collectibles
             </h2>
-            <span className="text-xs text-gray-400 font-mono">Polygon Amoy · ERC-1155</span>
+            {/* <span className="text-xs text-gray-400 font-mono">Polygon Amoy · ERC-1155</span> */}
           </div>
 
+          {/* Tabs */}
+          <div className="flex gap-2 max-w-5xl mx-auto mb-8">
+            <button onClick={() => setView("browse")} style={tabStyle(view === "browse")}>
+              🌐 Browse
+            </button>
+            <button onClick={() => setView("mine")} style={tabStyle(view === "mine")}>
+              🎵 My Collection
+            </button>
+          </div>
+
+          {/* Loading */}
           {loading && (
             <div className="flex justify-center items-center min-h-[300px]">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500" />
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500" />
             </div>
           )}
 
-          {error && (
+          {/* Error */}
+          {!loading && error && (
             <p className="text-center text-red-500 mt-12">{error}</p>
           )}
 
-          {!loading && !error && collectibles.length === 0 && (
-            <p className="text-center text-gray-400 mt-12">No collectibles minted yet.</p>
+          {/* Not signed in on My Collection */}
+          {!loading && !error && view === "mine" && !isLoggedIn && (
+            <p className="text-center text-gray-400 mt-12">{emptyMessage}</p>
           )}
 
-          {!loading && !error && collectibles.length > 0 && (
+          {/* Empty */}
+          {!loading && !error && items.length === 0 && (view === "browse" || isLoggedIn) && (
+            <p className="text-center text-gray-400 mt-12">{emptyMessage}</p>
+          )}
+
+          {/* Grid */}
+          {!loading && !error && items.length > 0 && (
             <div
               style={{
                 display: "grid",
@@ -90,7 +168,7 @@ export default function Collectibles() {
                 margin: "0 auto",
               }}
             >
-              {collectibles.map((c) => (
+              {items.map((c) => (
                 <div
                   key={c.tokenId}
                   style={{
@@ -109,25 +187,23 @@ export default function Collectibles() {
                   }}
                   className="tool-card"
                 >
-                  {/* Overlay */}
                   <div
                     style={{
                       position: "absolute",
                       inset: 0,
-                      background: "linear-gradient(to top, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0.2) 100%)",
+                      background:
+                        "linear-gradient(to top, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0.2) 100%)",
                       borderRadius: "16px",
                       zIndex: 1,
                     }}
                   />
 
-                  {/* Full-card link */}
                   <Link
                     href={`/collectible/${c.creator}/${encodeURIComponent(c.title)}`}
                     style={{ position: "absolute", inset: 0, zIndex: 2 }}
                     aria-label={c.title}
                   />
 
-                  {/* Content */}
                   <div
                     style={{
                       position: "absolute",
@@ -140,7 +216,6 @@ export default function Collectibles() {
                       pointerEvents: "none",
                     }}
                   >
-                    {/* Token ID badge */}
                     <span
                       style={{
                         position: "absolute",
@@ -178,7 +253,6 @@ export default function Collectibles() {
                       </span>
                     )}
 
-                    {/* Price + editions row */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.5rem" }}>
                       <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#a78bfa" }}>
                         {parseFloat(c.priceMatic).toFixed(4)} MATIC
@@ -188,28 +262,23 @@ export default function Collectibles() {
                       </span>
                     </div>
 
-                    {/* Creator */}
-                    <span
-                      style={{
-                        fontSize: "0.65rem",
-                        color: "rgba(255,255,255,0.4)",
-                        marginTop: "0.3rem",
-                        fontFamily: "monospace",
-                      }}
-                    >
-                      {fmtAddress(c.creator)}
-                    </span>
+                    {c.creator && (
+                      <span
+                        style={{
+                          fontSize: "0.65rem",
+                          color: "rgba(255,255,255,0.4)",
+                          marginTop: "0.3rem",
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        {fmtAddress(c.creator)}
+                      </span>
+                    )}
 
-                    {/* Audio preview */}
                     {c.audioUrl && (
                       <audio
                         controls
-                        style={{
-                          width: "100%",
-                          marginTop: "0.6rem",
-                          borderRadius: "8px",
-                          pointerEvents: "auto",
-                        }}
+                        style={{ width: "100%", marginTop: "0.6rem", borderRadius: "8px", pointerEvents: "auto" }}
                       >
                         <source src={c.audioUrl} type="audio/mpeg" />
                       </audio>

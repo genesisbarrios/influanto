@@ -312,7 +312,9 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
       
       // Convert USD to MATIC for Polygon
       const priceInDev = priceUsd ? (priceUsd / maticUsdPrice) : 0.1;
-      const priceInWei = ethers.parseEther(priceInDev.toString());
+      // toFixed(8) prevents scientific notation and truncates excessive decimal places
+      // that ethers.parseEther can't handle (e.g. "3.3333333333333335" → "3.33333333")
+      const priceInWei = ethers.parseEther(priceInDev.toFixed(8));
       
       console.log('💰 Price calculation:', {
         priceUsd,
