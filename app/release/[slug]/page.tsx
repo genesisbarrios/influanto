@@ -1,6 +1,7 @@
 "use client"
 /* eslint-disable */
 import React, { useEffect, useState } from 'react';
+import * as HeroPatterns from 'hero-patterns';
 import apiClient from "@/libs/api";
 import MetaPixel, { trackStreamingClick, trackMerchClick, trackLinkClick } from "@/components/MetaPixel";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -401,16 +402,37 @@ useEffect(() => {
   }
 }, [user, userName, releasePage, slug]);
 
-  // Set background color
+  // Set background color / pattern / image
   useEffect(() => {
-    if (bgColor) {
+    const HP = HeroPatterns as Record<string, (color: string, opacity: number) => string>;
+    const { bgMode, patternId, patternFg, patternBg, patternOpacity, bgImageCustom, bgImage } = releasePage || {};
+
+    if (bgMode === 'pattern' && patternId && HP[patternId]) {
+      document.body.style.backgroundImage = HP[patternId](patternFg || '#000000', patternOpacity ?? 0.5);
+      document.body.style.backgroundColor = patternBg || '#ffffff';
+      document.body.style.backgroundSize = '';
+      document.body.style.backgroundPosition = '';
+    } else if (bgMode === 'upload' && bgImageCustom) {
+      document.body.style.backgroundImage = `url('${bgImageCustom}')`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundColor = '';
+    } else if (bgMode === 'image' && bgImage) {
+      document.body.style.backgroundImage = `url('${bgImage}')`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundColor = '';
+    } else if (bgColor) {
       document.documentElement.style.setProperty("--bg-color", bgColor);
       document.body.style.backgroundColor = bgColor;
+      document.body.style.backgroundImage = '';
     }
+
     return () => {
       document.body.style.backgroundColor = "";
+      document.body.style.backgroundImage = "";
     };
-  }, [bgColor]);
+  }, [releasePage, bgColor]);
 
   // Utility functions
   function isYouTubeLinkCheck(url: string): boolean {

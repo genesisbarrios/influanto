@@ -704,7 +704,7 @@ const LinkInBio = () => {
                           <input
                             type="checkbox"
                             className="mr-2"
-                            checked={link.displayVideo || true}
+                            checked={link.displayVideo ?? true}
                             onChange={(e) => updateYouTubeLinkOptions(index, e.target.checked)}
                           />
                         </label>
@@ -877,7 +877,7 @@ const LinkInBio = () => {
                         key={tab.id}
                         type="button"
                         className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                          (linkInBio?.bgMode || 'image') === tab.id
+                          (linkInBio?.bgMode || 'pattern') === tab.id
                             ? 'bg-white shadow text-blue-700'
                             : 'text-gray-500 hover:text-gray-700'
                         }`}
@@ -891,7 +891,7 @@ const LinkInBio = () => {
                   </div>
 
                   {/* Tab: Stock Images */}
-                  {(linkInBio?.bgMode || 'image') === 'image' && (
+                  {(linkInBio?.bgMode || 'pattern') === 'image' && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 justify-items-center max-w-lg mx-auto">
                       <button
                         type="button"
@@ -989,13 +989,8 @@ const LinkInBio = () => {
                     <HeroPatternPicker linkInBio={linkInBio} setLinkInBio={setLinkInBio} />
                   )}
                 </div>
-
               </div>
-
-            </div>
-          </div>
-
-          {/* ── Brand Logo (Premium) ── */}
+               {/* ── Brand Logo (Premium) ── */}
           {user?.hasAccess && (
             <div className="mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
               <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
@@ -1044,6 +1039,8 @@ const LinkInBio = () => {
               </div>
             </div>
           )}
+            </div>
+          </div>
 
           {/* ── Merch Integration Banner ── */}
           <div className="mb-4 p-4 bg-purple-50 rounded-md border border-purple-200">
@@ -1054,35 +1051,7 @@ const LinkInBio = () => {
                 : "Your Printify store is connected. Select products to feature below."
               }
             </p>
-          </div>
-
-          {/* ── Newsletter Signup ── */}
-          <div className="mb-4 p-4 bg-indigo-50 rounded-md border border-indigo-100">
-            <div className="flex items-center gap-2">
-              <button type="button" role="switch" aria-checked={newsletterEnabled}
-                onClick={() => setNewsletterEnabled(!newsletterEnabled)}
-                style={{ width: 46, height: 26, borderRadius: 999, background: newsletterEnabled ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
-                <span style={{ position: 'absolute', top: 3, left: newsletterEnabled ? 23 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
-              </button>
-              <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setNewsletterEnabled(!newsletterEnabled)}>📣 Collect newsletter signups</span>
-            </div>
-            <p className="text-indigo-600 text-sm mt-1">Show a signup form on your public page so fans can join your Outreach contacts.</p>
-            {newsletterEnabled && (
-              <div className="mt-3">
-                <p className="text-xs font-semibold text-indigo-700 mb-2">Fields to collect (email is always required):</p>
-                <div className="flex flex-wrap gap-3">
-                  {[["name", "Name"], ["phone", "Phone"], ["instagram", "Instagram"], ["tiktok", "TikTok"]].map(([key, label]) => (
-                    <label key={key} className="flex items-center gap-1.5 text-sm cursor-pointer">
-                      <input type="checkbox" style={{ width: 16, height: 16, accentColor: '#4f46e5', cursor: 'pointer' }} checked={newsletterFields.includes(key)} onChange={() => toggleNewsletterField(key)} />
-                      {label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* ── Product Selection ── */}
+             {/* ── Product Selection ── */}
           {user?.printifyShopId && (
             <div className="mt-8 w-full border-t pt-6">
               <div className="mb-4 text-center">
@@ -1251,6 +1220,35 @@ const LinkInBio = () => {
               )}
             </div>
           )}
+          </div>
+
+          
+
+          {/* ── Newsletter Signup ── */}
+          <div className="mb-4 p-4 bg-indigo-50 rounded-md border border-indigo-100">
+            <div className="flex items-center gap-2">
+              <button type="button" role="switch" aria-checked={newsletterEnabled}
+                onClick={() => setNewsletterEnabled(!newsletterEnabled)}
+                style={{ width: 46, height: 26, borderRadius: 999, background: newsletterEnabled ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
+                <span style={{ position: 'absolute', top: 3, left: newsletterEnabled ? 23 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
+              </button>
+              <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setNewsletterEnabled(!newsletterEnabled)}>📣 Collect newsletter signups</span>
+            </div>
+            <p className="text-indigo-600 text-sm mt-1">Show a signup form on your public page so fans can join your Outreach contacts.</p>
+            {newsletterEnabled && (
+              <div className="mt-3">
+                <p className="text-xs font-semibold text-indigo-700 mb-2">Fields to collect (email is always required):</p>
+                <div className="flex flex-wrap gap-3">
+                  {[["name", "Name"], ["phone", "Phone"], ["instagram", "Instagram"], ["tiktok", "TikTok"]].map(([key, label]) => (
+                    <label key={key} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                      <input type="checkbox" style={{ width: 16, height: 16, accentColor: '#4f46e5', cursor: 'pointer' }} checked={newsletterFields.includes(key)} onChange={() => toggleNewsletterField(key)} />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* ── Alert ── */}
           {alert && (

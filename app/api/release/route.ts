@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   try {
-    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, font, newsletterEnabled, newsletterFields, brandLogoUrl } = body;
+    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, font, newsletterEnabled, newsletterFields, brandLogoUrl, bgMode, bgImage, bgImageCustom, patternId, patternFg, patternBg, patternOpacity } = body;
 
     if (id) {
       const updates: Record<string, any> = { user_id: userId };
@@ -30,6 +30,13 @@ export async function POST(req: NextRequest) {
       if (newsletterEnabled !== undefined) updates.newsletter_enabled = newsletterEnabled;
       if (newsletterFields !== undefined) updates.newsletter_fields = newsletterFields ?? ["name", "email"];
       updates.brand_logo_url = brandLogoUrl ?? null;
+      if (bgMode !== undefined) updates.bg_mode = bgMode;
+      if (bgImage !== undefined) updates.bg_image = bgImage;
+      if (bgImageCustom !== undefined) updates.bg_image_custom = bgImageCustom;
+      if (patternId !== undefined) updates.pattern_id = patternId;
+      if (patternFg !== undefined) updates.pattern_fg = patternFg;
+      if (patternBg !== undefined) updates.pattern_bg = patternBg;
+      if (patternOpacity !== undefined) updates.pattern_opacity = patternOpacity;
 
       const { data, error } = await supabase
         .from("release_pages")
@@ -60,6 +67,13 @@ export async function POST(req: NextRequest) {
         newsletter_enabled: newsletterEnabled ?? false,
         newsletter_fields: newsletterFields ?? ["name", "email"],
         brand_logo_url: brandLogoUrl ?? null,
+        bg_mode: bgMode ?? 'pattern',
+        bg_image: bgImage ?? null,
+        bg_image_custom: bgImageCustom ?? null,
+        pattern_id: patternId ?? null,
+        pattern_fg: patternFg ?? null,
+        pattern_bg: patternBg ?? null,
+        pattern_opacity: patternOpacity ?? null,
       })
       .select()
       .single();
