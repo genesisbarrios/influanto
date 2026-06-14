@@ -216,7 +216,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
       "https://publisher.walrus-testnet.walrus.space";
     const res = await fetch(`${publisher}/v1/blobs?epochs=${epochs}`, {
       method: "PUT",
-      body: body as BodyInit,
+      body: body as any,
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
