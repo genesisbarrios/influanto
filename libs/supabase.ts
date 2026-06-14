@@ -124,6 +124,7 @@ export function mapReleasePage(row: any) {
     patternFg: row.pattern_fg ?? null,
     patternBg: row.pattern_bg ?? null,
     patternOpacity: row.pattern_opacity ?? null,
+    pageBgColor: row.page_bg_color ?? null,
   };
 }
 

@@ -149,6 +149,11 @@ function applyBodyBackground(linkInBio: any, bgImage: any, bgColor: any) {
     document.body.style.backgroundSize = 'cover';
     document.body.style.backgroundPosition = 'center';
     document.body.style.backgroundColor = '';
+  } else if (linkInBio?.bgMode === 'solid') {
+    document.body.style.backgroundImage = 'none';
+    document.body.style.backgroundColor = bgColor || '';
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundPosition = '';
   } else if (bgImage) {
     document.body.style.backgroundImage = `url('${bgImage}')`;
     document.body.style.backgroundSize = 'cover';
@@ -188,6 +193,7 @@ const LinkInBio = () => {
   const [newsletterFields, setNewsletterFields] = useState<string[]>(["name", "email"]);
   const [cardBgOpacity, setCardBgOpacity] = useState(100);
   const [picker, setPicker] = useState<{ type: 'link'; index: number } | { type: 'brand' } | null>(null);
+  const [showMerchSection, setShowMerchSection] = useState(true);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
 
   // ── Effects ────────────────────────────────────────────────────────────────
@@ -808,21 +814,17 @@ const LinkInBio = () => {
                     <input type="color" value={linksColor} onChange={(e) => setLinksColor(e.target.value)}
                       className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer" />
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>BG</span>
-                    <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)}
-                      className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer" />
-                  </div>
-                </div>
-
-                {/* Card BG + opacity (own line) */}
-                <div className="flex justify-center items-center gap-4 mb-3 flex-wrap">
-                  <div className="flex items-center gap-1">
+                   <div className="flex items-center gap-1">
                     <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Card BG</span>
                     <input type="color" value={parseColorValue(linkInBio?.cardBgColor, "#ffffff").hex}
                       onChange={e => setLinkInBio({ ...linkInBio, cardBgColor: combineColor(e.target.value, cardBgOpacity) })}
                       className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer" />
                   </div>
+                </div>
+
+                {/* opacity*/}
+                <div className="flex justify-center items-center gap-4 mb-3 flex-wrap">
+                 
                   <div className="flex items-center gap-2">
                     <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Opacity</span>
                     <input type="range" min={0} max={100} value={cardBgOpacity}
@@ -841,7 +843,7 @@ const LinkInBio = () => {
                 </div>
 
                 {/* Font Row */}
-                <div className="flex items-center mb-4">
+                <div className="flex justify-center mb-4">
                   <div className="flex items-center gap-2">
                     <label className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Font:</label>
                     <select
@@ -872,6 +874,7 @@ const LinkInBio = () => {
                       { id: 'image', label: '🖼 Stock' },
                       { id: 'upload', label: '⬆️ Upload' },
                       { id: 'pattern', label: '🔷 Pattern' },
+                      { id: 'solid', label: '🎨 Solid' },
                     ].map((tab) => (
                       <button
                         key={tab.id}
@@ -988,6 +991,17 @@ const LinkInBio = () => {
                   {linkInBio?.bgMode === 'pattern' && (
                     <HeroPatternPicker linkInBio={linkInBio} setLinkInBio={setLinkInBio} />
                   )}
+
+                  {/* Tab: Solid Color */}
+                  {linkInBio?.bgMode === 'solid' && (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Page Color</label>
+                        <input type="color" value={bgColor || '#ffffff'} onChange={e => setBgColor(e.target.value)} className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer" />
+                      </div>
+                      <div className="w-full h-12 rounded-lg border border-gray-200" style={{ backgroundColor: bgColor || '#ffffff' }} />
+                    </div>
+                  )}
                 </div>
               </div>
                {/* ── Brand Logo (Premium) ── */}
@@ -1044,16 +1058,23 @@ const LinkInBio = () => {
 
           {/* ── Merch Integration Banner ── */}
           <div className="mb-4 p-4 bg-purple-50 rounded-md border border-purple-200">
-            <h4 className="font-bold mb-2 text-purple-800">🛒 Merch Integration</h4>
-            <p className="text-purple-600 text-sm">
-              {!user?.printifyShopId
-                ? "Connect your Printify store to your Profile to add merch to your release pages"
-                : "Your Printify store is connected. Select products to feature below."
-              }
-            </p>
-             {/* ── Product Selection ── */}
-          {user?.printifyShopId && (
-            <div className="mt-8 w-full border-t pt-6">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-bold text-purple-800">🛒 Merch Integration</h4>
+            </div>
+            {showMerchSection && (
+            <>
+            {!user?.printifyShopId ? (
+              <p className="text-purple-600 text-sm">Connect your Printify store to your Profile to add merch to your release pages</p>
+            ) : (
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <p className="text-purple-600 text-sm">Your Printify store is connected. Select products to feature below.</p>
+                <button type="button" onClick={() => setShowProducts(!showProducts)} className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors whitespace-nowrap">
+                  {showProducts ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            )}
+          {user?.printifyShopId && showProducts && (
+            <div className="mt-4 w-full border-t pt-4">
               <div className="mb-4 text-center">
                 <h2 className="text-md font-semibold" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
                   🛍️ Select Products from Printify (Max 10)
@@ -1220,9 +1241,9 @@ const LinkInBio = () => {
               )}
             </div>
           )}
+            </>
+            )}
           </div>
-
-          
 
           {/* ── Newsletter Signup ── */}
           <div className="mb-4 p-4 bg-indigo-50 rounded-md border border-indigo-100">

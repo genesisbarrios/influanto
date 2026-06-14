@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   try {
-    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, font, newsletterEnabled, newsletterFields, brandLogoUrl, bgMode, bgImage, bgImageCustom, patternId, patternFg, patternBg, patternOpacity } = body;
+    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, font, newsletterEnabled, newsletterFields, brandLogoUrl, bgMode, bgImage, bgImageCustom, patternId, patternFg, patternBg, patternOpacity, pageBgColor } = body;
 
     if (id) {
       const updates: Record<string, any> = { user_id: userId };
@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
       if (patternFg !== undefined) updates.pattern_fg = patternFg;
       if (patternBg !== undefined) updates.pattern_bg = patternBg;
       if (patternOpacity !== undefined) updates.pattern_opacity = patternOpacity;
+      if (pageBgColor !== undefined) updates.page_bg_color = pageBgColor;
 
       const { data, error } = await supabase
         .from("release_pages")
@@ -74,6 +75,7 @@ export async function POST(req: NextRequest) {
         pattern_fg: patternFg ?? null,
         pattern_bg: patternBg ?? null,
         pattern_opacity: patternOpacity ?? null,
+        page_bg_color: pageBgColor ?? null,
       })
       .select()
       .single();
