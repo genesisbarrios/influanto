@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase from "@/libs/supabase";
@@ -8,9 +8,8 @@ export const dynamic = "force-dynamic";
 
 const AMOY_RPC = "https://rpc-amoy.polygon.technology";
 const DRIP_AMOUNT = ethers.parseEther("0.015"); // covers gas at ~60 Gwei with auto-estimated gas
-const MIN_BALANCE  = ethers.parseEther("0.005"); // drip only if below this
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
@@ -24,23 +23,44 @@ export async function POST() {
     );
   }
 
-  // Get user's primary wallet address
+  // Get user's registered wallet addresses
   const { data: user } = await supabase
     .from("users")
     .select("wallet_addresses")
     .eq("id", session.user.id)
     .single();
 
-  const to = (user?.wallet_addresses ?? [])[0];
+  const registeredAddresses: string[] = user?.wallet_addresses ?? [];
+
+  // Caller can specify which address to drip to (e.g. embedded Privy wallet).
+  // Fall back to the primary stored address. Always validate against registered list.
+  let to: string | undefined;
+  try {
+    const body = await req.json().catch(() => ({}));
+    if (body?.to && ethers.isAddress(body.to)) {
+      to = ethers.getAddress(body.to); // normalize checksum
+    }
+  } catch { /* ignore parse errors */ }
+
+  if (!to) to = registeredAddresses[0];
+
   if (!to || !ethers.isAddress(to)) {
     return NextResponse.json({ error: "No wallet address on file" }, { status: 400 });
   }
 
+  // Verify the requested address belongs to this user
+  const isOwned = registeredAddresses.some(
+    (a) => a.toLowerCase() === to!.toLowerCase()
+  );
+  if (!isOwned) {
+    return NextResponse.json({ error: "Address not registered to this account" }, { status: 403 });
+  }
+
   const provider = new ethers.JsonRpcProvider(AMOY_RPC, 80002);
 
-  // Check recipient balance — skip drip if already funded
+  // Only skip drip if balance is already well above the drip amount itself
   const recipientBalance = await provider.getBalance(to);
-  if (recipientBalance >= MIN_BALANCE) {
+  if (recipientBalance >= DRIP_AMOUNT) {
     return NextResponse.json({
       skipped: true,
       balance: ethers.formatEther(recipientBalance),
