@@ -405,7 +405,7 @@ useEffect(() => {
   // Set background color / pattern / image
   useEffect(() => {
     const HP = HeroPatterns as Record<string, (color: string, opacity: number) => string>;
-    const { bgMode, patternId, patternFg, patternBg, patternOpacity, bgImageCustom, bgImage } = releasePage || {};
+    const { bgMode, patternId, patternFg, patternBg, patternOpacity, bgImageCustom, bgImage, pageBgColor } = releasePage || {};
 
     if (bgMode === 'pattern' && patternId && HP[patternId]) {
       document.body.style.backgroundImage = HP[patternId](patternFg || '#000000', patternOpacity ?? 0.5);
@@ -422,10 +422,22 @@ useEffect(() => {
       document.body.style.backgroundSize = 'cover';
       document.body.style.backgroundPosition = 'center';
       document.body.style.backgroundColor = '';
+    } else if (bgMode === 'solid' && pageBgColor) {
+      document.body.style.backgroundImage = 'none';
+      document.body.style.backgroundColor = pageBgColor;
+      document.body.style.backgroundSize = '';
+      document.body.style.backgroundPosition = '';
     } else if (bgColor) {
       document.documentElement.style.setProperty("--bg-color", bgColor);
       document.body.style.backgroundColor = bgColor;
-      document.body.style.backgroundImage = '';
+      document.body.style.backgroundImage = 'none';
+      document.body.style.backgroundSize = '';
+      document.body.style.backgroundPosition = '';
+    } else {
+      document.body.style.backgroundImage = 'none';
+      document.body.style.backgroundColor = '#000000';
+      document.body.style.backgroundSize = '';
+      document.body.style.backgroundPosition = '';
     }
 
     return () => {
@@ -563,7 +575,7 @@ const renderMerchSection = () => {
             <div
               key={product.id}
               style={{
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                backgroundColor: bgColor || "rgba(255, 255, 255, 0.1)",
                 borderRadius: "10px",
                 padding: "15px",
                 textAlign: "center",
@@ -630,12 +642,12 @@ const renderMerchSection = () => {
   // Loading state
   if (isLoading || !slug) {
     return (
-      <div style={{ 
-        display: "flex", 
-        justifyContent: "center", 
-        alignItems: "center", 
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
         minHeight: "100vh",
-        backgroundColor: bgColor || "black",
+        backgroundColor: "transparent",
         color: textColor || "white"
       }}>
         Loading release page...
@@ -646,18 +658,20 @@ const renderMerchSection = () => {
   // Error state
   if (!user || !releasePage) {
     return (
-      <div style={{ 
-        display: "flex", 
-        justifyContent: "center", 
-        alignItems: "center", 
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
         minHeight: "100vh",
-        backgroundColor: bgColor || "black",
+        backgroundColor: "transparent",
         color: textColor || "white"
       }}>
         {alert || "Release page not found"}
       </div>
     );
   }
+
+  const font = releasePage?.font || 'inherit';
 
   return (
     <div
@@ -666,8 +680,8 @@ const renderMerchSection = () => {
         minHeight: "100vh",
         padding: "5% 0",
         color: textColor || "white",
-        backgroundColor: bgColor || "black",
-        fontFamily: releasePage?.font || 'inherit',
+        backgroundColor: "transparent",
+        fontFamily: font,
       }}
     >
       {user?.metaPixelId && (
@@ -693,8 +707,8 @@ const renderMerchSection = () => {
         />
 
         {/* Name and Description */}
-        <p>{releasePage.name}</p>
-        <p style={{ marginBottom: "2%" }}>{releasePage.description}</p>
+        <p style={{ fontFamily: font, color: textColor || "white" }}>{releasePage.name}</p>
+        <p style={{ marginBottom: "2%", fontFamily: font, color: textColor || "white" }}>{releasePage.description}</p>
             
         {/* Links */}
         <div
@@ -703,7 +717,7 @@ const renderMerchSection = () => {
             margin: "0 auto",
             textAlign: "center",
             marginTop: "2%",
-            fontFamily: releasePage?.font || 'inherit',
+            fontFamily: font,
           }}
         >
        
@@ -757,14 +771,14 @@ const renderMerchSection = () => {
                 justifyContent: "space-between",
                 marginBottom: "20px",
                 padding: "10px",
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                backgroundColor: bgColor || "rgba(255, 255, 255, 0.1)",
                 borderRadius: "8px"
               }}>
                 <div style={{ 
                   display: "flex", 
                   alignItems: "center", 
                   flex: 1,
-                  fontFamily: releasePage?.font || 'inherit'
+                  fontFamily: font
                 }}>
                   {platformIcon && (
                     <FontAwesomeIcon
@@ -780,7 +794,7 @@ const renderMerchSection = () => {
                     margin: 0, 
                     fontWeight: "bold", 
                     color: linksColor || "white",
-                    fontFamily: releasePage?.font || 'inherit'
+                    fontFamily: font
                   }}>
                     {link.name || platformName}
                   </p>
