@@ -243,15 +243,16 @@ const ReleasePages = () => {
     setBgColor("#ffffff");
     setBgOpacity(100);
     setEditingPage({
-      name: "", 
-      description: "", 
-      links: [], 
-      image: "", 
-      video: "", 
+      name: "",
+      description: "",
+      links: [],
+      image: "",
+      video: "",
       bgColor,
       linksColor,
       textColor,
       font,
+      bgMode: 'pattern',
       selectedProducts: [],
       newsletterEnabled: false,
       newsletterFields: ["name", "email"]
@@ -714,6 +715,7 @@ const removeCustomLink = (index: number) => {
         textColor,
         linksColor,
         font,
+        bgMode: editingPage?.bgMode || 'pattern',
         selectedProducts: selectedProductIds,
         newsletterEnabled: !!editingPage?.newsletterEnabled,
         newsletterFields: nlFields.includes("email") ? nlFields : [...nlFields, "email"],
