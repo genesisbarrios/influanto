@@ -22,7 +22,6 @@ export default function WalletManagerModal({
   const [addingWallet, setAddingWallet] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
   const prevCountRef = useRef(walletAddresses.length);
-
   const { ready, authenticated } = usePrivy();
   const { wallets: privyWallets } = useWallets();
 
@@ -207,7 +206,22 @@ export default function WalletManagerModal({
                       {isSettingPrimary ? "Updating…" : "Set Primary"}
                     </button>
                   )}
-
+                  <a
+                    href={`https://faucet.polygon.technology/?address=${address}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs px-3 py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition font-medium"
+                  >
+                    Get Test POL
+                  </a>
+                  <button
+                    disabled={isBusy || walletAddresses.length === 1}
+                    onClick={() => handleRemove(address)}
+                    title={walletAddresses.length === 1 ? "Cannot remove your only wallet" : `Remove ${fmt(address)}`}
+                    className="text-xs px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed transition font-medium"
+                  >
+                    {isRemoving ? "Removing…" : "Remove"}
+                  </button>
                   {/* Transfer ownership — requires on-chain txs, coming soon */}
                   <button
                     disabled
@@ -219,22 +233,13 @@ export default function WalletManagerModal({
                       Soon
                     </span>
                   </button>
-
-                  <button
-                    disabled={isBusy || walletAddresses.length === 1}
-                    onClick={() => handleRemove(address)}
-                    title={walletAddresses.length === 1 ? "Cannot remove your only wallet" : `Remove ${fmt(address)}`}
-                    className="text-xs px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed transition font-medium"
-                  >
-                    {isRemoving ? "Removing…" : "Remove"}
-                  </button>
                 </div>
 
-                {hasPrimaryEns && (
+                {/* {hasPrimaryEns && (
                   <p className="text-xs text-gray-400 mt-2">
                     ENS subdomain points to this wallet
                   </p>
-                )}
+                )} */}
               </div>
             );
           })}
