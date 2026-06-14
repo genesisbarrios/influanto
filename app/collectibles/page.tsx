@@ -6,7 +6,6 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import apiClient from "@/libs/api";
 import { useSession } from "next-auth/react";
-import { useWallets } from "@privy-io/react-auth";
 
 interface ChainCollectible {
   tokenId: number;
@@ -27,7 +26,6 @@ type View = "browse" | "mine";
 
 export default function Collectibles() {
   const { data: session, status: authStatus } = useSession();
-  const { wallets } = useWallets();
   const [view, setView] = useState<View>("browse");
 
   const [browseItems, setBrowseItems]     = useState<ChainCollectible[]>([]);
@@ -37,6 +35,7 @@ export default function Collectibles() {
   const [browseError, setBrowseError]     = useState<string | null>(null);
   const [myError, setMyError]             = useState<string | null>(null);
   const [myFetched, setMyFetched]         = useState(false);
+  const [noWallet, setNoWallet]           = useState(false);
 
   const fetchBrowse = useCallback(async () => {
     try {
@@ -56,11 +55,13 @@ export default function Collectibles() {
     try {
       setMyLoading(true);
       setMyError(null);
-      const walletAddress = wallets[0]?.address ?? "";
-      const url = walletAddress
-        ? `/collectibles/mine?wallet=${walletAddress}`
-        : "/collectibles/mine";
-      const result: any = await apiClient.get(url);
+      setNoWallet(false);
+      const result: any = await apiClient.get("/collectibles/mine");
+      if (result.noWallet) {
+        setNoWallet(true);
+        setMyFetched(true);
+        return;
+      }
       setMyItems(result.collectibles ?? []);
       setMyFetched(true);
     } catch {
@@ -68,7 +69,7 @@ export default function Collectibles() {
     } finally {
       setMyLoading(false);
     }
-  }, [myFetched, wallets]);
+  }, [myFetched]);
 
   useEffect(() => { fetchBrowse(); }, [fetchBrowse]);
 
@@ -152,13 +153,23 @@ export default function Collectibles() {
             <p className="text-center text-gray-400 mt-12">{emptyMessage}</p>
           )}
 
+          {/* No wallet saved in DB — prompt to connect via proper flow */}
+          {!loading && !error && view === "mine" && isLoggedIn && noWallet && (
+            <div className="flex flex-col items-center mt-16 gap-3">
+              <p className="text-gray-500 font-medium">No wallet connected to your account.</p>
+              <p className="text-sm text-gray-400 text-center max-w-xs">
+                To view your collection, go to your profile and connect a wallet by selecting <strong>Create</strong> and choosing Privy or an EVM wallet.
+              </p>
+            </div>
+          )}
+
           {/* Empty */}
-          {!loading && !error && items.length === 0 && (view === "browse" || isLoggedIn) && (
+          {!loading && !error && !noWallet && items.length === 0 && (view === "browse" || isLoggedIn) && (
             <p className="text-center text-gray-400 mt-12">{emptyMessage}</p>
           )}
 
           {/* Grid */}
-          {!loading && !error && items.length > 0 && (
+          {!loading && !error && !noWallet && items.length > 0 && (
             <div
               style={{
                 display: "grid",
