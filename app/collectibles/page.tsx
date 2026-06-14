@@ -4,8 +4,12 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import apiClient from "@/libs/api";
 import { useSession } from "next-auth/react";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
+
+const WalletManagerModal = dynamic(() => import("@/components/WalletManagerModal"), { ssr: false });
 
 interface ChainCollectible {
   tokenId: number;
@@ -26,6 +30,8 @@ type View = "browse" | "mine";
 
 export default function Collectibles() {
   const { data: session, status: authStatus } = useSession();
+  const { ready, authenticated } = usePrivy();
+  const { wallets } = useWallets();
   const [view, setView] = useState<View>("browse");
 
   const [browseItems, setBrowseItems]     = useState<ChainCollectible[]>([]);
@@ -36,6 +42,10 @@ export default function Collectibles() {
   const [myError, setMyError]             = useState<string | null>(null);
   const [myFetched, setMyFetched]         = useState(false);
   const [noWallet, setNoWallet]           = useState(false);
+  const [walletAddresses, setWalletAddresses] = useState<string[]>([]);
+  const [ensName, setEnsName]             = useState<string | null>(null);
+  const [showWalletManager, setShowWalletManager] = useState(false);
+  const [polBalance, setPolBalance]       = useState<string | null>(null);
 
   const fetchBrowse = useCallback(async () => {
     try {
@@ -76,8 +86,29 @@ export default function Collectibles() {
   useEffect(() => { document.title = "Music Collectibles | Influanto"; }, []);
 
   useEffect(() => {
+    if (authStatus !== "authenticated") return;
+    apiClient.get("/wallet/info").then((result: any) => {
+      setWalletAddresses(result.walletAddresses ?? []);
+      setEnsName(result.ensName ?? null);
+    }).catch(() => {});
+  }, [authStatus]);
+
+  useEffect(() => {
     if (view === "mine" && session && !myFetched) fetchMine();
   }, [view, session, myFetched, fetchMine]);
+
+  useEffect(() => {
+    const primary = walletAddresses[0];
+    if (!primary) { setPolBalance(null); return; }
+    fetch("https://rpc-amoy.polygon.technology", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "eth_getBalance", params: [primary, "latest"], id: 1 }),
+    })
+      .then((r) => r.json())
+      .then((data) => setPolBalance((Number(BigInt(data.result)) / 1e18).toFixed(4)))
+      .catch(() => setPolBalance(null));
+  }, [walletAddresses]);
 
   const fmtAddress = (addr: string) =>
     addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : "";
@@ -123,18 +154,56 @@ export default function Collectibles() {
             <h2 className="text-2xl font-bold" style={{ color: "#181b20" }}>
               Music Collectibles
             </h2>
-            {/* <span className="text-xs text-gray-400 font-mono">Polygon Amoy · ERC-1155</span> */}
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 max-w-5xl mx-auto mb-8">
+          <div className="flex justify-between items-center max-w-5xl mx-auto mb-8">
+          <div className="flex gap-2">
             <button onClick={() => setView("browse")} style={tabStyle(view === "browse")}>
               🌐 Browse
             </button>
+
             <button onClick={() => setView("mine")} style={tabStyle(view === "mine")}>
               🎵 My Collection
             </button>
           </div>
+
+          {isLoggedIn && walletAddresses.length > 0 && (() => {
+            const primary = walletAddresses[0];
+            const live =
+              authenticated &&
+              wallets.some((w) => w.address?.toLowerCase() === primary.toLowerCase());
+
+            return (
+              <button
+                onClick={() => setShowWalletManager(true)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold transition ${
+                  live
+                    ? "bg-blue-50 hover:bg-blue-100 text-blue-700"
+                    : "bg-amber-50 hover:bg-amber-100 text-amber-700"
+                }`}
+              >
+                <span className={`text-xs ${live ? "text-green-500" : "text-amber-400"}`}>
+                  ●
+                </span>
+
+                {ensName ?? `${primary.slice(0, 6)}…${primary.slice(-4)}`}
+
+                {polBalance !== null && (
+                  <span className="text-[11px] font-normal opacity-70">
+                    {polBalance} POL
+                  </span>
+                )}
+
+                {!live && ready && (
+                  <span className="text-[10px] font-normal opacity-75">
+                    · Reconnect
+                  </span>
+                )}
+              </button>
+            );
+          })()}
+        </div>
 
           {/* Loading */}
           {loading && (
@@ -307,6 +376,19 @@ export default function Collectibles() {
         @media (min-width: 640px) { #collectibles-bg { flex-direction: row !important; } }
         .tool-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.28) !important; transform: translateY(-2px); }
       `}</style>
+
+      {showWalletManager && (
+        <WalletManagerModal
+          walletAddresses={walletAddresses}
+          ensName={ensName}
+          onClose={() => setShowWalletManager(false)}
+          onUpdate={(addresses, ens) => {
+            setWalletAddresses(addresses);
+            setEnsName(ens);
+            if (addresses.length === 0) setShowWalletManager(false);
+          }}
+        />
+      )}
 
       <Footer />
     </>

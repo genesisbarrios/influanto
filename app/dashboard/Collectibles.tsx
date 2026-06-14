@@ -42,12 +42,12 @@ const Collectibles = () => {
   const [walletInfoLoaded, setWalletInfoLoaded] = useState(false);
   const [walletInfoFetchOk, setWalletInfoFetchOk] = useState(false);
   const [deletingTokenId, setDeletingTokenId] = useState<number | null>(null);
+  const [polBalance, setPolBalance] = useState<string | null>(null);
   const attemptedSavesRef = useRef<Set<string>>(new Set());
   const userTriggeredRef = useRef(false);
   const ensLookupAttemptedRef = useRef(false);
 
   const { ready, authenticated, user: privyUser, logout } = usePrivy();
-  const { fundWallet } = useFundWallet();
   const { wallets } = useWallets();
   const { login } = useLogin({
     onComplete: () => {
@@ -117,6 +117,19 @@ const Collectibles = () => {
     }
   }, []);
   useEffect(() => { if (mounted) fetchWalletInfo(); }, [mounted]);
+
+  useEffect(() => {
+    const primary = walletAddresses[0];
+    if (!primary) { setPolBalance(null); return; }
+    fetch("https://rpc-amoy.polygon.technology", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "eth_getBalance", params: [primary, "latest"], id: 1 }),
+    })
+      .then((r) => r.json())
+      .then((data) => setPolBalance((Number(BigInt(data.result)) / 1e18).toFixed(4)))
+      .catch(() => setPolBalance(null));
+  }, [walletAddresses]);
 
   // After wallet loads: if ENS name is missing or is only an influanto subname,
   // attempt a reverse lookup on Ethereum mainnet and save the personal .eth name.
@@ -270,6 +283,9 @@ const Collectibles = () => {
             >
               <span className={`text-xs ${privyHasPrimary ? "text-green-500" : "text-amber-400"}`}>●</span>
               {ensName ?? `${primaryAddress!.slice(0, 6)}…${primaryAddress!.slice(-4)}`}
+              {polBalance !== null && (
+                <span className="text-[11px] font-normal opacity-70">{polBalance} POL</span>
+              )}
               {!privyHasPrimary && ready && <span className="text-[10px] font-normal opacity-75">· Reconnect</span>}
             </button>
           </div>
