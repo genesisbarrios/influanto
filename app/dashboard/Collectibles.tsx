@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faLock, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { usePrivy, useWallets, useLogin, useFundWallet } from "@privy-io/react-auth";
+import { usePrivy, useWallets, useLogin } from "@privy-io/react-auth";
 import dynamic from "next/dynamic";
 import apiClient from "@/libs/api";
 
@@ -38,6 +38,7 @@ const Collectibles = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [showWalletManager, setShowWalletManager] = useState(false);
   const [walletConnecting, setWalletConnecting] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
   const [walletError, setWalletError] = useState<string | null>(null);
   const [walletInfoLoaded, setWalletInfoLoaded] = useState(false);
   const [walletInfoFetchOk, setWalletInfoFetchOk] = useState(false);
@@ -46,26 +47,30 @@ const Collectibles = () => {
   const attemptedSavesRef = useRef<Set<string>>(new Set());
   const userTriggeredRef = useRef(false);
   const ensLookupAttemptedRef = useRef(false);
+  const autoReconnectAttemptedRef = useRef(false);
 
-  const { ready, authenticated, user: privyUser, logout } = usePrivy();
+  const { ready, authenticated, user: privyUser, logout } = usePrivy(); // privyUser used in wallet save effect
   const { wallets } = useWallets();
   const { login } = useLogin({
-    onComplete: () => {
-      // walletConnecting stays true until the auto-save effect completes;
-      // this is just a safety fallback if the save never fires
-    },
-    onError: () => setWalletConnecting(false),
+    onComplete: () => setReconnecting(false),
+    onError: () => { setWalletConnecting(false); setReconnecting(false); },
   });
 
-  const privyHasPrimary =
-    ready && authenticated && walletAddresses.length > 0 &&
-    wallets.some((w) => w.address?.toLowerCase() === walletAddresses[0]?.toLowerCase());
+  const handleReconnect = () => {
+    setReconnecting(true);
+    login();
+  };
+
+  // Wallet is considered "live" as long as Privy authenticated — the wallets
+  // list populates async and would cause false disconnects if checked here.
+  const privyHasPrimary = ready && authenticated && walletAddresses.length > 0;
 
   useEffect(() => {
     if (!mounted || !authenticated || wallets.length === 0 || !walletInfoLoaded) return;
     if (!walletInfoFetchOk) return;
-    // For first-time users (no wallet in DB yet), only save if the user explicitly clicked
-    if (walletAddresses.length === 0 && !userTriggeredRef.current) return;
+    // Never auto-save any wallet unless the user explicitly triggered it (or the intent
+    // was restored from localStorage after a Google OAuth redirect).
+    if (!userTriggeredRef.current) return;
 
     // If the session has a Privy embedded wallet (Google / email login), never
     // auto-save external EVM wallets detected from the browser. The user chose
@@ -150,6 +155,25 @@ const Collectibles = () => {
     console.log("Result ENS lookup effect", { walletInfoLoaded, walletInfoFetchOk, walletAddresses, ensName, attempted: ensLookupAttemptedRef.current });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletInfoLoaded, walletInfoFetchOk, walletAddresses.length, ensName]);
+
+  // Auto-reconnect: user has a wallet in DB but Privy session is gone.
+  // Wait 1.5 s to let Privy silently restore its session before opening the
+  // login modal. If privyHasPrimary becomes true in that window, cleanup
+  // cancels the timer and no modal appears.
+  useEffect(() => {
+    if (!mounted || !walletInfoLoaded || walletAddresses.length === 0) return;
+    if (!ready || privyHasPrimary) return;
+    if (autoReconnectAttemptedRef.current) return;
+
+    const timer = setTimeout(() => {
+      if (autoReconnectAttemptedRef.current) return;
+      autoReconnectAttemptedRef.current = true;
+      handleReconnect();
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, walletInfoLoaded, walletAddresses.length, ready, privyHasPrimary]);
 
   if (!mounted) {
     return (
@@ -275,6 +299,18 @@ const Collectibles = () => {
             >
               + Create
             </button>
+            {!privyHasPrimary && ready && (
+              <button
+                onClick={handleReconnect}
+                disabled={reconnecting}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-60 transition text-sm font-semibold"
+              >
+                {reconnecting && (
+                  <span className="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                )}
+                {reconnecting ? "Connecting…" : "Reconnect"}
+              </button>
+            )}
             <button
               onClick={() => setShowWalletManager(true)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold transition ${
@@ -286,7 +322,6 @@ const Collectibles = () => {
               {polBalance !== null && (
                 <span className="text-[11px] font-normal opacity-70">{polBalance} POL</span>
               )}
-              {!privyHasPrimary && ready && <span className="text-[10px] font-normal opacity-75">· Reconnect</span>}
             </button>
           </div>
         ) : (
