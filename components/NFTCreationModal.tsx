@@ -55,10 +55,10 @@ interface MusicNFT {
 interface NFTCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (nft: MusicNFT) => void;
+  onCreate: (_nft: MusicNFT) => void;
   walletAddresses: string[];
   ensName: string | null;
-  onWalletUpdate: (addresses: string[], ensName: string | null) => void;
+  onWalletUpdate: (_addresses: string[], _ensName: string | null) => void;
 }
 
 const presetGenres = [
@@ -92,7 +92,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
   // Privy wallets from other accounts never appear or sign transactions.
   useEffect(() => {
     if (walletAddresses.length > 0) setKnownAddresses(walletAddresses);
-  }, [walletAddresses]);
+  }, [walletAddresses, setKnownAddresses]);
   
   // Form State
   const [type, setType] = useState<'single' | 'album'>('single');
@@ -116,8 +116,8 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
   
   
   // Album fields
-  const [albumCoverImage, setAlbumCoverImage] = useState<File | null>(null);
-  const [tracks, setTracks] = useState<Track[]>([]);
+  const [_albumCoverImage, setAlbumCoverImage] = useState<File | null>(null);
+  const [_tracks, setTracks] = useState<Track[]>([]);
 
   // Reset form when modal closes
   useEffect(() => {
@@ -216,7 +216,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
       "https://publisher.walrus-testnet.walrus.space";
     const res = await fetch(`${publisher}/v1/blobs?epochs=${epochs}`, {
       method: "PUT",
-      body: body as BodyInit,
+      body: body as RequestInit["body"],
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
