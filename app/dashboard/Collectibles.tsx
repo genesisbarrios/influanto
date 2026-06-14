@@ -44,10 +44,17 @@ const Collectibles = () => {
   const [deletingTokenId, setDeletingTokenId] = useState<number | null>(null);
   const attemptedSavesRef = useRef<Set<string>>(new Set());
   const userTriggeredRef = useRef(false);
+  const ensLookupAttemptedRef = useRef(false);
 
   const { ready, authenticated, user: privyUser } = usePrivy();
   const { wallets } = useWallets();
-  const { login } = useLogin({ onError: () => setWalletConnecting(false) });
+  const { login } = useLogin({
+    onComplete: () => {
+      // walletConnecting stays true until the auto-save effect completes;
+      // this is just a safety fallback if the save never fires
+    },
+    onError: () => setWalletConnecting(false),
+  });
 
   const privyHasPrimary =
     ready && authenticated && walletAddresses.length > 0 &&
@@ -63,7 +70,6 @@ const Collectibles = () => {
     if (!unsaved) return;
 
     attemptedSavesRef.current.add(unsaved.address);
-    setWalletConnecting(true);
     setWalletError(null);
     const isFirstWallet = walletAddresses.length === 0;
 
@@ -79,7 +85,7 @@ const Collectibles = () => {
           if (isFirstWallet) setModalOpen(true);
         }
       })
-      .catch((err) => {
+      .catch((err:any) => {
         const msg: string = err?.response?.data?.error ?? err?.message ?? "Unknown error";
         attemptedSavesRef.current.delete(unsaved.address);
         userTriggeredRef.current = false;
@@ -91,6 +97,26 @@ const Collectibles = () => {
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { if (mounted) fetchWalletInfo(); }, [mounted]);
+
+  // After wallet loads: if ENS name is missing or is only an influanto subname,
+  // attempt a reverse lookup on Ethereum mainnet and save the personal .eth name.
+  useEffect(() => {
+    console.log("Running ENS lookup effect", { walletInfoLoaded, walletInfoFetchOk, walletAddresses, ensName, attempted: ensLookupAttemptedRef.current });
+    if (!walletInfoLoaded || !walletInfoFetchOk || walletAddresses.length === 0) return;
+    if (ensName && !ensName.endsWith(".influanto.eth")) return;
+    if (ensLookupAttemptedRef.current) return;
+    ensLookupAttemptedRef.current = true;
+    apiClient.get(`/wallet/ens-sync?address=${walletAddresses[0]}`)
+      .then((result: any) => {
+        console.log("ens-sync response:", result);
+        if (result.ensName) setEnsName(result.ensName);
+      })
+      .catch((err: any) => {
+        console.error("ens-sync failed:", err?.response?.status, err?.response?.data ?? err?.message);
+      });
+    console.log("Result ENS lookup effect", { walletInfoLoaded, walletInfoFetchOk, walletAddresses, ensName, attempted: ensLookupAttemptedRef.current });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walletInfoLoaded, walletInfoFetchOk, walletAddresses.length, ensName]);
 
   if (!mounted) {
     return (
@@ -108,7 +134,7 @@ const Collectibles = () => {
       const result: any = await apiClient.get("/wallet/info");
       const addrs: string[] = result.walletAddresses ?? [];
       setWalletAddresses(addrs);
-      setEnsName(result.ensName ?? null);
+      setEnsName(result.ensName || null);
       setWalletInfoFetchOk(true);
       if (addrs.length > 0) fetchNFTs(addrs[0]);
     } catch (err: any) {
@@ -165,20 +191,33 @@ const Collectibles = () => {
         {!walletInfoLoaded ? (
           <div className="w-36 h-8 bg-gray-100 rounded-full animate-pulse" />
         ) : hasWallet ? (
-          <button
-            onClick={() => setShowWalletManager(true)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold transition ${
-              privyHasPrimary ? "bg-blue-50 hover:bg-blue-100 text-blue-700" : "bg-amber-50 hover:bg-amber-100 text-amber-700"
-            }`}
-          >
-            <span className={`text-xs ${privyHasPrimary ? "text-green-500" : "text-amber-400"}`}>●</span>
-            {ensName ?? `${primaryAddress!.slice(0, 6)}…${primaryAddress!.slice(-4)}`}
-            {!privyHasPrimary && ready && <span className="text-[10px] font-normal opacity-75">· Reconnect</span>}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setModalOpen(true)}
+              className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold text-sm"
+            >
+              + Create
+            </button>
+            <button
+              onClick={() => setShowWalletManager(true)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold transition ${
+                privyHasPrimary ? "bg-blue-50 hover:bg-blue-100 text-blue-700" : "bg-amber-50 hover:bg-amber-100 text-amber-700"
+              }`}
+            >
+              <span className={`text-xs ${privyHasPrimary ? "text-green-500" : "text-amber-400"}`}>●</span>
+              {ensName ?? `${primaryAddress!.slice(0, 6)}…${primaryAddress!.slice(-4)}`}
+              {!privyHasPrimary && ready && <span className="text-[10px] font-normal opacity-75">· Reconnect</span>}
+            </button>
+          </div>
         ) : (
           <div className="flex flex-col items-end gap-1">
             <button
-              onClick={() => { setWalletError(null); setWalletConnecting(true); userTriggeredRef.current = true; login(); }}
+              onClick={() => {
+                setWalletError(null);
+                setWalletConnecting(true);
+                userTriggeredRef.current = true;
+                login();
+              }}
               disabled={walletConnecting}
               className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
             >

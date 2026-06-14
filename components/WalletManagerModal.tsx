@@ -223,11 +223,7 @@ export default function WalletManagerModal({
                   <button
                     disabled={isBusy || walletAddresses.length === 1}
                     onClick={() => handleRemove(address)}
-                    title={
-                      walletAddresses.length === 1
-                        ? "Cannot remove your only wallet"
-                        : `Remove ${fmt(address)}`
-                    }
+                    title={walletAddresses.length === 1 ? "Cannot remove your only wallet" : `Remove ${fmt(address)}`}
                     className="text-xs px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed transition font-medium"
                   >
                     {isRemoving ? "Removing…" : "Remove"}
