@@ -977,22 +977,23 @@ const mintTrack = async (hash: string, price: bigint | string, maxEditions: numb
     console.log('💰 POL balance:', ethers.formatEther(balance), '  price:', ethers.formatEther(priceWei));
 
     if (balance < priceWei) {
-      // Try drip only when the gap is small enough that it could help
       const DRIP_AMOUNT = ethers.parseEther('0.015');
       if (balance + DRIP_AMOUNT >= priceWei) {
-        try {
-          const dripRes = await fetch('/api/wallet/drip', { method: 'POST' });
-          const dripData = await dripRes.json();
-          if (dripData.success) {
-            const newBal = BigInt(await rpcPost('eth_getBalance', [userAddress, 'latest']) ?? '0x0');
-            if (newBal < priceWei) {
-              throw new Error(`Insufficient POL. Need ${ethers.formatEther(priceWei)} POL, wallet has ${ethers.formatEther(newBal)} POL.`);
-            }
-          } else {
-            throw new Error(`Insufficient POL. Need ${ethers.formatEther(priceWei)} POL, wallet has ${ethers.formatEther(balance)} POL. Get testnet POL at faucet.polygon.technology`);
+        // Drip directly to the embedded wallet address being used
+        const dripRes = await fetch('/api/wallet/drip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to: userAddress }),
+        });
+        const dripData = await dripRes.json();
+        // success = drip sent, skipped = already had enough (both mean we can proceed)
+        if (dripData.success || dripData.skipped) {
+          const newBal = BigInt(await rpcPost('eth_getBalance', [userAddress, 'latest']) ?? '0x0');
+          if (newBal < priceWei) {
+            throw new Error(`Insufficient POL. Need ${ethers.formatEther(priceWei)} POL, wallet has ${ethers.formatEther(newBal)} POL.`);
           }
-        } catch (e: any) {
-          throw new Error(e.message.includes('POL') ? e.message : `Insufficient POL. Need ${ethers.formatEther(priceWei)} POL.`);
+        } else {
+          throw new Error(`Insufficient POL. Need ${ethers.formatEther(priceWei)} POL, wallet has ${ethers.formatEther(balance)} POL. Get testnet POL at faucet.polygon.technology`);
         }
       } else {
         throw new Error(`Insufficient POL. Need ${ethers.formatEther(priceWei)} POL but wallet only has ${ethers.formatEther(balance)} POL. Get testnet POL at faucet.polygon.technology`);

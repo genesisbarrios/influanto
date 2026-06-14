@@ -365,7 +365,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
       setUploadProgress('Calculating price...');
       
       // Convert USD to MATIC for Polygon
-      const priceInDev = priceUsd ? (priceUsd / maticUsdPrice) : 0.1;
+      const priceInDev = (priceUsd != null && priceUsd > 0) ? (priceUsd / maticUsdPrice) : 0;
       // toFixed(8) prevents scientific notation and truncates excessive decimal places
       // that ethers.parseEther can't handle (e.g. "3.3333333333333335" → "3.33333333")
       const priceInWei = ethers.parseEther(priceInDev.toFixed(8));
@@ -451,7 +451,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!title || !session?.user?.id || !priceUsd) {
+    if (!title || !session?.user?.id || priceUsd === undefined || priceUsd === null) {
       alert("Please fill in all required fields and sign in.");
       return;
     }
@@ -939,7 +939,7 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
               uploading ||
               !title ||
               !session?.user?.id ||
-              !priceUsd ||
+              priceUsd === undefined ||
               !audioFile ||
               (audioFile && audioFile.size > 50 * 1024 * 1024)
             }
