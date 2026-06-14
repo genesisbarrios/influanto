@@ -571,7 +571,7 @@ return (
       {featuredNfts.length > 0 && (
         <div className="mt-6 mb-4">
           <h3 className="text-lg font-semibold mb-4 text-center" style={{ color: textColor, fontFamily: font || "inherit" }}>
-            Music
+            Collect to Own
           </h3>
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px" }}>
             {featuredNfts.map((nft: any) => (

@@ -393,8 +393,9 @@ const MusicNFTCreationModal: React.FC<NFTCreationModalProps> = ({
         // Call the mint function - make sure parameters match your contract
         const result = await mintTrack(
           metadataHash,
-          priceInWei,  // Use Wei instead of string
-          editionSize || 1
+          priceInWei,
+          editionSize || 1,
+          walletAddresses[0]  // explicit address — never let mintTrack guess from stale state
         );
 
         console.log('✅ Mint transaction result:', result);
