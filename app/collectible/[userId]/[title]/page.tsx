@@ -9,7 +9,6 @@ import {
   faVolumeUp,
   faVolumeMute,
   faShoppingCart,
-  faWallet,
   faExternalLinkAlt,
   faSpinner,
   faCheckCircle,
@@ -76,6 +75,7 @@ const CollectibleMintPage: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userOwned, setUserOwned] = useState<number | null>(null);
   
   // Audio player state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -114,6 +114,30 @@ const CollectibleMintPage: React.FC = () => {
       setKnownAddresses(addrs);
     }).catch(() => {});
   }, [authStatus]);
+
+  // Fetch how many editions the logged-in user owns via ERC1155 balanceOf
+  useEffect(() => {
+    const address = walletAddresses[0];
+    const tokenId = collectible?.tokenId;
+    const contract = process.env.NEXT_PUBLIC_MUSIC_NFT_CONTRACT_ADDRESS;
+    if (!address || !tokenId || !contract) return;
+
+    const paddedAddress = address.slice(2).toLowerCase().padStart(64, '0');
+    const paddedId = tokenId.toString(16).padStart(64, '0');
+    const data = '0x00fdd58e' + paddedAddress + paddedId; // balanceOf(address,uint256)
+
+    fetch('https://rpc-amoy.polygon.technology', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: contract, data }, 'latest'], id: 1 }),
+    })
+      .then(r => r.json())
+      .then(res => {
+        const hex = res.result;
+        if (hex && hex !== '0x') setUserOwned(parseInt(hex, 16));
+      })
+      .catch(() => {});
+  }, [walletAddresses, collectible?.tokenId]);
 
   useEffect(() => {
     const primary = walletAddresses[0];
@@ -554,6 +578,12 @@ const CollectibleMintPage: React.FC = () => {
                   <span className="text-gray-500">Sold:</span>
                   <span className="ml-2 font-medium">{collectible.mintedEditions || 0} / {collectible.editionSize}</span>
                 </div>
+                {userOwned !== null && (
+                  <div>
+                    <span className="text-gray-500">Own:</span>
+                    <span className="ml-2 font-medium">{userOwned}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -573,17 +603,14 @@ const CollectibleMintPage: React.FC = () => {
               </p>
                 </div>
               ) : (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                  <div className="flex items-center gap-2">
-                    <FontAwesomeIcon icon={faWallet} className="text-yellow-600" />
-                    <span className="text-yellow-800 font-medium">Connect Wallet to Mint</span>
-                  </div>
-                  <button
-                    onClick={connectWallet}
-                    className="mt-3 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6 text-center">
+                  <p className="text-purple-800 font-medium mb-3">Sign up to mint</p>
+                  <a
+                    href="/signin"
+                    className="inline-block px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
                   >
-                    Connect Wallet
-                  </button>
+                    Sign Up
+                  </a>
                 </div>
               )}
 

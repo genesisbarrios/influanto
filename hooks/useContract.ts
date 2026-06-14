@@ -944,28 +944,6 @@ const mintTrack = async (hash: string, price: bigint | string, maxEditions: numb
 
     const AMOY_RPC_URL = 'https://rpc-amoy.polygon.technology';
 
-    // ── 1. Always use embedded Privy wallet ──────────────────────────────
-    const embeddedWallet = wallets.find((w) => w.walletClientType === 'privy');
-    if (!embeddedWallet) throw new Error('No embedded Privy wallet found. Please connect your wallet via the app.');
-
-    // ── 2. Switch to Amoy ────────────────────────────────────────────────
-    try { await embeddedWallet.switchChain(80002); } catch { /* already on Amoy */ }
-    await new Promise(r => setTimeout(r, 400));
-
-    // ── 3. Get fresh signer ──────────────────────────────────────────────
-    const eip1193 = await embeddedWallet.getEthereumProvider();
-    const freshProvider = new BrowserProvider(eip1193);
-    const freshSigner = await freshProvider.getSigner();
-    const userAddress = await freshSigner.getAddress();
-
-    // ── 4. Fetch on-chain price directly (source of truth) ───────────────
-    const readProvider = new ethers.JsonRpcProvider(AMOY_RPC_URL, { chainId: 80002, name: 'polygon-amoy' });
-    const infoContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, readProvider);
-    const [, , onChainPrice, , , exists] = await infoContract.getTokenInfo(tokenId);
-    if (!exists) throw new Error(`Token #${tokenId} does not exist on-chain.`);
-    const priceWei: bigint = onChainPrice;
-
-    // ── 5. Check balance ─────────────────────────────────────────────────
     const rpcPost = async (method: string, params: any[]) => {
       const res = await fetch(AMOY_RPC_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -973,32 +951,110 @@ const mintTrack = async (hash: string, price: bigint | string, maxEditions: numb
       });
       return (await res.json()).result;
     };
-    const balance = BigInt(await rpcPost('eth_getBalance', [userAddress, 'latest']) ?? '0x0');
-    console.log('💰 POL balance:', ethers.formatEther(balance), '  price:', ethers.formatEther(priceWei));
 
-    if (balance < priceWei) {
-      const DRIP_AMOUNT = ethers.parseEther('0.015');
-      if (balance + DRIP_AMOUNT >= priceWei) {
-        // Drip directly to the embedded wallet address being used
+    // ── 1. Find the richest eligible wallet ──────────────────────────────
+    // Eligible = wallet address matches one of the user's registered addresses.
+    // We check BOTH Privy-managed wallets (embedded + external EVM connected via
+    // Privy) AND the raw window.ethereum injected wallet. Whichever has the most
+    // Amoy POL is used for the transaction.
+    const eligible = knownAddresses.length > 0
+      ? wallets.filter((w) => w.address && knownAddresses.some((a) => a.toLowerCase() === w.address!.toLowerCase()))
+      : wallets;
+
+    let bestPrivyWallet: (typeof wallets)[0] | null = eligible[0] ?? null;
+    let bestBalance = BigInt(0);
+    let useInjected = false; // fall back to window.ethereum
+
+    for (const w of eligible) {
+      if (!w.address) continue;
+      try {
+        const bal = BigInt(await rpcPost('eth_getBalance', [w.address, 'latest']) ?? '0x0');
+        if (bal > bestBalance) { bestBalance = bal; bestPrivyWallet = w; }
+      } catch { /* skip */ }
+    }
+
+    // Also check window.ethereum if its active account is a known address
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
+      try {
+        const accounts: string[] = await (window as any).ethereum.request({ method: 'eth_accounts' });
+        const match = accounts.find((a) => knownAddresses.some((k) => k.toLowerCase() === a.toLowerCase()));
+        if (match) {
+          const bal = BigInt(await rpcPost('eth_getBalance', [match, 'latest']) ?? '0x0');
+          if (bal > bestBalance) { bestBalance = bal; bestPrivyWallet = null; useInjected = true; }
+        }
+      } catch { /* skip */ }
+    }
+
+    if (!bestPrivyWallet && !useInjected) {
+      throw new Error('No wallet connected. Please connect your wallet via the app.');
+    }
+
+    // ── 2. Fetch on-chain price (source of truth) ────────────────────────
+    const readProvider = new ethers.JsonRpcProvider(AMOY_RPC_URL, { chainId: 80002, name: 'polygon-amoy' });
+    const infoContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, readProvider);
+    const [, , onChainPrice, , , exists] = await infoContract.getTokenInfo(tokenId);
+    if (!exists) throw new Error(`Token #${tokenId} does not exist on-chain.`);
+    const priceWei: bigint = onChainPrice;
+
+    // ── 3. Resolve the signing address ───────────────────────────────────
+    let userAddress: string;
+    if (bestPrivyWallet) {
+      userAddress = bestPrivyWallet.address!;
+    } else {
+      const accounts: string[] = await (window as any).ethereum.request({ method: 'eth_accounts' });
+      userAddress = accounts.find((a) => knownAddresses.some((k) => k.toLowerCase() === a.toLowerCase()))!;
+    }
+
+    // ── 4. Check balance; drip if gap is small enough ────────────────────
+    // GAS_BUFFER covers gas cost on top of the NFT price (buy() uses ~85k gas at ~50 Gwei ≈ 0.006 POL)
+    const GAS_BUFFER = ethers.parseEther('0.008');
+    const DRIP_AMOUNT = ethers.parseEther('0.015');
+    const needed = priceWei + GAS_BUFFER;
+    const balance = BigInt(await rpcPost('eth_getBalance', [userAddress, 'latest']) ?? '0x0');
+    console.log('💰 balance:', ethers.formatEther(balance), '  needed (price+gas):', ethers.formatEther(needed));
+
+    if (balance < needed) {
+      if (balance + DRIP_AMOUNT >= needed) {
         const dripRes = await fetch('/api/wallet/drip', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ to: userAddress }),
         });
-        const dripData = await dripRes.json();
-        // success = drip sent, skipped = already had enough (both mean we can proceed)
-        if (dripData.success || dripData.skipped) {
-          const newBal = BigInt(await rpcPost('eth_getBalance', [userAddress, 'latest']) ?? '0x0');
-          if (newBal < priceWei) {
-            throw new Error(`Insufficient POL. Need ${ethers.formatEther(priceWei)} POL, wallet has ${ethers.formatEther(newBal)} POL.`);
-          }
-        } else {
-          throw new Error(`Insufficient POL. Need ${ethers.formatEther(priceWei)} POL, wallet has ${ethers.formatEther(balance)} POL. Get testnet POL at faucet.polygon.technology`);
+        const dripData = await dripRes.json().catch(() => ({}));
+        if (!dripRes.ok || (!dripData.success && !dripData.skipped)) {
+          throw new Error(`Wallet needs ${ethers.formatEther(needed)} POL to buy. Please fund ${userAddress} at faucet.polygon.technology`);
+        }
+        const newBal = BigInt(await rpcPost('eth_getBalance', [userAddress, 'latest']) ?? '0x0');
+        if (newBal < needed) {
+          throw new Error(`Insufficient POL after drip. Need ${ethers.formatEther(needed)} POL, have ${ethers.formatEther(newBal)} POL. Fund ${userAddress} at faucet.polygon.technology`);
         }
       } else {
-        throw new Error(`Insufficient POL. Need ${ethers.formatEther(priceWei)} POL but wallet only has ${ethers.formatEther(balance)} POL. Get testnet POL at faucet.polygon.technology`);
+        throw new Error(`Insufficient POL. Need ${ethers.formatEther(needed)} POL (price + gas), wallet only has ${ethers.formatEther(balance)} POL. Fund ${userAddress} at faucet.polygon.technology`);
       }
     }
+
+    // ── 5. Switch to Amoy & get signer ───────────────────────────────────
+    let eip1193: any;
+    if (bestPrivyWallet) {
+      try { await bestPrivyWallet.switchChain(80002); } catch { /* already on Amoy */ }
+      await new Promise((r) => setTimeout(r, 400));
+      eip1193 = await bestPrivyWallet.getEthereumProvider();
+    } else {
+      try {
+        await (window as any).ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x13882' }] });
+      } catch (e: any) {
+        if (e.code === 4902) {
+          await (window as any).ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{ chainId: '0x13882', chainName: 'Polygon Amoy Testnet', nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 }, rpcUrls: [AMOY_RPC_URL], blockExplorerUrls: ['https://amoy.polygonscan.com'] }],
+          });
+        } else throw e;
+      }
+      await new Promise((r) => setTimeout(r, 400));
+      eip1193 = (window as any).ethereum;
+    }
+
+    const freshProvider = new BrowserProvider(eip1193);
+    const freshSigner = await freshProvider.getSigner();
 
     // ── 6. Send the buy transaction ──────────────────────────────────────
     const feeData = await readProvider.getFeeData();

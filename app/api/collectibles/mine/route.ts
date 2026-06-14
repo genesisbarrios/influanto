@@ -148,7 +148,28 @@ export async function GET(req: Request) {
       })
     );
 
-    return NextResponse.json({ collectibles: collectibles.filter(Boolean) });
+    const valid = collectibles.filter(Boolean) as NonNullable<(typeof collectibles)[number]>[];
+
+    // Resolve ENS names for creator addresses (same as browse endpoint)
+    const { data: userRows } = await supabase
+      .from("users")
+      .select("wallet_addresses, ens_name")
+      .not("ens_name", "is", null);
+
+    const ensMap = new Map<string, string>();
+    for (const row of userRows ?? []) {
+      if (!row.ens_name) continue;
+      for (const addr of row.wallet_addresses ?? []) {
+        ensMap.set(addr.toLowerCase(), row.ens_name);
+      }
+    }
+
+    return NextResponse.json({
+      collectibles: valid.map((c) => ({
+        ...c,
+        creatorEns: ensMap.get(c.creator.toLowerCase()) ?? null,
+      })),
+    });
   } catch (err: any) {
     console.error("collectibles/mine error:", err?.message);
     return NextResponse.json(
