@@ -62,7 +62,9 @@ const Collectibles = () => {
 
   useEffect(() => {
     if (!mounted || !authenticated || wallets.length === 0 || !walletInfoLoaded) return;
-    if (!walletInfoFetchOk && !userTriggeredRef.current) return;
+    if (!walletInfoFetchOk) return;
+    // For first-time users (no wallet in DB yet), only save if the user explicitly clicked
+    if (walletAddresses.length === 0 && !userTriggeredRef.current) return;
 
     const unsaved = wallets.find(
       (w) => w.address && !walletAddresses.includes(w.address) && !attemptedSavesRef.current.has(w.address)
