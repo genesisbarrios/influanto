@@ -79,8 +79,9 @@ const ReleasePageView = () => {
     try {
       const response = await fetch(`/api/products/${userId}`);
       if (response.ok) {
-        const allProducts = await response.json();
-        const filteredProducts = allProducts.filter((product: any) => 
+        const data = await response.json();
+        const allProducts: any[] = Array.isArray(data) ? data : (data.products ?? []);
+        const filteredProducts = allProducts.filter((product: any) =>
           selectedProductIds.includes(product.id)
         );
         console.log('✅ Filtered merch products:', filteredProducts);

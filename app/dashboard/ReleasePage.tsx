@@ -155,9 +155,9 @@ const ReleasePages = () => {
       const response = await fetch(url);
       
       if (response.ok) {
-        const products = await response.json();
-        console.log('✅ Products received:', products);
-        setAvailableProducts(products);
+        const data = await response.json();
+        console.log('✅ Products received:', data);
+        setAvailableProducts(Array.isArray(data) ? data : (data.products ?? []));
       } else {
         const errorText = await response.text();
         console.error('❌ Error response:', errorText);
