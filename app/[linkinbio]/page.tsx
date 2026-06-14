@@ -42,6 +42,7 @@ const LinkInBioPage =  () => {
   const [availableProducts, setAvailableProducts] = useState<any[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [featuredNfts, setFeaturedNfts] = useState<any[]>([]);
   
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -248,8 +249,16 @@ useEffect(() => {
         
         // Set selected products if they exist
         if (data.linkInBio?.selectedProducts && Array.isArray(data.linkInBio.selectedProducts)) {
-          //console.log('🔍 Setting selected products:', data.linkInBio.selectedProducts);
           setSelectedProductIds(data.linkInBio.selectedProducts);
+        }
+
+        // Load featured collectibles
+        const nftIds: string[] = data.linkInBio?.selectedNftIds ?? [];
+        if (nftIds.length > 0) {
+          fetch(`/api/collectibles/user?ids=${nftIds.join(",")}`)
+            .then(r => r.json())
+            .then(({ collectibles }) => setFeaturedNfts(collectibles ?? []))
+            .catch(() => {});
         }
         
         console.log('🔍 LinkInBio data:', data.linkInBio);
@@ -558,10 +567,62 @@ return (
         )}
 
       
+      {/* MUSIC / NFT SECTION */}
+      {featuredNfts.length > 0 && (
+        <div className="mt-6 mb-4">
+          <h3 className="text-lg font-semibold mb-4 text-center" style={{ color: textColor, fontFamily: font || "inherit" }}>
+            Music
+          </h3>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px" }}>
+            {featuredNfts.map((nft: any) => (
+              <div
+                key={nft.id}
+                style={{
+                  width: "160px",
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  backgroundColor: cardBgColor || "rgba(255,255,255,0.08)",
+                  textAlign: "center",
+                }}
+              >
+                {nft.imageUrl && (
+                  <img
+                    src={nft.imageUrl}
+                    alt={nft.title}
+                    style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover" }}
+                  />
+                )}
+                <div style={{ padding: "10px 8px 12px" }}>
+                  <p style={{ color: textColor, fontFamily: font || "inherit", fontWeight: 600, fontSize: "0.85rem", marginBottom: "8px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {nft.title}
+                  </p>
+                  <a
+                    href={`/collectible/${nft.userId}/${encodeURIComponent(nft.title)}`}
+                    style={{
+                      display: "inline-block",
+                      padding: "6px 14px",
+                      borderRadius: "99px",
+                      backgroundColor: linksColor || "#7c3aed",
+                      color: "#fff",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      textDecoration: "none",
+                      fontFamily: font || "inherit",
+                    }}
+                  >
+                    Buy Now
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* MERCH SECTION */}
       {user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
         <div className="mt-6 mb-4">
-          <hr style={{margin: "5% 0"}}></hr>
           <h3 className="text-lg font-semibold mb-3 text-center" style={{
             color: textColor,
             fontFamily: font || 'inherit'

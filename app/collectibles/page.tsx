@@ -14,6 +14,7 @@ const WalletManagerModal = dynamic(() => import("@/components/WalletManagerModal
 interface ChainCollectible {
   tokenId: number;
   creator: string;
+  creatorEns: string | null;
   title: string;
   description: string;
   imageUrl: string;
@@ -335,7 +336,7 @@ export default function Collectibles() {
 
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.5rem" }}>
                       <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#a78bfa" }}>
-                        {parseFloat(c.priceMatic).toFixed(4)} MATIC
+                        {parseFloat(c.priceMatic).toFixed(4)} POL
                       </span>
                       <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.55)" }}>
                         {c.minted}/{c.maxEditions} minted
@@ -351,7 +352,7 @@ export default function Collectibles() {
                           fontFamily: "monospace",
                         }}
                       >
-                        {fmtAddress(c.creator)}
+                        {c.creatorEns ?? fmtAddress(c.creator)}
                       </span>
                     )}
 

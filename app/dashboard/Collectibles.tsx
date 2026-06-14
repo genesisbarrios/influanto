@@ -333,7 +333,7 @@ const Collectibles = () => {
                 <h3 className="font-semibold text-gray-800 truncate">{c.title}</h3>
                 <p className="text-xs text-gray-500 mt-0.5">{c.artist}</p>
                 <div className="flex justify-between items-center mt-2">
-                  <span className="text-xs font-medium text-purple-600">{parseFloat(c.priceMatic).toFixed(4)} MATIC</span>
+                  <span className="text-xs font-medium text-purple-600">{parseFloat(c.priceMatic).toFixed(4)} POL</span>
                   <span className="text-xs text-gray-400">{c.minted}/{c.maxEditions} minted</span>
                 </div>
               </div>

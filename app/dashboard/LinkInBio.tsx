@@ -195,6 +195,10 @@ const LinkInBio = () => {
   const [picker, setPicker] = useState<{ type: 'link'; index: number } | { type: 'brand' } | null>(null);
   const [showMerchSection, setShowMerchSection] = useState(true);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [availableNfts, setAvailableNfts] = useState<any[]>([]);
+  const [selectedNftIds, setSelectedNftIds] = useState<string[]>([]);
+  const [showNftPicker, setShowNftPicker] = useState(false);
+  const [isLoadingNfts, setIsLoadingNfts] = useState(false);
 
   // ── Effects ────────────────────────────────────────────────────────────────
 
@@ -215,6 +219,30 @@ const LinkInBio = () => {
       setSelectedProductIds(linkInBio.selectedProducts);
     }
   }, [linkInBio?.selectedProducts]);
+
+  useEffect(() => {
+    if (linkInBio?.selectedNftIds) {
+      setSelectedNftIds(linkInBio.selectedNftIds);
+    }
+  }, [linkInBio?.selectedNftIds]);
+
+  useEffect(() => {
+    if (!isEditing) return;
+    setIsLoadingNfts(true);
+    // Fetch wallet address first, then pull collectibles by on-chain creator address
+    // (more reliable than user_id lookup if records were saved with a different session)
+    apiClient.get("/wallet/info")
+      .then((info: any) => {
+        const addr = (info?.walletAddresses ?? [])[0];
+        const url = addr
+          ? `/collectibles/chain?creator=${encodeURIComponent(addr)}`
+          : "/collectibles/chain";
+        return apiClient.get(url);
+      })
+      .then((res: any) => setAvailableNfts(res.collectibles ?? []))
+      .catch(() => setAvailableNfts([]))
+      .finally(() => setIsLoadingNfts(false));
+  }, [isEditing]);
 
   // Load the user's existing images for the picker gallery
   const loadGallery = () => {
@@ -472,6 +500,7 @@ const LinkInBio = () => {
         font: linkInBio?.font,
         cardBgColor: linkInBio?.cardBgColor,
         selectedProducts: selectedProductIds,
+        selectedNftIds: selectedNftIds,
         // Background mode fields
         bgMode: linkInBio?.bgMode,
         bgImageCustom: linkInBio?.bgImageCustom,
@@ -1054,6 +1083,59 @@ const LinkInBio = () => {
             </div>
           )}
             </div>
+          </div>
+
+          {/* ── Collectibles Section ── */}
+          <div className="mb-4 p-4 bg-purple-50 rounded-md border border-purple-200">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-bold text-purple-800">🎵 Collectibles</h4>
+              {availableNfts.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowNftPicker(!showNftPicker)}
+                  className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors"
+                >
+                  {showNftPicker ? "Hide" : "Select"}
+                </button>
+              )}
+            </div>
+            <p className="text-purple-600 text-sm mb-2">Sell your music direct to your fans.</p>
+            {isLoadingNfts ? (
+              <p className="text-xs text-purple-400">Loading your collectibles…</p>
+            ) : availableNfts.length === 0 ? (
+              <p className="text-xs text-purple-400">No collectibles found. Mint a track first.</p>
+            ) : (
+              <>
+                {selectedNftIds.length > 0 && (
+                  <p className="text-xs text-purple-700 mb-2">{selectedNftIds.length} collectible{selectedNftIds.length !== 1 ? "s" : ""} selected</p>
+                )}
+                {showNftPicker && (
+                  <div className="mt-2 space-y-2 max-h-60 overflow-y-auto">
+                    {availableNfts.map((nft: any) => {
+                      const selected = selectedNftIds.includes(nft.id);
+                      return (
+                        <div
+                          key={nft.id}
+                          onClick={() => setSelectedNftIds(prev =>
+                            selected ? prev.filter(id => id !== nft.id) : [...prev, nft.id]
+                          )}
+                          className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-colors ${selected ? "bg-purple-100 border-purple-400" : "bg-white border-gray-200 hover:bg-gray-50"}`}
+                        >
+                          <input type="checkbox" readOnly checked={selected} className="h-4 w-4 accent-purple-600" />
+                          {nft.imageUrl && (
+                            <img src={nft.imageUrl} alt={nft.title} className="w-10 h-10 object-cover rounded" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-800 truncate">{nft.title}</p>
+                            <p className="text-xs text-gray-400">${nft.priceUsd} · {nft.status}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {/* ── Merch Integration Banner ── */}

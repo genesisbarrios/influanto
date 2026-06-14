@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   try {
-    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, font, newsletterEnabled, newsletterFields, brandLogoUrl, bgMode, bgImage, bgImageCustom, patternId, patternFg, patternBg, patternOpacity, pageBgColor } = body;
+    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, selectedNftIds, font, newsletterEnabled, newsletterFields, brandLogoUrl, bgMode, bgImage, bgImageCustom, patternId, patternFg, patternBg, patternOpacity, pageBgColor } = body;
 
     if (id) {
       const updates: Record<string, any> = { user_id: userId };
@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
       if (video !== undefined) updates.video = video;
       if (Array.isArray(links)) updates.links = links;
       if (selectedProducts !== undefined) updates.selected_products = selectedProducts ?? [];
+      if (selectedNftIds !== undefined) updates.selected_nft_ids = selectedNftIds ?? [];
       if (newsletterEnabled !== undefined) updates.newsletter_enabled = newsletterEnabled;
       if (newsletterFields !== undefined) updates.newsletter_fields = newsletterFields ?? ["name", "email"];
       updates.brand_logo_url = brandLogoUrl ?? null;
@@ -65,6 +66,7 @@ export async function POST(req: NextRequest) {
         description,
         name,
         selected_products: selectedProducts ?? [],
+        selected_nft_ids: selectedNftIds ?? [],
         newsletter_enabled: newsletterEnabled ?? false,
         newsletter_fields: newsletterFields ?? ["name", "email"],
         brand_logo_url: brandLogoUrl ?? null,
