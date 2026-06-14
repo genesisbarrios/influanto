@@ -26,37 +26,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { error } = await supabase.from("collectibles").upsert(
-      {
-        user_id:          session.user.id,
-        title,
-        description:      description ?? "",
-        artist:           artist ?? "",
-        type:             "single",
-        storage_provider: "walrus",
-        metadata_uri:     metadataUri,
-        metadata_hash:    metadataHash,
-        audio_url:        audioUrl,
-        audio_blob_id:    audioBlobId ?? null,
-        image_url:        imageUrl ?? null,
-        image_blob_id:    imageBlobId ?? null,
-        genres:           Array.isArray(genres) ? genres : [],
-        bpm:              bpm ?? null,
-        lyrics:           lyrics ?? null,
-        release_date:     releaseDate ?? null,
-        price_usd:        priceUsd ?? 0,
-        edition_size:     editionSize ?? 1,
-        token_id:         String(tokenId),
-        tx_hash:          txHash ?? null,
-        block_number:     blockNumber ?? null,
-        contract_address: contractAddress ?? null,
-        status:           "minted",
-        network:          "polygon",
-      },
-      { onConflict: "token_id,network" }
-    );
+    const { error } = await supabase.from("collectibles").insert({
+      user_id:          session.user.id,
+      title,
+      description:      description ?? "",
+      artist:           artist ?? "",
+      type:             "single",
+      storage_provider: "walrus",
+      metadata_uri:     metadataUri,
+      metadata_hash:    metadataHash,
+      audio_url:        audioUrl,
+      audio_blob_id:    audioBlobId ?? null,
+      image_url:        imageUrl ?? null,
+      image_blob_id:    imageBlobId ?? null,
+      genres:           Array.isArray(genres) ? genres : [],
+      bpm:              bpm ?? null,
+      lyrics:           lyrics ?? null,
+      release_date:     releaseDate ?? null,
+      price_usd:        priceUsd ?? 0,
+      edition_size:     editionSize ?? 1,
+      token_id:         String(tokenId),
+      tx_hash:          txHash ?? null,
+      block_number:     blockNumber ?? null,
+      contract_address: contractAddress ?? null,
+      status:           "minted",
+      network:          "polygon",
+    });
 
-    if (error) {
+    // Ignore duplicate inserts (same token already saved)
+    if (error && !error.message.includes("duplicate")) {
       console.error("Supabase save error:", error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }

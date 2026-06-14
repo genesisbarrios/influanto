@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ethers } from "ethers";
+import supabase from "@/libs/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -91,8 +92,20 @@ export async function GET() {
       })
     );
 
+    const onChain = collectibles.filter(Boolean) as NonNullable<(typeof collectibles)[number]>[];
+
+    // Only show tokens that also exist in the DB (so deleted records don't linger)
+    const tokenIds = onChain.map((c) => String(c.tokenId));
+    const { data: dbRows } = await supabase
+      .from("collectibles")
+      .select("token_id")
+      .in("token_id", tokenIds)
+      .eq("network", "polygon");
+
+    const dbTokenIds = new Set((dbRows ?? []).map((r: any) => String(r.token_id)));
+
     return NextResponse.json({
-      collectibles: collectibles.filter(Boolean),
+      collectibles: onChain.filter((c) => dbTokenIds.has(String(c.tokenId))),
     });
   } catch (err: any) {
     console.error("chain/collectibles error:", err?.message);
