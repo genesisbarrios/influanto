@@ -149,6 +149,11 @@ function applyBodyBackground(linkInBio: any, bgImage: any, bgColor: any) {
     document.body.style.backgroundSize = 'cover';
     document.body.style.backgroundPosition = 'center';
     document.body.style.backgroundColor = '';
+  } else if (linkInBio?.bgMode === 'solid') {
+    document.body.style.backgroundImage = 'none';
+    document.body.style.backgroundColor = bgColor || '';
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundPosition = '';
   } else if (bgImage) {
     document.body.style.backgroundImage = `url('${bgImage}')`;
     document.body.style.backgroundSize = 'cover';
@@ -188,6 +193,7 @@ const LinkInBio = () => {
   const [newsletterFields, setNewsletterFields] = useState<string[]>(["name", "email"]);
   const [cardBgOpacity, setCardBgOpacity] = useState(100);
   const [picker, setPicker] = useState<{ type: 'link'; index: number } | { type: 'brand' } | null>(null);
+  const [showMerchSection, setShowMerchSection] = useState(true);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
 
   // ── Effects ────────────────────────────────────────────────────────────────
@@ -305,8 +311,8 @@ const LinkInBio = () => {
     try {
       const response = await fetch(`/api/products/${user.id}`);
       if (response.ok) {
-        const data = await response.json();
-        setAvailableProducts(Array.isArray(data) ? data : (data.products ?? []));
+        const products = await response.json();
+        setAvailableProducts(products);
       } else {
         console.error('Error fetching products:', await response.text());
       }
@@ -704,7 +710,7 @@ const LinkInBio = () => {
                           <input
                             type="checkbox"
                             className="mr-2"
-                            checked={link.displayVideo || true}
+                            checked={link.displayVideo ?? true}
                             onChange={(e) => updateYouTubeLinkOptions(index, e.target.checked)}
                           />
                         </label>
@@ -808,21 +814,17 @@ const LinkInBio = () => {
                     <input type="color" value={linksColor} onChange={(e) => setLinksColor(e.target.value)}
                       className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer" />
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>BG</span>
-                    <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)}
-                      className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer" />
-                  </div>
-                </div>
-
-                {/* Card BG + opacity (own line) */}
-                <div className="flex justify-center items-center gap-4 mb-3 flex-wrap">
-                  <div className="flex items-center gap-1">
+                   <div className="flex items-center gap-1">
                     <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Card BG</span>
                     <input type="color" value={parseColorValue(linkInBio?.cardBgColor, "#ffffff").hex}
                       onChange={e => setLinkInBio({ ...linkInBio, cardBgColor: combineColor(e.target.value, cardBgOpacity) })}
                       className="w-8 h-8 sm:w-12 sm:h-12 border border-gray-300 rounded-lg cursor-pointer" />
                   </div>
+                </div>
+
+                {/* opacity*/}
+                <div className="flex justify-center items-center gap-4 mb-3 flex-wrap">
+                 
                   <div className="flex items-center gap-2">
                     <span className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Opacity</span>
                     <input type="range" min={0} max={100} value={cardBgOpacity}
@@ -841,7 +843,7 @@ const LinkInBio = () => {
                 </div>
 
                 {/* Font Row */}
-                <div className="flex items-center mb-4">
+                <div className="flex justify-center mb-4">
                   <div className="flex items-center gap-2">
                     <label className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Font:</label>
                     <select
@@ -872,12 +874,13 @@ const LinkInBio = () => {
                       { id: 'image', label: '🖼 Stock' },
                       { id: 'upload', label: '⬆️ Upload' },
                       { id: 'pattern', label: '🔷 Pattern' },
+                      { id: 'solid', label: '🎨 Solid' },
                     ].map((tab) => (
                       <button
                         key={tab.id}
                         type="button"
                         className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                          (linkInBio?.bgMode || 'image') === tab.id
+                          (linkInBio?.bgMode || 'pattern') === tab.id
                             ? 'bg-white shadow text-blue-700'
                             : 'text-gray-500 hover:text-gray-700'
                         }`}
@@ -891,7 +894,7 @@ const LinkInBio = () => {
                   </div>
 
                   {/* Tab: Stock Images */}
-                  {(linkInBio?.bgMode || 'image') === 'image' && (
+                  {(linkInBio?.bgMode || 'pattern') === 'image' && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 justify-items-center max-w-lg mx-auto">
                       <button
                         type="button"
@@ -988,14 +991,20 @@ const LinkInBio = () => {
                   {linkInBio?.bgMode === 'pattern' && (
                     <HeroPatternPicker linkInBio={linkInBio} setLinkInBio={setLinkInBio} />
                   )}
+
+                  {/* Tab: Solid Color */}
+                  {linkInBio?.bgMode === 'solid' && (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Page Color</label>
+                        <input type="color" value={bgColor || '#ffffff'} onChange={e => setBgColor(e.target.value)} className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer" />
+                      </div>
+                      <div className="w-full h-12 rounded-lg border border-gray-200" style={{ backgroundColor: bgColor || '#ffffff' }} />
+                    </div>
+                  )}
                 </div>
-
               </div>
-
-            </div>
-          </div>
-
-          {/* ── Brand Logo (Premium) ── */}
+               {/* ── Brand Logo (Premium) ── */}
           {user?.hasAccess && (
             <div className="mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
               <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
@@ -1044,47 +1053,28 @@ const LinkInBio = () => {
               </div>
             </div>
           )}
+            </div>
+          </div>
 
           {/* ── Merch Integration Banner ── */}
           <div className="mb-4 p-4 bg-purple-50 rounded-md border border-purple-200">
-            <h4 className="font-bold mb-2 text-purple-800">🛒 Merch Integration</h4>
-            <p className="text-purple-600 text-sm">
-              {!user?.printifyShopId
-                ? "Connect your Printify store to your Profile to add merch to your release pages"
-                : "Your Printify store is connected. Select products to feature below."
-              }
-            </p>
-          </div>
-
-          {/* ── Newsletter Signup ── */}
-          <div className="mb-4 p-4 bg-indigo-50 rounded-md border border-indigo-100">
-            <div className="flex items-center gap-2">
-              <button type="button" role="switch" aria-checked={newsletterEnabled}
-                onClick={() => setNewsletterEnabled(!newsletterEnabled)}
-                style={{ width: 46, height: 26, borderRadius: 999, background: newsletterEnabled ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
-                <span style={{ position: 'absolute', top: 3, left: newsletterEnabled ? 23 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
-              </button>
-              <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setNewsletterEnabled(!newsletterEnabled)}>📣 Collect newsletter signups</span>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-bold text-purple-800">🛒 Merch Integration</h4>
             </div>
-            <p className="text-indigo-600 text-sm mt-1">Show a signup form on your public page so fans can join your Outreach contacts.</p>
-            {newsletterEnabled && (
-              <div className="mt-3">
-                <p className="text-xs font-semibold text-indigo-700 mb-2">Fields to collect (email is always required):</p>
-                <div className="flex flex-wrap gap-3">
-                  {[["name", "Name"], ["phone", "Phone"], ["instagram", "Instagram"], ["tiktok", "TikTok"]].map(([key, label]) => (
-                    <label key={key} className="flex items-center gap-1.5 text-sm cursor-pointer">
-                      <input type="checkbox" style={{ width: 16, height: 16, accentColor: '#4f46e5', cursor: 'pointer' }} checked={newsletterFields.includes(key)} onChange={() => toggleNewsletterField(key)} />
-                      {label}
-                    </label>
-                  ))}
-                </div>
+            {showMerchSection && (
+            <>
+            {!user?.printifyShopId ? (
+              <p className="text-purple-600 text-sm">Connect your Printify store to your Profile to add merch to your release pages</p>
+            ) : (
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <p className="text-purple-600 text-sm">Your Printify store is connected. Select products to feature below.</p>
+                <button type="button" onClick={() => setShowProducts(!showProducts)} className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors whitespace-nowrap">
+                  {showProducts ? 'Hide' : 'Show'}
+                </button>
               </div>
             )}
-          </div>
-
-          {/* ── Product Selection ── */}
-          {user?.printifyShopId && (
-            <div className="mt-8 w-full border-t pt-6">
+          {user?.printifyShopId && showProducts && (
+            <div className="mt-4 w-full border-t pt-4">
               <div className="mb-4 text-center">
                 <h2 className="text-md font-semibold" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
                   🛍️ Select Products from Printify (Max 10)
@@ -1251,6 +1241,35 @@ const LinkInBio = () => {
               )}
             </div>
           )}
+            </>
+            )}
+          </div>
+
+          {/* ── Newsletter Signup ── */}
+          <div className="mb-4 p-4 bg-indigo-50 rounded-md border border-indigo-100">
+            <div className="flex items-center gap-2">
+              <button type="button" role="switch" aria-checked={newsletterEnabled}
+                onClick={() => setNewsletterEnabled(!newsletterEnabled)}
+                style={{ width: 46, height: 26, borderRadius: 999, background: newsletterEnabled ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
+                <span style={{ position: 'absolute', top: 3, left: newsletterEnabled ? 23 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
+              </button>
+              <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setNewsletterEnabled(!newsletterEnabled)}>📣 Collect newsletter signups</span>
+            </div>
+            <p className="text-indigo-600 text-sm mt-1">Show a signup form on your public page so fans can join your Outreach contacts.</p>
+            {newsletterEnabled && (
+              <div className="mt-3">
+                <p className="text-xs font-semibold text-indigo-700 mb-2">Fields to collect (email is always required):</p>
+                <div className="flex flex-wrap gap-3">
+                  {[["name", "Name"], ["phone", "Phone"], ["instagram", "Instagram"], ["tiktok", "TikTok"]].map(([key, label]) => (
+                    <label key={key} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                      <input type="checkbox" style={{ width: 16, height: 16, accentColor: '#4f46e5', cursor: 'pointer' }} checked={newsletterFields.includes(key)} onChange={() => toggleNewsletterField(key)} />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* ── Alert ── */}
           {alert && (
