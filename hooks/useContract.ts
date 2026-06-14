@@ -228,7 +228,12 @@ export const useContract = () => {
       }
     } catch (error: any) {
       console.error('❌ Failed to initialize wallet/contract:', error);
-      setIsConnected(false);
+      // Don't mark as disconnected for transient provider timeouts — the wallet is
+      // still linked via Privy. mintTrack always fetches a fresh provider anyway.
+      const isTimeout = error?.message?.includes('Wallet timeout') || error?.message?.includes('timeout');
+      if (!isTimeout || wallets.length === 0) {
+        setIsConnected(false);
+      }
       setContractStatus('error');
     } finally {
       setIsLoading(false);
@@ -816,7 +821,7 @@ const debugContract = async () => {
   };
 
 const mintTrack = async (hash: string, price: bigint | string, maxEditions: number) => {
-  if (!isConnected) throw new Error('Wallet not connected. Please connect your wallet first.');
+  if (!isConnected && wallets.length === 0) throw new Error('Wallet not connected. Please connect your wallet first.');
   if (!CONTRACT_ADDRESS) throw new Error('Contract address not configured.');
   if (!hash || hash.trim() === '') throw new Error('Metadata URI cannot be empty.');
 
