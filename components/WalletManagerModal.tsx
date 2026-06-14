@@ -200,6 +200,22 @@ export default function WalletManagerModal({
                   {hasPrimaryEns && (
                     <span className="text-sm font-semibold text-blue-700">{ensName}</span>
                   )}
+                  {isPrimary && ready && !live && (
+                    <button
+                      disabled={reconnecting}
+                      onClick={handleReconnect}
+                      className="ml-auto text-xs px-2 py-0.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-60 transition font-semibold"
+                    >
+                      {reconnecting ? (
+                        <span className="inline-flex items-center gap-1">
+                          <span className="inline-block w-2.5 h-2.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Connecting…
+                        </span>
+                      ) : (
+                        "Reconnect"
+                      )}
+                    </button>
+                  )}
                 </div>
 
                 {/* Full address */}
