@@ -10,6 +10,48 @@ import posthog from "posthog-js";
 import { parseColorValue, combineColor } from "@/libs/color";
 import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
 import ImagePicker from "@/components/ImagePicker";
+import * as HeroPatterns from 'hero-patterns';
+
+type PatternFn = (color: string, opacity: number) => string;
+const HP = HeroPatterns as Record<string, PatternFn>;
+const PATTERN_IDS = Object.keys(HP);
+function toTitleCase(str: string) { return str.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()); }
+function buildPatternUrl(id: string, fg: string, op: number) { const fn = HP[id]; return fn ? fn(fg, op) : 'none'; }
+
+function HeroPatternPicker({ page, setPage }: { page: any; setPage: (p: any) => void }) {
+  const fg = page?.patternFg || '#000000';
+  const bg = page?.patternBg || '#ffffff';
+  const op = page?.patternOpacity ?? 0.5;
+  const sel = page?.patternId || PATTERN_IDS[0];
+  const upd = (k: string, v: any) => setPage({ ...page, [k]: v });
+  return (
+    <div className="space-y-3">
+      <div className="max-h-56 overflow-y-auto border border-gray-200 rounded-lg p-2">
+        <div className="grid grid-cols-3 gap-2">
+          {PATTERN_IDS.map(id => (
+            <button key={id} type="button" onClick={() => upd('patternId', id)}
+              className={`border-2 rounded-lg p-1 flex flex-col items-center gap-1 transition-colors ${sel === id ? 'border-blue-500' : 'border-gray-200 hover:border-gray-400'}`}>
+              <div style={{ width: '100%', height: 40, borderRadius: 6, overflow: 'hidden', backgroundColor: bg, backgroundImage: buildPatternUrl(id, fg, op) }} />
+              <span style={{ fontSize: 9, color: '#555', textAlign: 'center', lineHeight: 1.2 }}>{toTitleCase(id)}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex items-center gap-1"><label className="text-xs text-gray-600">FG</label><input type="color" value={fg} onChange={e => upd('patternFg', e.target.value)} className="w-8 h-8 border border-gray-300 rounded cursor-pointer" /></div>
+        <div className="flex items-center gap-1"><label className="text-xs text-gray-600">BG</label><input type="color" value={bg} onChange={e => upd('patternBg', e.target.value)} className="w-8 h-8 border border-gray-300 rounded cursor-pointer" /></div>
+        <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+          <label className="text-xs text-gray-600 whitespace-nowrap">Opacity</label>
+          <input type="range" min="0.05" max="1" step="0.05" value={op} onChange={e => upd('patternOpacity', parseFloat(e.target.value))} className="flex-1" />
+          <span className="text-xs text-gray-500 w-7">{Math.round(op * 100)}%</span>
+        </div>
+      </div>
+      <div className="rounded-lg overflow-hidden border border-gray-200" style={{ height: 44 }}>
+        <div style={{ width: '100%', height: '100%', backgroundColor: bg, backgroundImage: buildPatternUrl(sel, fg, op) }} />
+      </div>
+    </div>
+  );
+}
 
 const ReleasePages = () => {
   const { data, status } = useSession();
@@ -32,10 +74,10 @@ const ReleasePages = () => {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [showMerchSection, setShowMerchSection] = useState(false);
-  const [productsNextPage, setProductsNextPage] = useState<number | null>(null);
   const [expandedAnalytics, setExpandedAnalytics] = useState<string | null>(null);
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
   const [brandLogoPickerOpen, setBrandLogoPickerOpen] = useState(false);
+  const [bgImagePickerOpen, setBgImagePickerOpen] = useState(false);
 
 
   useEffect(() => {
@@ -100,19 +142,21 @@ const ReleasePages = () => {
   };
 
   // Add function to fetch products
-  const fetchAvailableProducts = async (page = 1) => {
+  const fetchAvailableProducts = async () => {
     if (!userData?.id) return;
-
+    
+    console.log('🔍 Fetching products for release page...');
     setIsLoadingProducts(true);
     try {
-      const url = `/api/products/${userData.id}?page=${page}&limit=20`;
+      const url = `/api/products/${userData.id}`;
+      console.log('📞 Fetching:', url);
+      
       const response = await fetch(url);
-
+      
       if (response.ok) {
-        const data = await response.json();
-        const fetched: any[] = Array.isArray(data) ? data : (data.products ?? []);
-        setAvailableProducts(prev => page === 1 ? fetched : [...prev, ...fetched]);
-        setProductsNextPage(data.hasMore ? page + 1 : null);
+        const products = await response.json();
+        console.log('✅ Products received:', products);
+        setAvailableProducts(products);
       } else {
         const errorText = await response.text();
         console.error('❌ Error response:', errorText);
@@ -181,9 +225,7 @@ const ReleasePages = () => {
   // Add useEffect to fetch products when user data is available
   useEffect(() => {
     if (userData?.id && userData?.printifyShopId) {
-      setAvailableProducts([]);
-      setProductsNextPage(null);
-      fetchAvailableProducts(1);
+      fetchAvailableProducts();
     }
   }, [userData?.id, userData?.printifyShopId]);
 
@@ -787,8 +829,8 @@ const removeCustomLink = (index: number) => {
                         <div
                           key={product.id}
                           className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
-                            selectedProductIds.includes(product.id)
-                              ? 'bg-blue-50 border-blue-500'
+                            selectedProductIds.includes(product.id) 
+                              ? 'bg-blue-50 border-blue-500' 
                               : 'bg-white border-gray-200'
                           }`}
                           onClick={() => toggleProductSelection(product.id)}
@@ -802,7 +844,7 @@ const removeCustomLink = (index: number) => {
                               className="form-checkbox h-4 w-4"
                               onClick={(e) => e.stopPropagation()}
                             />
-
+                            
                             {product.images && product.images[0] && (
                               <img
                                 src={product.images[0]}
@@ -813,7 +855,7 @@ const removeCustomLink = (index: number) => {
                                 }}
                               />
                             )}
-
+                            
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm truncate" style={{ fontFamily: font || 'inherit' }}>
                                 {product.title || 'Untitled Product'}
@@ -826,17 +868,6 @@ const removeCustomLink = (index: number) => {
                         </div>
                       ))}
                     </div>
-                    {productsNextPage !== null && (
-                      <button
-                        type="button"
-                        className="btn btn-secondary btn-sm w-full mt-3"
-                        onClick={() => fetchAvailableProducts(productsNextPage)}
-                        disabled={isLoadingProducts}
-                        style={{ fontFamily: font || 'inherit' }}
-                      >
-                        {isLoadingProducts ? 'Loading...' : 'Load More Products'}
-                      </button>
-                    )}
                   </div>
                 )}
               </div>
@@ -1017,7 +1048,6 @@ const removeCustomLink = (index: number) => {
               </button>
             </div>
             
-
             {/* Brand Logo (Premium) */}
             {userData?.hasAccess && (
               <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
@@ -1046,60 +1076,73 @@ const removeCustomLink = (index: number) => {
 
             <div className="mb-4">
               <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Colors</h4>
-              <div className="w-full">
-                {/* BG on its own line with an opacity fader */}
-                <div className="flex items-center flex-wrap gap-2 mb-2">
-                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-1">Card BG</h2>
-                  <input
-                    type="color"
-                    value={parseColorValue(bgColor, "#ffffff").hex}
-                    onChange={(e) => setBgColor(combineColor(e.target.value, bgOpacity))}
-                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                  />
-                  <span className="text-sm ml-2 mr-1" style={{ fontFamily: font || 'inherit' }}>Opacity</span>
-                  <input
-                    type="range" min={0} max={100} value={bgOpacity}
-                    onChange={(e) => { const o = Number(e.target.value); setBgOpacity(o); setBgColor(combineColor(parseColorValue(bgColor, "#ffffff").hex, o)); }}
-                    className="w-32"
-                  />
-                  <span className="text-xs text-gray-500 w-9">{bgOpacity}%</span>
-                  {/* Live preview so transparency is visible (a color input can't show alpha) */}
-                  <div title="Card preview" style={{ width: 32, height: 32, borderRadius: 6, border: '1px solid #d1d5db', overflow: 'hidden', backgroundImage: 'linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%)', backgroundSize: '8px 8px', backgroundPosition: '0 0,0 4px,4px -4px,-4px 0' }}>
-                    <div style={{ width: '100%', height: '100%', backgroundColor: bgColor || '#ffffff' }} />
-                  </div>
+              <div className="flex items-center flex-wrap gap-2">
+                <span className="text-sm font-medium" style={{ fontFamily: font || 'inherit' }}>Card BG</span>
+                <input type="color" value={parseColorValue(bgColor, "#ffffff").hex} onChange={(e) => setBgColor(combineColor(e.target.value, bgOpacity))} className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer" />
+                <span className="text-sm" style={{ fontFamily: font || 'inherit' }}>Opacity</span>
+                <input type="range" min={0} max={100} value={bgOpacity} onChange={(e) => { const o = Number(e.target.value); setBgOpacity(o); setBgColor(combineColor(parseColorValue(bgColor, "#ffffff").hex, o)); }} className="w-24" />
+                <span className="text-xs text-gray-500 w-8">{bgOpacity}%</span>
+                <div title="Card preview" style={{ width: 28, height: 28, borderRadius: 5, border: '1px solid #d1d5db', overflow: 'hidden', backgroundImage: 'linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%)', backgroundSize: '8px 8px', backgroundPosition: '0 0,0 4px,4px -4px,-4px 0' }}>
+                  <div style={{ width: '100%', height: '100%', backgroundColor: bgColor || '#ffffff' }} />
                 </div>
-                <div className="flex items-center gap-1 mb-2">
-                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-2">Text</h2>
-                  <input
-                    type="color"
-                    value={textColor}
-                    onChange={(e) => setTextColor(e.target.value)}
-                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                  />
-                  <h2 style={{ fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
-                  <input
-                    type="color"
-                    value={linksColor}
-                    onChange={(e) => setLinksColor(e.target.value)}
-                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                  />
-                </div>
-                <div className="flex items-center gap-1">
-                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-1">Font:</h2>
-                  <select
-                    value={font || "sans-serif"}
-                    onChange={e => setFont(e.target.value)}
-                    className="input w-36"
-                    style={{ fontFamily: font || 'inherit' }}
-                  >
-                    <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
-                    <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
-                    <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
-                    <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
-                    <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
-                  </select>
+                <span className="text-sm font-medium ml-1" style={{ fontFamily: font || 'inherit' }}>Text</span>
+                <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer" />
+                <span className="text-sm font-medium" style={{ fontFamily: font || 'inherit' }}>Links</span>
+                <input type="color" value={linksColor} onChange={(e) => setLinksColor(e.target.value)} className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer" />
+                <span className="text-sm font-medium" style={{ fontFamily: font || 'inherit' }}>Font</span>
+                <select value={font || "sans-serif"} onChange={e => setFont(e.target.value)} className="input input-sm w-32" style={{ fontFamily: font || 'inherit' }}>
+                  <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
+                  <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
+                  <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
+                  <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
+                  <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
+                </select>
+              </div>
+            </div>
+
+            {/* ── Page Background ── */}
+            <div className="mb-4">
+              <label className="block mb-2 font-medium" style={{ fontFamily: font || 'inherit' }}>Page Background</label>
+              <div className="flex justify-center mb-3">
+                <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+                  {[{ id: 'image', label: '🖼 Stock' }, { id: 'upload', label: '⬆️ Upload' }, { id: 'pattern', label: '🔷 Pattern' }].map((tab) => (
+                    <button key={tab.id} type="button"
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${(editingPage?.bgMode || 'pattern') === tab.id ? 'bg-white shadow text-blue-700' : 'text-gray-500 hover:text-gray-700'}`}
+                      onClick={() => setEditingPage({ ...editingPage, bgMode: tab.id })}
+                      style={{ fontFamily: font || 'inherit' }}>
+                      {tab.label}
+                    </button>
+                  ))}
                 </div>
               </div>
+              {(editingPage?.bgMode || 'pattern') === 'image' && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 justify-items-center max-w-lg mx-auto">
+                  <button type="button" className={`border rounded-lg p-2 ${!editingPage?.bgImage ? "border-blue-500" : "border-gray-300"}`} onClick={() => setEditingPage({ ...editingPage, bgImage: null })}>
+                    <div style={{ width: 60, height: 60, backgroundColor: '#f0f0f0', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>None</div>
+                  </button>
+                  {["https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg","https://images.pexels.com/photos/3308588/pexels-photo-3308588.jpeg","https://images.pexels.com/photos/2832382/pexels-photo-2832382.jpeg","https://images.pexels.com/photos/7598077/pexels-photo-7598077.jpeg","https://images.pexels.com/photos/7630061/pexels-photo-7630061.jpeg","https://images.pexels.com/photos/1292998/pexels-photo-1292998.jpeg","https://images.pexels.com/photos/6788581/pexels-photo-6788581.jpeg"].map((img, idx) => (
+                    <button key={idx} type="button" className={`border rounded-lg p-2 ${editingPage?.bgImage === img ? "border-blue-500 border-2" : "border-gray-300"}`} onClick={() => setEditingPage({ ...editingPage, bgImage: img })}>
+                      <img src={img} alt={`bg-${idx}`} style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 6 }} />
+                    </button>
+                  ))}
+                </div>
+              )}
+              {(editingPage?.bgMode || 'pattern') === 'upload' && (
+                <div className="flex flex-col items-center gap-3">
+                  <button type="button" onClick={() => setBgImagePickerOpen(true)} className="btn btn-primary btn-sm" style={{ fontFamily: font || 'inherit' }}>
+                    {editingPage?.bgImageCustom ? 'Change Background' : 'Upload Background'}
+                  </button>
+                  {editingPage?.bgImageCustom && (
+                    <div className="relative w-full max-w-sm">
+                      <img src={editingPage.bgImageCustom} alt="bg" className="w-full h-24 object-cover rounded-lg" />
+                      <button type="button" onClick={() => setEditingPage({ ...editingPage, bgImageCustom: null })} className="absolute top-1 right-1 bg-white/80 rounded-full w-6 h-6 text-xs font-bold text-gray-700 hover:bg-white">✕</button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {(editingPage?.bgMode || 'pattern') === 'pattern' && (
+                <HeroPatternPicker page={editingPage} setPage={setEditingPage} />
+              )}
             </div>
 
             {/* Newsletter signup */}
@@ -1354,62 +1397,75 @@ const removeCustomLink = (index: number) => {
               </button>
             </div>
 
-            <div className="mb-4">
-              <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Colors</h4>
-              <div className="w-full">
-                {/* BG on its own line with an opacity fader */}
-                <div className="flex items-center flex-wrap gap-2 mb-2">
-                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-1">Card BG</h2>
-                  <input
-                    type="color"
-                    value={parseColorValue(bgColor, "#ffffff").hex}
-                    onChange={(e) => setBgColor(combineColor(e.target.value, bgOpacity))}
-                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                  />
-                  <span className="text-sm ml-2 mr-1" style={{ fontFamily: font || 'inherit' }}>Opacity</span>
-                  <input
-                    type="range" min={0} max={100} value={bgOpacity}
-                    onChange={(e) => { const o = Number(e.target.value); setBgOpacity(o); setBgColor(combineColor(parseColorValue(bgColor, "#ffffff").hex, o)); }}
-                    className="w-32"
-                  />
-                  <span className="text-xs text-gray-500 w-9">{bgOpacity}%</span>
-                  {/* Live preview so transparency is visible (a color input can't show alpha) */}
-                  <div title="Card preview" style={{ width: 32, height: 32, borderRadius: 6, border: '1px solid #d1d5db', overflow: 'hidden', backgroundImage: 'linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%)', backgroundSize: '8px 8px', backgroundPosition: '0 0,0 4px,4px -4px,-4px 0' }}>
-                    <div style={{ width: '100%', height: '100%', backgroundColor: bgColor || '#ffffff' }} />
-                  </div>
+            <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
+              <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>Colors</h4>
+              <div className="flex items-center flex-wrap gap-2">
+                <span className="text-sm font-medium" style={{ fontFamily: font || 'inherit' }}>Card BG</span>
+                <input type="color" value={parseColorValue(bgColor, "#ffffff").hex} onChange={(e) => setBgColor(combineColor(e.target.value, bgOpacity))} className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer" />
+                <span className="text-sm" style={{ fontFamily: font || 'inherit' }}>Opacity</span>
+                <input type="range" min={0} max={100} value={bgOpacity} onChange={(e) => { const o = Number(e.target.value); setBgOpacity(o); setBgColor(combineColor(parseColorValue(bgColor, "#ffffff").hex, o)); }} className="w-24" />
+                <span className="text-xs text-gray-500 w-8">{bgOpacity}%</span>
+                <div title="Card preview" style={{ width: 28, height: 28, borderRadius: 5, border: '1px solid #d1d5db', overflow: 'hidden', backgroundImage: 'linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%)', backgroundSize: '8px 8px', backgroundPosition: '0 0,0 4px,4px -4px,-4px 0' }}>
+                  <div style={{ width: '100%', height: '100%', backgroundColor: bgColor || '#ffffff' }} />
                 </div>
-                <div className="flex items-center gap-1 mb-2">
-                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-2">Text</h2>
-                  <input
-                    type="color"
-                    value={textColor}
-                    onChange={(e) => setTextColor(e.target.value)}
-                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                  />
-                  <h2 style={{ fontFamily: font || 'inherit' }} className="ml-2 mr-2">Links</h2>
-                  <input
-                    type="color"
-                    value={linksColor}
-                    onChange={(e) => setLinksColor(e.target.value)}
-                    className="w-12 h-12 border-1 border-gray-300 rounded-lg cursor-pointer"
-                  />
-                </div>
-                <div className="flex items-center gap-1">
-                  <h2 style={{ fontFamily: font || 'inherit' }} className="mr-1">Font:</h2>
-                  <select
-                    value={font || "sans-serif"}
-                    onChange={e => setFont(e.target.value)}
-                    className="input w-36"
-                    style={{ fontFamily: font || 'inherit' }}
-                  >
-                    <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
-                    <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
-                    <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
-                    <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
-                    <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
-                  </select>
+                <span className="text-sm font-medium ml-1" style={{ fontFamily: font || 'inherit' }}>Text</span>
+                <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer" />
+                <span className="text-sm font-medium" style={{ fontFamily: font || 'inherit' }}>Links</span>
+                <input type="color" value={linksColor} onChange={(e) => setLinksColor(e.target.value)} className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer" />
+                <span className="text-sm font-medium" style={{ fontFamily: font || 'inherit' }}>Font</span>
+                <select value={font || "sans-serif"} onChange={e => setFont(e.target.value)} className="input input-sm w-32" style={{ fontFamily: font || 'inherit' }}>
+                  <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
+                  <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
+                  <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
+                  <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
+                  <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
+                </select>
+              </div>
+            </div>
+
+            {/* ── Page Background ── */}
+            <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
+              <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>Page Background</h4>
+              <div className="flex justify-center mb-3">
+                <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+                  {[{ id: 'image', label: '🖼 Stock' }, { id: 'upload', label: '⬆️ Upload' }, { id: 'pattern', label: '🔷 Pattern' }].map((tab) => (
+                    <button key={tab.id} type="button"
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${(editingPage?.bgMode || 'pattern') === tab.id ? 'bg-white shadow text-blue-700' : 'text-gray-500 hover:text-gray-700'}`}
+                      onClick={() => setEditingPage({ ...editingPage, bgMode: tab.id })}
+                      style={{ fontFamily: font || 'inherit' }}>
+                      {tab.label}
+                    </button>
+                  ))}
                 </div>
               </div>
+              {(editingPage?.bgMode || 'pattern') === 'image' && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 justify-items-center max-w-lg mx-auto">
+                  <button type="button" className={`border rounded-lg p-2 ${!editingPage?.bgImage ? "border-blue-500" : "border-gray-300"}`} onClick={() => setEditingPage({ ...editingPage, bgImage: null })}>
+                    <div style={{ width: 60, height: 60, backgroundColor: '#f0f0f0', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>None</div>
+                  </button>
+                  {["https://images.pexels.com/photos/1939485/pexels-photo-1939485.jpeg","https://images.pexels.com/photos/3308588/pexels-photo-3308588.jpeg","https://images.pexels.com/photos/2832382/pexels-photo-2832382.jpeg","https://images.pexels.com/photos/7598077/pexels-photo-7598077.jpeg","https://images.pexels.com/photos/7630061/pexels-photo-7630061.jpeg","https://images.pexels.com/photos/1292998/pexels-photo-1292998.jpeg","https://images.pexels.com/photos/6788581/pexels-photo-6788581.jpeg"].map((img, idx) => (
+                    <button key={idx} type="button" className={`border rounded-lg p-2 ${editingPage?.bgImage === img ? "border-blue-500 border-2" : "border-gray-300"}`} onClick={() => setEditingPage({ ...editingPage, bgImage: img })}>
+                      <img src={img} alt={`bg-${idx}`} style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 6 }} />
+                    </button>
+                  ))}
+                </div>
+              )}
+              {(editingPage?.bgMode || 'pattern') === 'upload' && (
+                <div className="flex flex-col items-center gap-3">
+                  <button type="button" onClick={() => setBgImagePickerOpen(true)} className="btn btn-primary btn-sm" style={{ fontFamily: font || 'inherit' }}>
+                    {editingPage?.bgImageCustom ? 'Change Background' : 'Upload Background'}
+                  </button>
+                  {editingPage?.bgImageCustom && (
+                    <div className="relative w-full max-w-sm">
+                      <img src={editingPage.bgImageCustom} alt="bg" className="w-full h-24 object-cover rounded-lg" />
+                      <button type="button" onClick={() => setEditingPage({ ...editingPage, bgImageCustom: null })} className="absolute top-1 right-1 bg-white/80 rounded-full w-6 h-6 text-xs font-bold text-gray-700 hover:bg-white">✕</button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {(editingPage?.bgMode || 'pattern') === 'pattern' && (
+                <HeroPatternPicker page={editingPage} setPage={setEditingPage} />
+              )}
             </div>
 
             {/* Brand Logo (Premium) */}
@@ -1521,6 +1577,17 @@ const removeCustomLink = (index: number) => {
           onUploaded={(result: any) => { setBrandLogoUrl(result.info?.secure_url || ""); setBrandLogoPickerOpen(false); }}
           onSelect={(url: string) => { setBrandLogoUrl(url); setBrandLogoPickerOpen(false); }}
           onClose={() => setBrandLogoPickerOpen(false)}
+        />
+      )}
+      {bgImagePickerOpen && (
+        <ImagePicker
+          images={galleryImages}
+          uploadPreset="ReleasePageImages"
+          uploadOptions={{ publicId: `user_${data?.user?.id}_pageBg_${Date.now()}` }}
+          onUploaded={(result: any) => { setEditingPage({ ...editingPage, bgImageCustom: result.info?.secure_url || "" }); setBgImagePickerOpen(false); }}
+          onSelect={(url: string) => { setEditingPage({ ...editingPage, bgImageCustom: url }); setBgImagePickerOpen(false); }}
+          onClose={() => setBgImagePickerOpen(false)}
+          title="Choose Page Background"
         />
       )}
     </>
