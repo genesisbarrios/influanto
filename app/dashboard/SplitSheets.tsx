@@ -197,7 +197,7 @@ function SendDialog({ sheetId, contacts, onClose, onSent }: { sheetId: string; c
     if (!selected.length) { setAlert("Select at least one contact"); return; }
     setSending(true);
     try {
-      const res = await apiClient.post(`/split-sheets/${sheetId}/send`, { contactIds: selected });
+      await apiClient.post(`/split-sheets/${sheetId}/send`, { contactIds: selected });
       posthog.capture("split_sheet_sent", { count: selected.length });
       onSent();
     } catch (e: any) {
@@ -242,7 +242,7 @@ function SendDialog({ sheetId, contacts, onClose, onSent }: { sheetId: string; c
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function SplitSheets() {
-  const { data: session } = useSession();
+  useSession();
   const [user, setUser] = useState<any>(null);
   const [sheets, setSheets] = useState<SplitSheet[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -253,6 +253,7 @@ export default function SplitSheets() {
   const [contactForm, setContactForm] = useState<Partial<Contact>>({});
   const [editingContact, setEditingContact] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState("");
 
@@ -299,6 +300,23 @@ export default function SplitSheets() {
         posthog.capture("split_sheet_created");
         setAlert("✅ Created");
       }
+      // Auto-add contributors with valid emails to collaborator contacts (skip existing)
+      const existingEmails = new Set(contacts.map(c => c.email.toLowerCase()));
+      const newContribs = ((sheet.contributors ?? []) as Contributor[]).filter(
+        c => c.name?.trim() && c.contact?.includes("@") && !existingEmails.has(c.contact.trim().toLowerCase())
+      );
+      if (newContribs.length > 0) {
+        await Promise.all(
+          newContribs.map(c =>
+            apiClient.post("/collaborator-contacts", {
+              name: c.name.trim(),
+              email: c.contact.trim(),
+              role: c.role?.trim() ?? "",
+            }).catch(() => {})
+          )
+        );
+        await loadContacts();
+      }
       await loadSheets();
       setView("list");
       setEditingSheet(null);
@@ -331,7 +349,7 @@ export default function SplitSheets() {
         const r = await apiClient.post("/collaborator-contacts", contactForm);
         setContacts([...contacts, r.data]);
       }
-      setContactForm({}); setEditingContact(null); setAlert("");
+      setContactForm({}); setEditingContact(null); setShowAddForm(false); setAlert("");
     } catch (e: any) {
       setAlert(e?.response?.data?.error || "Save failed");
     }
@@ -364,10 +382,11 @@ export default function SplitSheets() {
 
   if (view === "contacts") {
     return (
-      <div className="p-4 bg-white shadow rounded-md text-black">
+      <div className="p-4 bg-white shadow rounded-md text-black [&_input]:text-white [&_select]:text-white">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <h2 className="text-xl font-bold">Collaborator Contacts</h2>
           <div className="flex gap-2">
+            <button className="btn btn-sm btn-primary" onClick={() => { setShowAddForm(v => !v); setEditingContact(null); setContactForm({}); setAlert(""); }}>Add +</button>
             <button className="btn btn-sm btn-outline" onClick={() => { setShowImport(true); setAlert(""); }}>⬆ Import</button>
             <button className="btn btn-sm" onClick={() => { setView("list"); setContactForm({}); setEditingContact(null); setAlert(""); }}>← Back</button>
           </div>
@@ -388,7 +407,7 @@ export default function SplitSheets() {
         )}
 
         {/* Add / edit contact form */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+        {(showAddForm || editingContact) && <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
           <h3 className="font-semibold text-sm mb-3">{editingContact ? "Edit Contact" : "Add Contact"}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -411,9 +430,9 @@ export default function SplitSheets() {
           {alert && <p className="text-xs text-red-500 mt-2">{alert}</p>}
           <div className="flex gap-2 mt-3">
             <button className="btn btn-primary btn-sm" onClick={handleSaveContact}>{editingContact ? "Update" : "Add Contact"}</button>
-            {editingContact && <button className="btn btn-sm" onClick={() => { setEditingContact(null); setContactForm({}); }}>Cancel</button>}
+            <button className="btn btn-sm" onClick={() => { setEditingContact(null); setContactForm({}); setShowAddForm(false); }}>Cancel</button>
           </div>
-        </div>
+        </div>}
 
         {/* Contacts list */}
         {contacts.length === 0 ? (
@@ -427,7 +446,7 @@ export default function SplitSheets() {
                   <p className="text-xs text-gray-400">{c.email}{c.role ? ` · ${c.role}` : ""}{c.phone ? ` · ${c.phone}` : ""}</p>
                 </div>
                 <div className="flex gap-2">
-                  <button className="btn btn-xs btn-outline" onClick={() => { setEditingContact(c.id); setContactForm({ name: c.name, email: c.email, role: c.role, phone: c.phone }); }}>Edit</button>
+                  <button className="btn btn-xs btn-outline" onClick={() => { setEditingContact(c.id); setContactForm({ name: c.name, email: c.email, role: c.role, phone: c.phone }); setShowAddForm(true); }}>Edit</button>
                   <button className="btn btn-xs btn-error" onClick={() => handleDeleteContact(c.id)}>Delete</button>
                 </div>
               </div>
@@ -445,7 +464,7 @@ export default function SplitSheets() {
     const publishing = (sheet.publishing ?? []) as Publishing[];
 
     return (
-      <div className="p-4 bg-white shadow rounded-md text-black">
+      <div className="p-4 bg-white shadow rounded-md text-black [&_input]:text-white [&_select]:text-white">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">{(sheet as any).id ? "Edit Split Sheet" : "New Split Sheet"}</h2>
           <button className="btn btn-sm" onClick={() => { setView("list"); setEditingSheet(null); setAlert(""); }}>← Back</button>
