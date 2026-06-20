@@ -25,6 +25,16 @@ export const metadata: Metadata = {
 
 const posts = [
   {
+    slug: "newsletter-for-independent-artists",
+    title: "Why Every Independent Artist Needs a Newsletter",
+    excerpt: "Social media is rented land. Your email list is the one audience you actually own — and it converts better than any follower count.",
+    date: "June 2026",
+    readTime: "6 min read",
+    tag: "Marketing",
+    tagColor: "#0ea5e9",
+    emoji: "📧",
+  },
+  {
     slug: "link-in-bio-for-independent-artists",
     title: "Why Every Independent Artist Needs a Link in Bio",
     excerpt: "Social media gives you one bio link. Here's how to make it do the work of a full website — and why it matters more than you think.",
