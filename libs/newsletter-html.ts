@@ -15,6 +15,32 @@ export interface NewsletterContent {
   urlRedirect?: string;
 }
 
+export interface SocialLinks {
+  instagram?: string;
+  twitter?: string;
+  facebook?: string;
+  youtube?: string;
+  tiktok?: string;
+  spotify?: string;
+  soundcloud?: string;
+  youtubeMusic?: string;
+  website?: string;
+}
+
+function buildSocialUrl(platform: keyof SocialLinks, value: string): string {
+  const v = value.trim();
+  if (!v) return "";
+  if (platform === "facebook" || platform === "website") return safeUrl(v);
+  if (platform === "instagram") return `https://instagram.com/${v}`;
+  if (platform === "twitter") return `https://twitter.com/${v}`;
+  if (platform === "tiktok") return `https://tiktok.com/@${v}`;
+  if (platform === "youtube") return `https://youtube.com/@${v}`;
+  if (platform === "youtubeMusic") return `https://music.youtube.com/channel/${v}`;
+  if (platform === "soundcloud") return `https://soundcloud.com/${v}`;
+  if (platform === "spotify") return `https://open.spotify.com/artist/${v}`;
+  return safeUrl(v);
+}
+
 function escapeHtml(str: string): string {
   return String(str ?? "")
     .replace(/&/g, "&amp;")
@@ -38,9 +64,23 @@ const TEMPLATE_LABELS: Record<string, string> = {
   music_video_release: "🎬 New Music Video",
 };
 
+const SOCIAL_META: Record<keyof SocialLinks, { label: string; icon: string }> = {
+  instagram: { label: "Instagram", icon: "instagram.svg" },
+  twitter: { label: "Twitter", icon: "twitter.svg" },
+  facebook: { label: "Facebook", icon: "facebook.svg" },
+  youtube: { label: "YouTube", icon: "youtube.svg" },
+  tiktok: { label: "TikTok", icon: "tiktok.svg" },
+  spotify: { label: "Spotify", icon: "spotify.svg" },
+  soundcloud: { label: "SoundCloud", icon: "soundcloud.svg" },
+  youtubeMusic: { label: "YouTube Music", icon: "youtube-music.svg" },
+  website: { label: "Website", icon: "website.svg" },
+};
+
+const ICON_BASE = "https://www.influanto.com/social-icons/";
+
 export function renderNewsletterHtml(
   n: NewsletterContent,
-  opts: { senderName?: string } = {}
+  opts: { senderName?: string; socials?: SocialLinks; artistImage?: string } = {}
 ): string {
   const bg = n.bgColor || "#0f0f12";
   const text = n.textColor || "#ffffff";
@@ -83,12 +123,33 @@ export function renderNewsletterHtml(
     ? `<a href="${escapeHtml(redirect)}" target="_blank" style="text-decoration:none;color:inherit;display:block;">${headerInner}</a>`
     : headerInner;
 
+  const socialIcons = Object.entries(SOCIAL_META)
+    .filter(([key]) => opts.socials?.[key as keyof SocialLinks])
+    .map(([key, meta]) => {
+      const url = buildSocialUrl(key as keyof SocialLinks, opts.socials![key as keyof SocialLinks]!);
+      const iconSrc = `${ICON_BASE}${meta.icon}`;
+      return `<a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;margin:0 5px;text-decoration:none;"><img src="${escapeHtml(iconSrc)}" alt="${escapeHtml(meta.label)}" width="36" height="36" style="display:inline-block;width:36px;height:36px;border-radius:50%;" /></a>`;
+    })
+    .join("");
+
+  const socialRow = socialIcons
+    ? `<div style="text-align:center;margin:28px 0 12px;">${socialIcons}</div>`
+    : "";
+
+  const artistLogo = opts.artistImage
+    ? `<div style="text-align:center;margin:12px 0 16px;"><img src="${escapeHtml(opts.artistImage)}" alt="${escapeHtml(senderName)}" width="60" height="60" style="border-radius:50%;width:60px;height:60px;object-fit:cover;display:inline-block;" /></div>`
+    : "";
+
+  const footerTopMargin = socialRow || artistLogo ? "12px" : "28px";
+
   return `
   <div style="background:${bg};padding:32px 16px;margin:0;">
     <div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
       ${headerBlock}
       ${links}
-      <p style="font-size:12px;color:${text};opacity:.55;margin:28px 0 0;text-align:center;">
+      ${socialRow}
+      ${artistLogo}
+      <p style="font-size:12px;color:${text};opacity:.55;margin:${footerTopMargin} 0 0;text-align:center;">
         Sent by ${escapeHtml(senderName)} via <a href="https://influanto.com" style="color:${accent};text-decoration:none;">Influanto</a>
       </p>
     </div>

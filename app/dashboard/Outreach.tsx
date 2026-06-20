@@ -418,11 +418,37 @@ export default function Outreach() {
   // ── Builder (create / edit) ─────────────────────────────────────────────────
 
   if (view === "form") {
+    const SOCIAL_PLATFORM_LABELS: Record<string, string> = {
+      instagram: "Instagram", twitter: "Twitter", facebook: "Facebook",
+      youtube: "YouTube", tiktok: "TikTok", spotify: "Spotify",
+      soundcloud: "SoundCloud", youtubeMusic: "YouTube Music", website: "Website",
+    };
+    const SOCIAL_PLATFORMS = Object.keys(SOCIAL_PLATFORM_LABELS);
+
+    const addSocialLinksBlock = () => {
+      const newLinks = SOCIAL_PLATFORMS
+        .filter(k => user?.[k])
+        .map(k => ({ name: SOCIAL_PLATFORM_LABELS[k], url: user[k] }));
+      if (!newLinks.length) return;
+      setNl({ links: [...links.filter(l => l.name || l.url), ...newLinks] });
+      setAlert("✅ Social links added");
+    };
+
+    const hasSocials = SOCIAL_PLATFORMS.some(k => user?.[k]);
+
     const previewHtml = renderNewsletterHtml({
       title: nl.title, template: nl.template, image: nl.image, description: nl.description,
       links: links, bgColor: nl.bgColor, textColor: nl.textColor, linksColor: nl.linksColor,
       urlRedirect: nl.urlRedirect,
-    }, { senderName: user?.name || "You" });
+    }, {
+      senderName: user?.name || "You",
+      socials: {
+        instagram: user?.instagram, twitter: user?.twitter, facebook: user?.facebook,
+        youtube: user?.youtube, tiktok: user?.tiktok, spotify: user?.spotify,
+        soundcloud: user?.soundcloud, youtubeMusic: user?.youtubeMusic, website: user?.website,
+      },
+      artistImage: user?.image,
+    });
 
     return (
       <div className="p-4 bg-white shadow rounded-md text-black">
@@ -444,6 +470,31 @@ export default function Outreach() {
               </select>
               <p className="text-[11px] text-indigo-400 mt-1">Pulls image, description &amp; links — you can edit after.</p>
             </div>
+
+            {/* Blank template quick-add blocks */}
+            {nl.template === "blank" && (hasSocials || linkInBioLinks.length > 0 || user?.image) && (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <label className="block text-xs font-semibold mb-2 text-gray-600">Quick add to blank email</label>
+                <div className="flex flex-wrap gap-2">
+                  {hasSocials && (
+                    <button type="button" className="btn btn-xs btn-outline" onClick={addSocialLinksBlock}>
+                      + Social Links
+                    </button>
+                  )}
+                  {linkInBioLinks.length > 0 && (
+                    <button type="button" className="btn btn-xs btn-outline" onClick={() => populateFrom("link-in-bio")}>
+                      + Link in Bio
+                    </button>
+                  )}
+                  {user?.image && (
+                    <button type="button" className="btn btn-xs btn-outline" onClick={() => setNl({ image: user.image })}>
+                      + My Photo
+                    </button>
+                  )}
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1.5">Social icons &amp; your brand photo always appear in the email footer automatically.</p>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium mb-1">Title *</label>

@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase, { mapNewsletter } from "@/libs/supabase";
-import { renderNewsletterHtml, injectEmailTracking } from "@/libs/newsletter-html";
+import { renderNewsletterHtml, injectEmailTracking, SocialLinks } from "@/libs/newsletter-html";
 import { sendEmail } from "@/libs/resend";
 import config from "@/config";
 
@@ -39,13 +39,24 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   // Sender info
   const { data: sender } = await supabase
     .from("users")
-    .select("name, email")
+    .select("name, email, image, instagram, twitter, facebook, youtube, tiktok, spotify, soundcloud, youtube_music, website")
     .eq("id", session.user.id)
     .single();
 
   const senderName = sender?.name || "An artist";
+  const socials: SocialLinks = {
+    instagram: sender?.instagram || undefined,
+    twitter: sender?.twitter || undefined,
+    facebook: sender?.facebook || undefined,
+    youtube: sender?.youtube || undefined,
+    tiktok: sender?.tiktok || undefined,
+    spotify: sender?.spotify || undefined,
+    soundcloud: sender?.soundcloud || undefined,
+    youtubeMusic: sender?.youtube_music || undefined,
+    website: sender?.website || undefined,
+  };
   const newsletter = mapNewsletter(row)!;
-  const baseHtml = renderNewsletterHtml(newsletter, { senderName });
+  const baseHtml = renderNewsletterHtml(newsletter, { senderName, socials, artistImage: sender?.image || undefined });
   const subject = newsletter.subject || newsletter.title || `News from ${senderName}`;
   const text = `${newsletter.title || ""}\n\n${newsletter.description || ""}`.trim();
 
