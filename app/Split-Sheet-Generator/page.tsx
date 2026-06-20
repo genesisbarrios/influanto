@@ -149,6 +149,7 @@ export default function SplitSheetTemplate() {
     if (signatureEditor.active) {
       prepareEditorCanvas();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signatureEditor.active, signatureEditor.index]);
 
   const pointerToCanvas = (event: React.PointerEvent<HTMLCanvasElement>) => {
@@ -330,7 +331,7 @@ const handleDownloadPDF = () => {
     if (y + h > pageHeight - 20) { doc.addPage(); y = 20; }
     [[10,60],[70,60],[130,60]].forEach(([x,w]) => doc.rect(x, y, w, h));
     doc.text(c.name||"", 12, y+6, {maxWidth:58});
-    if (c.signature) { try { doc.addImage(c.signature, "PNG", 72, y+2, 56, h-4); } catch {} }
+    if (c.signature) { try { doc.addImage(c.signature, "PNG", 72, y+2, 56, h-4); } catch (_e) { /* invalid image data, skip */ } }
     doc.text(c.signatureDate||"", 132, y+6, {maxWidth:58});
     y += h;
   });
