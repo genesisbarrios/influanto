@@ -19,7 +19,7 @@ const IMPORT_FIELDS: ImportField[] = [
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface NLLink { name: string; url: string }
+interface NLLink { name: string; url: string; type?: string; id?: string; image?: string; price?: string }
 interface Newsletter {
   id: string; title: string; subject: string; template: string;
   image: string; description: string; links: NLLink[];
@@ -144,6 +144,12 @@ export default function Outreach() {
   // Populate-from sources
   const [releasePages, setReleasePages] = useState<any[]>([]);
   const [linkInBioLinks, setLinkInBioLinks] = useState<NLLink[]>([]);
+  const [linkInBioSelectedProducts, setLinkInBioSelectedProducts] = useState<string[]>([]);
+
+  // Merch
+  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [showMerchPicker, setShowMerchPicker] = useState(false);
 
   useEffect(() => {
     apiClient.get("/get-user").then(r => setUser(r.data)).catch(() => {});
@@ -153,10 +159,29 @@ export default function Outreach() {
     if (!user?.hasAccess) return;
     loadNewsletters();
     loadContacts();
-    // Silent loads (plain fetch) so the global apiClient toasts don't fire when empty
     fetch("/api/get-release-pages").then(r => r.json()).then(j => setReleasePages(Array.isArray(j?.data) ? j.data : [])).catch(() => {});
-    fetch("/api/get-links").then(r => r.json()).then(j => setLinkInBioLinks(Array.isArray(j?.data?.links) ? j.data.links : [])).catch(() => {});
+    fetch("/api/get-links").then(r => r.json()).then(j => {
+      setLinkInBioLinks(Array.isArray(j?.data?.links) ? j.data.links : []);
+      setLinkInBioSelectedProducts(Array.isArray(j?.data?.selectedProducts) ? j.data.selectedProducts : []);
+    }).catch(() => {});
   }, [user?.hasAccess]);
+
+  useEffect(() => {
+    if (user?.printifyShopId && user?.id) fetchAvailableProducts();
+  }, [user?.printifyShopId, user?.id]);
+
+  const fetchAvailableProducts = async () => {
+    setIsLoadingProducts(true);
+    try {
+      const r = await fetch(`/api/products/${user.id}`);
+      if (r.ok) {
+        const d = await r.json();
+        setAvailableProducts(Array.isArray(d) ? d : (d.products ?? []));
+      }
+    } catch (_e) { /* silent */ } finally {
+      setIsLoadingProducts(false);
+    }
+  };
 
   const loadNewsletters = async () => {
     try { const r = await apiClient.get("/outreach"); setNewsletters(r.data ?? []); } catch {}
@@ -190,26 +215,58 @@ export default function Outreach() {
   const nl = editing ?? blankNewsletter("blank");
   const setNl = (patch: Partial<Newsletter>) => setEditing(prev => ({ ...(prev ?? blankNewsletter("blank")), ...patch }));
   const links = (nl.links ?? []) as NLLink[];
-  const setLink = (i: number, patch: Partial<NLLink>) =>
-    setNl({ links: links.map((l, idx) => idx === i ? { ...l, ...patch } : l) });
+  const regularLinks = links.filter(l => l.type !== "merch" && l.type !== "youtube");
+  const selectedMerchIds = links.filter(l => l.type === "merch").map(l => l.id!);
+  const youtubeLinkEntry = links.find(l => l.type === "youtube");
+  const setYoutubeLink = (url: string) => {
+    const without = links.filter(l => l.type !== "youtube");
+    setNl({ links: url.trim() ? [...without, { name: "Watch on YouTube", url: url.trim(), type: "youtube" }] : without });
+  };
+  const setLink = (i: number, patch: Partial<NLLink>) => {
+    const target = regularLinks[i];
+    setNl({ links: links.map(l => l === target ? { ...l, ...patch } : l) });
+  };
+
+  const productToMerchLink = (p: any): NLLink => ({
+    type: "merch", id: p.id, name: p.title || "Product",
+    url: p.url || "", image: p.images?.[0] || "", price: p.variants?.[0]?.price || "",
+  });
+
+  const toggleMerch = (product: any) => {
+    const isSelected = selectedMerchIds.includes(product.id);
+    if (isSelected) {
+      setNl({ links: links.filter(l => !(l.type === "merch" && l.id === product.id)) });
+    } else {
+      if (selectedMerchIds.length >= 10) return;
+      setNl({ links: [...links, productToMerchLink(product)] });
+    }
+  };
+
+  const buildMerchLinks = (productIds: string[]) =>
+    productIds
+      .map(id => availableProducts.find((p: any) => p.id === id))
+      .filter(Boolean)
+      .map(productToMerchLink);
 
   const populateFrom = (value: string) => {
     if (!value) return;
     if (value === "link-in-bio") {
       const bioUrl = user?.username ? `https://${config.domainName}/${user.username}` : "";
-      setNl({
-        links: linkInBioLinks.map(l => ({ name: l.name || "", url: l.url || "" })),
-        urlRedirect: bioUrl,
-      });
+      const bioLinks = linkInBioLinks.map(l => ({ name: l.name || "", url: l.url || "" }));
+      const merch = buildMerchLinks(linkInBioSelectedProducts);
+      setNl({ links: [...bioLinks, ...merch], urlRedirect: bioUrl });
       setAlert("✅ Pulled links from your Link in Bio");
       return;
     }
     const rp = releasePages.find(p => String(p.id) === value);
     if (rp) {
+      const rpLinks = (rp.links ?? []).map((l: any) => ({ name: l.name || "", url: l.url || "" }));
+      const merch = buildMerchLinks(rp.selectedProducts ?? []);
+      const ytLink = rp.video ? [{ type: "youtube", name: "Watch on YouTube", url: rp.video }] : [];
       setNl({
         image: rp.image || nl.image || "",
         description: rp.description || nl.description || "",
-        links: (rp.links ?? []).map((l: any) => ({ name: l.name || "", url: l.url || "" })),
+        links: [...ytLink, ...rpLinks, ...merch],
         bgColor: rp.bgColor || nl.bgColor,
         textColor: rp.textColor || nl.textColor,
         linksColor: rp.linksColor || nl.linksColor,
@@ -512,6 +569,18 @@ export default function Outreach() {
               <label className="block text-sm font-medium mb-1">Description</label>
               <textarea className="textarea textarea-bordered w-full" rows={4} placeholder="Tell your fans what's new…" value={nl.description ?? ""} onChange={e => setNl({ description: e.target.value })} />
             </div>
+            {(nl.template === "song_release" || nl.template === "album_release" || nl.template === "music_video_release") && (
+              <div>
+                <label className="block text-sm font-medium mb-1">YouTube Video / Playlist</label>
+                <input
+                  className="input input-bordered w-full"
+                  placeholder="https://youtube.com/watch?v=… or playlist link"
+                  value={youtubeLinkEntry?.url ?? ""}
+                  onChange={e => setYoutubeLink(e.target.value)}
+                />
+                <p className="text-[11px] text-gray-400 mt-1">Shows a clickable thumbnail above your links. Auto-filled from your release page.</p>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium mb-1">URL Redirect</label>
               <input className="input input-bordered w-full" placeholder="https://… (makes the image, title & description clickable)" value={nl.urlRedirect ?? ""} onChange={e => setNl({ urlRedirect: e.target.value })} />
@@ -525,16 +594,94 @@ export default function Outreach() {
                 <button type="button" className="btn btn-xs btn-outline" onClick={() => setNl({ links: [...links, { name: "", url: "" }] })}>+ Add Link</button>
               </div>
               <div className="space-y-2">
-                {links.map((l, i) => (
+                {regularLinks.map((l, i) => (
                   <div key={i} className="flex gap-2">
                     <input className="input input-sm input-bordered flex-1" placeholder="Label (e.g. Spotify)" value={l.name} onChange={e => setLink(i, { name: e.target.value })} />
                     <input className="input input-sm input-bordered flex-1" placeholder="https://…" value={l.url} onChange={e => setLink(i, { url: e.target.value })} />
-                    <button type="button" className="btn btn-xs btn-error" onClick={() => setNl({ links: links.filter((_, idx) => idx !== i) })}>✕</button>
+                    <button type="button" className="btn btn-xs btn-error" onClick={() => setNl({ links: links.filter(x => x !== l) })}>✕</button>
                   </div>
                 ))}
-                {links.length === 0 && <p className="text-xs text-gray-400">No links yet</p>}
+                {regularLinks.length === 0 && <p className="text-xs text-gray-400">No links yet</p>}
               </div>
             </div>
+
+            {/* Merch */}
+            {user?.printifyShopId && (
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <span className="text-sm font-semibold text-purple-800">🛒 Merch</span>
+                    {selectedMerchIds.length > 0 && <span className="ml-2 text-xs text-purple-600">{selectedMerchIds.length} selected</span>}
+                  </div>
+                  <button type="button" className="btn btn-xs btn-outline border-purple-400 text-purple-700" onClick={() => setShowMerchPicker(p => !p)}>
+                    {showMerchPicker ? "Hide" : "Select Products"}
+                  </button>
+                </div>
+                {selectedMerchIds.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {links.filter(l => l.type === "merch").map(l => (
+                      <div key={l.id} className="flex items-center gap-1 bg-white border border-purple-200 rounded-full px-2 py-0.5 text-xs">
+                        {l.image && <img src={l.image} alt="" className="w-4 h-4 rounded-full object-cover" />}
+                        <span className="text-purple-800 font-medium truncate max-w-[100px]">{l.name}</span>
+                        <button type="button" onClick={() => setNl({ links: links.filter(x => x !== l) })} className="text-purple-400 hover:text-red-500 ml-1">✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {showMerchPicker && (
+                  <div className="mt-2 border-t border-purple-200 pt-3">
+                    {isLoadingProducts ? (
+                      <p className="text-xs text-purple-600 text-center py-4">Loading products…</p>
+                    ) : availableProducts.length === 0 ? (
+                      <p className="text-xs text-purple-600 text-center py-4">No products found in your Printify store.</p>
+                    ) : (
+                      <>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs text-purple-600">{selectedMerchIds.length}/10 selected</span>
+                          {selectedMerchIds.length > 0 && (
+                            <button type="button" className="text-xs text-red-500 hover:underline" onClick={() => setNl({ links: links.filter(l => l.type !== "merch") })}>Clear all</button>
+                          )}
+                        </div>
+                        <div className="border border-purple-200 rounded-lg overflow-hidden max-h-72 overflow-y-auto">
+                          {/* Mobile cards */}
+                          <div className="md:hidden space-y-2 p-2">
+                            {availableProducts.map((p: any) => (
+                              <div key={p.id} className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer ${selectedMerchIds.includes(p.id) ? "bg-purple-50 border-purple-400" : "bg-white border-gray-200"}`} onClick={() => toggleMerch(p)}>
+                                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${selectedMerchIds.includes(p.id) ? "bg-purple-500 border-purple-500" : "bg-white border-gray-300"}`}>
+                                  {selectedMerchIds.includes(p.id) && <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
+                                </div>
+                                {p.images?.[0] && <img src={p.images[0]} alt={p.title} className="w-10 h-10 rounded object-cover flex-shrink-0" />}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium text-gray-900 truncate">{p.title}</p>
+                                  <p className="text-xs text-green-600 font-semibold">${p.variants?.[0]?.price || "—"}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          {/* Desktop table */}
+                          <table className="hidden md:table w-full">
+                            <tbody className="bg-white divide-y divide-gray-100">
+                              {availableProducts.map((p: any) => (
+                                <tr key={p.id} className={`cursor-pointer hover:bg-gray-50 ${selectedMerchIds.includes(p.id) ? "bg-purple-50" : ""}`} onClick={() => toggleMerch(p)}>
+                                  <td className="px-2 py-2 w-6">
+                                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${selectedMerchIds.includes(p.id) ? "bg-purple-500 border-purple-500" : "bg-white border-gray-300"}`}>
+                                      {selectedMerchIds.includes(p.id) && <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
+                                    </div>
+                                  </td>
+                                  <td className="px-2 py-2 w-12">{p.images?.[0] && <img src={p.images[0]} alt={p.title} className="w-10 h-10 rounded object-cover" />}</td>
+                                  <td className="px-2 py-2 text-sm font-medium text-gray-900">{p.title?.length > 60 ? p.title.slice(0, 60) + "…" : p.title}</td>
+                                  <td className="px-2 py-2 text-sm font-semibold text-green-600 whitespace-nowrap">${p.variants?.[0]?.price || "—"}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Colors */}
             <div className="grid grid-cols-3 gap-3">

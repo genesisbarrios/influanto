@@ -335,7 +335,9 @@ const LinkInBio = () => {
   const getLinks = async () => {
     try {
       const { data } = await apiClient.get("/get-links");
-      setLinkInBio(data);
+      const derivedBgMode = data.bgMode
+        || (data.bgImageCustom ? 'upload' : data.bgImage ? 'image' : data.bgColor ? 'solid' : 'pattern');
+      setLinkInBio({ ...data, bgMode: derivedBgMode });
       setBgColor(data.bgColor);
       setBgImage(data.bgImage);
       setTextColor(data.textColor);
