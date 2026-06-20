@@ -2,13 +2,22 @@
 // Used both by the send route (libs/resend) and the dashboard live preview,
 // so the email a contact receives always matches what the creator sees.
 
+export interface NLLink {
+  name?: string;
+  url?: string;
+  type?: string;
+  id?: string;
+  image?: string;
+  price?: string;
+}
+
 export interface NewsletterContent {
   title?: string;
   subject?: string;
   template?: string;
   image?: string;
   description?: string;
-  links?: { name?: string; url?: string }[];
+  links?: NLLink[];
   bgColor?: string;
   textColor?: string;
   linksColor?: string;
@@ -104,8 +113,41 @@ export function renderNewsletterHtml(
     ? `<p style="font-size:16px;line-height:1.6;margin:0 0 24px;color:${text};opacity:.9;white-space:pre-wrap;">${escapeHtml(n.description)}</p>`
     : "";
 
-  const links = (n.links || [])
-    .filter((l) => l && (l.url || l.name))
+  const allLinks = (n.links || []).filter((l) => l && (l.url || l.name));
+  const regularLinks = allLinks.filter((l) => l.type !== "merch" && l.type !== "youtube");
+  const merchLinks = allLinks.filter((l) => l.type === "merch");
+  const youtubeEntry = allLinks.find((l) => l.type === "youtube");
+
+  const youtubeBlock = (() => {
+    if (!youtubeEntry?.url) return "";
+    const rawUrl = youtubeEntry.url;
+    const url = safeUrl(rawUrl);
+    const videoIdMatch = rawUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    const videoId = videoIdMatch ? videoIdMatch[1] : null;
+    const playlistIdMatch = rawUrl.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+    const playlistId = playlistIdMatch ? playlistIdMatch[1] : null;
+
+    let embedSrc = "";
+    let thumbSrc = "";
+    if (videoId) {
+      embedSrc = `https://www.youtube.com/embed/${videoId}?rel=0${playlistId ? `&list=${playlistId}` : ""}`;
+      thumbSrc = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+    } else if (playlistId) {
+      embedSrc = `https://www.youtube.com/embed/videoseries?list=${playlistId}&rel=0`;
+    }
+
+    if (!embedSrc) return "";
+
+    // iframe: renders in Apple Mail and a few others with full controls + autoplay.
+    // Fallback inside <iframe>…</iframe>: shown by email clients that strip the tag (Gmail, Outlook).
+    const fallback = thumbSrc
+      ? `<a href="${escapeHtml(url)}" target="_blank"><img src="${escapeHtml(thumbSrc)}" alt="Watch on YouTube" width="560" style="display:block;width:100%;border-radius:12px;" /></a>`
+      : `<a href="${escapeHtml(url)}" target="_blank" style="display:block;padding:12px 20px;background:#FF0000;color:#fff;text-decoration:none;border-radius:10px;font-weight:700;text-align:center;">Watch on YouTube</a>`;
+
+    return `<div style="margin-bottom:20px;border-radius:12px;overflow:hidden;"><iframe src="${escapeHtml(embedSrc)}" width="560" height="315" style="display:block;width:100%;border:0;" frameborder="0" allow="encrypted-media; picture-in-picture" allowfullscreen scrolling="no">${fallback}</iframe></div>`;
+  })();
+
+  const links = regularLinks
     .map(
       (l) => `
         <a href="${escapeHtml(safeUrl(l.url || ""))}" target="_blank"
@@ -114,6 +156,28 @@ export function renderNewsletterHtml(
         </a>`
     )
     .join("");
+
+  const merchGrid = merchLinks.length > 0
+    ? `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0 12px;">
+        <tr><td colspan="2" style="padding-bottom:10px;font-size:13px;font-weight:700;color:${text};opacity:.7;text-transform:uppercase;letter-spacing:.5px;">🛒 Merch</td></tr>
+        ${merchLinks.map((l, i) => {
+          const isEven = i % 2 === 0;
+          const cell = `<td width="50%" style="padding:${isEven ? "0 6px 12px 0" : "0 0 12px 6px"};vertical-align:top;">
+            <a href="${escapeHtml(safeUrl(l.url || ""))}" target="_blank" style="text-decoration:none;display:block;background:#ffffff10;border-radius:10px;overflow:hidden;border:1px solid ${text}22;">
+              ${l.image ? `<img src="${escapeHtml(l.image)}" alt="${escapeHtml(l.name || "")}" width="100%" style="display:block;width:100%;height:140px;object-fit:cover;" />` : `<div style="height:100px;background:${accent}22;"></div>`}
+              <div style="padding:10px;">
+                <div style="font-size:13px;font-weight:700;color:${text};line-height:1.3;margin-bottom:4px;">${escapeHtml(l.name || "Product")}</div>
+                ${l.price ? `<div style="font-size:12px;color:${accent};font-weight:600;margin-bottom:8px;">$${escapeHtml(l.price)}</div>` : ""}
+                <span style="display:inline-block;padding:5px 12px;background:${accent};color:#fff;font-size:11px;font-weight:700;border-radius:6px;">Shop Now</span>
+              </div>
+            </a>
+          </td>`;
+          if (isEven) return `<tr>${cell}`;
+          return `${cell}</tr>`;
+        }).join("")}
+        ${merchLinks.length % 2 !== 0 ? `<td width="50%"></td></tr>` : ""}
+      </table>`
+    : "";
 
   // The header block (image + badge + heading + description). If a URL Redirect
   // is set, the whole block becomes a single clickable link to that destination.
@@ -146,7 +210,9 @@ export function renderNewsletterHtml(
   <div style="background:${bg};padding:32px 16px;margin:0;">
     <div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
       ${headerBlock}
+      ${youtubeBlock}
       ${links}
+      ${merchGrid}
       ${socialRow}
       ${artistLogo}
       <p style="font-size:12px;color:${text};opacity:.55;margin:${footerTopMargin} 0 0;text-align:center;">
