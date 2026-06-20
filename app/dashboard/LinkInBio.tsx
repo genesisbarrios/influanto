@@ -804,6 +804,7 @@ const LinkInBio = () => {
               <h3 className="font-semibold mb-3 text-sm text-gray-600 uppercase tracking-wide" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Styles</h3>
 
               <div className="w-full">
+                <label className="block mb-2 font-medium" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Colors:</label>
                 {/* Color Pickers Row */}
                 <div className="flex justify-center items-center gap-4 mb-3 flex-wrap">
                   <div className="flex items-center gap-1">

@@ -127,24 +127,19 @@ export function renderNewsletterHtml(
     const playlistIdMatch = rawUrl.match(/[?&]list=([a-zA-Z0-9_-]+)/);
     const playlistId = playlistIdMatch ? playlistIdMatch[1] : null;
 
-    let embedSrc = "";
-    let thumbSrc = "";
     if (videoId) {
-      embedSrc = `https://www.youtube.com/embed/${videoId}?rel=0${playlistId ? `&list=${playlistId}` : ""}`;
-      thumbSrc = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-    } else if (playlistId) {
-      embedSrc = `https://www.youtube.com/embed/videoseries?list=${playlistId}&rel=0`;
+      const thumb = `https://img.youtube.com/vi/${escapeHtml(videoId)}/maxresdefault.jpg`;
+      // Email-safe: thumbnail as table cell background with a centered play button overlay.
+      // Gmail/Outlook strip iframes, so this approach works in every client.
+      // Clicking opens YouTube where the video plays.
+      return `<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin-bottom:20px;border-radius:12px;overflow:hidden;"><tr><td background="${thumb}" style="background-image:url('${thumb}');background-size:cover;background-position:center center;background-repeat:no-repeat;border-radius:12px;" align="center" valign="middle" height="315"><a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;width:72px;height:72px;background:rgba(0,0,0,0.72);border-radius:50%;text-align:center;line-height:72px;text-decoration:none;font-size:34px;color:#ffffff;">&#9654;</a></td></tr></table>`;
     }
 
-    if (!embedSrc) return "";
+    if (playlistId) {
+      return `<div style="text-align:center;margin-bottom:20px;"><a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;padding:12px 28px;background:#FF0000;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;font-size:15px;">&#9654;&nbsp;Watch Playlist</a></div>`;
+    }
 
-    // iframe: renders in Apple Mail and a few others with full controls + autoplay.
-    // Fallback inside <iframe>…</iframe>: shown by email clients that strip the tag (Gmail, Outlook).
-    const fallback = thumbSrc
-      ? `<a href="${escapeHtml(url)}" target="_blank"><img src="${escapeHtml(thumbSrc)}" alt="Watch on YouTube" width="560" style="display:block;width:100%;border-radius:12px;" /></a>`
-      : `<a href="${escapeHtml(url)}" target="_blank" style="display:block;padding:12px 20px;background:#FF0000;color:#fff;text-decoration:none;border-radius:10px;font-weight:700;text-align:center;">Watch on YouTube</a>`;
-
-    return `<div style="margin-bottom:20px;border-radius:12px;overflow:hidden;"><iframe src="${escapeHtml(embedSrc)}" width="560" height="315" style="display:block;width:100%;border:0;" frameborder="0" allow="encrypted-media; picture-in-picture" allowfullscreen scrolling="no">${fallback}</iframe></div>`;
+    return "";
   })();
 
   const links = regularLinks
