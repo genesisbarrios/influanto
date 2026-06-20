@@ -8,6 +8,7 @@ import posthog from "posthog-js";
 import { renderNewsletterHtml } from "@/libs/newsletter-html";
 import ImportContactsModal, { ImportField } from "@/components/ImportContactsModal";
 import NewsletterAnalytics from "@/components/NewsletterAnalytics";
+import ImagePicker from "@/components/ImagePicker";
 
 const IMPORT_FIELDS: ImportField[] = [
   { key: "email", label: "Email", aliases: ["e-mail", "mail"] },
@@ -151,6 +152,12 @@ export default function Outreach() {
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [showMerchPicker, setShowMerchPicker] = useState(false);
 
+  // Image gallery + quick-add toggle state
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [showHeaderImagePicker, setShowHeaderImagePicker] = useState(false);
+  const [socialLinksAdded, setSocialLinksAdded] = useState(false);
+  const [linkInBioAdded, setLinkInBioAdded] = useState(false);
+
   useEffect(() => {
     apiClient.get("/get-user").then(r => setUser(r.data)).catch(() => {});
   }, []);
@@ -164,6 +171,7 @@ export default function Outreach() {
       setLinkInBioLinks(Array.isArray(j?.data?.links) ? j.data.links : []);
       setLinkInBioSelectedProducts(Array.isArray(j?.data?.selectedProducts) ? j.data.selectedProducts : []);
     }).catch(() => {});
+    fetch("/api/my-images").then(r => r.json()).then(j => setGalleryImages(Array.isArray(j?.images) ? j.images : [])).catch(() => {});
   }, [user?.hasAccess]);
 
   useEffect(() => {
@@ -255,6 +263,7 @@ export default function Outreach() {
       const bioLinks = linkInBioLinks.map(l => ({ name: l.name || "", url: l.url || "" }));
       const merch = buildMerchLinks(linkInBioSelectedProducts);
       setNl({ links: [...bioLinks, ...merch], urlRedirect: bioUrl });
+      setLinkInBioAdded(true);
       setAlert("✅ Pulled links from your Link in Bio");
       return;
     }
@@ -488,7 +497,14 @@ export default function Outreach() {
         .map(k => ({ name: SOCIAL_PLATFORM_LABELS[k], url: user[k] }));
       if (!newLinks.length) return;
       setNl({ links: [...links.filter(l => l.name || l.url), ...newLinks] });
+      setSocialLinksAdded(true);
       setAlert("✅ Social links added");
+    };
+
+    const removeSocialLinksBlock = () => {
+      const socialNames = new Set(Object.values(SOCIAL_PLATFORM_LABELS));
+      setNl({ links: links.filter(l => !socialNames.has(l.name)) });
+      setSocialLinksAdded(false);
     };
 
     const hasSocials = SOCIAL_PLATFORMS.some(k => user?.[k]);
@@ -508,6 +524,7 @@ export default function Outreach() {
     });
 
     return (
+      <>
       <div className="p-4 bg-white shadow rounded-md text-black">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">{(nl as any).id ? "Edit Newsletter" : "New Newsletter"}</h2>
@@ -529,25 +546,24 @@ export default function Outreach() {
             </div>
 
             {/* Blank template quick-add blocks */}
-            {nl.template === "blank" && (hasSocials || linkInBioLinks.length > 0 || user?.image) && (
+            {nl.template === "blank" && (hasSocials || linkInBioLinks.length > 0 || true) && (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                 <label className="block text-xs font-semibold mb-2 text-gray-600">Quick add to blank email</label>
                 <div className="flex flex-wrap gap-2">
                   {hasSocials && (
-                    <button type="button" className="btn btn-xs btn-outline" onClick={addSocialLinksBlock}>
-                      + Social Links
-                    </button>
+                    socialLinksAdded
+                      ? <button type="button" className="btn btn-xs btn-outline text-red-500 border-red-300" onClick={removeSocialLinksBlock}>− Social Links</button>
+                      : <button type="button" className="btn btn-xs btn-outline" onClick={addSocialLinksBlock}>+ Social Links</button>
                   )}
                   {linkInBioLinks.length > 0 && (
-                    <button type="button" className="btn btn-xs btn-outline" onClick={() => populateFrom("link-in-bio")}>
-                      + Link in Bio
-                    </button>
+                    linkInBioAdded
+                      ? <button type="button" className="btn btn-xs btn-outline text-red-500 border-red-300" onClick={() => { setNl({ links: links.filter(l => l.type === "merch" || l.type === "youtube") }); setLinkInBioAdded(false); }}>− Link in Bio</button>
+                      : <button type="button" className="btn btn-xs btn-outline" onClick={() => populateFrom("link-in-bio")}>+ Link in Bio</button>
                   )}
-                  {user?.image && (
-                    <button type="button" className="btn btn-xs btn-outline" onClick={() => setNl({ image: user.image })}>
-                      + My Photo
-                    </button>
-                  )}
+                  {nl.image
+                    ? <button type="button" className="btn btn-xs btn-outline text-red-500 border-red-300" onClick={() => setNl({ image: "" })}>− Photo</button>
+                    : <button type="button" className="btn btn-xs btn-outline" onClick={() => setShowHeaderImagePicker(true)}>+ Photo</button>
+                  }
                 </div>
                 <p className="text-[11px] text-gray-400 mt-1.5">Social icons &amp; your brand photo always appear in the email footer automatically.</p>
               </div>
@@ -708,6 +724,24 @@ export default function Outreach() {
           </div>
         </div>
       </div>
+
+      {showHeaderImagePicker && (
+        <ImagePicker
+          images={galleryImages}
+          uploadPreset="ReleasePageImages"
+          uploadOptions={{ publicId: `user_${user?.id}_newsletter_${Date.now()}` }}
+          title="Choose a header photo"
+          onUploaded={(result: any) => {
+            const url = result.info?.secure_url || "";
+            setNl({ image: url });
+            setGalleryImages(prev => [url, ...prev.filter(i => i !== url)]);
+            setShowHeaderImagePicker(false);
+          }}
+          onSelect={(url: string) => { setNl({ image: url }); setShowHeaderImagePicker(false); }}
+          onClose={() => setShowHeaderImagePicker(false)}
+        />
+      )}
+      </>
     );
   }
 
