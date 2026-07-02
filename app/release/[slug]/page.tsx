@@ -896,7 +896,7 @@ const renderMerchSection = () => {
             </a>
           )}
           {tidal && (
-            <a href={`https://tidal.com/${user.tidal}`} target="_blank" rel="noopener noreferrer">
+            <a href={`https://tidal.com/artist/${user.tidal}`} target="_blank" rel="noopener noreferrer">
                <img
               src="/tidal.png"
               alt="Tidal"
