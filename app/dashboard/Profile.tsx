@@ -1356,7 +1356,7 @@ const handleYouTubeMusicChange = (e: any) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
               <div className="mb-2">
                 <label style={{display:"block"}}>Spotify</label>
-                <input type="text" className="input w-full" placeholder="Spotify URI" value={spotify || ""} onChange={(e) => handleSpotifyChange(e)} />
+                <input type="text" className="input w-full" placeholder="Spotify ArtistID" value={spotify || ""} onChange={(e) => handleSpotifyChange(e)} />
               </div>
               <div className="mb-2">
                 <label style={{display:"block"}}>Apple Music</label>
