@@ -474,7 +474,7 @@ return (
           {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
           {user.appleMusic && <a href={"https://music.apple.com/artist/" + user.appleMusic } target="_blank" style={{color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
           {user.tidal && (
-            <a href={"https://tidal.com/" + user.tidal} target="_blank" style={{textDecoration: 'none', display: "inline-flex", alignItems: "center"}}>
+            <a href={"https://tidal.com/artist/" + user.tidal} target="_blank" style={{textDecoration: 'none', display: "inline-flex", alignItems: "center"}}>
               <span style={{
                 display: "inline-flex",
                 alignItems: "center",
