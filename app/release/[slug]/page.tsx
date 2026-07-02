@@ -878,6 +878,8 @@ const renderMerchSection = () => {
               <FontAwesomeIcon icon={faYoutubeSquare} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
+          {user.spotify && <a href={"https://open.spotify.com/artist/" + user.spotify } target="_blank" style={{color:"green"}}><FontAwesomeIcon icon={faSpotify} /></a>}
+          {user.appleMusic && <a href={"https://music.apple.com/artist/" + user.appleMusic } target="_blank" style={{color:"pink"}}><FontAwesomeIcon icon={faApple} /></a>}
           {amazonMusic && (
             <a href={`https://music.amazon.com/${user.amazonMusic}`} target="_blank" rel="noopener noreferrer">
               <FontAwesomeIcon icon={faAmazon} style={{ fontSize: "24px", color: linksColor || "white" }} />
