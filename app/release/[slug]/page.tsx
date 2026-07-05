@@ -407,9 +407,10 @@ useEffect(() => {
   useEffect(() => {
     const HP = HeroPatterns as Record<string, (color: string, opacity: number) => string>;
     const { bgMode, patternId, patternFg, patternBg, patternOpacity, bgImageCustom, bgImage, pageBgColor } = releasePage || {};
+    const effectivePatternId = patternId || Object.keys(HP)[0];
 
-    if (bgMode === 'pattern' && patternId && HP[patternId]) {
-      document.body.style.backgroundImage = HP[patternId](patternFg || '#000000', patternOpacity ?? 0.5);
+    if (bgMode === 'pattern' && HP[effectivePatternId]) {
+      document.body.style.backgroundImage = HP[effectivePatternId](patternFg || '#000000', patternOpacity ?? 0.5);
       document.body.style.backgroundColor = patternBg || '#ffffff';
       document.body.style.backgroundSize = '';
       document.body.style.backgroundPosition = '';
