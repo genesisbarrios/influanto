@@ -834,7 +834,7 @@ const renderMerchSection = () => {
             justifyContent: "center",
             flexWrap: "wrap",
             gap: "15px",
-            backgroundColor: releasePage?.cardBgColor || "rgba(255,255,255,0.1)",
+            backgroundColor: releasePage?.bgColor || "rgba(255,255,255,0.1)",
             borderRadius: "50px",
             padding: "12px 24px",
           }}
