@@ -114,6 +114,14 @@ export function mapReleasePage(row: any) {
     newsletterEnabled: row.newsletter_enabled ?? false,
     newsletterFields: row.newsletter_fields ?? ["name", "email"],
     brandLogoUrl: row.brand_logo_url ?? null,
+    bgMode: row.bg_mode,
+    bgImage: row.bg_image,
+    bgImageCustom: row.bg_image_custom,
+    patternId: row.pattern_id,
+    patternFg: row.pattern_fg,
+    patternBg: row.pattern_bg,
+    patternOpacity: row.pattern_opacity,
+    pageBgColor: row.page_bg_color,
   };
 }
 

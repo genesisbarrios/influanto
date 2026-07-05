@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   try {
-    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, font, newsletterEnabled, newsletterFields, brandLogoUrl } = body;
+    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, font, newsletterEnabled, newsletterFields, brandLogoUrl, bgMode, patternId, patternFg, patternBg, patternOpacity, bgImage, bgImageCustom, pageBgColor } = body;
 
     if (id) {
       const updates: Record<string, any> = { user_id: userId };
@@ -30,6 +30,14 @@ export async function POST(req: NextRequest) {
       if (newsletterEnabled !== undefined) updates.newsletter_enabled = newsletterEnabled;
       if (newsletterFields !== undefined) updates.newsletter_fields = newsletterFields ?? ["name", "email"];
       updates.brand_logo_url = brandLogoUrl ?? null;
+      if (bgMode !== undefined) updates.bg_mode = bgMode;
+      if (patternId !== undefined) updates.pattern_id = patternId;
+      if (patternFg !== undefined) updates.pattern_fg = patternFg;
+      if (patternBg !== undefined) updates.pattern_bg = patternBg;
+      if (patternOpacity !== undefined) updates.pattern_opacity = patternOpacity;
+      if (bgImage !== undefined) updates.bg_image = bgImage;
+      if (bgImageCustom !== undefined) updates.bg_image_custom = bgImageCustom;
+      if (pageBgColor !== undefined) updates.page_bg_color = pageBgColor;
 
       const { data, error } = await supabase
         .from("release_pages")
@@ -60,6 +68,14 @@ export async function POST(req: NextRequest) {
         newsletter_enabled: newsletterEnabled ?? false,
         newsletter_fields: newsletterFields ?? ["name", "email"],
         brand_logo_url: brandLogoUrl ?? null,
+        bg_mode: bgMode,
+        pattern_id: patternId,
+        pattern_fg: patternFg,
+        pattern_bg: patternBg,
+        pattern_opacity: patternOpacity,
+        bg_image: bgImage,
+        bg_image_custom: bgImageCustom,
+        page_bg_color: pageBgColor,
       })
       .select()
       .single();
