@@ -828,7 +828,16 @@ const renderMerchSection = () => {
 
         {/* User Social Icons */}
         <div
-          style={{ marginTop: "50px", display: "flex", justifyContent: "center", gap: "15px" }}
+          style={{
+            marginTop: "50px",
+            display: "inline-flex",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: "15px",
+            backgroundColor: releasePage?.cardBgColor || "rgba(255,255,255,0.1)",
+            borderRadius: "50px",
+            padding: "12px 24px",
+          }}
           onClick={(e) => {
             const a = (e.target as Element).closest('a');
             if (a?.href) trackLinkClick(new URL(a.href).hostname.replace(/^www\./, ''), a.href, 'social');
