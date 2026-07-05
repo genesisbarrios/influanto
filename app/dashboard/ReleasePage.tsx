@@ -716,6 +716,7 @@ const removeCustomLink = (index: number) => {
         linksColor,
         font,
         bgMode: editingPage?.bgMode || 'pattern',
+        patternId: editingPage?.patternId || ((editingPage?.bgMode || 'pattern') === 'pattern' ? PATTERN_IDS[0] : editingPage?.patternId),
         selectedProducts: selectedProductIds,
         newsletterEnabled: !!editingPage?.newsletterEnabled,
         newsletterFields: nlFields.includes("email") ? nlFields : [...nlFields, "email"],
