@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 const calcDelayMs = (bpm: number, note: number) => {
   if (!bpm || !note) return "";
@@ -82,7 +83,7 @@ const tools = [
 ];
 
 export default function Tools() {
-
+  const { data: session } = useSession();
 
 useEffect(() => {
     document.title = "Music Tools | Influanto";
@@ -141,11 +142,12 @@ useEffect(() => {
     </Suspense> 
     <div 
       id="tools-bg"
-      style={{ 
+      style={{
         display: "flex",
         flexDirection: "column",
-        minHeight: "80vh", 
-        width: "100%" 
+        alignItems: "flex-start",
+        minHeight: "80vh",
+        width: "100%"
       }}
     >
       {/* Left: Free Tools Grid */}
@@ -198,40 +200,45 @@ useEffect(() => {
         </div>
       </div>
       {/* Right: Sign up and info */}
-      <div
-        style={{
-          padding: "2rem",
-          background: "#fff",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center"
-        }}
-        className="w-full sm:w-1/4 p-8"
-      >
-        <h3 className="text-xl font-bold mb-4" style={{color: "#181b20"}}>Join Influanto</h3>
-        <button
-          className="btn btn-primary"
+      {!session && (
+        <div
           style={{
-            padding: "0.75rem 2rem",
-            fontSize: "1.1rem",
-            borderRadius: "8px",
-            marginBottom: "1.5rem",
-            background: "#2563eb",
-            color: "#fff",
-            border: "none",
-            cursor: "pointer",
+            padding: "2rem",
+            background: "#fff",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "sticky",
+            top: 0,
+            alignSelf: "flex-start",
           }}
-          onClick={() => window.location.href = "api/auth/signin?callbackUrl=/dashboard"}
+          className="w-full sm:w-1/4 p-8"
         >
-          Sign Up
-        </button>
-        <div style={{ color: "#444", textAlign: "center" }}>
-          <p>
-            Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.
-          </p>
+          <h3 className="text-xl font-bold mb-4" style={{color: "#181b20"}}>Join Influanto</h3>
+          <button
+            className="btn btn-primary"
+            style={{
+              padding: "0.75rem 2rem",
+              fontSize: "1.1rem",
+              borderRadius: "8px",
+              marginBottom: "1.5rem",
+              background: "#2563eb",
+              color: "#fff",
+              border: "none",
+              cursor: "pointer",
+            }}
+            onClick={() => window.location.href = "api/auth/signin?callbackUrl=/dashboard"}
+          >
+            Sign Up
+          </button>
+          <div style={{ color: "#444", textAlign: "center" }}>
+            <p>
+              Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
     <style>{`
       #tools-bg {
