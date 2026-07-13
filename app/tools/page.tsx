@@ -168,6 +168,7 @@ useEffect(() => {
             maxWidth: "900px",
             margin: "0 auto",
           }}
+          className={session ? "tools-grid-loggedin" : ""}
         >
           {tools.map((tool) => (
             <Link
@@ -246,6 +247,11 @@ useEffect(() => {
       }
       
       @media (min-width: 640px) {
+        .tools-grid-loggedin {
+          grid-template-columns: repeat(4, 1fr) !important;
+          max-width: none !important;
+        }
+
         #tools-bg {
           flex-direction: row !important;
         }
