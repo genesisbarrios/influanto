@@ -613,6 +613,7 @@ const startRecording = async () => {
     const blob = new Blob(chunks, { type: "audio/webm" });
     setRecordedBlobs(prev => ({ ...prev, [currentMelody]: blob }));
     setAudioUrl(URL.createObjectURL(blob));
+    setLoadedMelodyName(null);
     setRecording(false);
   };
   recorder.start();
@@ -659,6 +660,7 @@ const startRecording = async () => {
   }
   // Remove audioUrl for current melody
   setAudioUrl(null);
+  setLoadedMelodyName(null);
   setRecordedBlobs(prev => {
     const copy = { ...prev };
     delete copy[currentMelody];
@@ -682,6 +684,8 @@ const startRecording = async () => {
       }
     }
 
+    const fileName = (saveMelodyName.trim() || loadedMelodyName || currentMelody).replace(/[^a-zA-Z0-9_-]/g, "_") || "melody";
+
     // Try to decode and encode as WAV
     try {
       const arrayBuffer = await blob.arrayBuffer();
@@ -695,7 +699,7 @@ const startRecording = async () => {
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${currentMelody}.wav`;
+      a.download = `${fileName}.wav`;
       document.body.appendChild(a);
       a.click();
       setTimeout(() => {
@@ -708,7 +712,7 @@ const startRecording = async () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${currentMelody}.${ext}`;
+      a.download = `${fileName}.${ext}`;
       document.body.appendChild(a);
       a.click();
       setTimeout(() => {
@@ -834,6 +838,7 @@ const stopNote = useCallback((noteName: string) => {
 
   const [savedPresets, setSavedPresets] = useState<{id: string; name: string; settings: any}[]>([]);
   const [savedMelodies, setSavedMelodies] = useState<{id: string; name: string; audio_url: string}[]>([]);
+  const [loadedMelodyName, setLoadedMelodyName] = useState<string | null>(null);
   const [showSavePreset, setShowSavePreset] = useState(false);
   const [showSaveMelody, setShowSaveMelody] = useState(false);
   const [savePresetName, setSavePresetName] = useState("");
@@ -1606,7 +1611,7 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
                       ) : (
                         <>
                           <span style={{ flex: 1, fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.name}</span>
-                          <button onClick={() => { setAudioUrl(m.audio_url); }} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#22c55e", color: "#fff", border: "none", cursor: "pointer" }}>Load</button>
+                          <button onClick={() => { setAudioUrl(m.audio_url); setLoadedMelodyName(m.name); }} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#22c55e", color: "#fff", border: "none", cursor: "pointer" }}>Load</button>
                           <button onClick={() => { setEditingMelodyId(m.id); setEditingName(m.name); }} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#f59e0b", color: "#fff", border: "none", cursor: "pointer" }}>Edit</button>
                           <a href={m.audio_url} download={`${m.name.replace(/[^a-zA-Z0-9_-]/g, "_")}.mp3`} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#3b82f6", color: "#fff", border: "none", cursor: "pointer", textDecoration: "none" }}>MP3</a>
                           <button onClick={() => handleDeleteMelody(m.id)} style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "#ef4444", color: "#fff", border: "none", cursor: "pointer" }}>Del</button>
