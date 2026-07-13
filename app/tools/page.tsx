@@ -48,16 +48,16 @@ const tools = [
     icon: "🎻",
   },
   {
-    title: "Synthfluanto",
-    description: "Create and share your own melodies with our synth.",
-    href: "/Synthfluanto",
-    icon: "🎹",
-  },
-  {
     title: "Ear Training",
     description: "Pitch matching, interval recognition, and chord recognition for musicians, producers, and singers.",
     href: "/Ear-Training",
     icon: "👂",
+  },
+  {
+    title: "Synthfluanto",
+    description: "Create and share your own melodies with our synth.",
+    href: "/Synthfluanto",
+    icon: "🎹",
   },
   {
     title: "Image Privacy Cleaner",

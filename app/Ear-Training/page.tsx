@@ -71,6 +71,7 @@ const CHORDS = [
   { type: "minor", label: "Minor", intervals: [0, 3, 7] },
   { type: "major7", label: "Major 7", intervals: [0, 4, 7, 11] },
   { type: "minor7", label: "Minor 7", intervals: [0, 3, 7, 10] },
+  { type: "dominant7", label: "Dominant 7", intervals: [0, 4, 7, 10] },
 ] as const;
 
 const PENTATONIC = [0, 2, 4, 7, 9];
@@ -427,7 +428,7 @@ export default function EarTraining() {
               {([
                 { id: "pitch" as Mode, icon: "🎤", title: "Pitch Matching", desc: "Sing back a melody and score your accuracy" },
                 { id: "interval" as Mode, icon: "🎼", title: "Interval Recognition", desc: "Identify all intervals from minor 2nd to octave" },
-                { id: "chord" as Mode, icon: "🎹", title: "Chord Recognition", desc: "Identify major, minor, major 7, and minor 7 chords" },
+                { id: "chord" as Mode, icon: "🎹", title: "Chord Recognition", desc: "Identify major, minor, major 7, minor 7, and dominant 7 chords" },
               ] as const).map(m => (
                 <button key={m.id}
                   onClick={() => {
