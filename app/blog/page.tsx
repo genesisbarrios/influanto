@@ -25,6 +25,26 @@ export const metadata: Metadata = {
 
 const posts = [
   {
+    slug: "ear-training-for-musicians",
+    title: "Are You an Artist or Producer Having Trouble Coming Up With Melodies? You Might Need Ear Training",
+    excerpt: "Can't come up with melodies that stick? Ear training builds the skill that connects what you hear to what you play. Here's how to start.",
+    date: "July 2026",
+    readTime: "7 min read",
+    tag: "Music Theory",
+    tagColor: "#8b5cf6",
+    emoji: "👂",
+  },
+  {
+    slug: "split-sheets-indie-artists",
+    title: "Why Split Sheets Are Non-Negotiable for Indie Music Collaborations",
+    excerpt: "Made a beat with your producer friend? A verbal agreement won't protect you when the song gets licensed or hits a playlist. Here's what to do.",
+    date: "June 2026",
+    readTime: "6 min read",
+    tag: "Business",
+    tagColor: "#f59e0b",
+    emoji: "📄",
+  },
+  {
     slug: "newsletter-for-independent-artists",
     title: "Why Every Independent Artist Needs a Newsletter",
     excerpt: "Social media is rented land. Your email list is the one audience you actually own — and it converts better than any follower count.",
@@ -38,7 +58,7 @@ const posts = [
     slug: "link-in-bio-for-independent-artists",
     title: "Why Every Independent Artist Needs a Link in Bio",
     excerpt: "Social media gives you one bio link. Here's how to make it do the work of a full website — and why it matters more than you think.",
-    date: "June 2025",
+    date: "June 2026",
     readTime: "6 min read",
     tag: "Marketing",
     tagColor: "#6366f1",
@@ -48,21 +68,11 @@ const posts = [
     slug: "music-release-pages-indie-artists",
     title: "Why Indie Artists Should Use Release Pages Instead of Pasting Links",
     excerpt: "Dropping a new song? A single release page beats a Spotify link every time. Here's why smart links are the standard for independent artists in 2025.",
-    date: "June 2025",
+    date: "June 2026",
     readTime: "7 min read",
     tag: "Releases",
     tagColor: "#10b981",
     emoji: "🎵",
-  },
-  {
-    slug: "split-sheets-indie-artists",
-    title: "Why Split Sheets Are Non-Negotiable for Indie Music Collaborations",
-    excerpt: "Made a beat with your producer friend? A verbal agreement won't protect you when the song gets licensed or hits a playlist. Here's what to do.",
-    date: "June 2025",
-    readTime: "6 min read",
-    tag: "Business",
-    tagColor: "#f59e0b",
-    emoji: "📄",
   },
 ];
 
