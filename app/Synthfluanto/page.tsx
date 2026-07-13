@@ -669,8 +669,18 @@ const startRecording = async () => {
 
   // Save as .wav (or .mp3 fallback) using webm-to-wav conversion
   const saveRecording = async () => {
-    const blob = recordedBlobs[currentMelody];
-    if (!blob) return;
+    let blob = recordedBlobs[currentMelody];
+    if (!blob) {
+      // Not recorded locally (e.g. loaded from Saved Melodies) - fetch from audioUrl instead
+      if (!audioUrl) return;
+      try {
+        const res = await fetch(audioUrl);
+        blob = await res.blob();
+      } catch (err) {
+        console.error("Error fetching audio to save:", err);
+        return;
+      }
+    }
 
     // Try to decode and encode as WAV
     try {
