@@ -37,12 +37,6 @@ const tools = [
     icon: "⏱️",
   },
   {
-    title: "Music Metadata Editor",
-    description: "Edit MP3 & WAV tags — artist, composer, cover art, copyright — and download.",
-    href: "/Metadata-Editor",
-    icon: "🏷️",
-  },
-  {
     title: "Chromatic Tuner",
     description: "Tune guitar, bass, violin, or any instrument with your mic.",
     href: "/Tuner",
@@ -59,6 +53,13 @@ const tools = [
     description: "Create and share your own melodies with our synth.",
     href: "/Synthfluanto",
     icon: "🎹",
+  },
+
+  {
+    title: "Music Metadata Editor",
+    description: "Edit MP3 & WAV tags — artist, composer, cover art, copyright — and download.",
+    href: "/Metadata-Editor",
+    icon: "🏷️",
   },
   {
     title: "Image Privacy Cleaner",
