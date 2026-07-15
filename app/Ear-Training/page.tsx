@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import { PianoDiagram, SheetMusic } from "@/components/ChordDiagrams";
 
 // ── Pitch detection (autocorrelation, same as Tuner) ─────────────────────────
 
@@ -89,6 +90,12 @@ const accColor = (pct: number) => pct >= 80 ? "#16a34a" : pct >= 50 ? "#d97706" 
 
 type Mode = "pitch" | "interval" | "chord";
 type Voicing = "bass" | "tenor" | "alto" | "soprano";
+type Presentation = "listening" | "sheet" | "piano";
+const PRESENTATIONS: { id: Presentation; icon: string; label: string }[] = [
+  { id: "listening", icon: "🎧", label: "Listening" },
+  { id: "sheet", icon: "🎼", label: "Sheet Music" },
+  { id: "piano", icon: "🎹", label: "Piano" },
+];
 
 const VOICINGS: { id: Voicing; label: string; melodyBase: number; rootMin: number; rootMax: number }[] = [
   { id: "bass",    label: "Bass",    melodyBase: 36, rootMin: 36, rootMax: 48 },  // C2–C3
@@ -114,6 +121,7 @@ export default function EarTraining() {
   const allScoresRef = useRef<number[]>([]);
 
   // Interval / chord
+  const [presentation, setPresentation] = useState<Presentation>("listening");
   const [question, setQuestion] = useState<{ answer: string; choices: string[] } | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -389,6 +397,22 @@ export default function EarTraining() {
     if (mode === "chord") newChordQuestion();
   };
 
+  // ── Presentation selector (Listening / Sheet Music / Piano) ────────────────
+
+  const PresentationSelector = () => (
+    <div className="flex justify-center gap-2 mb-6 flex-wrap">
+      {PRESENTATIONS.map(p => (
+        <button
+          key={p.id}
+          onClick={() => setPresentation(p.id)}
+          className={`px-3 py-1.5 rounded-full text-xs font-semibold border-2 transition-all cursor-pointer ${presentation === p.id ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-500 hover:border-gray-400"}`}
+        >
+          {p.icon} {p.label}
+        </button>
+      ))}
+    </div>
+  );
+
   // ── Choice button helper ──────────────────────────────────────────────────
 
   const ChoiceBtn = ({ label, answer, onClick }: { label: string; answer: string; onClick: () => void }) => {
@@ -594,8 +618,19 @@ export default function EarTraining() {
                 <span className="text-sm font-medium text-gray-500">{total}/{SESSION_ROUNDS}</span>
               </div>
 
+              <PresentationSelector />
+
               <div className="text-center mb-6">
-                <p className="text-gray-500 text-sm mb-3">What interval is this?</p>
+                <p className="text-gray-500 text-sm mb-3">
+                  {presentation === "listening" ? "What interval is this?" : presentation === "sheet" ? "What interval is notated here?" : "What interval are these piano keys?"}
+                </p>
+                {presentation !== "listening" && intervalPayloadRef.current && (
+                  <div className="mb-4">
+                    {presentation === "piano"
+                      ? <PianoDiagram root={intervalPayloadRef.current.root} intervals={[0, intervalPayloadRef.current.semitones]} />
+                      : <SheetMusic root={intervalPayloadRef.current.root} intervals={[0, intervalPayloadRef.current.semitones]} />}
+                  </div>
+                )}
                 <button onClick={replayInterval} className="btn btn-outline btn-sm">🔁 Play Again</button>
               </div>
 
@@ -628,8 +663,19 @@ export default function EarTraining() {
                 <span className="text-sm font-medium text-gray-500">{total}/{SESSION_ROUNDS}</span>
               </div>
 
+              <PresentationSelector />
+
               <div className="text-center mb-6">
-                <p className="text-gray-500 text-sm mb-3">What type of chord is this?</p>
+                <p className="text-gray-500 text-sm mb-3">
+                  {presentation === "listening" ? "What type of chord is this?" : presentation === "sheet" ? "What chord is notated here?" : "What chord are these piano keys?"}
+                </p>
+                {presentation !== "listening" && chordPayloadRef.current && (
+                  <div className="mb-4">
+                    {presentation === "piano"
+                      ? <PianoDiagram root={chordPayloadRef.current.root} intervals={chordPayloadRef.current.intervals} />
+                      : <SheetMusic root={chordPayloadRef.current.root} intervals={chordPayloadRef.current.intervals} />}
+                  </div>
+                )}
                 <button onClick={replayChord} className="btn btn-outline btn-sm">🔁 Play Again</button>
               </div>
 
