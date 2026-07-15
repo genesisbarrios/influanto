@@ -83,6 +83,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
+const NOTE_STEP_MS = 700;
 const accColor = (pct: number) => pct >= 80 ? "#16a34a" : pct >= 50 ? "#d97706" : "#dc2626";
 
 type Mode = "pitch" | "interval" | "chord";
@@ -201,7 +202,7 @@ export default function EarTraining() {
       if (cancelRef.current) return;
       setActiveNote(i);
       playNote(ctx, midiToFreq(notes[i]), ctx.currentTime, 0.75);
-      await sleep(1050);
+      await sleep(NOTE_STEP_MS);
     }
     setActiveNote(-1);
     await sleep(400);
@@ -265,7 +266,7 @@ export default function EarTraining() {
   const replayMelody = () => {
     const ctx = getCtx();
     if (ctx.state === "suspended") ctx.resume();
-    melody.forEach((note, i) => playNote(ctx, midiToFreq(note), ctx.currentTime + i * 1.05, 0.75));
+    melody.forEach((note, i) => playNote(ctx, midiToFreq(note), ctx.currentTime + i * (NOTE_STEP_MS / 1000), 0.75));
   };
 
   // ── Interval Recognition ──────────────────────────────────────────────────
