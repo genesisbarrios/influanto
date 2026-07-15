@@ -75,6 +75,7 @@ const CHORDS = [
 ] as const;
 
 const PENTATONIC = [0, 2, 4, 7, 9];
+const LEVEL_NOTE_COUNTS = [4, 5, 6, 7, 8];
 
 function pick<T>(arr: readonly T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 function shuffle<T>(arr: T[]): T[] {
@@ -101,6 +102,7 @@ export default function EarTraining() {
   const [voicing, setVoicing] = useState<Voicing>("tenor");
 
   // Pitch matching
+  const [level, setLevel] = useState(1); // 1-5, maps to LEVEL_NOTE_COUNTS
   const [melody, setMelody] = useState<number[]>([]);
   const [phase, setPhase] = useState<"idle" | "playing" | "singing" | "result">("idle");
   const [activeNote, setActiveNote] = useState(-1);
@@ -185,7 +187,8 @@ export default function EarTraining() {
   const startPitchRound = async () => {
     cancelRef.current = false;
     const vc = VOICINGS.find(v => v.id === voicing)!;
-    const notes = Array.from({ length: 4 }, () => vc.melodyBase + pick(PENTATONIC));
+    const noteCount = LEVEL_NOTE_COUNTS[level - 1];
+    const notes = Array.from({ length: noteCount }, () => vc.melodyBase + pick(PENTATONIC));
     setMelody(notes);
     setPhase("playing");
     setActiveNote(-1);
@@ -215,7 +218,7 @@ export default function EarTraining() {
     setPhase("singing");
 
     // Record the full melody duration in one go, split into per-note windows
-    const singWindowMs = 1500;
+    const singWindowMs = 900;
     const totalMs = notes.length * singWindowMs;
     const windowFreqs: number[][] = Array.from({ length: notes.length }, () => []);
     const startTime = Date.now();
@@ -494,6 +497,25 @@ export default function EarTraining() {
                 )}
               </div>
 
+              {/* Difficulty / level selector */}
+              <div className="flex justify-center items-center gap-2 mb-6 flex-wrap">
+                <span className="text-xs font-medium text-gray-400 mr-1">Difficulty:</span>
+                {LEVEL_NOTE_COUNTS.map((_, i) => {
+                  const lvl = i + 1;
+                  const disabled = phase !== "idle";
+                  return (
+                    <button
+                      key={lvl}
+                      onClick={() => !disabled && setLevel(lvl)}
+                      disabled={disabled}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold border-2 transition-all ${level === lvl ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-500 hover:border-gray-400"} ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                    >
+                      Lvl {lvl}
+                    </button>
+                  );
+                })}
+              </div>
+
               {/* Note tiles */}
               {melody.length > 0 && (
                 <div className="flex justify-center gap-3 mb-6">
@@ -518,7 +540,7 @@ export default function EarTraining() {
               {phase === "idle" && (
                 <div className="text-center">
                   <button onClick={startPitchRound} className="btn btn-primary px-8">Start Round</button>
-                  <p className="text-xs text-gray-400 mt-3">A 4-note melody will play — then sing the whole melody back.</p>
+                  <p className="text-xs text-gray-400 mt-3">A {LEVEL_NOTE_COUNTS[level - 1]}-note melody will play — then sing the whole melody back.</p>
                 </div>
               )}
 
