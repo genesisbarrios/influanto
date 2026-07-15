@@ -146,7 +146,7 @@ useEffect(() => {
       style={{
         display: "flex",
         flexDirection: "column",
-        alignItems: "flex-start",
+        alignItems: "stretch",
         minHeight: "80vh",
         width: "100%"
       }}
@@ -211,9 +211,6 @@ useEffect(() => {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            position: "sticky",
-            top: 0,
-            alignSelf: "flex-start",
           }}
           className="w-full sm:w-1/4 p-8"
         >
