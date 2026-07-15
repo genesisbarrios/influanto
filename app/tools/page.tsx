@@ -203,38 +203,41 @@ useEffect(() => {
       </div>
       {/* Right: Sign up and info */}
       {!session && (
-        <div
-          style={{
-            padding: "2rem",
-            background: "#fff",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-          className="w-full sm:w-1/4 p-8"
-        >
-          <h3 className="text-xl font-bold mb-4" style={{color: "#181b20"}}>Join Influanto</h3>
-          <button
-            className="btn btn-primary"
+        <div style={{ background: "#fff" }} className="w-full sm:w-1/4">
+          <div
             style={{
-              padding: "0.75rem 2rem",
-              fontSize: "1.1rem",
-              borderRadius: "8px",
-              marginBottom: "1.5rem",
-              background: "#2563eb",
-              color: "#fff",
-              border: "none",
-              cursor: "pointer",
+              position: "sticky",
+              top: 0,
+              minHeight: "100vh",
+              padding: "2rem",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
             }}
-            onClick={() => window.location.href = "api/auth/signin?callbackUrl=/dashboard"}
           >
-            Sign Up
-          </button>
-          <div style={{ color: "#444", textAlign: "center" }}>
-            <p>
-              Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.
-            </p>
+            <h3 className="text-xl font-bold mb-4" style={{color: "#181b20"}}>Join Influanto</h3>
+            <button
+              className="btn btn-primary"
+              style={{
+                padding: "0.75rem 2rem",
+                fontSize: "1.1rem",
+                borderRadius: "8px",
+                marginBottom: "1.5rem",
+                background: "#2563eb",
+                color: "#fff",
+                border: "none",
+                cursor: "pointer",
+              }}
+              onClick={() => window.location.href = "api/auth/signin?callbackUrl=/dashboard"}
+            >
+              Sign Up
+            </button>
+            <div style={{ color: "#444", textAlign: "center" }}>
+              <p>
+                Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.
+              </p>
+            </div>
           </div>
         </div>
       )}
