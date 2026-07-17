@@ -1360,7 +1360,7 @@ const handleYouTubeMusicChange = (e: any) => {
               </div>
               <div className="mb-2">
                 <label style={{display:"block"}}>Apple Music</label>
-                <input type="text" className="input w-full" placeholder="Artist URI - https://music.apple.com/us/artist/{artist-name/artistID}" value={appleMusic || ""} onChange={(e) => handleAppleMusicChange(e)} />
+                <input type="text" className="input w-full" placeholder="artist-name/artistID" value={appleMusic || ""} onChange={(e) => handleAppleMusicChange(e)} />
               </div>
               <div className="mb-2">
                 <label style={{display:"block"}}>YouTube Music</label>
