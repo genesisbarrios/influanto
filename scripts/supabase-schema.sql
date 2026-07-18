@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS users (
   printify_store_name TEXT,
   printify_access_token TEXT,
   printify_shop_url TEXT,
+  welcome_email_sent_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

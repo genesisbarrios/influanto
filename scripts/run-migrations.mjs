@@ -7,6 +7,9 @@ const client = new Client({
 });
 
 const migrations = [
+  // tracks whether the day-1/2 onboarding welcome email has gone out
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS welcome_email_sent_at TIMESTAMPTZ`,
+
   // brand logo for link-in-bio
   `ALTER TABLE link_in_bio ADD COLUMN IF NOT EXISTS brand_logo_url TEXT`,
 
