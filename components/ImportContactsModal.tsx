@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable */
 import React, { useMemo, useRef, useState } from "react";
+import * as XLSX from "xlsx";
 
 export interface ImportField {
   key: string;
@@ -95,9 +96,19 @@ export default function ImportContactsModal({ title = "Import Contacts", fields,
   const handleFile = (file?: File) => {
     if (!file) return;
     setFileName(file.name);
+    const isExcel = /\.xlsx?$/i.test(file.name);
     const reader = new FileReader();
-    reader.onload = () => setText(String(reader.result || ""));
-    reader.readAsText(file);
+    if (isExcel) {
+      reader.onload = () => {
+        const workbook = XLSX.read(reader.result, { type: "array" });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        setText(XLSX.utils.sheet_to_csv(firstSheet));
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.onload = () => setText(String(reader.result || ""));
+      reader.readAsText(file);
+    }
   };
 
   const doImport = async () => {
@@ -119,7 +130,7 @@ export default function ImportContactsModal({ title = "Import Contacts", fields,
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
         <div className="px-5 py-4 border-b">
           <h3 className="text-lg font-semibold">{title}</h3>
-          <p className="text-sm text-gray-500 mt-0.5">Paste a list or load a CSV file.</p>
+          <p className="text-sm text-gray-500 mt-0.5">Paste a list or load a CSV/Excel file.</p>
         </div>
 
         {result ? (
@@ -132,9 +143,9 @@ export default function ImportContactsModal({ title = "Import Contacts", fields,
           <>
             <div className="p-5 space-y-3">
               <div className="flex items-center gap-2">
-                <button className="btn btn-sm btn-outline" onClick={() => fileRef.current?.click()}>Choose CSV file</button>
+                <button className="btn btn-sm btn-outline" onClick={() => fileRef.current?.click()}>Choose CSV or Excel file</button>
                 {fileName && <span className="text-xs text-gray-500 truncate">{fileName}</span>}
-                <input ref={fileRef} type="file" accept=".csv,text/csv,text/plain" className="hidden"
+                <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" className="hidden"
                   onChange={e => handleFile(e.target.files?.[0])} />
               </div>
 
