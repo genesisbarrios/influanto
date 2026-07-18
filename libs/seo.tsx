@@ -13,7 +13,10 @@ export const getSEOTags = ({
   openGraph,
   canonicalUrlRelative,
   extraTags,
-}: Metadata & {
+}: Omit<Metadata, "openGraph"> & {
+  // Loosened from Metadata['openGraph'] so callers can pass a `type` +
+  // `images` pair without fighting the discriminated OpenGraph union.
+  openGraph?: any;
   canonicalUrlRelative?: string;
   extraTags?: Record<string, any>;
 } = {}) => {
@@ -33,27 +36,19 @@ export const getSEOTags = ({
     ),
 
     openGraph: {
+      ...openGraph,
       title: openGraph?.title || config.appName,
       description: openGraph?.description || config.appDescription,
       url: openGraph?.url || `https://www.${config.domainName}/`,
       siteName: openGraph?.title || config.appName,
-      // If you add an opengraph-image.(jpg|jpeg|png|gif) image to the /app folder, you don't need the code below
-      // images: [
-      //   {
-      //     url: `https://${config.domainName}/share.png`,
-      //     width: 1200,
-      //     height: 660,
-      //   },
-      // ],
       locale: "en_US",
-      type: "website",
+      type: openGraph?.type || "website",
     },
 
     twitter: {
       title: openGraph?.title || config.appName,
       description: openGraph?.description || config.appDescription,
-      // If you add an twitter-image.(jpg|jpeg|png|gif) image to the /app folder, you don't need the code below
-      // images: [openGraph?.image || defaults.og.image],
+      images: openGraph?.images,
       card: "summary_large_image",
       creator: "@_influanto",
     },
