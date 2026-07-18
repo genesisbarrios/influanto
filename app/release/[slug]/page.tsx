@@ -703,22 +703,22 @@ const renderMerchSection = () => {
             width: "200px",
             height: "auto",
             display: "inline",
-            marginBottom: "2%",
+            marginBottom: "10px",
           }}
           alt="Release Cover"
         />
 
         {/* Name and Description */}
-        <p style={{ fontFamily: font, color: textColor || "white" }}>{releasePage.name}</p>
-        <p style={{ marginBottom: "2%", fontFamily: font, color: textColor || "white" }}>{releasePage.description}</p>
-            
+        <p style={{ margin: "8px 0 4px", fontFamily: font, color: textColor || "white" }}>{releasePage.name}</p>
+        <p style={{ margin: "0 0 8px", fontFamily: font, color: textColor || "white" }}>{releasePage.description}</p>
+
         {/* Links */}
         <div
           className="responsive-container"
           style={{
             margin: "0 auto",
             textAlign: "center",
-            marginTop: "2%",
+            marginTop: "8px",
             fontFamily: font,
           }}
         >
