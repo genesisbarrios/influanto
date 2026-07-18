@@ -7,6 +7,7 @@ import config from "@/config";
 import posthog from "posthog-js";
 import { renderNewsletterHtml } from "@/libs/newsletter-html";
 import ImportContactsModal, { ImportField } from "@/components/ImportContactsModal";
+import * as XLSX from "xlsx";
 import NewsletterAnalytics from "@/components/NewsletterAnalytics";
 import ImagePicker from "@/components/ImagePicker";
 
@@ -213,6 +214,14 @@ export default function Outreach() {
     a.href = url; a.download = "outreach-contacts.csv"; a.click();
     URL.revokeObjectURL(url);
   };
+  const exportXlsx = () => {
+    const headers = ["name", "email", "phone", "instagram", "tiktok", "source"];
+    const rows = contacts.map(c => [c.name, c.email, c.phone, c.instagram, c.tiktok, c.source]);
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Contacts");
+    XLSX.writeFile(workbook, "outreach-contacts.xlsx");
+  };
   const copyContacts = async () => {
     try { await navigator.clipboard.writeText(contactsToCsv()); setAlert("✅ Contacts copied to clipboard"); }
     catch { setAlert("Could not copy"); }
@@ -407,6 +416,7 @@ export default function Outreach() {
           <div className="flex gap-2">
             <button className="btn btn-sm btn-outline" onClick={() => { setShowImport(true); setAlert(""); }}>⬆ Import</button>
             <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={exportCsv}>⬇ Export CSV</button>
+            <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={exportXlsx}>⬇ Export XLSX</button>
             <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={copyContacts}>📋 Copy Contacts</button>
             <button className="btn btn-sm" onClick={() => { setView("list"); setContactForm({}); setEditingContact(null); setAlert(""); }}>← Back</button>
           </div>
