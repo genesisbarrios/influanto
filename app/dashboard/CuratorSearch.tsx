@@ -317,7 +317,7 @@ ${(data?.user?.name as string) || ''}`,
       {/* Curator email popup */}
       {emailModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg text-black">
             <div className="px-5 py-4 border-b flex items-start justify-between gap-2">
               <div>
                 <h3 className="text-lg font-semibold">Email curator</h3>
@@ -330,7 +330,7 @@ ${(data?.user?.name as string) || ''}`,
               <div>
                 <label className="block text-xs font-medium mb-1">Subject</label>
                 <input
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-black"
                   value={emailForm.subject}
                   onChange={(e) => setEmailForm((p) => ({ ...p, subject: e.target.value }))}
                 />
@@ -338,7 +338,7 @@ ${(data?.user?.name as string) || ''}`,
               <div>
                 <label className="block text-xs font-medium mb-1">Message</label>
                 <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono bg-white text-black"
                   rows={11}
                   value={emailForm.body}
                   onChange={(e) => setEmailForm((p) => ({ ...p, body: e.target.value }))}

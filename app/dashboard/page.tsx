@@ -71,7 +71,7 @@ export default function Dashboard() {
           </li>
           <li>
             <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('curator-search')}>
-              Curator Search
+              Playlisting
             </button>
           </li>
           <li>
