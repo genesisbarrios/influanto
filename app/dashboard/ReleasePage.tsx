@@ -914,27 +914,53 @@ const removeCustomLink = (index: number) => {
               fontFamily: font || 'inherit'  // Apply font to entire create form
             }}> 
             <h3 className="text-xl font-bold mb-4" style={{ fontFamily: font || 'inherit' }}>Create Release Page</h3>
-            <div className="mb-4">
-              <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Name</label>
-              <input
-                type="text"
-                className={`input w-full ${!isNameUnique || editingPage?.nameError ? "border-red-500" : ""}`}
-                placeholder="Enter release page name"
-                value={editingPage?.name || ""}
-                onChange={handleNameChange}
-                onBlur={handleNameBlur}
-                style={{ fontFamily: font || 'inherit' }}
-              />
-              {editingPage?.nameError && (
-                <p className="text-red-500 text-sm mt-1" style={{ fontFamily: font || 'inherit' }}>
-                  {editingPage.nameError}
-                </p>
-              )}
-              {!isNameUnique && (
-                <p className="text-red-500 text-sm mt-1" style={{ fontFamily: font || 'inherit' }}>
-                  This name is already taken. Please choose another.
-                </p>
-              )}
+            <div className="mb-4 flex flex-col sm:flex-row gap-4 sm:items-start">
+              <div className="flex-1 min-w-0">
+                <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Name</label>
+                <input
+                  type="text"
+                  className={`input w-full ${!isNameUnique || editingPage?.nameError ? "border-red-500" : ""}`}
+                  placeholder="Enter release page name"
+                  value={editingPage?.name || ""}
+                  onChange={handleNameChange}
+                  onBlur={handleNameBlur}
+                  style={{ fontFamily: font || 'inherit' }}
+                />
+                {editingPage?.nameError && (
+                  <p className="text-red-500 text-sm mt-1" style={{ fontFamily: font || 'inherit' }}>
+                    {editingPage.nameError}
+                  </p>
+                )}
+                {!isNameUnique && (
+                  <p className="text-red-500 text-sm mt-1" style={{ fontFamily: font || 'inherit' }}>
+                    This name is already taken. Please choose another.
+                  </p>
+                )}
+              </div>
+              <div className="sm:w-40 flex-shrink-0">
+                <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Album Cover</label>
+                {editingPage?.image ? (
+                  <div style={{ position: "relative", display: "inline-block", width: "100%" }}>
+                    <img
+                      src={editingPage.image}
+                      alt="ReleaseIMG"
+                      className="rounded-md"
+                      style={{ width: "100%", height: "160px", objectFit: "cover", display: "block" }}
+                    />
+                    <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                      <button type="button" title="Change image" onClick={() => setImagePickerOpen(true)}
+                        style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", fontSize: 14 }}>✏️</button>
+                      <button type="button" title="Delete image"
+                        onClick={async () => { const old = editingPage.image; setEditingPage({ ...editingPage, image: "" }); await deleteCloudinaryImage(old); }}
+                        style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(220,38,38,0.85)", color: "#fff", cursor: "pointer", fontSize: 14 }}>🗑️</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => setImagePickerOpen(true)} className="btn btn-primary btn-sm w-full" style={{ height: 160, fontFamily: font || 'inherit' }}>
+                    + Add Image
+                  </button>
+                )}
+              </div>
             </div>
             <div className="mb-4">
               <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Description</label>
@@ -946,32 +972,6 @@ const removeCustomLink = (index: number) => {
             style={{ fontFamily: font || 'inherit' }}
           />
             </div>
-            {editingPage?.name && (
-              <div className="mb-4">
-                <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Image</label>
-                {editingPage?.image ? (
-                  <div style={{ position: "relative", display: "inline-block", width: "100%", maxWidth: 400 }}>
-                    <img
-                      src={editingPage.image}
-                      alt="ReleaseIMG"
-                      className="rounded-md"
-                      style={{ width: "100%", maxHeight: "200px", objectFit: "cover", display: "block" }}
-                    />
-                    <div style={{gap: 6 , marginLeft:"20%"}}>
-                      <button type="button" title="Change image" onClick={() => setImagePickerOpen(true)}
-                        style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", fontSize: 14 }}>✏️</button>
-                      <button type="button" title="Delete image"
-                        onClick={async () => { const old = editingPage.image; setEditingPage({ ...editingPage, image: "" }); await deleteCloudinaryImage(old); }}
-                        style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(220,38,38,0.85)", color: "#fff", cursor: "pointer", fontSize: 14 }}>🗑️</button>
-                    </div>
-                  </div>
-                ) : (
-                  <button type="button" onClick={() => setImagePickerOpen(true)} className="btn btn-primary btn-sm" style={{ fontFamily: font || 'inherit' }}>
-                    + Add Image
-                  </button>
-                )}
-              </div>
-            )}
             <div className="mb-4">
               <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>YouTube Video Link</label>
              <input
@@ -995,21 +995,23 @@ const removeCustomLink = (index: number) => {
             </div>
             <div className="mb-4">
               <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Streaming Links</h4>
-              {predefinedLinks.map((link, index) => (
-                <div key={index} className="mb-2">
-                  <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>{link.name}</label>
-                  <input
-                    type="text"
-                    className="input w-full"
-                    placeholder={`Enter ${link.name} URL`}
-                    value={
-                      (editingPage?.links || []).find((l: any) => l.name === link.name)?.url || ""
-                    }
-                    onChange={(e) => handlePredefinedLinkChange(link.name, e.target.value)}
-                    style={{ fontFamily: font || 'inherit' }}
-                  />
-                </div>
-              ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                {predefinedLinks.map((link, index) => (
+                  <div key={index}>
+                    <label className="block font-bold" style={{ fontFamily: font || 'inherit' }}>{link.name}</label>
+                    <input
+                      type="text"
+                      className="input w-full"
+                      placeholder={`Enter ${link.name} URL`}
+                      value={
+                        (editingPage?.links || []).find((l: any) => l.name === link.name)?.url || ""
+                      }
+                      onChange={(e) => handlePredefinedLinkChange(link.name, e.target.value)}
+                      style={{ fontFamily: font || 'inherit' }}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="mb-4">
               <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Custom Links</h4>

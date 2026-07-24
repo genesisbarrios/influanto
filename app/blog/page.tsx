@@ -25,6 +25,16 @@ export const metadata: Metadata = {
 
 const posts = [
   {
+    slug: "guerrilla-marketing-qr-codes-indie-artists",
+    title: "Guerrilla Marketing for Indie Artists: Using QR Codes to Market in the Real World",
+    excerpt: "No street team, no budget, no problem. Here's how independent artists use QR codes and low-cost guerrilla marketing tactics to turn flyers, stickers, and street art into streams.",
+    date: "July 2026",
+    readTime: "7 min read",
+    tag: "Marketing",
+    tagColor: "#ec4899",
+    emoji: "🎯",
+  },
+  {
     slug: "ear-training-for-musicians",
     title: "Are You an Artist or Producer Having Trouble Coming Up With Melodies? You Might Need Ear Training",
     excerpt: "Can't come up with melodies that stick? Ear training builds the skill that connects what you hear to what you play. Here's how to start.",
