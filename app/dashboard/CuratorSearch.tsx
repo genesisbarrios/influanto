@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import posthog from "posthog-js";
+import apiClient from "@/libs/api";
+
+const LINK_PLACEHOLDER = '[ paste your track link here ]';
 
 const PitchToSpotify: React.FC = () => {
   useEffect(() => {
@@ -72,6 +75,39 @@ const PitchToSpotify: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [emailAlert, setEmailAlert] = useState('');
 
+  // ── Track link (release page dropdown or a pasted link) ──
+  const [releasePages, setReleasePages] = useState<{ name: string; image?: string }[]>([]);
+  const [selectedReleasePageName, setSelectedReleasePageName] = useState('');
+  const [customLink, setCustomLink] = useState('');
+  const [trackLink, setTrackLink] = useState('');
+
+  useEffect(() => {
+    if (!data?.user?.id) return;
+    apiClient.get('/get-release-pages')
+      .then((res: any) => setReleasePages(Array.isArray(res?.data) ? res.data : []))
+      .catch(() => setReleasePages([]));
+  }, [data?.user?.id]);
+
+  const applyLink = (newLink: string) => {
+    setEmailForm((p) => ({
+      ...p,
+      body: p.body.replace(trackLink || LINK_PLACEHOLDER, newLink || LINK_PLACEHOLDER),
+    }));
+    setTrackLink(newLink);
+  };
+
+  const handleSelectReleasePage = (pageName: string) => {
+    setSelectedReleasePageName(pageName);
+    setCustomLink('');
+    applyLink(pageName ? `${window.location.origin}/release/${pageName}` : '');
+  };
+
+  const handleCustomLinkChange = (value: string) => {
+    setCustomLink(value);
+    setSelectedReleasePageName('');
+    applyLink(value);
+  };
+
   const buildTemplate = (pl: Playlist) => {
     const artist = (data?.user?.name as string) || 'an independent artist';
     return {
@@ -82,7 +118,7 @@ const PitchToSpotify: React.FC = () => {
 I came across your playlist "${pl.name}" and think my music would be a great fit for it.
 
 I'm ${artist} and I'd love for you to consider my latest release:
-[ paste your track link here ]
+${LINK_PLACEHOLDER}
 
 Thanks so much for your time and for supporting independent artists — it means a lot.
 
@@ -96,6 +132,9 @@ ${(data?.user?.name as string) || ''}`,
     setEmailForm(buildTemplate(pl));
     setCopied(false);
     setEmailAlert('');
+    setSelectedReleasePageName('');
+    setCustomLink('');
+    setTrackLink('');
   };
 
   const copyTemplate = async () => {
@@ -327,6 +366,27 @@ ${(data?.user?.name as string) || ''}`,
             </div>
 
             <div className="p-5 space-y-3">
+              <div>
+                <label className="block text-xs font-medium mb-1">Track link</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-black"
+                  value={selectedReleasePageName}
+                  onChange={(e) => handleSelectReleasePage(e.target.value)}
+                >
+                  <option value="">Select a release page…</option>
+                  {releasePages.map((page) => (
+                    <option key={page.name} value={page.name}>{page.name}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-400 mt-1 mb-1">Or paste the link you want to use:</p>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-black"
+                  value={customLink}
+                  onChange={(e) => handleCustomLinkChange(e.target.value)}
+                />
+              </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Subject</label>
                 <input
