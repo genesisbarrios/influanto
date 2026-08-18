@@ -93,6 +93,10 @@ export async function POST(req: Request) {
     if (displayEmail === "true") updates.display_email = true;
     else if (displayEmail === "false") updates.display_email = false;
 
+    const onboardingSeen = formData.get("onboardingSeen");
+    if (onboardingSeen === "true") updates.onboarding_seen = true;
+    else if (onboardingSeen === "false") updates.onboarding_seen = false;
+
     const newsletterStyle = formData.get("newsletterStyle") as string | null;
     if (newsletterStyle) {
       try { updates.newsletter_style = JSON.parse(newsletterStyle); } catch { /* ignore bad json */ }

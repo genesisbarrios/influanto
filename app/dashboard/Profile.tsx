@@ -160,6 +160,19 @@ const validateBio = (value: string) => {
   return true;
 };
 
+const validateEmail = (value: string) => {
+  if (!value) {
+    setAlertt("Email cannot be empty.");
+    return false;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    setAlertt("Please enter a valid email address.");
+    return false;
+  }
+  setAlertt("");
+  return true;
+};
+
 const validateWebsite = (value: string) => {
   if (!value) return true; // Empty is allowed
   if (!value.startsWith("https://") && !value.startsWith("http://")) {
@@ -344,6 +357,19 @@ const handleBioChange = (e: any) => {
   // Validate only if there's a value
   if (newValue && !validateBio(newValue)) {
     // Error already set in validateBio function
+  } else {
+    setAlertt("");
+  }
+};
+
+const handleEmailChange = (e: any) => {
+  const newValue = e.target.value;
+  // Always update the state so user can type
+  setFormEmail(newValue);
+
+  // Validate only if there's a value
+  if (newValue && !validateEmail(newValue)) {
+    // Error already set in validateEmail function
   } else {
     setAlertt("");
   }
@@ -789,6 +815,19 @@ const handleYouTubeMusicChange = (e: any) => {
     }
   };
 
+  const dismissOnboarding = async () => {
+    setUser((prev: any) => (prev ? { ...prev, onboardingSeen: true } : prev));
+    try {
+      const formData = new FormData();
+      formData.append("onboardingSeen", "true");
+      await apiClient.post("/user", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    } catch (e) {
+      // Non-critical — worst case the popup reappears next visit.
+    }
+  };
+
   const handleEditProfile = async (e:any) => {
     e.preventDefault();
     console.log('Edit Profile');
@@ -800,7 +839,7 @@ const handleYouTubeMusicChange = (e: any) => {
       formData.append("newsletterStyle", JSON.stringify(newsletterStyle || {}));
       if (formName != null && formName != "") formData.append("name", formName);
       if (formUserName != null && formUserName != "") formData.append("username", formUserName);
-      if (formEmail !== undefined && formEmail !== null) formData.append("email", user?.email);
+      if (formEmail !== undefined && formEmail !== null && formEmail !== "") formData.append("email", formEmail);
       if (displayEmail !== undefined && displayEmail !== null) formData.append("displayEmail", displayEmail.toString());
       if (location !== undefined && location !== null) formData.append("location", location);
       if (website !== undefined && website !== null) formData.append("website", website);
@@ -878,7 +917,38 @@ const handleYouTubeMusicChange = (e: any) => {
     return <div>Loading...</div>;
   }else if (user && !isEditing){
     return (
-     
+     <>
+      {!user.onboardingSeen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 text-black">
+            <div className="text-4xl mb-2">👋</div>
+            <h3 className="text-lg font-bold mb-3">Welcome to Influanto!</h3>
+            <p className="text-sm text-gray-600 mb-3">Here&apos;s how to get set up:</p>
+            <ol className="text-sm text-gray-700 list-decimal list-inside space-y-2 mb-4">
+              <li>Set up your <strong>profile</strong> first — add your bio and all your links.</li>
+              <li>Head to the <strong>Link in Bio</strong> page to build your public page.</li>
+              <li>Click <strong>Visit</strong> at the bottom of that page to share your link.</li>
+            </ol>
+            <p className="text-sm text-gray-600 mb-5">
+              From there you can also create release pages, generate QR codes, set up split sheets, and more — all from the sidebar.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 justify-end">
+              <button
+                className="btn btn-sm"
+                onClick={() => dismissOnboarding()}
+              >
+                I&apos;ll do this later
+              </button>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => { dismissOnboarding(); setEditing(true); }}
+              >
+                Set Up My Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="p-4 bg-white shadow rounded-md text-black" style={containerStyle}>
          <div className="w-full flex justify-between items-center">
             <h2 className="text-xl sm:text-2xl font-bold mb-2">Profile</h2>
@@ -1199,6 +1269,7 @@ const handleYouTubeMusicChange = (e: any) => {
           }
           </div>
         </div>
+     </>
     );
   }else if (isEditing){
     return (
@@ -1272,7 +1343,14 @@ const handleYouTubeMusicChange = (e: any) => {
             />
             <br />
             <label style={{display:"block"}}>Email</label>
-            <p className="text-sm mb-2">{user?.email}</p>
+            <input
+              type="email"
+              className="input mb-2 w-3/4"
+              required
+              placeholder="Enter your email"
+              value={formEmail || ""}
+              onChange={(e) => handleEmailChange(e)}
+            />
             <label style={{display:"block"}}>
               <input
                 type="checkbox"

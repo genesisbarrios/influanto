@@ -16,7 +16,7 @@ const parseSocialLinks = (description: string) => {
     const instagramMatch = description.match(igPattern);
     
     if (instagramMatch) {
-      externalUrl = `https://instagram.com/${instagramMatch[1]}`;  // Format Instagram URL
+      externalUrl = `https://instagram.com/${instagramMatch[1]}`;  // Format 
     } else {
       // Instagram link parsing: "ig: username", "ig: @username", "instagram: username", "instagram: @username", "instagram @username", "IG: @username"
       const igPatternAlt = /\b(?:ig|instagram|IG|insta)\s*[:@]?\s*@?([a-zA-Z0-9_.]+)\b/i;
