@@ -3,11 +3,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import apiClient from "@/libs/api";
 import { useSession } from "next-auth/react";
-import ButtonCheckout from "@/components/ButtonCheckout";
-import config from "@/config";
 import jsPDF from "jspdf";
 import posthog from "posthog-js";
 import ImportContactsModal, { ImportField } from "@/components/ImportContactsModal";
+
+const FREE_SPLIT_SHEET_LIMIT = 5;
 
 const IMPORT_FIELDS: ImportField[] = [
   { key: "email", label: "Email", aliases: ["e-mail", "mail"] },
@@ -286,6 +286,10 @@ export default function SplitSheets() {
 
   const handleSave = async () => {
     if (!sheet.title?.trim()) { setAlert("Song title is required"); return; }
+    if (!(sheet as any).id && !user?.hasAccess && sheets.length >= FREE_SPLIT_SHEET_LIMIT) {
+      setAlert(`You can only create up to ${FREE_SPLIT_SHEET_LIMIT} split sheets on the free plan. Upgrade for unlimited.`);
+      return;
+    }
     setIsLoading(true);
     try {
       const payload = {
@@ -362,21 +366,9 @@ export default function SplitSheets() {
     } catch { setAlert("Delete failed"); }
   };
 
-  // ── Premium gate ─────────────────────────────────────────────────────────────
+  // ── Free-tier limit ───────────────────────────────────────────────────────────
 
-  if (user && !user.hasAccess) {
-    return (
-      <div className="p-6 bg-white shadow rounded-md text-black">
-        <h2 className="text-xl font-bold mb-2">Split Sheets</h2>
-        <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 border border-blue-200 rounded-xl shadow-lg text-center">
-          <div className="text-4xl mb-3">📄</div>
-          <h3 className="text-lg font-bold text-gray-800 mb-2">Split Sheets is a Premium Feature</h3>
-          <p className="text-sm text-gray-600 mb-4">Create, manage, and send professional split sheets to collaborators. Keep your publishing rights organized.</p>
-          <ButtonCheckout mode="subscription" priceId={config.stripe.plans[1].priceId} />
-        </div>
-      </div>
-    );
-  }
+  const getMaxSheets = () => (user?.hasAccess ? Infinity : FREE_SPLIT_SHEET_LIMIT);
 
   // ── Contacts view ─────────────────────────────────────────────────────────
 
@@ -597,11 +589,20 @@ export default function SplitSheets() {
           <button className="btn btn-sm btn-outline" onClick={() => { setView("contacts"); setAlert(""); }}>
             Contacts ({contacts.length})
           </button>
-          <button className="btn btn-primary btn-sm" onClick={() => { setEditingSheet(BLANK_SHEET()); setView("form"); setAlert(""); }}>
-            + New Sheet
-          </button>
+          {sheets.length < getMaxSheets() && (
+            <button className="btn btn-primary btn-sm" onClick={() => { setEditingSheet(BLANK_SHEET()); setView("form"); setAlert(""); }}>
+              + New Sheet
+            </button>
+          )}
         </div>
       </div>
+
+      {!user?.hasAccess && (
+        <p className="text-xs text-gray-500 mb-3">
+          {sheets.length} of {FREE_SPLIT_SHEET_LIMIT} free split sheets used
+          {sheets.length >= FREE_SPLIT_SHEET_LIMIT && " — upgrade for unlimited"}
+        </p>
+      )}
 
       {alert && <p className={`text-sm mb-3 ${alert.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
 

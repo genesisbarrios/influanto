@@ -19,9 +19,25 @@ export async function GET(_req: NextRequest) {
   return NextResponse.json({ data: data ?? [] });
 }
 
+const FREE_SPLIT_SHEET_LIMIT = 5;
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: userRow } = await supabase.from("users").select("has_access").eq("id", session.user.id).single();
+  if (!userRow?.has_access) {
+    const { count } = await supabase
+      .from("split_sheets")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", session.user.id);
+    if ((count ?? 0) >= FREE_SPLIT_SHEET_LIMIT) {
+      return NextResponse.json(
+        { error: `Free plan is limited to ${FREE_SPLIT_SHEET_LIMIT} split sheets. Upgrade to create more.` },
+        { status: 403 }
+      );
+    }
+  }
 
   const body = await req.json();
   // Contributors whose contact email maps to an Influanto account get access too.
