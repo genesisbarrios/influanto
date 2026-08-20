@@ -13,6 +13,12 @@ const migrations = [
   // tracks whether the user has dismissed the first-run dashboard onboarding popup
   `ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_seen BOOLEAN DEFAULT FALSE`,
 
+  // one-time backfill: accounts that already existed before this feature shipped
+  // are not "new signups" and should never see the welcome popup. Scoped to a
+  // fixed cutoff so it stays a no-op for every account created afterward, safe
+  // to leave here permanently.
+  `UPDATE users SET onboarding_seen = TRUE WHERE onboarding_seen = FALSE AND created_at < '2026-08-20T00:00:00Z'`,
+
   // brand logo for link-in-bio
   `ALTER TABLE link_in_bio ADD COLUMN IF NOT EXISTS brand_logo_url TEXT`,
 
