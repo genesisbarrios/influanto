@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import apiClient from "@/libs/api";
+import { RANGE_OPTIONS } from "./AnalyticsRangeSelect";
 
 interface AnalyticsData {
   visitsByDay: { date: string; count: number }[];
@@ -94,31 +95,46 @@ function Donut({ data }: { data: { name: string; count: number }[] }) {
   );
 }
 
-export default function QRCodeAnalytics({ codeId, codeName }: { codeId: string; codeName?: string }) {
+interface Props {
+  codeId: string;
+  codeName?: string;
+  range?: string;
+  customStart?: string;
+  customEnd?: string;
+  onTotalChange?: (total: number) => void;
+}
+
+export default function QRCodeAnalytics({ codeId, codeName, range = "30d", customStart, customEnd, onTotalChange }: Props) {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     if (!codeId) return;
+    // Custom range needs both endpoints before it's worth fetching.
+    if (range === "custom" && (!customStart || !customEnd)) return;
+
     setLoading(true);
+    const params = new URLSearchParams({ range });
+    if (range === "custom") {
+      params.set("start", customStart!);
+      params.set("end", customEnd!);
+    }
     apiClient
-      .get(`/analytics/qr/${codeId}`)
+      .get(`/analytics/qr/${codeId}?${params.toString()}`)
       .then((r: any) => setData(r))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [codeId]);
+  }, [codeId, range, customStart, customEnd]);
+
+  useEffect(() => {
+    if (data) onTotalChange?.(data.total);
+  }, [data, onTotalChange]);
 
   const noScans = !data || data.total === 0;
 
   return (
-    <div className="mt-3">
-      {data && (
-        <div className="flex items-center justify-end mb-2">
-          <span className="text-xs text-gray-400">{data.total.toLocaleString()} total scans</span>
-        </div>
-      )}
-
+    <div className="w-full">
       <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-3 flex-wrap">
         {TABS.map((tab, i) => (
           <button key={tab} type="button" onClick={() => setActiveTab(i)}
@@ -136,7 +152,9 @@ export default function QRCodeAnalytics({ codeId, codeName }: { codeId: string; 
             <Empty icon="📈" title="No scans yet" subtitle="Share your QR code to start seeing scan data." />
           ) : (
             <>
-              <p className="text-xs text-gray-400 mb-2">Scans — last 30 days</p>
+              <p className="text-xs text-gray-400 mb-2">
+                Scans — {range === "custom" ? `${customStart} to ${customEnd}` : (RANGE_OPTIONS.find((o) => o.key === range)?.label ?? "last 30 days").toLowerCase()}
+              </p>
               <ResponsiveContainer width="100%" height={150}>
                 <BarChart data={data!.visitsByDay} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                   <XAxis dataKey="date" tick={{ fontSize: 8 }} interval={6} tickLine={false} axisLine={false} />
