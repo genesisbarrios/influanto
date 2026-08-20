@@ -71,9 +71,9 @@ export default function AnalyticsDashboard() {
 
         {tab === "release" && releasePages.length > 0 && (
           <div className="flex items-center gap-3 flex-wrap ml-auto">
-            {releaseTotal !== null && (
-              <span className="text-xs text-gray-500 whitespace-nowrap">{releaseTotal.toLocaleString()} total visits</span>
-            )}
+            <span className="text-xs text-gray-500 whitespace-nowrap">
+              {releaseTotal !== null ? releaseTotal.toLocaleString() : "…"} total visits
+            </span>
             <AnalyticsRangeSelect
               range={releaseRange}
               onRangeChange={setReleaseRange}
@@ -97,13 +97,13 @@ export default function AnalyticsDashboard() {
         )}
       </div>
 
-      {/* Analytics type selection — attached directly to the submenu below it */}
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-2 flex-wrap">
+      {/* Analytics type selection — real tabs sitting on top of the submenu below */}
+      <div className="flex gap-6 border-b border-gray-200 mb-3 flex-wrap">
         {TABS.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${tab === t.key ? "bg-white shadow text-indigo-700" : "text-gray-500 hover:text-gray-700"}`}
+            className={`pb-2 -mb-px px-1 text-sm font-medium border-b-2 transition-colors ${tab === t.key ? "border-indigo-600 text-indigo-700" : "border-transparent text-gray-500 hover:text-gray-700"}`}
           >
             {t.label}
           </button>
