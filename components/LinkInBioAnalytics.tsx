@@ -6,6 +6,7 @@ import {
   PieChart, Pie, Cell, Legend,
 } from "recharts";
 import apiClient from "@/libs/api";
+import { RANGE_OPTIONS } from "./AnalyticsRangeSelect";
 
 interface AnalyticsData {
   visitsByDay:      { date: string; count: number }[];
@@ -118,29 +119,43 @@ function Donut({ data }: { data: { name: string; count: number }[] }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function LinkInBioAnalytics() {
+interface Props {
+  range?: string;
+  customStart?: string;
+  customEnd?: string;
+  onTotalChange?: (total: number) => void;
+}
+
+export default function LinkInBioAnalytics({ range = "30d", customStart, customEnd, onTotalChange }: Props) {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
+    // Custom range needs both endpoints before it's worth fetching.
+    if (range === "custom" && (!customStart || !customEnd)) return;
+
+    setLoading(true);
+    const params = new URLSearchParams({ range });
+    if (range === "custom") {
+      params.set("start", customStart!);
+      params.set("end", customEnd!);
+    }
     apiClient
-      .get("/analytics/linkinbio")
+      .get(`/analytics/linkinbio?${params.toString()}`)
       .then((res: any) => setData(res))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [range, customStart, customEnd]);
+
+  useEffect(() => {
+    if (data) onTotalChange?.(data.total);
+  }, [data, onTotalChange]);
 
   const noVisits = !data || data.total === 0;
 
   return (
-    <div className="mt-6 w-full">
-      {data && (
-        <div className="flex items-center justify-end mb-3">
-          <span className="text-xs text-gray-500">{data.total.toLocaleString()} total visits</span>
-        </div>
-      )}
-
+    <div className="w-full">
       {/* Tab bar */}
       <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-4 flex-wrap">
         {TABS.map((tab, i) => (
@@ -174,7 +189,9 @@ export default function LinkInBioAnalytics() {
             />
           ) : (
             <>
-              <p className="text-xs text-gray-400 mb-3">Page views — last 30 days</p>
+              <p className="text-xs text-gray-400 mb-3">
+                Page views — {range === "custom" ? `${customStart} to ${customEnd}` : (RANGE_OPTIONS.find((o) => o.key === range)?.label ?? "last 30 days").toLowerCase()}
+              </p>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={data!.visitsByDay} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                   <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={6} tickLine={false} axisLine={false} />
