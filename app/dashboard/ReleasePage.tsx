@@ -333,12 +333,8 @@ const ReleasePages = () => {
       const { data } = await apiClient.get("/get-release-page-uniqueness", {
         params: { name: name },
       });
-      if(data !== undefined){
+      if (data !== undefined) {
         setIsNameUnique(data);
-        console.log('uniqueness check', data);
-        if(data === false){
-          setEditingPage({ ...editingPage, name: "" });
-        }
       }
     } catch (e: any) {
       console.error(e?.message);

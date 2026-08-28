@@ -161,11 +161,41 @@ export function mapNewsletter(row: any) {
     textColor: row.text_color ?? "",
     linksColor: row.links_color ?? "",
     urlRedirect: row.url_redirect ?? "",
+    newsletterEnabled: row.newsletter_enabled ?? false,
     html: row.html ?? "",
     status: row.status ?? "draft",
     sentCount: row.sent_count ?? 0,
     lastSentAt: row.last_sent_at ?? null,
     createdAt: row.created_at ?? null,
+  };
+}
+
+// Shared by the outreach save routes (POST/PUT) and the send route, so the
+// stored HTML preview and the actually-sent email always show the same
+// artist name, photo, and social links instead of a generic fallback.
+export async function getNewsletterSenderInfo(userId: string) {
+  const { data: sender } = await supabase
+    .from("users")
+    .select("name, email, username, image, instagram, twitter, facebook, youtube, tiktok, spotify, soundcloud, youtube_music, website")
+    .eq("id", userId)
+    .single();
+
+  return {
+    senderName: sender?.name || "An artist",
+    senderEmail: sender?.email || undefined,
+    username: sender?.username || undefined,
+    artistImage: sender?.image || undefined,
+    socials: {
+      instagram: sender?.instagram || undefined,
+      twitter: sender?.twitter || undefined,
+      facebook: sender?.facebook || undefined,
+      youtube: sender?.youtube || undefined,
+      tiktok: sender?.tiktok || undefined,
+      spotify: sender?.spotify || undefined,
+      soundcloud: sender?.soundcloud || undefined,
+      youtubeMusic: sender?.youtube_music || undefined,
+      website: sender?.website || undefined,
+    },
   };
 }
 

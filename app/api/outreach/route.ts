@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
-import supabase, { mapNewsletter } from "@/libs/supabase";
+import supabase, { mapNewsletter, getNewsletterSenderInfo } from "@/libs/supabase";
 import { renderNewsletterHtml } from "@/libs/newsletter-html";
 
 // Returns the session user id if they exist and have premium access, else null.
@@ -45,7 +45,10 @@ export async function POST(req: NextRequest) {
     textColor: body.textColor ?? "",
     linksColor: body.linksColor ?? "",
     urlRedirect: body.urlRedirect ?? "",
+    newsletterEnabled: Boolean(body.newsletterEnabled),
   };
+
+  const { senderName, socials, artistImage, username } = await getNewsletterSenderInfo(userId);
 
   const { data, error } = await supabase
     .from("newsletters")
@@ -53,7 +56,7 @@ export async function POST(req: NextRequest) {
       user_id: userId,
       subject: body.subject ?? "",
       status: "draft",
-      html: renderNewsletterHtml(content),
+      html: renderNewsletterHtml(content, { senderName, socials, artistImage, username }),
       title: content.title,
       template: content.template,
       image: content.image,
@@ -63,6 +66,7 @@ export async function POST(req: NextRequest) {
       text_color: content.textColor,
       links_color: content.linksColor,
       url_redirect: content.urlRedirect,
+      newsletter_enabled: content.newsletterEnabled,
     })
     .select()
     .single();

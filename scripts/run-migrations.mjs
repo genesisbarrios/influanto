@@ -68,6 +68,11 @@ const migrations = [
     updated_at TIMESTAMPTZ DEFAULT NOW()
   )`,
 
+  // newsletter-signup toggle for outreach campaigns, mirroring release pages —
+  // links out to the artist's existing hosted signup page (its fields are
+  // configured on Link in Bio, not per-campaign, so no fields column here)
+  `ALTER TABLE newsletters ADD COLUMN IF NOT EXISTS newsletter_enabled BOOLEAN DEFAULT FALSE`,
+
   // collaborator contacts (in case not yet run)
   `CREATE TABLE IF NOT EXISTS collaborator_contacts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
