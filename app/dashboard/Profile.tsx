@@ -15,6 +15,7 @@ import config from "@/config";
 import PrintifyIntegration from "@/components/PrintifyIntegration";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import BusinessCard from "@/components/BusinessCard";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import SettingsDropdown from "@/components/SettingsDropdown";
 
@@ -955,13 +956,24 @@ const handleYouTubeMusicChange = (e: any) => {
            
 
             {/* settings */}
-            <div className="flex justify-end items-center mb-4 mt-4">
-               <button 
-              className="btn btn-primary btn-sm btn-narrow mr-4"
+            <div className="flex justify-end items-center gap-2 mb-4 mt-4">
+               <button
+              className="btn btn-primary btn-sm btn-narrow"
               style={{margin:"0"}}
               onClick={() => setEditing(true)}>
               Edit
             </button>
+
+              {user?.username && (
+                <a
+                  href={`https://influanto.com/${user.username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-sm btn-outline btn-narrow"
+                >
+                  Visit
+                </a>
+              )}
 
               <SettingsDropdown />
             </div>
@@ -1104,8 +1116,26 @@ const handleYouTubeMusicChange = (e: any) => {
             </div>
             )}
 
+            {/* ── Business Cards ── */}
+            <h3 className="mt-5">Business Cards</h3>
+            <div className="mt-2 p-4 border border-gray-200 rounded-lg bg-white text-left">
+              <div className="flex items-center gap-2 mb-1">
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}>💳</span>
+                <span className="font-semibold text-sm text-gray-800">Digital Business Card</span>
+              </div>
+              <p className="text-sm text-gray-500 mb-4">Create a digital business card for Google or Apple Wallet. Let people scan the QR code for a shortcut to your Links page.</p>
+              {user?.username ? (
+                <BusinessCard user={user} setUser={setUser} />
+              ) : (
+                <p className="text-sm text-gray-400">Set a username to generate your business card.</p>
+              )}
+            </div>
+
+            {/* ── Integrations ── */}
+            <h3 className="mt-5">Integrations</h3>
+
             {/* ── Meta Pixel ── */}
-            <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">
+            <div className="mt-2 p-4 border border-gray-200 rounded-lg bg-white text-left">
               <div className="flex items-center gap-2 mb-3">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#0866FF" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>

@@ -84,6 +84,9 @@ const migrations = [
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
   )`,
+
+  // digital business card settings (display name, background color, avatar override)
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS business_card JSONB DEFAULT '{}'::jsonb`,
 ];
 
 async function run() {

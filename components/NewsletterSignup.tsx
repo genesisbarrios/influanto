@@ -31,12 +31,24 @@ const FIELD_LABELS: Record<string, string> = {
 const FIELD_PLACEHOLDERS: Record<string, string> = {
   name: "Name",
   phone: "Phone",
-  instagram: "@handle (Instagram)",
-  tiktok: "@handle (TikTok)",
+  instagram: "Instagram username",
+  tiktok: "TikTok username",
 };
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const HANDLE_RE = /^@?[a-zA-Z0-9._]{1,30}$/;
+const HANDLE_RE = /^[a-zA-Z0-9._]{1,30}$/;
+
+// Accepts a bare handle, an @handle, or a full profile URL and reduces it to
+// just the username — the storage convention used everywhere else in the app.
+function sanitizeSocialHandle(value: string, domain: string): string {
+  let s = (value || "").trim();
+  if (!s) return "";
+  s = s.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+  s = s.replace(new RegExp(`^${domain.replace(".", "\\.")}\\/`, "i"), "");
+  s = s.replace(/^@/, "");
+  s = s.split(/[/?#]/)[0];
+  return s.trim();
+}
 
 export default function NewsletterSignup({ username, source, fields = ["name", "email"], bgColor, textColor, linksColor, heading, style }: Props) {
   const [values, setValues] = useState<Record<string, string>>({});
@@ -57,15 +69,13 @@ export default function NewsletterSignup({ username, source, fields = ["name", "
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!EMAIL_RE.test((values.email || "").trim())) { setError("Please enter a valid email address"); return; }
-    for (const f of ["instagram", "tiktok"]) {
-      const v = (values[f] || "").trim();
-      if (v && !HANDLE_RE.test(v)) { setError(`Enter a valid ${FIELD_LABELS[f]} handle (e.g. @yourname)`); return; }
-    }
-    // Normalize handles to include a leading @
+    // Reduce pasted @handles / profile URLs down to a bare username before saving.
     const payload: Record<string, string> = { ...values };
-    for (const f of ["instagram", "tiktok"]) {
-      const v = (payload[f] || "").trim();
-      if (v) payload[f] = v.startsWith("@") ? v : "@" + v;
+    for (const [f, domain] of [["instagram", "instagram.com"], ["tiktok", "tiktok.com"]] as const) {
+      const raw = (payload[f] || "").trim();
+      const cleaned = sanitizeSocialHandle(raw, domain);
+      if (raw && !HANDLE_RE.test(cleaned)) { setError(`Enter a valid ${FIELD_LABELS[f]} username`); return; }
+      payload[f] = cleaned;
     }
     setStatus("sending"); setError("");
     try {

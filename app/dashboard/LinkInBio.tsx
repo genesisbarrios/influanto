@@ -520,13 +520,24 @@ const LinkInBio = () => {
         >
           <div className="w-full flex justify-between items-center">
             <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Link In Bio</h2>
-            <button
-              className="btn btn-primary btn-sm btn-narrow"
-              style={{ margin: "0 2%", fontFamily: linkInBio?.font || 'inherit' }}
-              onClick={() => setEditing(true)}
-            >
-              Edit
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                className="btn btn-primary btn-sm btn-narrow"
+                style={{ margin: "0 2%", fontFamily: linkInBio?.font || 'inherit' }}
+                onClick={() => setEditing(true)}
+              >
+                Edit
+              </button>
+              <a
+                href={`https://influanto.com/${user.username}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-sm btn-outline btn-narrow"
+                style={{ fontFamily: linkInBio?.font || 'inherit' }}
+              >
+                Visit
+              </a>
+            </div>
           </div>
           <br />
           <div style={{ margin: "0 auto", textAlign: "center", color: textColor, fontFamily: linkInBio?.font || 'inherit' }}>

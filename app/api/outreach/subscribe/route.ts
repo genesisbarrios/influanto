@@ -1,6 +1,18 @@
 import { NextResponse, NextRequest } from "next/server";
 import supabase from "@/libs/supabase";
 
+// Reduces a bare handle, an @handle, or a full profile URL down to just the
+// username — the storage convention used everywhere else in the app.
+function sanitizeSocialHandle(value: string, domain: string): string {
+  let s = String(value ?? "").trim();
+  if (!s) return "";
+  s = s.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+  s = s.replace(new RegExp(`^${domain.replace(".", "\\.")}\\/`, "i"), "");
+  s = s.replace(/^@/, "");
+  s = s.split(/[/?#]/)[0];
+  return s.trim();
+}
+
 // Public endpoint — called from the public Link-in-Bio and Release pages.
 // Adds a fan to the page owner's outreach_contacts (deduped by email).
 export async function POST(req: NextRequest) {
@@ -51,8 +63,8 @@ export async function POST(req: NextRequest) {
           email: cleanEmail,
           name: String(name ?? "").trim() || null,
           phone: String(phone ?? "").trim() || null,
-          instagram: String(instagram ?? "").trim() || null,
-          tiktok: String(tiktok ?? "").trim() || null,
+          instagram: sanitizeSocialHandle(instagram, "instagram.com") || null,
+          tiktok: sanitizeSocialHandle(tiktok, "tiktok.com") || null,
           source: source === "release_page" ? "release_page" : "link_in_bio",
         },
         { onConflict: "user_id,email" }
