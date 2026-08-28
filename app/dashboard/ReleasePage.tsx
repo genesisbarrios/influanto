@@ -9,6 +9,7 @@ import posthog from "posthog-js";
 import { parseColorValue, combineColor } from "@/libs/color";
 import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
 import ImagePicker from "@/components/ImagePicker";
+import { fetchAllPrintifyProducts } from "@/libs/printify-products";
 import * as HeroPatterns from 'hero-patterns';
 
 type PatternFn = (color: string, opacity: number) => string;
@@ -145,23 +146,10 @@ const ReleasePages = () => {
   // Add function to fetch products
   const fetchAvailableProducts = async () => {
     if (!userData?.id) return;
-    
-    console.log('🔍 Fetching products for release page...');
+
     setIsLoadingProducts(true);
     try {
-      const url = `/api/products/${userData.id}`;
-      console.log('📞 Fetching:', url);
-      
-      const response = await fetch(url);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Products received:', data);
-        setAvailableProducts(Array.isArray(data) ? data : (data.products ?? []));
-      } else {
-        const errorText = await response.text();
-        console.error('❌ Error response:', errorText);
-      }
+      setAvailableProducts(await fetchAllPrintifyProducts(userData.id));
     } catch (error) {
       console.error('❌ Network error:', error);
     } finally {

@@ -102,7 +102,7 @@ const Community = () => {
         </div>
         <br />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           {users.map((user: any) => (
             <a key={user._id} href={`https://influanto.com/${user.username}`} target="_blank" rel="noopener noreferrer" className="block">
               <div className="bg-gray-100 p-4 rounded-lg shadow-md">
