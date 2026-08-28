@@ -493,9 +493,11 @@ const ReleasePages = () => {
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let name = e.target.value;
-    
-    // Remove spaces and convert to lowercase as user types
-    name = name.replace(/\s+/g, '-').toLowerCase();
+
+    // Remove spaces as user types — this name doubles as the page's URL slug,
+    // so spaces aren't allowed, but case is otherwise left as typed since it's
+    // also shown as the release's display title.
+    name = name.replace(/\s+/g, '-');
     
     // Always update the state so user can type
     setEditingPage({ 
