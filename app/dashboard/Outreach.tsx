@@ -2,7 +2,6 @@
 /* eslint-disable */
 import React, { useEffect, useState } from "react";
 import apiClient from "@/libs/api";
-import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
 import posthog from "posthog-js";
 import { renderNewsletterHtml } from "@/libs/newsletter-html";
@@ -30,6 +29,9 @@ interface Newsletter {
   html: string; status: "draft" | "sent"; sentCount: number; lastSentAt: string | null; createdAt: string;
 }
 interface Contact { id: string; name: string; email: string; phone: string; instagram: string; tiktok: string; source: string }
+
+const FREE_CONTACT_LIMIT = 50;
+const FREE_NEWSLETTER_LIMIT = 5;
 
 const TEMPLATES = [
   { key: "blank", icon: "📝", label: "Blank", desc: "Start from scratch" },
@@ -166,7 +168,7 @@ export default function Outreach() {
   }, []);
 
   useEffect(() => {
-    if (!user?.hasAccess) return;
+    if (!user) return;
     loadNewsletters();
     loadContacts();
     fetch("/api/get-release-pages").then(r => r.json()).then(j => setReleasePages(Array.isArray(j?.data) ? j.data : [])).catch(() => {});
@@ -175,7 +177,7 @@ export default function Outreach() {
       setLinkInBioSelectedProducts(Array.isArray(j?.data?.selectedProducts) ? j.data.selectedProducts : []);
     }).catch(() => {});
     fetch("/api/my-images").then(r => r.json()).then(j => setGalleryImages(Array.isArray(j?.images) ? j.images : [])).catch(() => {});
-  }, [user?.hasAccess]);
+  }, [user]);
 
   useEffect(() => {
     if (user?.printifyShopId && user?.id) fetchAvailableProducts();
@@ -359,21 +361,10 @@ export default function Outreach() {
     } catch { setAlert("Delete failed"); }
   };
 
-  // ── Premium gate ───────────────────────────────────────────────────────────────
+  // ── Free-tier limits ──────────────────────────────────────────────────────────
 
-  if (user && !user.hasAccess) {
-    return (
-      <div className="p-6 bg-white shadow rounded-md text-black">
-        <h2 className="text-xl font-bold mb-2">Outreach</h2>
-        <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 border border-blue-200 rounded-xl shadow-lg text-center">
-          <div className="text-4xl mb-3">📣</div>
-          <h3 className="text-lg font-bold text-gray-800 mb-2">Outreach is a Premium Feature</h3>
-          <p className="text-sm text-gray-600 mb-4">Build email newsletters, collect fans from your pages, and send release announcements to your audience.</p>
-          <ButtonCheckout mode="subscription" priceId={config.stripe.plans[1].priceId} />
-        </div>
-      </div>
-    );
-  }
+  const getMaxContacts = () => (user?.hasAccess ? Infinity : FREE_CONTACT_LIMIT);
+  const getMaxNewsletters = () => (user?.hasAccess ? Infinity : FREE_NEWSLETTER_LIMIT);
 
   // ── Template picker ─────────────────────────────────────────────────────────
 
@@ -439,33 +430,46 @@ export default function Outreach() {
           />
         )}
 
+        {!user?.hasAccess && (
+          <p className="text-xs text-gray-400 mb-3">
+            {contacts.length} of {FREE_CONTACT_LIMIT} free contacts used
+            {contacts.length >= FREE_CONTACT_LIMIT && " — upgrade for unlimited"}
+          </p>
+        )}
+
         {/* Add / edit contact form */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-sm mb-3">{editingContact ? "Edit Contact" : "Add Contact"}</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium mb-1">Name</label>
-              <input className="input input-sm input-bordered w-full" placeholder="Full name" value={contactForm.name ?? ""} onChange={e => setContactForm(p => ({ ...p, name: e.target.value }))} />
+        {(editingContact || contacts.length < getMaxContacts()) ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-sm mb-3">{editingContact ? "Edit Contact" : "Add Contact"}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium mb-1">Name</label>
+                <input className="input input-sm input-bordered w-full" placeholder="Full name" value={contactForm.name ?? ""} onChange={e => setContactForm(p => ({ ...p, name: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Email *</label>
+                <input className="input input-sm input-bordered w-full" type="email" placeholder="email@example.com" value={contactForm.email ?? ""} onChange={e => setContactForm(p => ({ ...p, email: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Phone</label>
+                <input className="input input-sm input-bordered w-full" placeholder="Optional" value={contactForm.phone ?? ""} onChange={e => setContactForm(p => ({ ...p, phone: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Instagram</label>
+                <input className="input input-sm input-bordered w-full" placeholder="@handle" value={contactForm.instagram ?? ""} onChange={e => setContactForm(p => ({ ...p, instagram: e.target.value }))} />
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-medium mb-1">Email *</label>
-              <input className="input input-sm input-bordered w-full" type="email" placeholder="email@example.com" value={contactForm.email ?? ""} onChange={e => setContactForm(p => ({ ...p, email: e.target.value }))} />
-            </div>
-            <div>
-              <label className="block text-xs font-medium mb-1">Phone</label>
-              <input className="input input-sm input-bordered w-full" placeholder="Optional" value={contactForm.phone ?? ""} onChange={e => setContactForm(p => ({ ...p, phone: e.target.value }))} />
-            </div>
-            <div>
-              <label className="block text-xs font-medium mb-1">Instagram</label>
-              <input className="input input-sm input-bordered w-full" placeholder="@handle" value={contactForm.instagram ?? ""} onChange={e => setContactForm(p => ({ ...p, instagram: e.target.value }))} />
+            {alert && <p className="text-xs text-red-500 mt-2">{alert}</p>}
+            <div className="flex gap-2 mt-3">
+              <button className="btn btn-primary btn-sm" onClick={handleSaveContact}>{editingContact ? "Update" : "Add Contact"}</button>
+              {editingContact && <button className="btn btn-sm" onClick={() => { setEditingContact(null); setContactForm({}); }}>Cancel</button>}
             </div>
           </div>
-          {alert && <p className="text-xs text-red-500 mt-2">{alert}</p>}
-          <div className="flex gap-2 mt-3">
-            <button className="btn btn-primary btn-sm" onClick={handleSaveContact}>{editingContact ? "Update" : "Add Contact"}</button>
-            {editingContact && <button className="btn btn-sm" onClick={() => { setEditingContact(null); setContactForm({}); }}>Cancel</button>}
+        ) : (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-sm text-amber-700">
+            You've reached the free plan's {FREE_CONTACT_LIMIT}-contact limit. Upgrade to Influanto Pro for unlimited contacts.
           </div>
-        </div>
+        )}
 
         {/* Contacts list */}
         {contacts.length === 0 ? (
@@ -782,13 +786,22 @@ export default function Outreach() {
           <button className="btn btn-sm btn-outline" onClick={() => { setView("contacts"); setAlert(""); }}>
             Contacts ({contacts.length})
           </button>
-          <button className="btn btn-primary btn-sm" onClick={() => { setView("pick"); setAlert(""); }}>
-            + New Newsletter
-          </button>
+          {newsletters.length < getMaxNewsletters() && (
+            <button className="btn btn-primary btn-sm" onClick={() => { setView("pick"); setAlert(""); }}>
+              + New Newsletter
+            </button>
+          )}
         </div>
       </div>
 
       <p className="text-sm text-gray-500 mb-4">Create email newsletters and send them to contacts you collect from your Link in Bio and Release pages.</p>
+
+      {!user?.hasAccess && (
+        <p className="text-xs text-gray-400 mb-3">
+          {newsletters.length} of {FREE_NEWSLETTER_LIMIT} free newsletters used
+          {newsletters.length >= FREE_NEWSLETTER_LIMIT && " — upgrade for unlimited"}
+        </p>
+      )}
 
       {alert && <p className={`text-sm mb-3 ${alert.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
 

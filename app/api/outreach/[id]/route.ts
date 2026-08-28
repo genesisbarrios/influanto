@@ -4,20 +4,14 @@ import { authOptions } from "@/libs/next-auth";
 import supabase, { mapNewsletter, getNewsletterSenderInfo } from "@/libs/supabase";
 import { renderNewsletterHtml } from "@/libs/newsletter-html";
 
-async function premiumUserId(): Promise<string | null> {
+async function authedUserId(): Promise<string | null> {
   const session = await getServerSession(authOptions);
-  if (!session) return null;
-  const { data } = await supabase
-    .from("users")
-    .select("has_access")
-    .eq("id", session.user.id)
-    .single();
-  return data?.has_access ? session.user.id : null;
+  return session?.user?.id ?? null;
 }
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
-  const userId = await premiumUserId();
-  if (!userId) return NextResponse.json({ error: "Premium required" }, { status: 403 });
+  const userId = await authedUserId();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data, error } = await supabase
     .from("newsletters")
@@ -31,8 +25,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const userId = await premiumUserId();
-  if (!userId) return NextResponse.json({ error: "Premium required" }, { status: 403 });
+  const userId = await authedUserId();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
   const content = {
@@ -77,8 +71,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const userId = await premiumUserId();
-  if (!userId) return NextResponse.json({ error: "Premium required" }, { status: 403 });
+  const userId = await authedUserId();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { error } = await supabase
     .from("newsletters")

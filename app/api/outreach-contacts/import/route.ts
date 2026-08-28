@@ -5,6 +5,8 @@ import supabase from "@/libs/supabase";
 
 const isEmail = (s: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
 
+const FREE_CONTACT_LIMIT = 50;
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -36,7 +38,19 @@ export async function POST(req: NextRequest) {
     .eq("user_id", session.user.id);
   const existingSet = new Set((existing ?? []).map((e: any) => String(e.email).toLowerCase()));
 
-  const toInsert = cleaned.filter(c => !existingSet.has(c.email));
+  const duplicates = cleaned.filter(c => existingSet.has(c.email));
+  let toInsert = cleaned.filter(c => !existingSet.has(c.email));
+
+  const { data: userRow } = await supabase.from("users").select("has_access").eq("id", session.user.id).single();
+  let capSkipped = 0;
+  if (!userRow?.has_access) {
+    const room = Math.max(0, FREE_CONTACT_LIMIT - existingSet.size);
+    if (toInsert.length > room) {
+      capSkipped = toInsert.length - room;
+      toInsert = toInsert.slice(0, room);
+    }
+  }
+
   if (toInsert.length) {
     const { error } = await supabase
       .from("outreach_contacts")
@@ -44,5 +58,8 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ added: toInsert.length, skipped: cleaned.length - toInsert.length, total: cleaned.length });
+  const message = capSkipped
+    ? `Free plan is limited to ${FREE_CONTACT_LIMIT} contacts — ${capSkipped} contact${capSkipped !== 1 ? "s" : ""} skipped. Upgrade to import more.`
+    : undefined;
+  return NextResponse.json({ added: toInsert.length, skipped: duplicates.length + capSkipped, capSkipped, total: cleaned.length, message });
 }

@@ -12,7 +12,7 @@ export interface ImportField {
 interface Props {
   title?: string;
   fields: ImportField[]; // must include one with key "email"
-  onImport: (rows: Record<string, string>[]) => Promise<{ added: number; skipped: number } | void>;
+  onImport: (rows: Record<string, string>[]) => Promise<{ added: number; skipped: number; message?: string } | void>;
   onClose: () => void;
 }
 
@@ -116,7 +116,8 @@ export default function ImportContactsModal({ title = "Import Contacts", fields,
     setBusy(true); setError("");
     try {
       const res = await onImport(parsed);
-      if (res) setResult(`Imported ${res.added} contact${res.added !== 1 ? "s" : ""}${res.skipped ? `, skipped ${res.skipped} duplicate${res.skipped !== 1 ? "s" : ""}` : ""}.`);
+      if (res?.message) setResult(`Imported ${res.added} contact${res.added !== 1 ? "s" : ""}. ${res.message}`);
+      else if (res) setResult(`Imported ${res.added} contact${res.added !== 1 ? "s" : ""}${res.skipped ? `, skipped ${res.skipped} duplicate${res.skipped !== 1 ? "s" : ""}` : ""}.`);
       else setResult(`Imported ${parsed.length} contacts.`);
     } catch (e: any) {
       setError(e?.response?.data?.error || e?.message || "Import failed");
