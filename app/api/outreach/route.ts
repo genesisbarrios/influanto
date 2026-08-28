@@ -4,21 +4,16 @@ import { authOptions } from "@/libs/next-auth";
 import supabase, { mapNewsletter, getNewsletterSenderInfo } from "@/libs/supabase";
 import { renderNewsletterHtml } from "@/libs/newsletter-html";
 
-// Returns the session user id if they exist and have premium access, else null.
-async function premiumUserId(): Promise<string | null> {
+async function authedUserId(): Promise<string | null> {
   const session = await getServerSession(authOptions);
-  if (!session) return null;
-  const { data } = await supabase
-    .from("users")
-    .select("has_access")
-    .eq("id", session.user.id)
-    .single();
-  return data?.has_access ? session.user.id : null;
+  return session?.user?.id ?? null;
 }
 
+const FREE_NEWSLETTER_LIMIT = 5;
+
 export async function GET(_req: NextRequest) {
-  const userId = await premiumUserId();
-  if (!userId) return NextResponse.json({ error: "Premium required" }, { status: 403 });
+  const userId = await authedUserId();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data, error } = await supabase
     .from("newsletters")
@@ -31,8 +26,22 @@ export async function GET(_req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const userId = await premiumUserId();
-  if (!userId) return NextResponse.json({ error: "Premium required" }, { status: 403 });
+  const userId = await authedUserId();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: userRow } = await supabase.from("users").select("has_access").eq("id", userId).single();
+  if (!userRow?.has_access) {
+    const { count } = await supabase
+      .from("newsletters")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId);
+    if ((count ?? 0) >= FREE_NEWSLETTER_LIMIT) {
+      return NextResponse.json(
+        { error: `Free plan is limited to ${FREE_NEWSLETTER_LIMIT} newsletters. Upgrade to create more.` },
+        { status: 403 }
+      );
+    }
+  }
 
   const body = await req.json();
   const content = {

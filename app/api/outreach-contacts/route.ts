@@ -17,6 +17,8 @@ export async function GET(_req: NextRequest) {
   return NextResponse.json({ data: (data ?? []).map(mapOutreachContact) });
 }
 
+const FREE_CONTACT_LIMIT = 50;
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -24,6 +26,20 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   if (!body.email?.trim()) {
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
+  }
+
+  const { data: userRow } = await supabase.from("users").select("has_access").eq("id", session.user.id).single();
+  if (!userRow?.has_access) {
+    const { count } = await supabase
+      .from("outreach_contacts")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", session.user.id);
+    if ((count ?? 0) >= FREE_CONTACT_LIMIT) {
+      return NextResponse.json(
+        { error: `Free plan is limited to ${FREE_CONTACT_LIMIT} contacts. Upgrade to add more.` },
+        { status: 403 }
+      );
+    }
   }
 
   const { data, error } = await supabase
