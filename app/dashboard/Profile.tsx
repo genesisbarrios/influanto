@@ -67,8 +67,12 @@ const Profile =  () => {
   const [alertMsg, setAlertt] = useState("");
   const [embedCopied, setEmbedCopied] = useState(false);
   const [showNewsletterStyle, setShowNewsletterStyle] = useState(false);
-  const [newsletterStyle, setNewsletterStyle] = useState<{ heading?: string; subtitle?: string; buttonColor?: string; textColor?: string; bgColor?: string }>({});
-  const setNL = (patch: Record<string, string>) => setNewsletterStyle(prev => ({ ...prev, ...patch }));
+  const [newsletterStyle, setNewsletterStyle] = useState<{
+    heading?: string; subtitle?: string; buttonColor?: string; textColor?: string; bgColor?: string;
+    showInstagram?: boolean; showPhone?: boolean;
+    requireName?: boolean; requireInstagram?: boolean; requirePhone?: boolean;
+  }>({});
+  const setNL = (patch: Record<string, string | boolean>) => setNewsletterStyle(prev => ({ ...prev, ...patch }));
   
 // In Profile.tsx, add this function before the return statement
 
@@ -1098,6 +1102,29 @@ const handleYouTubeMusicChange = (e: any) => {
                 <label className="flex items-center gap-2 text-sm">Background
                   <input type="color" className="w-8 h-8 rounded border border-gray-300 cursor-pointer" value={newsletterStyle.bgColor || "#ffffff"} onChange={e => setNL({ bgColor: e.target.value })} />
                 </label>
+              </div>
+
+              {/* Field toggles */}
+              <div className="mt-4 pt-3 border-t border-gray-100">
+                <p className="text-xs font-semibold text-gray-500 mb-2">Fields</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                  {([
+                    ["Show Instagram field", !!newsletterStyle.showInstagram, (v: boolean) => setNL({ showInstagram: v, ...(!v ? { requireInstagram: false } : {}) })],
+                    ["Show phone number field", !!newsletterStyle.showPhone, (v: boolean) => setNL({ showPhone: v, ...(!v ? { requirePhone: false } : {}) })],
+                    ["Require name", !!newsletterStyle.requireName, (v: boolean) => setNL({ requireName: v })],
+                    ...(newsletterStyle.showInstagram ? [["Require Instagram", !!newsletterStyle.requireInstagram, (v: boolean) => setNL({ requireInstagram: v })] as const] : []),
+                    ...(newsletterStyle.showPhone ? [["Require phone number", !!newsletterStyle.requirePhone, (v: boolean) => setNL({ requirePhone: v })] as const] : []),
+                  ] as const).map(([label, checked, onToggle]) => (
+                    <label key={label} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <button type="button" role="switch" aria-checked={checked}
+                        onClick={() => onToggle(!checked)}
+                        style={{ width: 38, height: 22, borderRadius: 999, background: checked ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
+                        <span style={{ position: 'absolute', top: 2, left: checked ? 18 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
+                      </button>
+                      {label}
+                    </label>
+                  ))}
+                </div>
               </div>
 
               {/* Live preview */}
