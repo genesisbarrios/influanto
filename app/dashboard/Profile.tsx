@@ -955,14 +955,14 @@ const handleYouTubeMusicChange = (e: any) => {
 
             {/* settings */}
             <div className="flex justify-end items-center gap-2 mb-4 mt-4">
-               <button
+              <SettingsDropdown />
+
+              <button
               className="btn btn-sm btn-narrow"
               style={{margin:"0", backgroundColor: "#6b7280", borderColor: "#6b7280", color: "#fff"}}
               onClick={() => setEditing(true)}>
               Edit
             </button>
-
-              <SettingsDropdown />
 
               {user?.username && (
                 linkInBioHasLinks === false ? (
@@ -1141,13 +1141,12 @@ const handleYouTubeMusicChange = (e: any) => {
             </div>
 
             {/* ── Integrations ── */}
-            <div className="mt-5 inline-flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg bg-white">
-              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 7, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 13 }}>🔌</span>
-              <h3 className="text-left m-0 font-semibold text-base">Integrations</h3>
-            </div>
+            <div className="mt-5 p-4 border border-gray-200 rounded-lg bg-white text-left">
+              <div className="flex items-center gap-2 mb-4">
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 7, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 13 }}>🔌</span>
+                <h3 className="m-0 font-semibold text-base">Integrations</h3>
+              </div>
 
-            {/* ── Meta Pixel ── */}
-            <div className="mt-2 p-4 border border-gray-200 rounded-lg bg-white text-left">
               <div className="flex items-center gap-2 mb-3">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#0866FF" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
@@ -1216,33 +1215,32 @@ const handleYouTubeMusicChange = (e: any) => {
                   </button>
                 </div>
               )}
-            </div>
 
-            {/* Show connection status if connected */}
-            {user?.printifyShopId && (
-              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-green-800">
-                      ✅ Printify Store Connected
+              {/* Show connection status if connected */}
+              {user?.printifyShopId && (
+                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-green-800">
+                        ✅ Printify Store Connected
+                      </div>
+                      <div className="text-xs text-green-600 mt-1">
+                        Store: {user.printifyStoreName || 'Connected Store'}<br/>
+                        Shop ID: {user.printifyShopId}
+                      </div>
                     </div>
-                    <div className="text-xs text-green-600 mt-1">
-                      Store: {user.printifyStoreName || 'Connected Store'}<br/>
-                      Shop ID: {user.printifyShopId}
-                    </div>
+                    <button
+                      onClick={() => handleDisconnect()}
+                      className="text-xs text-red-600 hover:text-red-800 underline"
+                    >
+                      Disconnect
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => handleDisconnect()}
-                    className="text-xs text-red-600 hover:text-red-800 underline"
-                  >
-                    Disconnect
-                  </button>
                 </div>
-              </div>
-            )}
-            
-            <PrintifyIntegration user={user} />
-           
+              )}
+
+              <PrintifyIntegration user={user} />
+            </div>
 
           {/* Premium Sign Up - Enhanced aesthetic version */}
           {!user.hasAccess &&

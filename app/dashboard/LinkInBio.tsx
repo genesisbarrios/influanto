@@ -310,13 +310,7 @@ const LinkInBio = () => {
   const fetchAvailableProducts = async () => {
     setIsLoadingProducts(true);
     try {
-      const response = await fetch(`/api/products/${user.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableProducts(Array.isArray(data) ? data : (data.products ?? []));
-      } else {
-        console.error('Error fetching products:', await response.text());
-      }
+      setAvailableProducts(await fetchAllPrintifyProducts(user.id));
     } catch (error) {
       console.error('Network error fetching products:', error);
     } finally {
@@ -681,7 +675,7 @@ const LinkInBio = () => {
           className="mx-auto mt-4 shadow rounded-md text-black"
           style={{ width: "calc(100% - 16px)", padding: "0.75rem 1rem", boxSizing: "border-box", backgroundColor: linkInBio?.cardBgColor || 'white', fontFamily: linkInBio?.font || 'inherit' }}
         >
-          <h2 className="text-xl font-bold mb-1">Analytics</h2>
+          <h2 className="text-xl font-bold mb-1" style={{ color: '#fff' }}>Analytics</h2>
           <LinkInBioAnalytics />
         </div>
       </>

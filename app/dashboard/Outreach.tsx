@@ -9,6 +9,7 @@ import ImportContactsModal, { ImportField } from "@/components/ImportContactsMod
 import * as XLSX from "xlsx";
 import NewsletterAnalytics from "@/components/NewsletterAnalytics";
 import ImagePicker from "@/components/ImagePicker";
+import { fetchAllPrintifyProducts } from "@/libs/printify-products";
 
 const IMPORT_FIELDS: ImportField[] = [
   { key: "email", label: "Email", aliases: ["e-mail", "mail"] },
@@ -184,11 +185,7 @@ export default function Outreach() {
   const fetchAvailableProducts = async () => {
     setIsLoadingProducts(true);
     try {
-      const r = await fetch(`/api/products/${user.id}`);
-      if (r.ok) {
-        const d = await r.json();
-        setAvailableProducts(Array.isArray(d) ? d : (d.products ?? []));
-      }
+      setAvailableProducts(await fetchAllPrintifyProducts(user.id));
     } catch (_e) { /* silent */ } finally {
       setIsLoadingProducts(false);
     }
