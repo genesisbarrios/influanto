@@ -36,9 +36,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   if (!contacts?.length) return NextResponse.json({ error: "Contacts not found" }, { status: 404 });
 
-  const { senderName, senderEmail, socials, artistImage, username } = await getNewsletterSenderInfo(session.user.id);
+  const { senderName, senderEmail, socials, artistImage } = await getNewsletterSenderInfo(session.user.id);
   const newsletter = mapNewsletter(row)!;
-  const baseHtml = renderNewsletterHtml(newsletter, { senderName, socials, artistImage, username });
+  const baseHtml = renderNewsletterHtml(newsletter, { senderName, socials, artistImage });
   const subject = newsletter.subject || newsletter.title || `News from ${senderName}`;
   const text = `${newsletter.title || ""}\n\n${newsletter.description || ""}`.trim();
 

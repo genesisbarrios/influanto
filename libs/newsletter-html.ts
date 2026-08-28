@@ -22,7 +22,6 @@ export interface NewsletterContent {
   textColor?: string;
   linksColor?: string;
   urlRedirect?: string;
-  newsletterEnabled?: boolean;
 }
 
 export interface SocialLinks {
@@ -90,7 +89,7 @@ const ICON_BASE = "https://www.influanto.com/social-icons/";
 
 export function renderNewsletterHtml(
   n: NewsletterContent,
-  opts: { senderName?: string; socials?: SocialLinks; artistImage?: string; username?: string } = {}
+  opts: { senderName?: string; socials?: SocialLinks; artistImage?: string } = {}
 ): string {
   const bg = n.bgColor || "#0f0f12";
   const text = n.textColor || "#ffffff";
@@ -200,19 +199,7 @@ export function renderNewsletterHtml(
     ? `<div style="text-align:center;margin:12px 0 16px;"><img src="${escapeHtml(opts.artistImage)}" alt="${escapeHtml(senderName)}" width="60" height="60" style="border-radius:50%;width:60px;height:60px;object-fit:cover;display:inline-block;" /></div>`
     : "";
 
-  // A real embedded signup form can't run in email (Gmail/Outlook strip
-  // forms and scripts like they strip iframes), so this links out to the
-  // artist's hosted signup page instead — same destination the "Collect
-  // newsletter signups" toggle uses on release pages.
-  const newsletterCta = n.newsletterEnabled && opts.username
-    ? `<div style="text-align:center;margin:24px 0 0;padding:20px;background:${accent}14;border-radius:12px;">
-        <p style="font-size:14px;font-weight:700;margin:0 0 4px;color:${text};">📬 Want more like this?</p>
-        <p style="font-size:13px;margin:0 0 14px;color:${text};opacity:.8;">Subscribe for future updates from ${escapeHtml(senderName)}.</p>
-        <a href="https://influanto.com/embed/newsletter/${escapeHtml(opts.username)}" target="_blank" style="display:inline-block;padding:10px 22px;background:${accent};color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:13px;">Subscribe</a>
-      </div>`
-    : "";
-
-  const footerTopMargin = socialRow || artistLogo || newsletterCta ? "12px" : "28px";
+  const footerTopMargin = socialRow || artistLogo ? "12px" : "28px";
 
   return `
   <div style="background:${bg};padding:32px 16px;margin:0;">
@@ -221,7 +208,6 @@ export function renderNewsletterHtml(
       ${youtubeBlock}
       ${links}
       ${merchGrid}
-      ${newsletterCta}
       ${socialRow}
       ${artistLogo}
       <p style="font-size:12px;color:${text};opacity:.55;margin:${footerTopMargin} 0 0;text-align:center;">
