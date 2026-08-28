@@ -68,6 +68,7 @@ export default function BusinessCard({ user, setUser }: Props) {
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState("");
   const [rendering, setRendering] = useState(false);
+  const [cardBlob, setCardBlob] = useState<Blob | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const QRCodeStylingRef = useRef<any>(null);
@@ -116,7 +117,10 @@ export default function BusinessCard({ user, setUser }: Props) {
       let cursorY = 260;
       if (avatar) {
         try {
-          const avImg = await loadImage(avatar, true);
+          // Routed through our own origin so a source without permissive CORS
+          // headers (e.g. a Google account photo) never taints the canvas —
+          // a tainted canvas silently fails every future toBlob()/download.
+          const avImg = await loadImage(`/api/image-proxy?url=${encodeURIComponent(avatar)}`);
           const size = 176, cx = CARD_W / 2, cy = 230 + size / 2;
           ctx.save();
           ctx.beginPath();
@@ -185,18 +189,24 @@ export default function BusinessCard({ user, setUser }: Props) {
       }
 
       ctx.restore();
+
+      // Cache the rendered PNG as soon as the card is ready. Download/Share read
+      // from this cache instead of calling canvas.toBlob() themselves — Safari
+      // requires navigator.share() to run synchronously inside the click handler,
+      // and any `await` beforehand (like a fresh toBlob() call) silently drops it.
+      try {
+        canvas.toBlob(b => setCardBlob(b), "image/png");
+      } catch {
+        setCardBlob(null);
+      }
     } finally {
       setRendering(false);
     }
   };
 
-  const canvasToBlob = (): Promise<Blob | null> =>
-    new Promise(resolve => canvasRef.current?.toBlob(b => resolve(b), "image/png") ?? resolve(null));
-
-  const handleDownload = async () => {
-    const blob = await canvasToBlob();
-    if (!blob) return;
-    const url = URL.createObjectURL(blob);
+  const handleDownload = () => {
+    if (!cardBlob) { setAlert("Card image isn't ready yet — try again in a moment."); return; }
+    const url = URL.createObjectURL(cardBlob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `${user?.username || "business"}-card.png`;
@@ -204,23 +214,22 @@ export default function BusinessCard({ user, setUser }: Props) {
     URL.revokeObjectURL(url);
   };
 
-  const handleShare = async () => {
-    const blob = await canvasToBlob();
-    if (!blob) return;
-    const file = new File([blob], `${user?.username || "business"}-card.png`, { type: "image/png" });
+  const handleShare = () => {
+    if (!cardBlob) { setAlert("Card image isn't ready yet — try again in a moment."); return; }
+    const file = new File([cardBlob], `${user?.username || "business"}-card.png`, { type: "image/png" });
     const nav = navigator as any;
-    if (nav.canShare && nav.canShare({ files: [file] })) {
-      try {
-        await nav.share({
-          files: [file],
-          title: "My Influanto Business Card",
-          text: `Check out my links: influanto.com/${user?.username}`,
-        });
-      } catch {
-        /* user cancelled the share sheet */
-      }
+    if (nav.share && (!nav.canShare || nav.canShare({ files: [file] }))) {
+      nav.share({
+        files: [file],
+        title: "My Influanto Business Card",
+        text: `Check out my links: influanto.com/${user?.username}`,
+      }).catch((err: any) => {
+        if (err?.name === "AbortError") return; // user closed the share sheet
+        handleDownload();
+        setAlert("Sharing isn't supported here — image downloaded instead.");
+      });
     } else {
-      await handleDownload();
+      handleDownload();
       setAlert("Sharing isn't supported on this browser — image downloaded instead.");
     }
   };

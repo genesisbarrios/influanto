@@ -6,6 +6,7 @@ import MetaPixel, { trackLinkClick, trackStreamingClick, trackMerchClick } from 
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import ViewOnMobileQR from "@/components/ViewOnMobileQR";
 import * as HeroPatterns from 'hero-patterns';
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -260,6 +261,7 @@ return (
       contentType="link_in_bio"
     />
   )}
+  {userName && <ViewOnMobileQR url={`https://influanto.com/${userName}`} />}
   {/* Main container with proper spacing for mobile */}
   <div style={{
     minHeight: "100vh",

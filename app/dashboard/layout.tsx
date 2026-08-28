@@ -27,6 +27,8 @@ export default async function LayoutPrivate({
       </Suspense>
       {children}
       <Footer />
+      {/* Clears the fixed mobile bottom tab bar so it doesn't cover the footer. */}
+      <div className="h-20 sm:hidden" aria-hidden="true" />
     </>
 ;
 }
