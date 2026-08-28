@@ -15,6 +15,7 @@ import Head from 'next/head';
 import { text } from "stream/consumers";
 import { CldUploadWidget } from 'next-cloudinary';
 import PrintifyProducts from '@/components/PrintifyProducts';
+import { fetchAllPrintifyProducts } from '@/libs/printify-products';
 import * as HeroPatterns from 'hero-patterns';
 
 const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
