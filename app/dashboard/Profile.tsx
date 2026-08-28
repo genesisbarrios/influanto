@@ -56,6 +56,8 @@ const Profile =  () => {
   const [youtubeMusic, setYouTubeMusic] = useState("");
   const [bandcamp, setBandcamp] = useState("");
   const [displayEmail, setDisplayEmail] = useState(Boolean);
+  const [linkInBioHasLinks, setLinkInBioHasLinks] = useState<boolean | null>(null);
+  const [welcomeDismissedLocally, setWelcomeDismissedLocally] = useState(false);
   const [metaPixelId, setMetaPixelId] = useState("");
   const [isEditingPixel, setIsEditingPixel] = useState(false);
   const [pixelInput, setPixelInput] = useState("");
@@ -728,6 +730,15 @@ const handleYouTubeMusicChange = (e: any) => {
     }
   }, []);
 
+  // Drives the "Setup Links Page" nudge on the Visit button below.
+  useEffect(() => {
+    if (!user?.username) return;
+    fetch("/api/get-links")
+      .then(r => r.json())
+      .then(j => setLinkInBioHasLinks(Array.isArray(j?.data?.links) && j.data.links.length > 0))
+      .catch(() => setLinkInBioHasLinks(false));
+  }, [user?.username]);
+
   useEffect(() => {
    if(!user){
     getUser();
@@ -813,19 +824,6 @@ const handleYouTubeMusicChange = (e: any) => {
       }
     } catch (error) {
       console.error('❌ Disconnect error:', error);
-    }
-  };
-
-  const dismissOnboarding = async () => {
-    setUser((prev: any) => (prev ? { ...prev, onboardingSeen: true } : prev));
-    try {
-      const formData = new FormData();
-      formData.append("onboardingSeen", "true");
-      await apiClient.post("/user", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-    } catch (e) {
-      // Non-critical — worst case the popup reappears next visit.
     }
   };
 
@@ -919,7 +917,7 @@ const handleYouTubeMusicChange = (e: any) => {
   }else if (user && !isEditing){
     return (
      <>
-      {!user.onboardingSeen && (
+      {!user.username && !welcomeDismissedLocally && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 text-black">
             <div className="text-4xl mb-2">👋</div>
@@ -936,13 +934,13 @@ const handleYouTubeMusicChange = (e: any) => {
             <div className="flex flex-col sm:flex-row gap-2 justify-end">
               <button
                 className="btn btn-sm"
-                onClick={() => dismissOnboarding()}
+                onClick={() => setWelcomeDismissedLocally(true)}
               >
                 I&apos;ll do this later
               </button>
               <button
                 className="btn btn-primary btn-sm"
-                onClick={() => { dismissOnboarding(); setEditing(true); }}
+                onClick={() => { setWelcomeDismissedLocally(true); setEditing(true); }}
               >
                 Set Up My Profile
               </button>
@@ -958,24 +956,36 @@ const handleYouTubeMusicChange = (e: any) => {
             {/* settings */}
             <div className="flex justify-end items-center gap-2 mb-4 mt-4">
                <button
-              className="btn btn-primary btn-sm btn-narrow"
-              style={{margin:"0"}}
+              className="btn btn-sm btn-narrow"
+              style={{margin:"0", backgroundColor: "#6b7280", borderColor: "#6b7280", color: "#fff"}}
               onClick={() => setEditing(true)}>
               Edit
             </button>
 
-              {user?.username && (
-                <a
-                  href={`https://influanto.com/${user.username}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-sm btn-outline btn-narrow"
-                >
-                  Visit
-                </a>
-              )}
-
               <SettingsDropdown />
+
+              {user?.username && (
+                linkInBioHasLinks === false ? (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-narrow"
+                    style={{ backgroundColor: "#dc2626", borderColor: "#dc2626", color: "#fff" }}
+                    onClick={() => { window.location.href = "/dashboard?tab=link-in-bio"; }}
+                  >
+                    Setup Links Page
+                  </button>
+                ) : (
+                  <a
+                    href={`https://influanto.com/${user.username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-sm btn-narrow"
+                    style={{ backgroundColor: "#2563eb", borderColor: "#2563eb", color: "#fff" }}
+                  >
+                    Visit
+                  </a>
+                )
+              )}
             </div>
           </div>
           <br></br>
@@ -1117,8 +1127,7 @@ const handleYouTubeMusicChange = (e: any) => {
             )}
 
             {/* ── Business Cards ── */}
-            <h3 className="mt-5">Business Cards</h3>
-            <div className="mt-2 p-4 border border-gray-200 rounded-lg bg-white text-left">
+            <div className="mt-5 p-4 border border-gray-200 rounded-lg bg-white text-left">
               <div className="flex items-center gap-2 mb-1">
                 <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}>💳</span>
                 <span className="font-semibold text-sm text-gray-800">Digital Business Card</span>
@@ -1132,7 +1141,10 @@ const handleYouTubeMusicChange = (e: any) => {
             </div>
 
             {/* ── Integrations ── */}
-            <h3 className="mt-5 text-left">Integrations</h3>
+            <div className="mt-5 inline-flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg bg-white">
+              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 7, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 13 }}>🔌</span>
+              <h3 className="text-left m-0 font-semibold text-base">Integrations</h3>
+            </div>
 
             {/* ── Meta Pixel ── */}
             <div className="mt-2 p-4 border border-gray-200 rounded-lg bg-white text-left">
