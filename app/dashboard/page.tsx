@@ -2,6 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import posthog from "posthog-js";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import {
+  faUser,
+  faLink,
+  faCompactDisc,
+  faBullhorn,
+  faFileSignature,
+  faHeadphones,
+  faQrcode,
+  faUsers,
+} from '@fortawesome/free-solid-svg-icons';
 
 // Import or define your components here
 import Profile from './Profile';
@@ -13,6 +25,24 @@ import ReleasePage from './ReleasePage';
 import SplitSheets from './SplitSheets';
 import Outreach from './Outreach';
 // import Crossposting from './Crossposting'; // hidden until TikTok API approval
+
+interface Tab {
+  key: string;
+  label: string;
+  icon: IconDefinition;
+}
+
+// Shared by the desktop sidebar and the mobile bottom bar so both stay in sync.
+const TABS: Tab[] = [
+  { key: 'profile', label: 'Profile', icon: faUser },
+  { key: 'link-in-bio', label: 'Link in Bio', icon: faLink },
+  { key: 'release-page', label: 'Releases', icon: faCompactDisc },
+  { key: 'outreach', label: 'Outreach', icon: faBullhorn },
+  { key: 'split-sheets', label: 'Splits', icon: faFileSignature },
+  { key: 'curator-search', label: 'Playlisting', icon: faHeadphones },
+  { key: 'qr-code-generator', label: 'QR Codes', icon: faQrcode },
+  { key: 'community', label: 'Community', icon: faUsers },
+];
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
@@ -44,52 +74,60 @@ export default function Dashboard() {
 
   return (
     <div className="flex min-h-screen bg-base-200">
-      {/* Sidebar menu */}
-      <aside className="w-1/4 sm:w-1/5 lg:w-[180px] p-0.5 sm:p-4 bg-base-100 shrink-0">
+      {/* Sidebar menu — desktop only, the mobile bottom bar takes over below sm */}
+      <aside className="hidden sm:block sm:w-1/5 lg:w-[180px] p-0.5 sm:p-4 bg-base-100 shrink-0">
         <ul className="menu bg-base-100 w-full p-2 rounded-box text-xs sm:text-sm md:text-base">
-          <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('profile')}>Profile</button>
-          </li>
-          <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('link-in-bio')}>Link in Bio</button>
-          </li>
-          <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('release-page')}>Release Pages</button>
-          </li>
-          {/* <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('curator-search')}>Curator Search</button>
-          </li> */}
-           <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('outreach')}>
-              Outreach
-            </button>
-          </li>
-          <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('split-sheets')}>
-              Split Sheets
-            </button>
-          </li>
-          <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('curator-search')}>
-              Playlisting
-            </button>
-          </li>
-          <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('qr-code-generator')}>QR Codes</button>
-          </li>
-          <li>
-            <button className="block p-2 hover:bg-blue-100 w-full" onClick={() => handleTabSwitch('community')}>Community</button>
-          </li>
+          {TABS.map(tab => (
+            <li key={tab.key}>
+              <button
+                className="block p-2 hover:bg-blue-100 w-full"
+                onClick={() => handleTabSwitch(tab.key)}
+              >
+                {tab.label}
+              </button>
+            </li>
+          ))}
         </ul>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 p-4 sm:p-8 pb-24 min-w-0">
+      <main className="flex-1 w-full p-4 sm:p-8 pb-24 min-w-0">
         <section className="max-w-5xl mx-auto space-y-8">
           {/* Render the active component */}
           {components[activeComponent]}
         </section>
       </main>
+
+      {/* Bottom tab bar — mobile only, frees up the full width for content */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 flex sm:hidden border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)]"
+        aria-label="Dashboard navigation"
+      >
+        {TABS.map(tab => {
+          const isActive = activeComponent === tab.key;
+          return (
+            <button
+              key={tab.key}
+              title={tab.label}
+              onClick={() => handleTabSwitch(tab.key)}
+              aria-current={isActive ? 'page' : undefined}
+              aria-label={tab.label}
+              className="flex flex-1 flex-col items-center justify-center gap-1.5 py-3 min-w-0"
+            >
+              <FontAwesomeIcon
+                icon={tab.icon}
+                className="h-5 w-5"
+                style={{ color: isActive ? '#4f46e5' : '#9ca3af' }}
+              />
+              <span
+                className="h-1 w-1 rounded-full transition-colors"
+                style={{ backgroundColor: isActive ? '#4f46e5' : 'transparent' }}
+              />
+              <span className="sr-only">{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }

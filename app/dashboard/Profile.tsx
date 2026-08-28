@@ -1132,7 +1132,7 @@ const handleYouTubeMusicChange = (e: any) => {
             </div>
 
             {/* ── Integrations ── */}
-            <h3 className="mt-5">Integrations</h3>
+            <h3 className="mt-5 text-left">Integrations</h3>
 
             {/* ── Meta Pixel ── */}
             <div className="mt-2 p-4 border border-gray-200 rounded-lg bg-white text-left">
