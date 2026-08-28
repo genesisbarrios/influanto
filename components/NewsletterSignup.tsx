@@ -8,6 +8,11 @@ export interface NewsletterStyle {
   buttonColor?: string;
   textColor?: string;
   bgColor?: string;   // optional card background behind the form
+  showInstagram?: boolean;
+  showPhone?: boolean;
+  requireName?: boolean;
+  requireInstagram?: boolean;
+  requirePhone?: boolean;
 }
 
 interface Props {
@@ -61,14 +66,30 @@ export default function NewsletterSignup({ username, source, fields = ["name", "
   const headingText = style?.heading || heading || "📣 Join my newsletter";
   const subtitle = style?.subtitle || "Get updates on new releases straight to your inbox.";
   const cardBg = style?.bgColor;
-  // Optional fields (email is rendered separately and always required)
-  const optionalFields = fields.filter(f => f !== "email");
+  // Optional fields (email is rendered separately and always required). The
+  // global style toggles can add fields on top of whatever the surface
+  // (Link in Bio / Release Page) already configured — never remove one.
+  const optionalFields = Array.from(new Set([
+    ...fields.filter(f => f !== "email"),
+    ...(style?.showPhone ? ["phone"] : []),
+    ...(style?.showInstagram ? ["instagram"] : []),
+  ]));
+  const isRequired = (f: string) =>
+    (f === "name" && !!style?.requireName) ||
+    (f === "phone" && !!style?.requirePhone) ||
+    (f === "instagram" && !!style?.requireInstagram);
 
   const set = (k: string, v: string) => setValues(prev => ({ ...prev, [k]: v }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!EMAIL_RE.test((values.email || "").trim())) { setError("Please enter a valid email address"); return; }
+    for (const f of optionalFields) {
+      if (isRequired(f) && !(values[f] || "").trim()) {
+        setError(`${FIELD_LABELS[f] || f} is required`);
+        return;
+      }
+    }
     // Reduce pasted @handles / profile URLs down to a bare username before saving.
     const payload: Record<string, string> = { ...values };
     for (const [f, domain] of [["instagram", "instagram.com"], ["tiktok", "tiktok.com"]] as const) {
@@ -132,12 +153,15 @@ export default function NewsletterSignup({ username, source, fields = ["name", "
       <input type="text" value={hp} onChange={e => setHp(e.target.value)} tabIndex={-1} autoComplete="off"
         style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }} aria-hidden="true" />
 
-      {optionalFields.includes("name") && (
-        <input style={inputStyle} placeholder="Name" value={values.name || ""} onChange={e => set("name", e.target.value)} />
-      )}
       <input style={inputStyle} type="email" required placeholder="Email *" value={values.email || ""} onChange={e => set("email", e.target.value)} />
-      {optionalFields.filter(f => f !== "name").map(f => (
-        <input key={f} style={inputStyle} placeholder={FIELD_PLACEHOLDERS[f] || FIELD_LABELS[f] || f} value={values[f] || ""} onChange={e => set(f, e.target.value)} />
+      {optionalFields.map(f => (
+        <input
+          key={f}
+          style={inputStyle}
+          placeholder={`${FIELD_PLACEHOLDERS[f] || FIELD_LABELS[f] || f}${isRequired(f) ? " *" : ""}`}
+          value={values[f] || ""}
+          onChange={e => set(f, e.target.value)}
+        />
       ))}
 
       {error && <p style={{ color: "#f87171", fontSize: 13, marginBottom: 8 }}>{error}</p>}
