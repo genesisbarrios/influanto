@@ -350,8 +350,8 @@ const ReleasePages = () => {
       setAlert("Release page name is required.");
       return false;
     }
-    if (value.length < 3) {
-      setAlert("Release page name must be at least 3 characters long.");
+    if (value.length < 2) {
+      setAlert("Release page name must be at least 2 characters long.");
       return false;
     }
     if (value.length > 50) {
@@ -753,8 +753,8 @@ const removeCustomLink = (index: number) => {
       return { isValid: false, message: "Release page name cannot contain spaces. Use hyphens (-) or underscores (_) instead." };
     }
     
-    if (name.length < 3) {
-      return { isValid: false, message: "Release page name must be at least 3 characters long." };
+    if (name.length < 2) {
+      return { isValid: false, message: "Release page name must be at least 2 characters long." };
     }
     
     if (name.length > 50) {
