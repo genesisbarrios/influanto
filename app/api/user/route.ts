@@ -102,6 +102,11 @@ export async function POST(req: Request) {
       try { updates.newsletter_style = JSON.parse(newsletterStyle); } catch { /* ignore bad json */ }
     }
 
+    const businessCard = formData.get("businessCard") as string | null;
+    if (businessCard) {
+      try { updates.business_card = JSON.parse(businessCard); } catch { /* ignore bad json */ }
+    }
+
     const { data: updated, error } = await supabase
       .from("users")
       .update(updates)
