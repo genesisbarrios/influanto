@@ -456,10 +456,6 @@ export default function Outreach() {
               <label className="block text-xs font-medium mb-1">Instagram</label>
               <input className="input input-sm input-bordered w-full" placeholder="@handle" value={contactForm.instagram ?? ""} onChange={e => setContactForm(p => ({ ...p, instagram: e.target.value }))} />
             </div>
-            <div>
-              <label className="block text-xs font-medium mb-1">TikTok</label>
-              <input className="input input-sm input-bordered w-full" placeholder="@handle" value={contactForm.tiktok ?? ""} onChange={e => setContactForm(p => ({ ...p, tiktok: e.target.value }))} />
-            </div>
           </div>
           {alert && <p className="text-xs text-red-500 mt-2">{alert}</p>}
           <div className="flex gap-2 mt-3">
