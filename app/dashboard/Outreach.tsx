@@ -26,6 +26,7 @@ interface Newsletter {
   id: string; title: string; subject: string; template: string;
   image: string; description: string; links: NLLink[];
   bgColor: string; textColor: string; linksColor: string; urlRedirect: string;
+  newsletterEnabled: boolean;
   html: string; status: "draft" | "sent"; sentCount: number; lastSentAt: string | null; createdAt: string;
 }
 interface Contact { id: string; name: string; email: string; phone: string; instagram: string; tiktok: string; source: string }
@@ -57,6 +58,7 @@ const blankNewsletter = (template: string): Partial<Newsletter> => {
     textColor: "#ffffff",
     linksColor: "#4f46e5",
     urlRedirect: "",
+    newsletterEnabled: false,
     status: "draft",
   };
 };
@@ -305,6 +307,7 @@ export default function Outreach() {
         image: nl.image, description: nl.description, links: nl.links,
         bgColor: nl.bgColor, textColor: nl.textColor, linksColor: nl.linksColor,
         urlRedirect: nl.urlRedirect,
+        newsletterEnabled: nl.newsletterEnabled,
       };
       if ((nl as any).id) {
         await apiClient.put(`/outreach/${(nl as any).id}`, payload);
@@ -518,7 +521,7 @@ export default function Outreach() {
     const previewHtml = renderNewsletterHtml({
       title: nl.title, template: nl.template, image: nl.image, description: nl.description,
       links: links, bgColor: nl.bgColor, textColor: nl.textColor, linksColor: nl.linksColor,
-      urlRedirect: nl.urlRedirect,
+      urlRedirect: nl.urlRedirect, newsletterEnabled: nl.newsletterEnabled,
     }, {
       senderName: user?.name || "You",
       socials: {
@@ -527,6 +530,7 @@ export default function Outreach() {
         soundcloud: user?.soundcloud, youtubeMusic: user?.youtubeMusic, website: user?.website,
       },
       artistImage: user?.image,
+      username: user?.username,
     });
 
     return (
@@ -713,6 +717,19 @@ export default function Outreach() {
                   <input type="color" className="w-full h-9 rounded border border-gray-200 cursor-pointer" value={(nl as any)[key] || "#000000"} onChange={e => setNl({ [key]: e.target.value } as any)} />
                 </div>
               ))}
+            </div>
+
+            {/* Newsletter signup */}
+            <div className="mt-4 w-full p-4 bg-indigo-50 rounded-md border border-indigo-100">
+              <div className="flex items-center gap-2">
+                <button type="button" role="switch" aria-checked={!!nl.newsletterEnabled}
+                  onClick={() => setNl({ newsletterEnabled: !nl.newsletterEnabled })}
+                  style={{ width: 46, height: 26, borderRadius: 999, background: nl.newsletterEnabled ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
+                  <span style={{ position: 'absolute', top: 3, left: nl.newsletterEnabled ? 23 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
+                </button>
+                <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setNl({ newsletterEnabled: !nl.newsletterEnabled })}>📣 Include newsletter signup</span>
+              </div>
+              <p className="text-indigo-600 text-sm mt-1">Adds a "Subscribe" link at the bottom of this email so recipients can join your Outreach contacts.</p>
             </div>
 
             {alert && <p className={`text-sm ${alert.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>{alert}</p>}

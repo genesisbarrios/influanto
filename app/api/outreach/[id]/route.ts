@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
-import supabase, { mapNewsletter } from "@/libs/supabase";
+import supabase, { mapNewsletter, getNewsletterSenderInfo } from "@/libs/supabase";
 import { renderNewsletterHtml } from "@/libs/newsletter-html";
 
 async function premiumUserId(): Promise<string | null> {
@@ -45,13 +45,16 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     textColor: body.textColor ?? "",
     linksColor: body.linksColor ?? "",
     urlRedirect: body.urlRedirect ?? "",
+    newsletterEnabled: Boolean(body.newsletterEnabled),
   };
+
+  const { senderName, socials, artistImage, username } = await getNewsletterSenderInfo(userId);
 
   const { data, error } = await supabase
     .from("newsletters")
     .update({
       subject: body.subject ?? "",
-      html: renderNewsletterHtml(content),
+      html: renderNewsletterHtml(content, { senderName, socials, artistImage, username }),
       title: content.title,
       template: content.template,
       image: content.image,
@@ -61,6 +64,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       text_color: content.textColor,
       links_color: content.linksColor,
       url_redirect: content.urlRedirect,
+      newsletter_enabled: content.newsletterEnabled,
       updated_at: new Date().toISOString(),
     })
     .eq("id", params.id)

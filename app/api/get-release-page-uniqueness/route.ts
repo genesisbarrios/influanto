@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
       .eq("name", name)
       .maybeSingle();
 
-    return NextResponse.json({ isUnique: !data }, { status: 200 });
+    return NextResponse.json({ data: !data }, { status: 200 });
   } catch (error) {
     console.error("Error checking name uniqueness:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
