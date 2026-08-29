@@ -63,7 +63,7 @@ const PitchToSpotify: React.FC = () => {
 
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedGenre, setSelectedGenre] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState('Latin');
   const [searchTerm, setSearchTerm] = useState('');
   const { data, status } = useSession();
   const [user, setUser] = useState<any>();
@@ -246,7 +246,8 @@ ${(data?.user?.name as string) || ''}`,
 
   return (
     <div className="p-6 bg-white shadow-lg rounded-lg text-black">
-      <h2 className="text-xl md:text-2xl font-semibold mb-6">Spotify Playlist Curator Search</h2>
+      <h2 className="text-xl md:text-2xl font-semibold mb-1">Spotify Playlist Curator Search</h2>
+      <p className="text-sm text-gray-500 mb-6">Select a genre to find Spotify playlist curators through the Spotify API.</p>
 
       {/* Genre Dropdown */}
       <div className="mb-4">
