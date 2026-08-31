@@ -128,11 +128,16 @@ export function renderNewsletterHtml(
     const playlistId = playlistIdMatch ? playlistIdMatch[1] : null;
 
     if (videoId) {
-      const thumb = `https://img.youtube.com/vi/${escapeHtml(videoId)}/maxresdefault.jpg`;
+      // hqdefault always exists (480x360); maxresdefault 404s for a lot of videos
+      // (older uploads, verticals) and some clients then collapse the box to the
+      // fallback image's own near-square size instead of stayling landscape.
+      const thumb = `https://img.youtube.com/vi/${escapeHtml(videoId)}/hqdefault.jpg`;
       // Email-safe: thumbnail as table cell background with a centered play button overlay.
-      // Gmail/Outlook strip iframes, so this approach works in every client.
+      // Gmail/Outlook strip iframes, so this approach works in every client. Width AND
+      // height are set as real HTML attributes (not just CSS) so the box stays a fixed
+      // 16:9 landscape shape even in clients (Outlook) that ignore background-size:cover.
       // Clicking opens YouTube where the video plays.
-      return `<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin-bottom:20px;border-radius:12px;overflow:hidden;"><tr><td background="${thumb}" style="background-image:url('${thumb}');background-size:cover;background-position:center center;background-repeat:no-repeat;border-radius:12px;" align="center" valign="middle" height="315"><a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;width:72px;height:72px;background:rgba(0,0,0,0.72);border-radius:50%;text-align:center;line-height:72px;text-decoration:none;font-size:34px;color:#ffffff;">&#9654;</a></td></tr></table>`;
+      return `<table width="600" cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;max-width:600px;margin:0 0 20px;border-radius:12px;overflow:hidden;"><tr><td width="600" height="338" background="${thumb}" style="background-image:url('${thumb}');background-size:cover;background-position:center center;background-repeat:no-repeat;border-radius:12px;width:100%;max-width:600px;" align="center" valign="middle"><a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;width:72px;height:72px;background:rgba(0,0,0,0.72);border-radius:50%;text-align:center;line-height:72px;text-decoration:none;font-size:34px;color:#ffffff;">&#9654;</a></td></tr></table>`;
     }
 
     if (playlistId) {
