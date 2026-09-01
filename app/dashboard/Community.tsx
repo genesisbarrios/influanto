@@ -102,22 +102,22 @@ const Community = () => {
         </div>
         <br />
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           {users.map((user: any) => (
-            <a key={user._id} href={`https://influanto.com/${user.username}`} target="_blank" rel="noopener noreferrer" className="block">
-              <div className="bg-gray-100 p-4 rounded-lg shadow-md">
-                <div className="flex items-center space-x-4 mb-2">
+            <a key={user._id} href={`https://influanto.com/${user.username}`} target="_blank" rel="noopener noreferrer" className="block min-w-0">
+              <div className="bg-gray-100 p-2 sm:p-4 rounded-lg shadow-md min-w-0">
+                <div className="flex flex-col items-center text-center gap-1 mb-2 sm:flex-row sm:items-center sm:gap-0 sm:space-x-4 sm:text-left min-w-0">
                   <img
                     src={user.image || fallbackImageUrl}
                     alt={user.name}
                     width={50}
                     height={50}
-                    className="rounded-full mr-2"
+                    className="rounded-full w-8 h-8 sm:w-[50px] sm:h-[50px] sm:mr-2 flex-shrink-0"
                   />
-                  <h3 className="text-sm text-blue-500 font-semibold">{user.name}</h3>
+                  <h3 className="text-xs sm:text-sm text-blue-500 font-semibold truncate w-full min-w-0">{user.name}</h3>
                 </div>
-                <p className="text-xs text-gray-500 mb-2">  {user.bio && user.bio.length > 60 ? user.bio.slice(0, 60) + "..." : user.bio}</p>
-                <div className="flex justify-center space-x-3">
+                <p className="text-[10px] sm:text-xs text-gray-500 mb-2 break-words">{user.bio && user.bio.length > 60 ? user.bio.slice(0, 60) + "..." : user.bio}</p>
+                <div className="flex flex-wrap justify-center gap-2">
                   {user.instagram && (
                     <a href={user.instagram} target="_blank" rel="noopener noreferrer">
                       <FontAwesomeIcon icon={faInstagram} className="text-pink-500" />
