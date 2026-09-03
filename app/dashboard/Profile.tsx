@@ -100,9 +100,9 @@ const validateUsername = (value: string) => {
   // Remove spaces and convert to lowercase
   const cleanValue = value.replace(/\s+/g, '').toLowerCase();
   
-  // Check for invalid characters (only allow letters, numbers, underscore, hyphen)
-  if (!/^[a-zA-Z0-9_-]*$/.test(cleanValue)) {
-      setAlertt("Username can only contain letters, numbers, underscores, and hyphens.");
+  // Check for invalid characters (only allow letters, numbers, underscore, hyphen, period)
+  if (!/^[a-zA-Z0-9_.-]*$/.test(cleanValue)) {
+      setAlertt("Username can only contain letters, numbers, underscores, hyphens, and periods.");
       return false;
   }
   
