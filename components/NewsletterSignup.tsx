@@ -41,7 +41,7 @@ const FIELD_PLACEHOLDERS: Record<string, string> = {
 };
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const HANDLE_RE = /^[a-zA-Z0-9._]{1,30}$/;
+const HANDLE_RE = /^[a-zA-Z0-9._-]{1,30}$/;
 
 // Accepts a bare handle, an @handle, or a full profile URL and reduces it to
 // just the username — the storage convention used everywhere else in the app.
