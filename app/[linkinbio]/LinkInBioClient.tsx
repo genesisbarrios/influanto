@@ -14,6 +14,7 @@ import { faGlobe, faLocation, faEnvelope, faBoxOpen } from "@fortawesome/free-so
 
 import config from "@/config";
 import { getSEOTags } from "@/libs/seo";
+import { normalizeUrl } from "@/libs/urls";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import { useRouter } from 'next/navigation'; 
 import { usePathname, useSearchParams } from 'next/navigation'
@@ -304,7 +305,7 @@ return (
         <p style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>{user.name}</p>
         <p style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>
           {user.location && <span ><FontAwesomeIcon icon={faLocation} color={linksColor} className='mr-2'/>{user.location}</span>}
-          {user.website && <a href={ user.website } target="_blank" style={{ color: textColor || "#333333" }} className='ml-2'><FontAwesomeIcon icon={faGlobe} color={linksColor} /> Website</a>}
+          {user.website && <a href={normalizeUrl(user.website)} target="_blank" style={{ color: textColor || "#333333" }} className='ml-2'><FontAwesomeIcon icon={faGlobe} color={linksColor} /> Website</a>}
         </p>
       
         <p style={{marginBottom:"2%", fontFamily: font || 'inherit', color: textColor || "#333333"}}>{user.bio}</p>
@@ -320,7 +321,7 @@ return (
           {user.instagram && <a href={"https://instagram.com/" + user.instagram } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faInstagram} /></a>}
           {user.tiktok && <a href={"https://tiktok.com/@" + user.tiktok } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faTiktok} /></a>}
           {user.twitter && <a href={"https://twitter.com/" + user.twitter } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTwitter} /></a>}
-          {user.facebook && <a href={user.facebook } target="_blank" style={{marginRight:"10px", color:"blue"}}><FontAwesomeIcon icon={faFacebook} /></a>}
+          {user.facebook && <a href={normalizeUrl(user.facebook)} target="_blank" style={{marginRight:"10px", color:"blue"}}><FontAwesomeIcon icon={faFacebook} /></a>}
           {user.youtube && <a href={"https://youtube.com/" + user.youtube } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faYoutube} /></a>}
           {user.telegram && <a href={"https://t.me/" + user.telegram } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTelegram} /></a>}
           {user.linkedin && <a href={"https://linkedin.com/" + user.linkedin } target="_blank" style={{marginRight:"10px", color:"darkblue"}}><FontAwesomeIcon icon={faLinkedin} /></a>}
@@ -392,7 +393,7 @@ return (
           {user.soundcloud && <a href={"https://soundcloud.com/" + user.soundcloud } target="_blank" style={{color:"orange"}}><FontAwesomeIcon icon={faSoundcloud} /></a>}
           {user.deezer && <a href={"https://deezer.com/" + user.deezer } target="_blank" style={{color:"purple"}}><FontAwesomeIcon icon={faDeezer} /></a>}
           {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{color:"darkblue", display:"inline-flex", alignItems:"center"}}><img src="/pandora.png" style={{width:"1em", height:"1em", objectFit:"contain"}}/></a>}
-          {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
+          {user.bandcamp && <a href={normalizeUrl(user.bandcamp)} target="_blank" style={{color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
           {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{display:"inline-flex", alignItems:"center"}}><img src="/soundxyz.png" style={{width:"1em", height:"1em", objectFit:"contain"}}/></a>}
         </div>
 
@@ -425,7 +426,7 @@ return (
               <>
                 {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
                 <a
-                  href={link.url}
+                  href={normalizeUrl(link.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => trackLinkClick(link.name, link.url)}
@@ -606,7 +607,7 @@ return (
           <div className="mt-12 flex justify-center" style={{ fontFamily: font || 'inherit' }}>
             {user?.website ? (
               <a
-                href={/^https?:\/\//i.test(user.website) ? user.website : `https://${user.website}`}
+                href={normalizeUrl(user.website)}
                 target="_blank"
                 rel="noopener noreferrer"
               >

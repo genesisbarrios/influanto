@@ -386,25 +386,23 @@ const ReleasePages = () => {
 
   const validateURL = (value: string, fieldName: string) => {
     if (!value) return true; // Empty is allowed
-    
-    if (!value.startsWith("https://") && !value.startsWith("http://")) {
-      setAlert(`${fieldName} must start with 'https://' or 'http://'.`);
-      return false;
-    }
-    
-    // Basic URL validation
+
+    // A missing protocol is fixed automatically (here and again on save) —
+    // it's not treated as invalid input.
+    const withProtocol = /^https?:\/\//.test(value) ? value : `https://${value}`;
+
     try {
-      new URL(value);
+      new URL(withProtocol);
     } catch {
       setAlert(`${fieldName} must be a valid URL.`);
       return false;
     }
-    
+
     if (value.length > 2000) {
       setAlert(`${fieldName} URL is too long.`);
       return false;
     }
-    
+
     setAlert("");
     return true;
   };

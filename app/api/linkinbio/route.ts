@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase, { mapLinkInBio } from "@/libs/supabase";
+import { normalizeUrl } from "@/libs/urls";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
           pattern_fg: body.patternFg,
           pattern_bg: body.patternBg,
           pattern_opacity: body.patternOpacity,
-          links: body.links ?? [],
+          links: (body.links ?? []).map((l: any) => ({ ...l, url: normalizeUrl(l.url) })),
           selected_products: body.selectedProducts ?? [],
           brand_logo_url: body.brandLogoUrl ?? null,
           newsletter_enabled: body.newsletterEnabled ?? false,

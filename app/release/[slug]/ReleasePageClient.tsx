@@ -9,6 +9,7 @@ import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin
 import { faGlobe } from "@fortawesome/free-solid-svg-icons";
 import { usePathname } from 'next/navigation'
 import NewsletterSignup from "@/components/NewsletterSignup";
+import { normalizeUrl } from "@/libs/urls";
 
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
@@ -622,7 +623,7 @@ const renderMerchSection = () => {
                   </p>
                 </div>
                 <a
-                  href={link.url}
+                  href={normalizeUrl(link.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => trackStreamingClick(platformName, link.url)}
@@ -674,7 +675,7 @@ const renderMerchSection = () => {
             </a>
           )}
           {facebook && (
-            <a href={user.facebook} target="_blank" rel="noopener noreferrer">
+            <a href={normalizeUrl(user.facebook)} target="_blank" rel="noopener noreferrer">
               <FontAwesomeIcon icon={faFacebook} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
@@ -754,7 +755,7 @@ const renderMerchSection = () => {
             </a>
           )}
           {bandcamp && (
-            <a href={`https://bandcamp.com/${user.bandcamp}`} target="_blank" rel="noopener noreferrer">
+            <a href={normalizeUrl(user.bandcamp)} target="_blank" rel="noopener noreferrer">
               <FontAwesomeIcon icon={faBandcamp} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}  
@@ -779,7 +780,7 @@ const renderMerchSection = () => {
             </a>
           )}
           {website && (
-            <a href={user.website} target="_blank" rel="noopener noreferrer">
+            <a href={normalizeUrl(user.website)} target="_blank" rel="noopener noreferrer">
               <FontAwesomeIcon icon={faGlobe} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}
@@ -804,7 +805,7 @@ const renderMerchSection = () => {
           <div className="mt-12 flex justify-center">
             {user?.website ? (
               <a
-                href={/^https?:\/\//i.test(user.website) ? user.website : `https://${user.website}`}
+                href={normalizeUrl(user.website)}
                 target="_blank"
                 rel="noopener noreferrer"
               >
