@@ -27,7 +27,7 @@ import config from "@/config";
 
 export const metadata = getSEOTags({
   title: `How To Start | ${config.appName}`,
-  canonicalUrlRelative: "/tos",
+  canonicalUrlRelative: "/how-to-start",
 });
 
 const TOS = () => {
