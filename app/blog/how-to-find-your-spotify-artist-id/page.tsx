@@ -28,14 +28,14 @@ export const metadata: Metadata = {
     title: "How to Find Your Spotify Artist ID (and Apple, Tidal, Amazon, Pandora, Deezer, Qobuz)",
     description: "Step-by-step instructions for finding your artist ID on every major streaming platform — with the exact URL to look at for each one.",
     type: "article",
-    url: "https://influanto.com/blog/how-to-find-your-spotify-artist-id",
+    url: "https://www.influanto.com/blog/how-to-find-your-spotify-artist-id",
   },
   twitter: {
     card: "summary_large_image",
     title: "How to Find Your Spotify Artist ID (and Apple, Tidal, Amazon, Pandora, Deezer, Qobuz)",
     description: "Step-by-step instructions for finding your artist ID on every major streaming platform.",
   },
-  alternates: { canonical: "https://influanto.com/blog/how-to-find-your-spotify-artist-id" },
+  alternates: { canonical: "https://www.influanto.com/blog/how-to-find-your-spotify-artist-id" },
 };
 
 const h2Style: React.CSSProperties = { color: "#111827", fontWeight: 800, fontSize: "1.4rem", margin: "2rem 0 1rem" };

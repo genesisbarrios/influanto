@@ -26,14 +26,14 @@ export const metadata: Metadata = {
     title: "Why Every Independent Artist Needs a Newsletter",
     description: "Social media is rented land. Your email list is the one audience you actually own — here's why it matters and how to grow it.",
     type: "article",
-    url: "https://influanto.com/blog/newsletter-for-independent-artists",
+    url: "https://www.influanto.com/blog/newsletter-for-independent-artists",
   },
   twitter: {
     card: "summary_large_image",
     title: "Why Every Independent Artist Needs a Newsletter",
     description: "Social media is rented land. Your email list is the one audience you actually own.",
   },
-  alternates: { canonical: "https://influanto.com/blog/newsletter-for-independent-artists" },
+  alternates: { canonical: "https://www.influanto.com/blog/newsletter-for-independent-artists" },
 };
 
 export default function PostNewsletter() {

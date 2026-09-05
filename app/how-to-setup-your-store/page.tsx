@@ -7,7 +7,7 @@ import ButtonGetInfluanto from "@/components/ButtonGetInfluanto";
 
 export const metadata = getSEOTags({
   title: `How To Setup Your Printify Store with Influanto | ${config.appName}`,
-  canonicalUrlRelative: "/tos",
+  canonicalUrlRelative: "/how-to-setup-your-store",
 });
 
 const TOS = () => {
