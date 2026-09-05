@@ -14,10 +14,10 @@ const CTA = () => {
       <div className="relative hero-content text-center text-neutral-content p-8">
         <div className="flex flex-col items-center max-w-xl p-8 md:p-0">
           <h2 className="font-bold text-3xl md:text-5xl tracking-tight mb-8 md:mb-12">
-            Boost your streams all in one place.
+            Market your music the right way.
           </h2>
           <p className="text-lg opacity-80 mb-12 md:mb-16">
-            Don&apos;t waste time using a bunch of different platforms...
+            everything you need for mmusic marketing.
           </p>
 
           <a href="/api/auth/signin">
