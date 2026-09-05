@@ -92,6 +92,12 @@ const migrations = [
   // as simple {name, url} entries, alongside or instead of connected Printify products
   `ALTER TABLE release_pages ADD COLUMN IF NOT EXISTS custom_merch_links JSONB DEFAULT '[]'::jsonb`,
   `ALTER TABLE link_in_bio ADD COLUMN IF NOT EXISTS custom_merch_links JSONB DEFAULT '[]'::jsonb`,
+
+  // profile category tags — the dashboard Profile editor and /api/user route have
+  // sent this on every save since the category-tags feature shipped, but the
+  // column was never actually created, so every profile save (not just avatar
+  // updates) has been failing with a 500 since then.
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS category TEXT[] DEFAULT '{}'`,
 ];
 
 async function run() {
