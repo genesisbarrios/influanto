@@ -221,14 +221,14 @@ export default function BusinessCard({ user, setUser }: Props) {
     const url = URL.createObjectURL(cardBlob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${user?.username || "business"}-card.png`;
+    a.download = `${user?.username || "business"}-card-influanto.png`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleShare = () => {
     if (!cardBlob) { setAlert("Card image isn't ready yet — try again in a moment."); return; }
-    const file = new File([cardBlob], `${user?.username || "business"}-card.png`, { type: "image/png" });
+    const file = new File([cardBlob], `${user?.username || "business"}-card-influanto.png`, { type: "image/png" });
     const nav = navigator as any;
     if (nav.share && (!nav.canShare || nav.canShare({ files: [file] }))) {
       nav.share({

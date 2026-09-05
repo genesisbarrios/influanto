@@ -680,7 +680,7 @@ const renderMerchSection = () => {
             </a>
           )}
           {linkedin && (
-            <a href={`https://linkedin.com/in/${user.linkedin}`} target="_blank" rel="noopener noreferrer">
+            <a href={`https://linkedin.com/${user.linkedin}`} target="_blank" rel="noopener noreferrer">
               <FontAwesomeIcon icon={faLinkedin} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}

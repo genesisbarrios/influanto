@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faQrcode, faEarListen, faFileLines, faEnvelope, faLink, faMusic } from "@fortawesome/free-solid-svg-icons";
+import { faSpotify } from "@fortawesome/free-brands-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 export const metadata: Metadata = {
@@ -27,6 +28,16 @@ export const metadata: Metadata = {
 };
 
 const posts = [
+  {
+    slug: "how-to-find-your-spotify-artist-id",
+    title: "How to Find Your Spotify Artist ID (Plus Apple, Tidal, Amazon, Pandora, Deezer & Qobuz)",
+    excerpt: "Your artist ID is what tools like Influanto need to link out to your music correctly. Here's exactly where to find it on every major streaming platform.",
+    date: "September 2026",
+    readTime: "7 min read",
+    tag: "Distribution",
+    tagColor: "#059669",
+    icon: faSpotify as IconDefinition,
+  },
   {
     slug: "guerrilla-marketing-qr-codes-indie-artists",
     title: "Guerrilla Marketing for Indie Artists: Using QR Codes to Market in the Real World",
