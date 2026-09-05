@@ -84,6 +84,8 @@ const features = [
     description: "Create FREE Split Sheets!",
     type: "image",
     path: "/split sheet create.png",
+    width: 2520,
+    height: 1436,
     alt: "influanto split sheet create screen",
     svg: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -209,7 +211,7 @@ const Item = ({
 // A component to display the media (video or image) of the feature. If the type is not specified, it will display an empty div.
 // Video are set to autoplay for best UX.
 const Media = ({ feature }: { feature: Feature }) => {
-  const { type, path, format, alt } = feature;
+  const { type, path, format, alt, width: featureWidth, height: featureHeight } = feature;
   const style = "rounded-2xl aspect-square w-full sm:w-[26rem]";
   const size = {
     width: 500,
@@ -240,8 +242,8 @@ const Media = ({ feature }: { feature: Feature }) => {
         src={path || "/fallback-image.png"}
         alt={alt || "Default alt text"}
         className="rounded-2xl w-full sm:w-[26rem] h-auto"
-        width={isStatic ? (path as any).width : size.width}
-        height={isStatic ? (path as any).height : size.height}
+        width={isStatic ? (path as any).width : (featureWidth ?? size.width)}
+        height={isStatic ? (path as any).height : (featureHeight ?? size.height)}
       />
     );
   } else {
