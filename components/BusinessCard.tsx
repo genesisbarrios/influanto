@@ -64,6 +64,11 @@ export default function BusinessCard({ user, setUser }: Props) {
   const saved = user?.businessCard || {};
   const [displayName, setDisplayName] = useState<string>(saved.displayName || user?.username || "");
   const [bgColor, setBgColor] = useState<string>(saved.bgColor || "#4f46e5");
+  const [textColor, setTextColorRaw] = useState<string>(saved.textColor || pickTextColor(saved.bgColor || "#4f46e5"));
+  // Once the user picks their own text color, stop auto-adjusting it for
+  // contrast when the background changes — respect their explicit choice.
+  const [textColorTouched, setTextColorTouched] = useState<boolean>(!!saved.textColor);
+  const setTextColor = (v: string) => { setTextColorTouched(true); setTextColorRaw(v); };
   const [avatar, setAvatar] = useState<string>(saved.avatar ?? user?.image ?? "");
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [showImagePicker, setShowImagePicker] = useState(false);
@@ -83,7 +88,12 @@ export default function BusinessCard({ user, setUser }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => { redraw(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [displayName, bgColor, avatar, user?.username]);
+  useEffect(() => {
+    if (!textColorTouched) setTextColorRaw(pickTextColor(bgColor));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bgColor]);
+
+  useEffect(() => { redraw(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [displayName, bgColor, textColor, avatar, user?.username]);
 
   const redraw = async () => {
     const canvas = canvasRef.current;
@@ -103,8 +113,6 @@ export default function BusinessCard({ user, setUser }: Props) {
       ctx.clip();
       ctx.fillStyle = bgColor || "#4f46e5";
       ctx.fillRect(0, 0, CARD_W, CARD_H);
-
-      const textColor = pickTextColor(bgColor);
 
       // ── Logo pill, top-left ──
       try {
@@ -242,9 +250,9 @@ export default function BusinessCard({ user, setUser }: Props) {
     setSaving(true);
     try {
       const fd = new FormData();
-      fd.append("businessCard", JSON.stringify({ displayName, bgColor, avatar }));
+      fd.append("businessCard", JSON.stringify({ displayName, bgColor, textColor, avatar }));
       await apiClient.post("/user", fd, { headers: { "Content-Type": "multipart/form-data" } });
-      setUser((prev: any) => ({ ...prev, businessCard: { displayName, bgColor, avatar } }));
+      setUser((prev: any) => ({ ...prev, businessCard: { displayName, bgColor, textColor, avatar } }));
       setAlert("Business card saved", true);
     } catch {
       setAlert("Could not save business card");
@@ -275,6 +283,25 @@ export default function BusinessCard({ user, setUser }: Props) {
             onChange={e => setBgColor(e.target.value)}
             className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer"
           />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <label className="block text-xs font-medium">Text color</label>
+          <input
+            type="color"
+            value={textColor}
+            onChange={e => setTextColor(e.target.value)}
+            className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer"
+          />
+          {textColorTouched && (
+            <button
+              type="button"
+              className="text-xs text-indigo-600 hover:underline"
+              onClick={() => { setTextColorTouched(false); setTextColorRaw(pickTextColor(bgColor)); }}
+            >
+              Reset to auto
+            </button>
+          )}
         </div>
 
         <div>
