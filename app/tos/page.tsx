@@ -45,9 +45,9 @@ const TOS = () => {
         <p className="text-sm text-gray-500 mb-8">Last updated: September 5, 2026</p>
 
         <p className="mb-8 leading-relaxed">
-          These Terms of Service ("Terms") govern your access to and use of the influanto website at{" "}
+          These Terms of Service (&quot;Terms&quot;) govern your access to and use of the influanto website at{" "}
           <a href="https://influanto.com" className="link">influanto.com</a> and the services offered
-          through it (together, the "Service"), operated by influanto ("influanto," "we," "us," or "our").
+          through it (together, the &quot;Service&quot;), operated by influanto (&quot;influanto,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;).
           By creating an account or otherwise using the Service, you agree to be bound by these Terms and by
           our <Link href="/privacy-policy" className="link">Privacy Policy</Link>. If you do not agree, do
           not use the Service.
@@ -79,7 +79,7 @@ const TOS = () => {
 
         <Section title="3. Your Content">
           <p>
-            "User Content" means anything you upload, submit, or create using the Service — including
+            &quot;User Content&quot; means anything you upload, submit, or create using the Service — including
             images, text, links, contact lists, and split sheets. You retain ownership of your User Content.
           </p>
           <p>
@@ -90,7 +90,7 @@ const TOS = () => {
           </p>
           <p>
             You are solely responsible for your User Content and represent that you have the rights necessary
-            to use, upload, and share it, and that it does not infringe any third party's rights or violate
+            to use, upload, and share it, and that it does not infringe any third party&apos;s rights or violate
             any law.
           </p>
         </Section>
@@ -109,8 +109,8 @@ const TOS = () => {
             disconnect any connected account at any time from your dashboard, which revokes our access to it.
           </p>
           <p>
-            Your use of any connected platform remains subject to that platform's own terms of service and
-            content policies (for example, TikTok's Terms of Service and Community Guidelines). influanto is
+            Your use of any connected platform remains subject to that platform&apos;s own terms of service and
+            content policies (for example, TikTok&apos;s Terms of Service and Community Guidelines). influanto is
             not responsible for the availability, content policies, or actions of third-party platforms, and
             we may disable a connected-platform feature at any time if required by that platform.
           </p>
@@ -120,9 +120,9 @@ const TOS = () => {
           <p>You agree not to use the Service to:</p>
           <ul className="list-disc pl-6 space-y-1">
             <li>Post, publish, or send content that is illegal, infringing, defamatory, or that you do not have the right to share;</li>
-            <li>Send unsolicited bulk messages ("spam") through the outreach/newsletter tool, or contact people who have not agreed to hear from you;</li>
+            <li>Send unsolicited bulk messages (&quot;spam&quot;) through the outreach/newsletter tool, or contact people who have not agreed to hear from you;</li>
             <li>Impersonate any person or entity, or misrepresent your affiliation with one;</li>
-            <li>Scrape, reverse-engineer, or interfere with the Service or attempt to gain unauthorized access to it or to other users' accounts or data;</li>
+            <li>Scrape, reverse-engineer, or interfere with the Service or attempt to gain unauthorized access to it or to other users&apos; accounts or data;</li>
             <li>Use automated means (bots, scripts) to create accounts or access the Service, except through any API we officially provide; or</li>
             <li>Violate the terms, policies, or guidelines of any third-party platform (including TikTok, Instagram, YouTube, Printify, or your payment provider) accessed through the Service.</li>
           </ul>
@@ -135,9 +135,9 @@ const TOS = () => {
             securely through Stripe. We do not store your full payment card details on our servers.
           </p>
           <p>
-            Subscriptions renew automatically until you cancel. You can cancel anytime from your account's
+            Subscriptions renew automatically until you cancel. You can cancel anytime from your account&apos;s
             billing portal; cancellation takes effect at the end of your current billing period, and we do
-            not provide prorated refunds for partial periods. If you're unhappy with a purchase, you may
+            not provide prorated refunds for partial periods. If you&apos;re unhappy with a purchase, you may
             request a refund within 7 days of your purchase by emailing{" "}
             <a href="mailto:info@influanto.com" className="link">info@influanto.com</a>.
           </p>
@@ -155,7 +155,7 @@ const TOS = () => {
 
         <Section title="8. Disclaimers & Limitation of Liability">
           <p>
-            The Service is provided "as is" and "as available," without warranties of any kind, express or
+            The Service is provided &quot;as is&quot; and &quot;as available,&quot; without warranties of any kind, express or
             implied, including merchantability, fitness for a particular purpose, and non-infringement. We do
             not guarantee that the Service, or any third-party platform it connects to, will be uninterrupted,
             error-free, or continuously available.
