@@ -16,9 +16,9 @@ const CTA = () => {
           <h2 className="font-bold text-3xl md:text-5xl tracking-tight mb-8 md:mb-12">
             Market your music the right way.
           </h2>
-          <p className="text-lg opacity-80 mb-12 md:mb-16">
+          {/* <p className="text-lg opacity-80 mb-12 md:mb-16">
             everything you need for music marketing.
-          </p>
+          </p> */}
 
           <a href="/api/auth/signin">
           <button className="btn btn-primary btn-wide">
