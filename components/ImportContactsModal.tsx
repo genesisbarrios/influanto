@@ -2,6 +2,8 @@
 /* eslint-disable */
 import React, { useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 
 export interface ImportField {
   key: string;
@@ -136,7 +138,7 @@ export default function ImportContactsModal({ title = "Import Contacts", fields,
 
         {result ? (
           <div className="p-6 text-center">
-            <div className="text-3xl mb-2">✅</div>
+            <div className="text-3xl mb-2 text-green-600"><FontAwesomeIcon icon={faCircleCheck} /></div>
             <p className="text-sm font-medium">{result}</p>
             <button className="btn btn-primary btn-sm mt-4" onClick={onClose}>Done</button>
           </div>

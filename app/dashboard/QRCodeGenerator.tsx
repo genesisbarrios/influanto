@@ -6,6 +6,20 @@ import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
 import posthog from "posthog-js";
 import QRCodeAnalytics from "@/components/QRCodeAnalytics";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCircleCheck,
+  faCircleExclamation,
+  faStar,
+  faGlobe,
+  faSquare,
+  faCircleDot,
+  faRocket,
+  faPen,
+  faMobileScreenButton,
+  faChartSimple,
+  faSpinner,
+} from "@fortawesome/free-solid-svg-icons";
 
 // Define a TypeScript interface for the user prop to ensure type safety
 interface User {
@@ -32,7 +46,7 @@ const QRCodeGenerator = () => {
   const [showCreateView, setShowCreateView] = useState(false);
   const {data, status} = useSession();
   const [user, setUser] = useState<any>();
-  const [alert, setAlert] = useState("");
+  const [alert, setAlert] = useState<React.ReactNode>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setEditing] = useState(false);
   const [userData, setUserData] = useState<any>(null);
@@ -203,7 +217,7 @@ const addQRCode = async () => {
       dot_style: dotStyle,
       is_premium: !!user?.hasAccess,
     });
-    setAlert("✅ QR Code saved successfully");
+    setAlert(<><FontAwesomeIcon icon={faCircleCheck} className="mr-1.5" /> QR Code saved successfully</>);
     setShowCreateView(false);
     
     // Reset form fields
@@ -225,7 +239,7 @@ const addQRCode = async () => {
     console.error('Create QR error:', e);
     posthog.captureException(e);
     const errorMessage = e?.response?.data?.message || e?.message || "Failed to create QR code.";
-    setAlert(`❌ ${errorMessage}`);
+    setAlert(<><FontAwesomeIcon icon={faCircleExclamation} className="mr-1.5" /> {errorMessage}</>);
   } finally {
     setIsLoading(false);
   }
@@ -287,9 +301,9 @@ useEffect(() => {
         const QRCodeStylingModule = await import('qr-code-styling');
         const QRCodeStylingClass = QRCodeStylingModule.default || QRCodeStylingModule;
         setQRCodeStyling(() => QRCodeStylingClass);
-        console.log('✅ QR Code Styling loaded successfully');
+        console.log('QR Code Styling loaded successfully');
       } catch (error) {
-        console.error('❌ Failed to load qr-code-styling:', error);
+        console.error('Failed to load qr-code-styling:', error);
         setAlert('Failed to load QR code library');
       }
     };
@@ -440,10 +454,10 @@ useEffect(() => {
       });
 
       posthog.capture("qr_code_downloaded", { name: code.name, format });
-      setAlert(`✅ QR code downloaded as ${format.toUpperCase()}`);
+      setAlert(<><FontAwesomeIcon icon={faCircleCheck} className="mr-1.5" /> QR code downloaded as {format.toUpperCase()}</>);
     } catch (error) {
       console.error('Download error:', error);
-      setAlert(`❌ Download failed: ${error.message}`);
+      setAlert(<><FontAwesomeIcon icon={faCircleExclamation} className="mr-1.5" /> Download failed: {error.message}</>);
     }
   };
 
@@ -543,7 +557,7 @@ useEffect(() => {
       {/* Library Status */}
       {!QRCodeStyling && (
         <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-          <div className="text-yellow-800">⏳ Loading QR Code Generator...</div>
+          <div className="text-yellow-800"><FontAwesomeIcon icon={faSpinner} className="mr-1.5 animate-spin" /> Loading QR Code Generator...</div>
         </div>
       )}
 
@@ -553,7 +567,7 @@ useEffect(() => {
             Create QR Code
             {user?.hasAccess && (
               <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                ✨ Premium
+                <FontAwesomeIcon icon={faStar} className="mr-1" /> Premium
               </span>
             )}
           </h4>
@@ -635,7 +649,7 @@ useEffect(() => {
                 ) : (
                   <div className="text-gray-400 text-center">
                     {!QRCodeStyling ? (
-                      <div>⏳ Loading QR library...</div>
+                      <div><FontAwesomeIcon icon={faSpinner} className="mr-1.5 animate-spin" /> Loading QR library...</div>
                     ) : (
                       <div>Enter a link to see preview</div>
                     )}
@@ -644,7 +658,7 @@ useEffect(() => {
               </div>
               {transparentBg && (
                 <div className="mt-2 text-sm text-gray-600 text-center">
-                  📝 Checkered pattern shows transparent background
+                  <FontAwesomeIcon icon={faSquare} className="mr-1.5" /> Checkered pattern shows transparent background
                 </div>
               )}
             </div>
@@ -684,7 +698,7 @@ useEffect(() => {
           {user?.hasAccess && (
             <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
               <div className="text-sm font-medium text-yellow-800 mb-4 flex items-center">
-                ✨ Premium Styling & Color Options
+                <FontAwesomeIcon icon={faStar} className="mr-1.5" /> Premium Styling &amp; Color Options
               </div>
               
               {/* Color Controls for Premium Users */}
@@ -693,7 +707,7 @@ useEffect(() => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block mb-2 text-sm font-medium">
-                     🌐 Dots Color
+                     <FontAwesomeIcon icon={faGlobe} className="mr-1.5" /> Dots Color
                     </label>
                     <input
                       type="color"
@@ -704,7 +718,7 @@ useEffect(() => {
                   </div>
                   <div>
                     <label className="block mb-2 text-sm font-medium">
-                     💠 Square Color
+                     <FontAwesomeIcon icon={faSquare} className="mr-1.5" /> Square Color
                     </label>
                     <input
                       type="color"
@@ -715,7 +729,7 @@ useEffect(() => {
                   </div>
                   <div>
                     <label className="block mb-2 text-sm font-medium">
-                      ⚫ Corner Dot Color
+                      <FontAwesomeIcon icon={faCircleDot} className="mr-1.5" /> Corner Dot Color
                     </label>
                     <input
                       type="color"
@@ -780,10 +794,10 @@ useEffect(() => {
           {!user?.hasAccess && (
             <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
               <div className="text-sm font-medium text-blue-800 mb-2">
-                🚀 Unlock Premium Features
+                <FontAwesomeIcon icon={faRocket} className="mr-1.5" /> Unlock Premium Features
               </div>
               <div className="text-xs text-blue-600 mb-3">
-                • Individual color controls for dots, corners, and squares (🌐💠⚫)<br/>
+                • Individual color controls for dots, corners, and squares<br/>
                 • Advanced styling options (6 dot styles, 3 corner styles)<br/>
                 • 50 QR codes limit<br/>
               </div>
@@ -875,14 +889,14 @@ useEffect(() => {
               {/* Show if transparent */}
               {code.transparentBg && (
                 <div className="text-xs text-gray-500 text-center mb-2">
-                  📝 Transparent Background
+                  <FontAwesomeIcon icon={faSquare} className="mr-1.5" /> Transparent Background
                 </div>
               )}
               
               {/* Destination URL + tracking badge */}
               <p className="mb-1 text-sm break-words text-gray-600">{code.url}</p>
               {user?.hasAccess && (
-                <p className="mb-3 text-xs text-indigo-500">📊 Tracking via /code/{codeKey}</p>
+                <p className="mb-3 text-xs text-indigo-500"><FontAwesomeIcon icon={faChartSimple} className="mr-1.5" /> Tracking via /code/{codeKey}</p>
               )}
 
               {/* Style Info */}
@@ -891,9 +905,9 @@ useEffect(() => {
                 {code.dotsColor || code.cornerDotColor || code.cornerSquareColor ? (
                   <div>
                     Colors:
-                    <span className="ml-1">🌐 {code.color}</span> <br />
-                    <span className="ml-1">💠 {code.cornerSquareColor || code.color}</span>
-                    <span className="ml-1">⚫ {code.cornerDotColor || code.color}</span>
+                    <span className="ml-1"><FontAwesomeIcon icon={faGlobe} className="mr-1" /> {code.color}</span> <br />
+                    <span className="ml-1"><FontAwesomeIcon icon={faSquare} className="mr-1" /> {code.cornerSquareColor || code.color}</span>
+                    <span className="ml-1"><FontAwesomeIcon icon={faCircleDot} className="mr-1" /> {code.cornerDotColor || code.color}</span>
                   </div>
                 ) : (
                   <div>Colors: {code.color || '#000000'} / {code.transparentBg ? 'transparent' : (code.bgColor || '#ffffff')}</div>
@@ -921,7 +935,7 @@ useEffect(() => {
                     onClick={() => setExpandedAnalytics(analyticsOpen ? null : codeKey)}
                     className={`flex-1 px-3 py-2 text-sm rounded ${analyticsOpen ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}
                   >
-                    📊
+                    <FontAwesomeIcon icon={faChartSimple} />
                   </button>
                 )}
               </div>
@@ -956,7 +970,7 @@ useEffect(() => {
                   onClick={() => startEditCode(code)}
                   className="w-full mb-2 px-3 py-2 text-sm bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200"
                 >
-                  ✏️ Edit destination
+                  <FontAwesomeIcon icon={faPen} className="mr-1.5" /> Edit destination
                 </button>
               )}
 
@@ -984,7 +998,7 @@ useEffect(() => {
       {/* Empty state — only shown when not in create view */}
       {!showCreateView && qrCodes.length === 0 && (
         <div className="text-center py-8 text-gray-400">
-          <div className="text-4xl mb-3">📱</div>
+          <div className="text-4xl mb-3 text-gray-300"><FontAwesomeIcon icon={faMobileScreenButton} /></div>
           <div className="text-sm">No QR codes yet. Hit <strong>Create QR</strong> to get started!</div>
         </div>
       )}

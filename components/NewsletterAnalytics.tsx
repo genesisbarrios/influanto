@@ -6,6 +6,8 @@ import {
   LineChart, Line, CartesianGrid, Legend, Cell,
 } from "recharts";
 import apiClient from "@/libs/api";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChartSimple, faInbox } from "@fortawesome/free-solid-svg-icons";
 
 interface Data {
   sent: number;
@@ -100,7 +102,7 @@ export default function NewsletterAnalytics({ newsletterId, title, onBack, embed
       {!embedded && (
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-sm">📊</span>
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-sm"><FontAwesomeIcon icon={faChartSimple} /></span>
             <h2 className="text-xl font-bold">Analytics · <span className="font-semibold text-gray-600">{title || "Newsletter"}</span></h2>
           </div>
           {onBack && <button className="btn btn-sm" onClick={onBack}>← Back</button>}
@@ -113,7 +115,7 @@ export default function NewsletterAnalytics({ newsletterId, title, onBack, embed
         <div className="py-16 text-center text-red-500 text-sm">{error}</div>
       ) : !hasShape ? (
         <div className="py-16 text-center text-gray-400">
-          <div className="text-4xl mb-2">📭</div>
+          <div className="text-4xl mb-2 text-gray-300"><FontAwesomeIcon icon={faInbox} /></div>
           <p className="font-medium text-gray-600">No activity yet</p>
           <p className="text-sm mt-1">Once you send this newsletter, opens and clicks will show up here.</p>
         </div>

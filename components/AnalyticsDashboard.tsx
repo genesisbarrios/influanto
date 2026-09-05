@@ -5,6 +5,8 @@ import LinkInBioAnalytics from "./LinkInBioAnalytics";
 import ReleasePageAnalytics from "./ReleasePageAnalytics";
 import QRCodeAnalytics from "./QRCodeAnalytics";
 import AnalyticsRangeSelect from "./AnalyticsRangeSelect";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChartSimple } from "@fortawesome/free-solid-svg-icons";
 
 const TABS = [
   { key: "linkinbio", label: "Link in Bio" },
@@ -15,7 +17,7 @@ const TABS = [
 function Empty({ what }: { what: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <span className="text-3xl mb-2">📊</span>
+      <span className="text-3xl mb-2"><FontAwesomeIcon icon={faChartSimple} /></span>
       <p className="text-sm font-medium text-gray-600">No {what} yet</p>
       <p className="text-xs text-gray-400">Create one to start seeing analytics here.</p>
     </div>
@@ -78,7 +80,7 @@ export default function AnalyticsDashboard() {
   return (
     <div className="mt-6 w-full text-left">
       <div className="flex items-center gap-2 mb-3">
-        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}>📊</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faChartSimple} /></span>
         <h3 className="font-bold text-lg text-gray-800">Analytics</h3>
       </div>
 

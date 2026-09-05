@@ -4,6 +4,8 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import jsPDF from "jspdf";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 export default function SplitSheetTemplate() {
 
@@ -483,7 +485,7 @@ const handleDownloadPDF = () => {
                     padding: "0.5rem"
                   }}
                   className="w-full sm:w-auto"
-                >✕</button>
+                ><FontAwesomeIcon icon={faXmark} /></button>
               </div>
             ))}
             <button
@@ -545,7 +547,7 @@ const handleDownloadPDF = () => {
                     padding: "0.5rem"
                   }}
                   className="w-full sm:w-auto"
-                >✕</button>
+                ><FontAwesomeIcon icon={faXmark} /></button>
               </div>
             ))}
             <button

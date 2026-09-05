@@ -7,6 +7,8 @@ import config from "@/config";
 import posthog from "posthog-js";
 import { PLATFORMS, platformsForKind, Platform, PostKind, PLATFORM_LABEL, IMAGE_RATIOS } from "@/libs/crosspost/constants";
 import { validateMedia, closestImageRatio } from "@/libs/crosspost/validate";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faRetweet, faImage, faClapperboard, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface MediaItem { url: string; width?: number; height?: number; duration?: number }
@@ -77,7 +79,9 @@ export default function Crossposting() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const [alert, setAlert] = useState("");
+  const [alert, setAlertRaw] = useState("");
+  const [alertOk, setAlertOk] = useState(false);
+  const setAlert = (msg: string, ok = false) => { setAlertRaw(msg); setAlertOk(ok); };
   const fileRef = useRef<HTMLInputElement>(null);
   const [lastFile, setLastFile] = useState<File | null>(null);
 
@@ -163,7 +167,7 @@ export default function Crossposting() {
     }
   };
 
-  const handleSaveDraft = async () => { const s = await save(); if (s) { setAlert("✅ Draft saved"); } };
+  const handleSaveDraft = async () => { const s = await save(); if (s) { setAlert("Draft saved", true); } };
 
   const handlePublish = async () => {
     setPublishing(true); setAlert("");
@@ -174,7 +178,7 @@ export default function Crossposting() {
       posthog.capture("crosspost_published", { platforms: selected, kind });
       await loadPosts();
       const statuses = Object.values(r.results ?? {}).map((x: any) => x.status);
-      if (statuses.includes("published")) setAlert("✅ Published!");
+      if (statuses.includes("published")) setAlert("Published!", true);
       else setAlert("Saved. Some platforms are pending connection/approval — see status below.");
       setView("list");
       resetCompose();
@@ -210,7 +214,7 @@ export default function Crossposting() {
       <div className="p-6 bg-white shadow rounded-md text-black">
         <h2 className="text-xl font-bold mb-2">Crossposting</h2>
         <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 border border-blue-200 rounded-xl shadow-lg text-center">
-          <div className="text-4xl mb-3">🔁</div>
+          <div className="text-4xl mb-3 text-gray-300"><FontAwesomeIcon icon={faRetweet} /></div>
           <h3 className="text-lg font-bold text-gray-800 mb-2">Crossposting is a Premium Feature</h3>
           <p className="text-sm text-gray-600 mb-4">Post once and publish to Instagram, TikTok, and YouTube Shorts from a single screen.</p>
           <ButtonCheckout mode="subscription" priceId={config.stripe.plans[1].priceId} />
@@ -235,7 +239,7 @@ export default function Crossposting() {
             {(["image", "video"] as PostKind[]).map(k => (
               <button key={k} onClick={() => changeKind(k)}
                 className={`flex-1 px-4 py-3 rounded-lg border text-sm font-medium ${kind === k ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-200 hover:bg-gray-50"}`}>
-                {k === "image" ? "🖼️ Image post" : "🎬 Video (Reels / TikTok / Shorts)"}
+                {k === "image" ? <><FontAwesomeIcon icon={faImage} className="mr-1.5" /> Image post</> : <><FontAwesomeIcon icon={faClapperboard} className="mr-1.5" /> Video (Reels / TikTok / Shorts)</>}
               </button>
             ))}
           </div>
@@ -281,7 +285,7 @@ export default function Crossposting() {
                 return (
                   <button key={p.key} onClick={() => togglePlatform(p.key)}
                     className={`px-3 py-2 rounded-lg border text-sm flex items-center gap-2 ${on ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-200 hover:bg-gray-50"}`}>
-                    <span>{p.icon}</span>{p.label}{p.videoLabel && kind === "video" ? ` ${p.videoLabel}` : ""}
+                    <FontAwesomeIcon icon={p.icon} />{p.label}{p.videoLabel && kind === "video" ? ` ${p.videoLabel}` : ""}
                     {!acct?.connected && <span className="badge badge-xs badge-warning">connect</span>}
                   </button>
                 );
@@ -292,7 +296,7 @@ export default function Crossposting() {
           {/* Warnings + auto-crop */}
           {warnings.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 space-y-1">
-              {warnings.map((w, i) => <div key={i}>⚠️ {w.message}</div>)}
+              {warnings.map((w, i) => <div key={i}><FontAwesomeIcon icon={faTriangleExclamation} className="mr-1.5 text-amber-500" /> {w.message}</div>)}
               {kind === "image" && media?.width && media?.height && (
                 <div className="flex gap-2 mt-2">
                   {IMAGE_RATIOS.map(r => (
@@ -337,7 +341,7 @@ export default function Crossposting() {
             </div>
           )}
 
-          {alert && <p className={`text-sm ${alert.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
+          {alert && <p className={`text-sm ${alertOk ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
 
           <div className="flex gap-3 flex-wrap">
             <button className="btn btn-primary" disabled={publishing || uploading} onClick={handlePublish}>{publishing ? "Publishing…" : "Publish"}</button>
@@ -370,7 +374,7 @@ export default function Crossposting() {
             const acct = accountFor(p.key);
             return (
               <div key={p.key} className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                <span>{p.icon}</span><span>{p.label}</span>
+                <FontAwesomeIcon icon={p.icon} /><span>{p.label}</span>
                 {acct?.connected ? (
                   <>
                     <span className="badge badge-xs badge-success">connected{acct.handle ? `: ${acct.handle}` : ""}</span>
@@ -386,11 +390,11 @@ export default function Crossposting() {
         <p className="text-xs text-gray-400 mt-2">OAuth sign-in is coming per platform. For now you can connect a handle (and an API token if you have developer access). Publishing turns on as each platform's app is approved.</p>
       </div>
 
-      {alert && <p className={`text-sm mb-3 ${alert.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
+      {alert && <p className={`text-sm mb-3 ${alertOk ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
 
       {posts.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
-          <div className="text-5xl mb-3">🔁</div>
+          <div className="text-5xl mb-3 text-gray-300"><FontAwesomeIcon icon={faRetweet} /></div>
           <p className="font-medium text-gray-600">No posts yet</p>
           <p className="text-sm mt-1">Hit <strong>+ New Post</strong> to create your first crosspost</p>
         </div>

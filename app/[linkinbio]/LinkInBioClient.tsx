@@ -10,7 +10,7 @@ import ViewOnMobileQR from "@/components/ViewOnMobileQR";
 import * as HeroPatterns from 'hero-patterns';
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGlobe, faLocation, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { faGlobe, faLocation, faEnvelope, faBoxOpen } from "@fortawesome/free-solid-svg-icons";
 
 import config from "@/config";
 import { getSEOTags } from "@/libs/seo";
@@ -542,7 +542,7 @@ return (
                             justifyContent: "center",
                             background: "linear-gradient(45deg, #e3f2fd, #f3e5f5)"
                           }}>
-                            <span style={{ color: "#999", fontSize: "16px" }}>📦</span>
+                            <span style={{ color: "#999", fontSize: "16px" }}><FontAwesomeIcon icon={faBoxOpen} /></span>
                           </div>
                         )}
                       </div>

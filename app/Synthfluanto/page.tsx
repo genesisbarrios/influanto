@@ -9,6 +9,8 @@ import Header from "@/components/Header";
 import { Stage, Layer, Line } from "react-konva";
 import { Suspense } from "react";
 import { useSession } from "next-auth/react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 type BlobPart = any; 
 
@@ -1527,9 +1529,9 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
                         style={{ fontSize: 12, padding: "2px 6px", borderRadius: 6, border: "1px solid #6366f1", width: 90 }}
                       />
                       <button onClick={handleSavePreset} disabled={savingPreset} style={{ fontSize: 12, padding: "2px 8px", borderRadius: 6, background: "#6366f1", color: "#fff", border: "none", cursor: "pointer" }}>
-                        {savingPreset ? "…" : "✓"}
+                        {savingPreset ? "…" : <FontAwesomeIcon icon={faCheck} />}
                       </button>
-                      <button onClick={() => setShowSavePreset(false)} style={{ fontSize: 12, padding: "2px 6px", borderRadius: 6, background: "#e5e7eb", border: "none", cursor: "pointer" }}>✕</button>
+                      <button onClick={() => setShowSavePreset(false)} style={{ fontSize: 12, padding: "2px 6px", borderRadius: 6, background: "#e5e7eb", border: "none", cursor: "pointer" }}><FontAwesomeIcon icon={faXmark} /></button>
                     </div>
                   ) : (
                     <div style={{ display: "flex", gap: 4 }}>
@@ -1553,8 +1555,8 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
                             onKeyDown={e => { if (e.key === "Enter") handleRenamePreset(p.id); if (e.key === "Escape") setEditingPresetId(null); }}
                             style={{ fontSize: 12, padding: "1px 4px", borderRadius: 4, border: "1px solid #6366f1", flex: 1, minWidth: 0 }}
                           />
-                          <button onClick={() => handleRenamePreset(p.id)} style={{ fontSize: 11, padding: "1px 5px", borderRadius: 4, background: "#6366f1", color: "#fff", border: "none", cursor: "pointer" }}>✓</button>
-                          <button onClick={() => setEditingPresetId(null)} style={{ fontSize: 11, padding: "1px 5px", borderRadius: 4, background: "#e5e7eb", border: "none", cursor: "pointer" }}>✕</button>
+                          <button onClick={() => handleRenamePreset(p.id)} style={{ fontSize: 11, padding: "1px 5px", borderRadius: 4, background: "#6366f1", color: "#fff", border: "none", cursor: "pointer" }}><FontAwesomeIcon icon={faCheck} /></button>
+                          <button onClick={() => setEditingPresetId(null)} style={{ fontSize: 11, padding: "1px 5px", borderRadius: 4, background: "#e5e7eb", border: "none", cursor: "pointer" }}><FontAwesomeIcon icon={faXmark} /></button>
                         </>
                       ) : (
                         <>
@@ -1584,9 +1586,9 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
                         style={{ fontSize: 12, padding: "2px 6px", borderRadius: 6, border: "1px solid #6366f1", width: 90 }}
                       />
                       <button onClick={handleSaveMelody} disabled={savingMelody || !recordedBlobs[currentMelody]} style={{ fontSize: 12, padding: "2px 8px", borderRadius: 6, background: "#6366f1", color: "#fff", border: "none", cursor: "pointer" }}>
-                        {savingMelody ? "…" : "✓"}
+                        {savingMelody ? "…" : <FontAwesomeIcon icon={faCheck} />}
                       </button>
-                      <button onClick={() => setShowSaveMelody(false)} style={{ fontSize: 12, padding: "2px 6px", borderRadius: 6, background: "#e5e7eb", border: "none", cursor: "pointer" }}>✕</button>
+                      <button onClick={() => setShowSaveMelody(false)} style={{ fontSize: 12, padding: "2px 6px", borderRadius: 6, background: "#e5e7eb", border: "none", cursor: "pointer" }}><FontAwesomeIcon icon={faXmark} /></button>
                     </div>
                   ) : (
                     <button onClick={() => setShowSaveMelody(true)} disabled={!recordedBlobs[currentMelody]} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 6, background: !recordedBlobs[currentMelody] ? "#d1d5db" : "#6366f1", color: "#fff", border: "none", cursor: !recordedBlobs[currentMelody] ? "not-allowed" : "pointer" }}>Save</button>
@@ -1605,8 +1607,8 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
                             onKeyDown={e => { if (e.key === "Enter") handleRenameMelody(m.id); if (e.key === "Escape") setEditingMelodyId(null); }}
                             style={{ fontSize: 12, padding: "1px 4px", borderRadius: 4, border: "1px solid #6366f1", flex: 1, minWidth: 0 }}
                           />
-                          <button onClick={() => handleRenameMelody(m.id)} style={{ fontSize: 11, padding: "1px 5px", borderRadius: 4, background: "#6366f1", color: "#fff", border: "none", cursor: "pointer" }}>✓</button>
-                          <button onClick={() => setEditingMelodyId(null)} style={{ fontSize: 11, padding: "1px 5px", borderRadius: 4, background: "#e5e7eb", border: "none", cursor: "pointer" }}>✕</button>
+                          <button onClick={() => handleRenameMelody(m.id)} style={{ fontSize: 11, padding: "1px 5px", borderRadius: 4, background: "#6366f1", color: "#fff", border: "none", cursor: "pointer" }}><FontAwesomeIcon icon={faCheck} /></button>
+                          <button onClick={() => setEditingMelodyId(null)} style={{ fontSize: 11, padding: "1px 5px", borderRadius: 4, background: "#e5e7eb", border: "none", cursor: "pointer" }}><FontAwesomeIcon icon={faXmark} /></button>
                         </>
                       ) : (
                         <>

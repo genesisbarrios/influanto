@@ -7,6 +7,9 @@ import {
 } from "recharts";
 import apiClient from "@/libs/api";
 import { RANGE_OPTIONS } from "./AnalyticsRangeSelect";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChartSimple, faChartLine, faGlobe, faMobileScreenButton, faLink } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 interface AnalyticsData {
   visitsByDay:      { date: string; count: number }[];
@@ -42,10 +45,10 @@ const COUNTRY_NAMES: Record<string, string> = {
 
 const TABS = ["Views", "Location", "Devices", "Sources"];
 
-function ComingSoon({ icon = "📊", title, subtitle }: { icon?: string; title: string; subtitle: string }) {
+function ComingSoon({ icon = faChartSimple, title, subtitle }: { icon?: IconDefinition; title: string; subtitle: string }) {
   return (
     <div className="flex flex-col items-center justify-center h-44 gap-2 text-center px-4">
-      <span className="text-3xl">{icon}</span>
+      <span className="text-3xl"><FontAwesomeIcon icon={icon} /></span>
       <p className="text-sm font-medium text-gray-600">{title}</p>
       <p className="text-xs text-gray-400 max-w-xs">{subtitle}</p>
     </div>
@@ -177,7 +180,7 @@ export default function ReleasePageAnalytics({ releasePageId, releasePageName, r
         {!loading && activeTab === 0 && (
           noVisits || data!.visitsByDay.every((d) => d.count === 0) ? (
             <ComingSoon
-              icon="📈"
+              icon={faChartLine}
               title="No visits yet"
               subtitle="Share your release page link to start seeing visit data here."
             />
@@ -202,7 +205,7 @@ export default function ReleasePageAnalytics({ releasePageId, releasePageName, r
         {!loading && activeTab === 1 && (
           noVisits || data!.visitsByCountry.length === 0 ? (
             <ComingSoon
-              icon="🌍"
+              icon={faGlobe}
               title="No location data yet"
               subtitle="You'll see which countries your listeners are coming from."
             />
@@ -218,7 +221,7 @@ export default function ReleasePageAnalytics({ releasePageId, releasePageName, r
         {!loading && activeTab === 2 && (
           noVisits || data!.visitsByDevice.length === 0 ? (
             <ComingSoon
-              icon="📱"
+              icon={faMobileScreenButton}
               title="No device data yet"
               subtitle="You'll see mobile vs desktop, browsers, and OS breakdowns."
             />
@@ -244,7 +247,7 @@ export default function ReleasePageAnalytics({ releasePageId, releasePageName, r
         {!loading && activeTab === 3 && (
           noVisits || data!.visitsByReferrer.length === 0 ? (
             <ComingSoon
-              icon="🔗"
+              icon={faLink}
               title="No traffic sources yet"
               subtitle="You'll see whether fans came from Instagram, TikTok, direct links, and more."
             />

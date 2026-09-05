@@ -1,5 +1,7 @@
 // components/PrintifyIntegration.tsx
 import { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBagShopping } from '@fortawesome/free-solid-svg-icons';
 
 const PrintifyIntegration = ({ user }: { user: any }) => {
   const [storeUrl, setStoreUrl] = useState('');
@@ -56,7 +58,7 @@ const PrintifyIntegration = ({ user }: { user: any }) => {
   return (
     <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg">
       <div className="text-sm font-medium text-green-800 mb-3">
-        🛍️ Connect Your Printify Store
+        <FontAwesomeIcon icon={faBagShopping} className="mr-1.5" /> Connect Your Printify Store
       </div>
       
       <div className="space-y-3">

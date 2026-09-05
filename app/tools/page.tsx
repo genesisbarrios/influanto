@@ -5,6 +5,19 @@ import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faFileLines,
+  faMusic,
+  faDrum,
+  faStopwatch,
+  faGuitar,
+  faEarListen,
+  faKeyboard,
+  faTag,
+  faShieldHalved,
+  faScrewdriverWrench,
+} from "@fortawesome/free-solid-svg-icons";
 
 const calcDelayMs = (bpm: number, note: number) => {
   if (!bpm || !note) return "";
@@ -16,56 +29,56 @@ const tools = [
     title: "Split Sheet Generator",
     description: "Create and export split sheets for your music collaborations.",
     href: "/Split-Sheet-Generator",   
-    icon: "📄",
+    icon: faFileLines,
   },
    {
     title: "Song Key Finder",
     description: "Upload a song or use your mic to detect its musical key.",
     href: "/Key-Finder",
-    icon: "🎼",
+    icon: faMusic,
   },
   {
     title: "BPM Calculator",
     description: "Tap/click on beat or upload the audio to find the tempo of your track.",
     href: "/BPM-Calculator",
-    icon: "🎵",
+    icon: faDrum,
   },
   {
     title: "Delay & Reverb Time Calculator",
     description: "Calculate delay and reverb times for your song.",
     href: "/Reverb-and-Delay-Calculator",
-    icon: "⏱️",
+    icon: faStopwatch,
   },
   {
     title: "Chromatic Tuner",
     description: "Tune guitar, bass, violin, or any instrument with your mic.",
     href: "/Tuner",
-    icon: "🎻",
+    icon: faGuitar,
   },
   {
     title: "Ear Training",
     description: "Pitch matching, interval recognition, and chord recognition for musicians, producers, and singers.",
     href: "/Ear-Training",
-    icon: "👂",
+    icon: faEarListen,
   },
   {
     title: "Synthfluanto",
     description: "Create and share your own melodies with our synth.",
     href: "/Synthfluanto",
-    icon: "🎹",
+    icon: faKeyboard,
   },
 
   {
     title: "Music Metadata Editor",
     description: "Edit MP3 & WAV tags — artist, composer, cover art, copyright — and download.",
     href: "/Metadata-Editor",
-    icon: "🏷️",
+    icon: faTag,
   },
   {
     title: "Image Privacy Cleaner",
     description: "Strip GPS location & camera data (EXIF) from your photos.",
     href: "/Image-Privacy",
-    icon: "🛡️",
+    icon: faShieldHalved,
   },
   
 //   {
@@ -78,7 +91,7 @@ const tools = [
     title: "More Tools",
     description: "Sign Up to get access to more tools.",
     href: "api/auth/signin?callbackUrl=/dashboard",
-    icon: "🛠️",
+    icon: faScrewdriverWrench,
   },
   
 ];
@@ -192,7 +205,7 @@ useEffect(() => {
               }}
               className="tool-card"
             >
-              <span style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>{tool.icon}</span>
+              <span style={{ fontSize: "2.5rem", marginBottom: "1rem" }}><FontAwesomeIcon icon={tool.icon} /></span>
               <span style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.5rem" }}>
                 {tool.title}
               </span>

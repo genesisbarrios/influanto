@@ -10,6 +10,21 @@ import LinkInBioAnalytics from "@/components/LinkInBioAnalytics";
 import { parseColorValue, combineColor } from "@/libs/color";
 import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
 import ImagePicker from "@/components/ImagePicker";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faBoxOpen,
+  faTrash,
+  faImage,
+  faArrowUpFromBracket,
+  faDiamond,
+  faPalette,
+  faWandMagicSparkles,
+  faCartShopping,
+  faBagShopping,
+  faStore,
+  faBullhorn,
+  faPen,
+} from "@fortawesome/free-solid-svg-icons";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import Head from 'next/head';
 import { text } from "stream/consumers";
@@ -626,7 +641,7 @@ const LinkInBio = () => {
                                   />
                                 ) : (
                                   <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(45deg, #e3f2fd, #f3e5f5)" }}>
-                                    <span style={{ color: "#999", fontSize: "12px" }}>📦</span>
+                                    <span style={{ color: "#999", fontSize: "12px" }}><FontAwesomeIcon icon={faBoxOpen} /></span>
                                   </div>
                                 )}
                               </div>
@@ -750,10 +765,10 @@ const LinkInBio = () => {
                   {!isYouTubeLink(index, link.url) && (
                     link.image ? (
                       <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => setPicker({ type: 'link', index })} title="Change image" className="btn btn-sm btn-outline btn-narrow" style={{ fontFamily: linkInBio?.font || 'inherit' }}>✏️ Change</button>
+                        <button type="button" onClick={() => setPicker({ type: 'link', index })} title="Change image" className="btn btn-sm btn-outline btn-narrow" style={{ fontFamily: linkInBio?.font || 'inherit' }}><FontAwesomeIcon icon={faPen} className="mr-1" /> Change</button>
                         <button type="button" title="Delete image"
                           onClick={async () => { const old = link.image; updateLink(index, 'image', ''); await deleteCloudinaryImage(old); }}
-                          className="btn btn-sm btn-error btn-narrow text-white">🗑️</button>
+                          className="btn btn-sm btn-error btn-narrow text-white"><FontAwesomeIcon icon={faTrash} /></button>
                       </div>
                     ) : (
                       <button
@@ -882,10 +897,10 @@ const LinkInBio = () => {
                   <div className="flex justify-center mb-3">
                     <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
                     {[
-                      { id: 'image', label: '🖼 Stock' },
-                      { id: 'upload', label: '⬆️ Upload' },
-                      { id: 'pattern', label: '🔷 Pattern' },
-                      { id: 'solid', label: '🎨 Solid' },
+                      { id: 'image', label: 'Stock', icon: faImage },
+                      { id: 'upload', label: 'Upload', icon: faArrowUpFromBracket },
+                      { id: 'pattern', label: 'Pattern', icon: faDiamond },
+                      { id: 'solid', label: 'Solid', icon: faPalette },
                     ].map((tab) => (
                       <button
                         key={tab.id}
@@ -898,7 +913,7 @@ const LinkInBio = () => {
                         onClick={() => setLinkInBio({ ...linkInBio, bgMode: tab.id })}
                         style={{ fontFamily: linkInBio?.font || 'inherit' }}
                       >
-                        {tab.label}
+                        <FontAwesomeIcon icon={tab.icon} className="mr-1" /> {tab.label}
                       </button>
                     ))}
                     </div>
@@ -1019,7 +1034,7 @@ const LinkInBio = () => {
           {user?.hasAccess && (
             <div className="mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
               <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
-                ✨ Brand Logo
+                <FontAwesomeIcon icon={faWandMagicSparkles} className="mr-1.5" /> Brand Logo
               </h4>
               <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
                 Shown at the bottom of your link-in-bio page. Replaces the Influanto badge.
@@ -1038,7 +1053,7 @@ const LinkInBio = () => {
                     title="Delete logo"
                     onClick={async () => { const old = brandLogoUrl; setBrandLogoUrl(""); await deleteCloudinaryImage(old); }}
                   >
-                    🗑️ Delete
+                    <FontAwesomeIcon icon={faTrash} className="mr-1" /> Delete
                   </button>
                 </div>
               ) : null}
@@ -1070,7 +1085,7 @@ const LinkInBio = () => {
           {/* ── Merch Integration Banner ── */}
           <div className="mb-4 p-4 bg-purple-50 rounded-md border border-purple-200">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-bold text-purple-800">🛒 Merch Integration</h4>
+              <h4 className="font-bold text-purple-800"><FontAwesomeIcon icon={faCartShopping} className="mr-1.5" /> Merch Integration</h4>
             </div>
             {showMerchSection && (
             <>
@@ -1088,7 +1103,7 @@ const LinkInBio = () => {
             <div className="mt-4 w-full border-t pt-4">
               <div className="mb-4 text-center">
                 <h2 className="text-md font-semibold" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
-                  🛍️ Select Products from Printify (Max 10)
+                  <FontAwesomeIcon icon={faBagShopping} className="mr-1.5" /> Select Products from Printify (Max 10)
                 </h2>
               </div>
 
@@ -1159,7 +1174,7 @@ const LinkInBio = () => {
                                         onError={(e) => { e.currentTarget.src = `https://via.placeholder.com/48x48/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`; }} />
                                     ) : (
                                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-                                        <span className="text-gray-400 text-xs">📦</span>
+                                        <span className="text-gray-400 text-xs"><FontAwesomeIcon icon={faBoxOpen} /></span>
                                       </div>
                                     )}
                                   </div>
@@ -1210,7 +1225,7 @@ const LinkInBio = () => {
                                           onError={(e) => { e.currentTarget.src = `https://via.placeholder.com/40x40/4ecdc4/ffffff?text=${encodeURIComponent(product.title?.substring(0, 1) || 'P')}`; }} />
                                       ) : (
                                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-                                          <span className="text-gray-400 text-xs">📦</span>
+                                          <span className="text-gray-400 text-xs"><FontAwesomeIcon icon={faBoxOpen} /></span>
                                         </div>
                                       )}
                                     </div>
@@ -1244,7 +1259,7 @@ const LinkInBio = () => {
               ) : (
                 <div className="mx-auto w-full">
                   <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
-                    <div className="text-4xl text-gray-400 mb-2">🏪</div>
+                    <div className="text-4xl text-gray-400 mb-2"><FontAwesomeIcon icon={faStore} /></div>
                     <h3 className="text-lg font-medium text-gray-700 mb-1">No Products Found</h3>
                     <p className="text-sm text-gray-500">Make sure your Printify store has published products.</p>
                   </div>
@@ -1264,7 +1279,7 @@ const LinkInBio = () => {
                 style={{ width: 46, height: 26, borderRadius: 999, background: newsletterEnabled ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
                 <span style={{ position: 'absolute', top: 3, left: newsletterEnabled ? 23 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
               </button>
-              <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setNewsletterEnabled(!newsletterEnabled)}>📣 Collect newsletter signups</span>
+              <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setNewsletterEnabled(!newsletterEnabled)}><FontAwesomeIcon icon={faBullhorn} className="mr-1.5" /> Collect newsletter signups</span>
             </div>
             <p className="text-indigo-600 text-sm mt-1">Show a signup form on your public page so fans can join your Outreach contacts.</p>
             {newsletterEnabled && (

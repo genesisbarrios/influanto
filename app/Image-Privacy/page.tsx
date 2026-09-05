@@ -6,6 +6,8 @@ import { Suspense } from "react";
 import Footer from "@/components/Footer";
 // @ts-ignore
 import piexif from "piexifjs";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTriangleExclamation, faCircleCheck, faBroom, faDownload } from "@fortawesome/free-solid-svg-icons";
 
 function dataUrlToBlob(dataUrl: string): Blob {
   const [head, b64] = dataUrl.split(",");
@@ -92,7 +94,7 @@ export default function ImagePrivacy() {
       const result = piexif.insert(bytes, stripped);
       if (outUrl) URL.revokeObjectURL(outUrl);
       setOutUrl(URL.createObjectURL(dataUrlToBlob(result)));
-      setStatus("✅ Metadata updated — download below.");
+      setStatus("Metadata updated — download below.");
     } catch (e: any) {
       setError(e?.message?.includes("JPEG") || String(e).includes("JPEG") ? "EXIF editing supports JPEG photos (.jpg/.jpeg)." : (e?.message || "Could not process image"));
     }
@@ -111,17 +113,28 @@ export default function ImagePrivacy() {
       }
       if (outUrl) URL.revokeObjectURL(outUrl);
       setOutUrl(URL.createObjectURL(dataUrlToBlob(result)));
-      setStatus("✅ All metadata removed — download below.");
+      setStatus("All metadata removed — download below.");
     } catch (e: any) { setError("EXIF editing supports JPEG photos."); }
   };
 
-  const Toggle = ({ on, set, label, detail }: { on: boolean; set: (v: boolean) => void; label: string; detail?: string }) => (
+  const Toggle = ({ on, set, label, detail, detailWarn }: { on: boolean; set: (v: boolean) => void; label: string; detail?: string; detailWarn?: boolean }) => (
     <div className="flex items-center gap-2 py-1">
       <button type="button" role="switch" aria-checked={on} onClick={() => set(!on)}
         style={{ width: 44, height: 24, borderRadius: 999, background: on ? "#16a34a" : "#cbd5e1", position: "relative", border: "none", cursor: "pointer", flexShrink: 0 }}>
         <span style={{ position: "absolute", top: 3, left: on ? 23 : 3, width: 18, height: 18, borderRadius: "50%", background: "#fff", transition: "left .15s" }} />
       </button>
-      <span className="text-sm" style={{ color: "#181b20" }}>{on ? "Keep" : "Remove"} {label}{detail ? <span className="text-gray-400"> · {detail}</span> : ""}</span>
+      <span className="text-sm" style={{ color: "#181b20" }}>
+        {on ? "Keep" : "Remove"} {label}
+        {detail ? (
+          <span className="text-gray-400">
+            {" "}
+            · {detailWarn && <FontAwesomeIcon icon={faTriangleExclamation} className="mr-1 text-amber-500" />}
+            {detail}
+          </span>
+        ) : (
+          ""
+        )}
+      </span>
     </div>
   );
 
@@ -145,7 +158,7 @@ export default function ImagePrivacy() {
                 <img src={src} alt="" style={{ width: 140, height: 140, objectFit: "cover", borderRadius: 10, border: "1px solid #e5e7eb" }} />
                 <div className="flex-1 min-w-[220px]">
                   <p className="text-sm font-semibold mb-1" style={{ color: "#181b20" }}>Detected metadata</p>
-                  <Toggle on={keepGps} set={setKeepGps} label="location (GPS)" detail={hasGps ? "present ⚠️" : "none"} />
+                  <Toggle on={keepGps} set={setKeepGps} label="location (GPS)" detail={hasGps ? "present" : "none"} detailWarn={hasGps} />
                   <Toggle on={keepCamera} set={setKeepCamera} label="camera info" detail={[cameraMake, cameraModel].filter(Boolean).join(" ") || "none"} />
                   <Toggle on={keepDate} set={setKeepDate} label="date taken" detail={dateTaken || "none"} />
                 </div>
@@ -158,12 +171,16 @@ export default function ImagePrivacy() {
               </div>
 
               {error && <p className="text-sm text-red-600">{error}</p>}
-              {status && <p className="text-sm text-green-600">{status}</p>}
+              {status && (
+                <p className="text-sm text-green-600">
+                  <FontAwesomeIcon icon={faCircleCheck} className="mr-1.5" /> {status}
+                </p>
+              )}
 
               <div className="flex gap-3 flex-wrap">
                 <button className="btn btn-primary" style={{ background: "#2563eb", border: "none", color: "#fff" }} onClick={apply}>Apply changes</button>
-                <button className="btn btn-outline" onClick={stripAll}>🧹 Remove all metadata</button>
-                {outUrl && <a className="btn" style={{ background: "#16a34a", color: "#fff", border: "none" }} href={outUrl} download={outName}>⬇️ Download</a>}
+                <button className="btn btn-outline" onClick={stripAll}><FontAwesomeIcon icon={faBroom} className="mr-1.5" /> Remove all metadata</button>
+                {outUrl && <a className="btn" style={{ background: "#16a34a", color: "#fff", border: "none" }} href={outUrl} download={outName}><FontAwesomeIcon icon={faDownload} className="mr-1.5" /> Download</a>}
                 <button className="btn btn-outline" onClick={() => { setSrc(""); setExif(null); setOutUrl(""); setStatus(""); setError(""); }}>Upload new</button>
               </div>
               {outUrl && <img src={outUrl} alt="cleaned" style={{ maxWidth: 240, borderRadius: 10, marginTop: 8, border: "1px solid #e5e7eb" }} />}

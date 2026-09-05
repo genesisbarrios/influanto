@@ -1,3 +1,7 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLaptopCode, faFaceTired, faFaceSadTear } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+
 const Arrow = ({ extraStyle }: { extraStyle: string }) => {
   return (
     <svg
@@ -21,10 +25,10 @@ const Arrow = ({ extraStyle }: { extraStyle: string }) => {
     </svg>
   );
 };
-const Step = ({ emoji, text }: { emoji: string; text: string }) => {
+const Step = ({ icon, text }: { icon: IconDefinition; text: string }) => {
   return (
     <div className="w-full md:w-48 flex flex-col gap-2 items-center justify-center">
-      <span className="text-4xl">{emoji}</span>
+      <span className="text-4xl"><FontAwesomeIcon icon={icon} /></span>
       <h3 className="font-bold">{text}</h3>
     </div>
   );
@@ -51,15 +55,15 @@ const Problem = () => {
         </p>
 
         <div className="flex flex-col md:flex-row justify-center items-center md:items-start gap-6">
-          <Step emoji="🧑‍💻" text="managing promotion across multiple platforms" />
+          <Step icon={faLaptopCode} text="managing promotion across multiple platforms" />
 
           <Arrow extraStyle="max-md:-scale-x-100 md:-rotate-90" />
 
-          <Step emoji="😮‍💨" text="Struggling to find time" />
+          <Step icon={faFaceTired} text="Struggling to find time" />
 
           <Arrow extraStyle="md:-scale-x-100 md:-rotate-90" />
 
-          <Step emoji="😔" text="Stops Following up and Promoting, losing fans in the process" />
+          <Step icon={faFaceSadTear} text="Stops Following up and Promoting, losing fans in the process" />
         </div>
       </div>
     </section>
