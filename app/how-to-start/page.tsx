@@ -20,7 +20,7 @@ import config from "@/config";
 // - User data collected: name, email and payment information
 // - Non-personal data collection: web cookies
 // - Link to privacy-policy: https://influanto.com/privacy-policy
-// - Governing Law: France
+// - Governing Law: United States of America, State of Florida
 // - Updates to the Terms: users will be updated by email
 
 // Please write a simple Terms & Services for my site. Add the current date. Do not add or explain your reasoning. Answer:

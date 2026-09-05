@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   try {
-    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, font, newsletterEnabled, newsletterFields, brandLogoUrl, bgMode, patternId, patternFg, patternBg, patternOpacity, bgImage, bgImageCustom, pageBgColor } = body;
+    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, customMerchLinks, font, newsletterEnabled, newsletterFields, brandLogoUrl, bgMode, patternId, patternFg, patternBg, patternOpacity, bgImage, bgImageCustom, pageBgColor } = body;
 
     if (id) {
       const updates: Record<string, any> = { user_id: userId };
@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
       if (video !== undefined) updates.video = video;
       if (Array.isArray(links)) updates.links = normalizeLinks(links);
       if (selectedProducts !== undefined) updates.selected_products = selectedProducts ?? [];
+      if (customMerchLinks !== undefined) updates.custom_merch_links = normalizeLinks(customMerchLinks) ?? [];
       if (newsletterEnabled !== undefined) updates.newsletter_enabled = newsletterEnabled;
       if (newsletterFields !== undefined) updates.newsletter_fields = newsletterFields ?? ["name", "email"];
       updates.brand_logo_url = brandLogoUrl ?? null;
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
         description,
         name,
         selected_products: selectedProducts ?? [],
+        custom_merch_links: normalizeLinks(customMerchLinks ?? []),
         newsletter_enabled: newsletterEnabled ?? false,
         newsletter_fields: newsletterFields ?? ["name", "email"],
         brand_logo_url: brandLogoUrl ?? null,

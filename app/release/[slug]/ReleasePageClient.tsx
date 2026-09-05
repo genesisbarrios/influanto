@@ -342,9 +342,16 @@ const ReleasePageView = () => {
 
   // Render merch section
 const renderMerchSection = () => {
-  if (!releasePage?.selectedProducts || releasePage.selectedProducts.length === 0) {
+  const customMerchItems = (releasePage?.customMerchLinks || [])
+    .filter((l: any) => l?.url)
+    .map((l: any, i: number) => ({ id: `custom-${i}`, title: l.name || 'Merch', url: l.url, images: [], isCustom: true }));
+
+  const hasSelectedProducts = releasePage?.selectedProducts && releasePage.selectedProducts.length > 0;
+  if (!hasSelectedProducts && customMerchItems.length === 0) {
     return null;
   }
+
+  const merchItems = [...merchProducts, ...customMerchItems];
 
   return (
     <div style={{ 
@@ -378,11 +385,11 @@ const renderMerchSection = () => {
         }}>
           Loading merch...
         </div>
-      ) : merchProducts.length === 0 ? (
-        <div style={{ 
-          textAlign: "center", 
-          color: textColor || "white", 
-          padding: "20px" 
+      ) : merchItems.length === 0 ? (
+        <div style={{
+          textAlign: "center",
+          color: textColor || "white",
+          padding: "20px"
         }}>
           No merch available
         </div>
@@ -394,7 +401,7 @@ const renderMerchSection = () => {
             padding: "0 20px"
           }}
         >
-          {merchProducts.map((product: any) => (
+          {merchItems.map((product: any) => (
             <div
               key={product.id}
               style={{
@@ -446,14 +453,16 @@ const renderMerchSection = () => {
                 {product.title || 'Untitled Product'}
               </div>
               
-              <div style={{
-                color: linksColor || "white",
-                fontSize: "16px",
-                fontWeight: "bold",
-                marginBottom: "10px"
-              }}>
-                ${product.variants?.[0]?.price || product.price || 'N/A'}
-              </div>
+              {!product.isCustom && (
+                <div style={{
+                  color: linksColor || "white",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  marginBottom: "10px"
+                }}>
+                  ${product.variants?.[0]?.price || product.price || 'N/A'}
+                </div>
+              )}
             </div>
           ))}
         </div>

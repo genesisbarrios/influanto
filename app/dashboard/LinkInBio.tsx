@@ -212,6 +212,8 @@ const LinkInBio = () => {
   const [picker, setPicker] = useState<{ type: 'link'; index: number } | { type: 'brand' } | null>(null);
   const [showMerchSection, setShowMerchSection] = useState(true);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [customMerchLinks, setCustomMerchLinks] = useState<any[]>([]);
+  const [showCustomMerchLinks, setShowCustomMerchLinks] = useState(false);
 
   // ── Effects ────────────────────────────────────────────────────────────────
 
@@ -357,6 +359,7 @@ const LinkInBio = () => {
       if (data.selectedProducts && Array.isArray(data.selectedProducts)) {
         setSelectedProductIds(data.selectedProducts);
       }
+      setCustomMerchLinks(Array.isArray(data.customMerchLinks) ? data.customMerchLinks : []);
       setBrandLogoUrl(data.brandLogoUrl || "");
       setCardBgOpacity(parseColorValue(data.cardBgColor, "#ffffff").opacity);
       setNewsletterEnabled(!!data.newsletterEnabled);
@@ -376,6 +379,20 @@ const LinkInBio = () => {
 
   const addLink = () => {
     setLinks([...links, { url: "", name: "" }]);
+  };
+
+  const addCustomMerchLink = () => {
+    setCustomMerchLinks([...customMerchLinks, { name: "", url: "" }]);
+  };
+
+  const updateCustomMerchLink = (index: number, field: "name" | "url", value: string) => {
+    const updated = [...customMerchLinks];
+    updated[index] = { ...updated[index], [field]: value };
+    setCustomMerchLinks(updated);
+  };
+
+  const removeCustomMerchLink = (index: number) => {
+    setCustomMerchLinks(customMerchLinks.filter((_: any, i: number) => i !== index));
   };
 
   const moveLink = (fromIndex: number, toIndex: number) => {
@@ -485,6 +502,7 @@ const LinkInBio = () => {
         font: linkInBio?.font,
         cardBgColor: linkInBio?.cardBgColor,
         selectedProducts: selectedProductIds,
+        customMerchLinks: customMerchLinks,
         // Background mode fields
         bgMode: linkInBio?.bgMode,
         bgImageCustom: linkInBio?.bgImageCustom,
@@ -1091,13 +1109,23 @@ const LinkInBio = () => {
             {showMerchSection && (
             <>
             {!user?.printifyShopId ? (
-              <p className="text-purple-600 text-sm">Connect your Printify store to your Profile to add merch to your release pages</p>
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <p className="text-purple-600 text-sm">Connect your Printify store to your Profile to add merch to your release pages</p>
+                <button type="button" onClick={() => setShowCustomMerchLinks(!showCustomMerchLinks)} className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors whitespace-nowrap">
+                  {showCustomMerchLinks ? 'Hide custom links' : 'Add custom links'}
+                </button>
+              </div>
             ) : (
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <p className="text-purple-600 text-sm">Your Printify store is connected. Select products to feature below.</p>
-                <button type="button" onClick={() => setShowProducts(!showProducts)} className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors whitespace-nowrap">
-                  {showProducts ? 'Hide' : 'Show'}
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button type="button" onClick={() => setShowProducts(!showProducts)} className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors whitespace-nowrap">
+                    {showProducts ? 'Hide' : 'Show'}
+                  </button>
+                  <button type="button" onClick={() => setShowCustomMerchLinks(!showCustomMerchLinks)} className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors whitespace-nowrap">
+                    {showCustomMerchLinks ? 'Hide custom links' : 'Add custom links'}
+                  </button>
+                </div>
               </div>
             )}
           {user?.printifyShopId && showProducts && (
@@ -1266,6 +1294,46 @@ const LinkInBio = () => {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {showCustomMerchLinks && (
+            <div className="mt-4 border-t border-purple-200 pt-4">
+              <p className="text-purple-600 text-sm mb-2">
+                Add links to your own merch — a store, an Etsy shop, anything not on Printify.
+              </p>
+              {customMerchLinks.map((link: any, index: number) => (
+                <div key={index} className="flex items-center gap-2 mb-2 flex-wrap">
+                  <input
+                    type="text"
+                    className="input input-sm flex-1 min-w-[120px]"
+                    placeholder="Name (e.g. T-Shirt)"
+                    value={link.name || ""}
+                    onChange={(e) => updateCustomMerchLink(index, "name", e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    className="input input-sm flex-1 min-w-[160px]"
+                    placeholder="https://your-store.com/product"
+                    value={link.url || ""}
+                    onChange={(e) => updateCustomMerchLink(index, "url", e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-alert"
+                    onClick={() => removeCustomMerchLink(index)}
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors"
+                onClick={addCustomMerchLink}
+              >
+                + Add merch link
+              </button>
             </div>
           )}
             </>

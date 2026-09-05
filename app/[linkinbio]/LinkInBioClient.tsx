@@ -252,6 +252,18 @@ useEffect(() => {
     return <div className="m-5 text-center">Loading...</div>;
   }else if (user){
 
+  const printifyMerchItems = (user?.printifyShopId ? (linkInBio?.selectedProducts || []) : [])
+    .map((productId: string) => {
+      const product = availableProducts.find(p => p.id === productId);
+      if (!product) return null;
+      return { key: productId, url: product.url || '#', title: product.title, images: product.images, variants: product.variants, isCustom: false };
+    })
+    .filter(Boolean);
+  const customMerchItems = (linkInBio?.customMerchLinks || [])
+    .filter((l: any) => l?.url)
+    .map((l: any, i: number) => ({ key: `custom-${i}`, url: l.url, title: l.name || 'Merch', images: [], variants: [], isCustom: true }));
+  const merchItems = [...printifyMerchItems, ...customMerchItems];
+
 return (
  <>
   {console.log("[LinkinBio] user.metaPixelId:", user?.metaPixelId) as any}
@@ -445,7 +457,7 @@ return (
 
       
       {/* MERCH SECTION */}
-      {user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 && (
+      {((user?.printifyShopId && linkInBio?.selectedProducts?.length > 0) || customMerchItems.length > 0) && (
         <div className="mt-6 mb-4">
           <hr style={{margin: "5% 0"}}></hr>
           <h3 className="text-lg font-semibold mb-3 text-center" style={{
@@ -454,8 +466,8 @@ return (
           }}>
             Merch
           </h3>
-          
-          {isLoadingProducts ? (
+
+          {isLoadingProducts && user?.printifyShopId && linkInBio?.selectedProducts?.length > 0 ? (
             <div className="text-center py-8" style={{
               fontFamily: font || 'inherit'
             }}>
@@ -472,25 +484,16 @@ return (
             }}>
               {/* Responsive Grid Container — 2 per row on mobile, 3 on desktop */}
               <div
-                className={`grid gap-3 w-full justify-items-center ${linkInBio.selectedProducts.length === 1 ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3"}`}
+                className={`grid gap-3 w-full justify-items-center ${merchItems.length === 1 ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3"}`}
                 style={{ padding: "0 4px" }}
               >
-                {linkInBio.selectedProducts.map((productId: string) => {
-                  const product = availableProducts.find(p => p.id === productId);
-                  if (!product) {
-                    console.log('❌ Product not found for ID:', productId);
-                    return null;
-                  }
-                  
-                  const productUrl = product.url || '#';
-                  
-                  return (
+                {merchItems.map((product: any) => (
                     <a
-                      key={productId}
-                      href={productUrl}
+                      key={product.key}
+                      href={product.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => trackMerchClick(product.title, productUrl)}
+                      onClick={() => trackMerchClick(product.title, product.url)}
                       style={{
                         display: 'block',
                         padding: '8px',
@@ -499,9 +502,9 @@ return (
                         backgroundColor: cardBgColor || 'rgba(255,255,255,0.1)',
                         textDecoration: 'none',
                         width: '100%',
-                        maxWidth: linkInBio.selectedProducts.length === 1 
+                        maxWidth: merchItems.length === 1
                           ? "200px" // Single item: max 200px width
-                          : linkInBio.selectedProducts.length === 2 
+                          : merchItems.length === 2
                           ? "180px" // Two items: max 180px each
                           : "160px", // Multiple items: max 160px each
                         minWidth: "140px",
@@ -512,13 +515,13 @@ return (
                       className="hover:scale-105"
                     >
                       {/* Product Image */}
-                      <div style={{ 
-                        width: "100%", 
-                        height: linkInBio.selectedProducts.length === 1 ? "120px" : "80px", // Larger image for single item
-                        borderRadius: "6px", 
-                        overflow: "hidden", 
-                        backgroundColor: "#f0f0f0", 
-                        marginBottom: "6px" 
+                      <div style={{
+                        width: "100%",
+                        height: merchItems.length === 1 ? "120px" : "80px", // Larger image for single item
+                        borderRadius: "6px",
+                        overflow: "hidden",
+                        backgroundColor: "#f0f0f0",
+                        marginBottom: "6px"
                       }}>
                         {product.images && product.images.length > 0 && product.images[0] ? (
                           <img
@@ -547,41 +550,42 @@ return (
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Product Info */}
                       <div>
                         <div style={{
-                          fontSize: linkInBio.selectedProducts.length === 1 ? "14px" : "12px", // Larger text for single item
+                          fontSize: merchItems.length === 1 ? "14px" : "12px", // Larger text for single item
                           fontWeight: "500",
                           marginBottom: "4px",
                           color: textColor,
                           fontFamily: font || 'inherit',
                           lineHeight: '1.2',
-                          height: linkInBio.selectedProducts.length === 1 ? "auto" : "2.4em", // Auto height for single item
+                          height: merchItems.length === 1 ? "auto" : "2.4em", // Auto height for single item
                           overflow: 'hidden',
                           wordWrap: 'break-word',
                           textAlign: 'center'
                         }}>
-                          {linkInBio.selectedProducts.length === 1 
+                          {merchItems.length === 1
                             ? product.title || 'Product' // Show full title for single item
-                            : product.title && product.title.length > 20 
-                            ? `${product.title.substring(0, 20)}...` 
+                            : product.title && product.title.length > 20
+                            ? `${product.title.substring(0, 20)}...`
                             : product.title || 'Product'
                           }
                         </div>
-                        <div style={{
-                          fontSize: linkInBio.selectedProducts.length === 1 ? "16px" : "12px", // Larger price for single item
-                          fontWeight: "bold",
-                          textAlign: "center",
-                          color: linksColor,
-                          fontFamily: font || 'inherit'
-                        }}>
-                          ${product.variants?.[0]?.price || product.price || 'N/A'}
-                        </div>
+                        {!product.isCustom && (
+                          <div style={{
+                            fontSize: merchItems.length === 1 ? "16px" : "12px", // Larger price for single item
+                            fontWeight: "bold",
+                            textAlign: "center",
+                            color: linksColor,
+                            fontFamily: font || 'inherit'
+                          }}>
+                            ${product.variants?.[0]?.price || product.price || 'N/A'}
+                          </div>
+                        )}
                       </div>
                     </a>
-                  );
-                })}
+                ))}
               </div>
             </div>
           )}

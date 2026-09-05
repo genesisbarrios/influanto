@@ -87,6 +87,11 @@ const migrations = [
 
   // digital business card settings (display name, background color, avatar override)
   `ALTER TABLE users ADD COLUMN IF NOT EXISTS business_card JSONB DEFAULT '{}'::jsonb`,
+
+  // custom merch links — lets users list their own merch (e.g. a store not on Printify)
+  // as simple {name, url} entries, alongside or instead of connected Printify products
+  `ALTER TABLE release_pages ADD COLUMN IF NOT EXISTS custom_merch_links JSONB DEFAULT '[]'::jsonb`,
+  `ALTER TABLE link_in_bio ADD COLUMN IF NOT EXISTS custom_merch_links JSONB DEFAULT '[]'::jsonb`,
 ];
 
 async function run() {

@@ -93,6 +93,7 @@ const ReleasePages = () => {
   const [bgImagePickerOpen, setBgImagePickerOpen] = useState(false);
   const [showMerchExpanded, setShowMerchExpanded] = useState(true);
   const [editImagePickerOpen, setEditImagePickerOpen] = useState(false);
+  const [showCustomMerchLinks, setShowCustomMerchLinks] = useState(false);
 
 
   useEffect(() => {
@@ -255,6 +256,7 @@ const ReleasePages = () => {
       font,
       bgMode: 'pattern',
       selectedProducts: [],
+      customMerchLinks: [],
       newsletterEnabled: false,
       newsletterFields: ["name", "email"]
     });
@@ -309,6 +311,22 @@ const ReleasePages = () => {
   const addCustomLink = () => {
     const updatedLinks = [...(editingPage?.links || []), { url: "", name: "" }];
     setEditingPage({ ...editingPage, links: updatedLinks });
+  };
+
+  const addCustomMerchLink = () => {
+    const updated = [...(editingPage?.customMerchLinks || []), { name: "", url: "" }];
+    setEditingPage({ ...editingPage, customMerchLinks: updated });
+  };
+
+  const updateCustomMerchLink = (index: number, field: "name" | "url", value: string) => {
+    const updated = [...(editingPage?.customMerchLinks || [])];
+    updated[index] = { ...updated[index], [field]: value };
+    setEditingPage({ ...editingPage, customMerchLinks: updated });
+  };
+
+  const removeCustomMerchLink = (index: number) => {
+    const updated = (editingPage?.customMerchLinks || []).filter((_: any, i: number) => i !== index);
+    setEditingPage({ ...editingPage, customMerchLinks: updated });
   };
 
   const handleDelete = async (pageId: any) => {
@@ -689,7 +707,18 @@ const removeCustomLink = (index: number) => {
           }
         }
       }
-      
+
+      // Validate custom merch links
+      if (editingPage?.customMerchLinks) {
+        for (let i = 0; i < editingPage.customMerchLinks.length; i++) {
+          const link = editingPage.customMerchLinks[i];
+          if (link.url || link.name) {
+            if (!validateCustomLinkName(link.name)) return;
+            if (!validateURL(link.url, "Merch link")) return;
+          }
+        }
+      }
+
       const maxPages = getMaxPages();
       
       // Check if we're creating a new page and already have the maximum allowed
@@ -786,22 +815,42 @@ const removeCustomLink = (index: number) => {
           </div>
           {showMerchExpanded && (<>
           {!userData?.printifyShopId ? (
-            <p className="text-purple-600 text-sm" style={{ fontFamily: font || 'inherit' }}>
-              Connect your Printify store to your Profile to add merch to your release pages
-            </p>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <p className="text-purple-600 text-sm" style={{ fontFamily: font || 'inherit' }}>
+                Connect your Printify store to your Profile to add merch to your release pages
+              </p>
+              <button
+                type="button"
+                className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors whitespace-nowrap"
+                onClick={() => setShowCustomMerchLinks(!showCustomMerchLinks)}
+                style={{ fontFamily: font || 'inherit' }}
+              >
+                {showCustomMerchLinks ? 'Hide custom links' : 'Add custom links'}
+              </button>
+            </div>
           ) : (
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <p className="text-purple-600 text-sm" style={{ fontFamily: font || 'inherit' }}>
                 Your Printify store is connected. Select products to feature below.
               </p>
-              <button
-                type="button"
-                className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors whitespace-nowrap"
-                onClick={() => setShowMerchSection(!showMerchSection)}
-                style={{ fontFamily: font || 'inherit' }}
-              >
-                {showMerchSection ? 'Hide' : 'Show'}
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors whitespace-nowrap"
+                  onClick={() => setShowMerchSection(!showMerchSection)}
+                  style={{ fontFamily: font || 'inherit' }}
+                >
+                  {showMerchSection ? 'Hide' : 'Show'}
+                </button>
+                <button
+                  type="button"
+                  className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors whitespace-nowrap"
+                  onClick={() => setShowCustomMerchLinks(!showCustomMerchLinks)}
+                  style={{ fontFamily: font || 'inherit' }}
+                >
+                  {showCustomMerchLinks ? 'Hide custom links' : 'Add custom links'}
+                </button>
+              </div>
             </div>
           )}
 
@@ -874,6 +923,49 @@ const removeCustomLink = (index: number) => {
               </div>
             )}
           </>
+        )}
+
+        {showCustomMerchLinks && (
+          <div className="mt-4 border-t border-purple-200 pt-4">
+            <p className="text-purple-600 text-sm mb-2" style={{ fontFamily: font || 'inherit' }}>
+              Add links to your own merch — a store, an Etsy shop, anything not on Printify.
+            </p>
+            {(editingPage?.customMerchLinks || []).map((link: any, index: number) => (
+              <div key={index} className="flex items-center gap-2 mb-2 flex-wrap">
+                <input
+                  type="text"
+                  className="input input-sm flex-1 min-w-[120px]"
+                  placeholder="Name (e.g. T-Shirt)"
+                  value={link.name || ""}
+                  onChange={(e) => updateCustomMerchLink(index, "name", e.target.value)}
+                  style={{ fontFamily: font || 'inherit' }}
+                />
+                <input
+                  type="text"
+                  className="input input-sm flex-1 min-w-[160px]"
+                  placeholder="https://your-store.com/product"
+                  value={link.url || ""}
+                  onChange={(e) => updateCustomMerchLink(index, "url", e.target.value)}
+                  style={{ fontFamily: font || 'inherit' }}
+                />
+                <button
+                  type="button"
+                  className="btn btn-sm btn-alert"
+                  onClick={() => removeCustomMerchLink(index)}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors"
+              onClick={addCustomMerchLink}
+              style={{ fontFamily: font || 'inherit' }}
+            >
+              + Add merch link
+            </button>
+          </div>
         )}
           </>)}
         </div>
