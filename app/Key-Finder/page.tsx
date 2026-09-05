@@ -3,6 +3,8 @@ import React, { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMicrophone, faMusic, faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
 
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
@@ -256,7 +258,7 @@ export default function KeyFinder() {
             </p>
           )}
           {analyzing && <p style={{ color: "#6b7280", marginBottom: "1rem" }}>Analyzing…</p>}
-          {listening && <p style={{ color: "#2563eb", marginBottom: "1rem" }}>🎙️ Listening — play the song, then press Detect Key</p>}
+          {listening && <p style={{ color: "#2563eb", marginBottom: "1rem" }}><FontAwesomeIcon icon={faMicrophone} className="mr-2" /> Listening — play the song, then press Detect Key</p>}
           {error && <p style={{ color: "#dc2626", marginBottom: "1rem" }}>{error}</p>}
 
           {meta && (
@@ -265,7 +267,7 @@ export default function KeyFinder() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={meta.picture} alt="Album art" style={{ width: 64, height: 64, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
               ) : (
-                <div style={{ width: 64, height: 64, borderRadius: 8, background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, flexShrink: 0 }}>🎵</div>
+                <div style={{ width: 64, height: 64, borderRadius: 8, background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, flexShrink: 0, color: "#9ca3af" }}><FontAwesomeIcon icon={faMusic} /></div>
               )}
               <div style={{ minWidth: 0 }}>
                 {meta.title && <div style={{ fontWeight: 700, color: "#181b20", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{meta.title}</div>}
@@ -288,7 +290,7 @@ export default function KeyFinder() {
               disabled={busy}
               onClick={() => fileRef.current?.click()}
             >
-              ⬆️ Upload a song
+              <FontAwesomeIcon icon={faArrowUpFromBracket} className="mr-2" /> Upload a song
             </button>
             <button
               className="btn btn-primary"
@@ -296,7 +298,7 @@ export default function KeyFinder() {
               disabled={analyzing}
               onClick={listening ? () => stopMic(true) : startMic}
             >
-              {listening ? "Detect Key" : "🎙️ Use microphone"}
+              {listening ? "Detect Key" : <><FontAwesomeIcon icon={faMicrophone} className="mr-2" /> Use microphone</>}
             </button>
             <input ref={fileRef} type="file" accept="audio/*" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
           </div>

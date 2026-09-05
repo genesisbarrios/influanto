@@ -11,6 +11,19 @@ import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
 import ImagePicker from "@/components/ImagePicker";
 import { fetchAllPrintifyProducts } from "@/libs/printify-products";
 import * as HeroPatterns from 'hero-patterns';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faImage,
+  faArrowUpFromBracket,
+  faDiamond,
+  faPalette,
+  faXmark,
+  faPen,
+  faTrash,
+  faWandMagicSparkles,
+  faCartShopping,
+  faBullhorn,
+} from "@fortawesome/free-solid-svg-icons";
 
 type PatternFn = (color: string, opacity: number) => string;
 const HP = HeroPatterns as Record<string, PatternFn>;
@@ -771,7 +784,7 @@ const removeCustomLink = (index: number) => {
       <>
         <div className="mb-4 p-4 bg-purple-50 rounded-md border border-purple-200">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="font-bold text-purple-800" style={{ fontFamily: font || 'inherit' }}>🛒 Merch Integration</h4>
+            <h4 className="font-bold text-purple-800" style={{ fontFamily: font || 'inherit' }}><FontAwesomeIcon icon={faCartShopping} className="mr-1.5" /> Merch Integration</h4>
           </div>
           {showMerchExpanded && (<>
           {!userData?.printifyShopId ? (
@@ -938,10 +951,10 @@ const removeCustomLink = (index: number) => {
                         />
                         <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
                           <button type="button" title="Change image" onClick={() => setImagePickerOpen(true)}
-                            style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", fontSize: 14 }}>✏️</button>
+                            style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", fontSize: 14 }}><FontAwesomeIcon icon={faPen} /></button>
                           <button type="button" title="Delete image"
                             onClick={async () => { const old = editingPage.image; setEditingPage({ ...editingPage, image: "" }); await deleteCloudinaryImage(old); }}
-                            style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(220,38,38,0.85)", color: "#fff", cursor: "pointer", fontSize: 14 }}>🗑️</button>
+                            style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(220,38,38,0.85)", color: "#fff", cursor: "pointer", fontSize: 14 }}><FontAwesomeIcon icon={faTrash} /></button>
                         </div>
                       </div>
                     ) : (
@@ -1080,12 +1093,12 @@ const removeCustomLink = (index: number) => {
               <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>Page Background</h4>
               <div className="flex justify-center mb-3">
                 <div className="flex gap-1 bg-gray-100 rounded-lg p-1 flex-wrap">
-                  {[{ id: 'image', label: '🖼 Stock' }, { id: 'upload', label: '⬆️ Upload' }, { id: 'pattern', label: '🔷 Pattern' }, { id: 'solid', label: '🎨 Solid' }].map((tab) => (
+                  {[{ id: 'image', label: 'Stock', icon: faImage }, { id: 'upload', label: 'Upload', icon: faArrowUpFromBracket }, { id: 'pattern', label: 'Pattern', icon: faDiamond }, { id: 'solid', label: 'Solid', icon: faPalette }].map((tab) => (
                     <button key={tab.id} type="button"
                       className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${(editingPage?.bgMode || 'pattern') === tab.id ? 'bg-white shadow text-blue-700' : 'text-gray-500 hover:text-gray-700'}`}
                       onClick={() => setEditingPage({ ...editingPage, bgMode: tab.id })}
                       style={{ fontFamily: font || 'inherit' }}>
-                      {tab.label}
+                      <FontAwesomeIcon icon={tab.icon} className="mr-1" /> {tab.label}
                     </button>
                   ))}
                 </div>
@@ -1110,7 +1123,7 @@ const removeCustomLink = (index: number) => {
                   {editingPage?.bgImageCustom && (
                     <div className="relative w-full max-w-sm">
                       <img src={editingPage.bgImageCustom} alt="bg" className="w-full h-24 object-cover rounded-lg" />
-                      <button type="button" onClick={() => setEditingPage({ ...editingPage, bgImageCustom: null })} className="absolute top-1 right-1 bg-white/80 rounded-full w-6 h-6 text-xs font-bold text-gray-700 hover:bg-white">✕</button>
+                      <button type="button" onClick={() => setEditingPage({ ...editingPage, bgImageCustom: null })} className="absolute top-1 right-1 bg-white/80 rounded-full w-6 h-6 text-xs font-bold text-gray-700 hover:bg-white"><FontAwesomeIcon icon={faXmark} /></button>
                     </div>
                   )}
                 </div>
@@ -1132,14 +1145,14 @@ const removeCustomLink = (index: number) => {
             {/* Brand Logo (Premium) */}
             {userData?.hasAccess && (
               <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
-                <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>✨ Brand Logo</h4>
+                <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}><FontAwesomeIcon icon={faWandMagicSparkles} className="mr-1.5" /> Brand Logo</h4>
                 <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: font || 'inherit' }}>
                   Shown at the bottom of your release page.
                 </p>
                 {brandLogoUrl && (
                   <div className="flex items-center gap-3 mb-3">
                     <img src={brandLogoUrl} alt="Brand logo" className="h-12 object-contain rounded border border-purple-200 bg-white p-1" />
-                    <button type="button" className="btn btn-xs btn-error text-white" onClick={async () => { const old = brandLogoUrl; setBrandLogoUrl(""); await deleteCloudinaryImage(old); }}>🗑️ Remove</button>
+                    <button type="button" className="btn btn-xs btn-error text-white" onClick={async () => { const old = brandLogoUrl; setBrandLogoUrl(""); await deleteCloudinaryImage(old); }}><FontAwesomeIcon icon={faTrash} className="mr-1" /> Remove</button>
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
@@ -1163,7 +1176,7 @@ const removeCustomLink = (index: number) => {
                   style={{ width: 46, height: 26, borderRadius: 999, background: editingPage?.newsletterEnabled ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
                   <span style={{ position: 'absolute', top: 3, left: editingPage?.newsletterEnabled ? 23 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
                 </button>
-                <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}>📣 Collect newsletter signups</span>
+                <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}><FontAwesomeIcon icon={faBullhorn} className="mr-1.5" /> Collect newsletter signups</span>
               </div>
               <p className="text-indigo-600 text-sm mt-1">Show a signup form on this release page so fans can join your Outreach contacts.</p>
               {editingPage?.newsletterEnabled && (
@@ -1311,10 +1324,10 @@ const removeCustomLink = (index: number) => {
                       />
                       <div style={{ position: "absolute", top: 4, right: 4, display: "flex", gap: 4 }}>
                         <button type="button" title="Change image" onClick={() => setEditImagePickerOpen(true)}
-                          style={{ width: 28, height: 28, borderRadius: 6, border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", fontSize: 12 }}>✏️</button>
+                          style={{ width: 28, height: 28, borderRadius: 6, border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", fontSize: 12 }}><FontAwesomeIcon icon={faPen} /></button>
                         <button type="button" title="Delete image"
                           onClick={async () => { const old = editingPage.image; setEditingPage({ ...editingPage, image: "" }); await deleteCloudinaryImage(old); }}
-                          style={{ width: 28, height: 28, borderRadius: 6, border: "none", background: "rgba(220,38,38,0.85)", color: "#fff", cursor: "pointer", fontSize: 12 }}>🗑️</button>
+                          style={{ width: 28, height: 28, borderRadius: 6, border: "none", background: "rgba(220,38,38,0.85)", color: "#fff", cursor: "pointer", fontSize: 12 }}><FontAwesomeIcon icon={faTrash} /></button>
                       </div>
                     </div>
                   ) : (
@@ -1440,12 +1453,12 @@ const removeCustomLink = (index: number) => {
               <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>Page Background</h4>
               <div className="flex justify-center mb-3">
                 <div className="flex gap-1 bg-gray-100 rounded-lg p-1 flex-wrap">
-                  {[{ id: 'image', label: '🖼 Stock' }, { id: 'upload', label: '⬆️ Upload' }, { id: 'pattern', label: '🔷 Pattern' }, { id: 'solid', label: '🎨 Solid' }].map((tab) => (
+                  {[{ id: 'image', label: 'Stock', icon: faImage }, { id: 'upload', label: 'Upload', icon: faArrowUpFromBracket }, { id: 'pattern', label: 'Pattern', icon: faDiamond }, { id: 'solid', label: 'Solid', icon: faPalette }].map((tab) => (
                     <button key={tab.id} type="button"
                       className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${(editingPage?.bgMode || 'pattern') === tab.id ? 'bg-white shadow text-blue-700' : 'text-gray-500 hover:text-gray-700'}`}
                       onClick={() => setEditingPage({ ...editingPage, bgMode: tab.id })}
                       style={{ fontFamily: font || 'inherit' }}>
-                      {tab.label}
+                      <FontAwesomeIcon icon={tab.icon} className="mr-1" /> {tab.label}
                     </button>
                   ))}
                 </div>
@@ -1470,7 +1483,7 @@ const removeCustomLink = (index: number) => {
                   {editingPage?.bgImageCustom && (
                     <div className="relative w-full max-w-sm">
                       <img src={editingPage.bgImageCustom} alt="bg" className="w-full h-24 object-cover rounded-lg" />
-                      <button type="button" onClick={() => setEditingPage({ ...editingPage, bgImageCustom: null })} className="absolute top-1 right-1 bg-white/80 rounded-full w-6 h-6 text-xs font-bold text-gray-700 hover:bg-white">✕</button>
+                      <button type="button" onClick={() => setEditingPage({ ...editingPage, bgImageCustom: null })} className="absolute top-1 right-1 bg-white/80 rounded-full w-6 h-6 text-xs font-bold text-gray-700 hover:bg-white"><FontAwesomeIcon icon={faXmark} /></button>
                     </div>
                   )}
                 </div>
@@ -1492,14 +1505,14 @@ const removeCustomLink = (index: number) => {
             {/* Brand Logo (Premium) */}
             {userData?.hasAccess && (
               <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
-                <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}>✨ Brand Logo</h4>
+                <h4 className="font-bold mb-1 text-purple-800" style={{ fontFamily: font || 'inherit' }}><FontAwesomeIcon icon={faWandMagicSparkles} className="mr-1.5" /> Brand Logo</h4>
                 <p className="text-xs text-purple-600 mb-3" style={{ fontFamily: font || 'inherit' }}>
                   Shown at the bottom of your release page.
                 </p>
                 {brandLogoUrl && (
                   <div className="flex items-center gap-3 mb-3">
                     <img src={brandLogoUrl} alt="Brand logo" className="h-12 object-contain rounded border border-purple-200 bg-white p-1" />
-                    <button type="button" className="btn btn-xs btn-error text-white" onClick={async () => { const old = brandLogoUrl; setBrandLogoUrl(""); await deleteCloudinaryImage(old); }}>🗑️ Remove</button>
+                    <button type="button" className="btn btn-xs btn-error text-white" onClick={async () => { const old = brandLogoUrl; setBrandLogoUrl(""); await deleteCloudinaryImage(old); }}><FontAwesomeIcon icon={faTrash} className="mr-1" /> Remove</button>
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
@@ -1522,7 +1535,7 @@ const removeCustomLink = (index: number) => {
                   style={{ width: 46, height: 26, borderRadius: 999, background: editingPage?.newsletterEnabled ? '#4f46e5' : '#cbd5e1', position: 'relative', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'background .2s' }}>
                   <span style={{ position: 'absolute', top: 3, left: editingPage?.newsletterEnabled ? 23 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)', transition: 'left .2s' }} />
                 </button>
-                <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}>📣 Collect newsletter signups</span>
+                <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}><FontAwesomeIcon icon={faBullhorn} className="mr-1.5" /> Collect newsletter signups</span>
               </div>
               <p className="text-indigo-600 text-sm mt-1">Show a signup form on this release page so fans can join your Outreach contacts.</p>
               {editingPage?.newsletterEnabled && (

@@ -4,6 +4,8 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import { getSEOTags } from "@/libs/seo";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
 
 // Estimate tempo from an audio buffer via an onset-energy autocorrelation.
 function detectBPM(data: Float32Array, sampleRate: number): number {
@@ -242,7 +244,7 @@ export default function BPMCalculator() {
                 onTouchStart={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
               >
-                {analyzing ? "Analyzing…" : "⬆️ Upload a song to detect BPM"}
+                {analyzing ? "Analyzing…" : <><FontAwesomeIcon icon={faArrowUpFromBracket} className="mr-2" /> Upload a song to detect BPM</>}
               </button>
               <input ref={fileRef} type="file" accept="audio/*" style={{ display: "none" }} onChange={(e) => handleUpload(e.target.files?.[0])} />
               <p style={{ color: "#181b20", fontSize: "0.8rem", marginTop: "0.5rem", opacity: 0.7 }}>Estimate — works best on beat-driven tracks.</p>

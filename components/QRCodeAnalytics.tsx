@@ -4,6 +4,9 @@ import React, { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import apiClient from "@/libs/api";
 import { RANGE_OPTIONS } from "./AnalyticsRangeSelect";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChartSimple, faChartLine, faGlobe, faMobileScreenButton, faLink } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 interface AnalyticsData {
   visitsByDay: { date: string; count: number }[];
@@ -35,10 +38,10 @@ const COUNTRY_NAMES: Record<string, string> = {
   PY:"Paraguay",UY:"Uruguay",IL:"Israel",LB:"Lebanon",QA:"Qatar",KW:"Kuwait",
 };
 
-function Empty({ icon = "📊", title, subtitle }: { icon?: string; title: string; subtitle: string }) {
+function Empty({ icon = faChartSimple, title, subtitle }: { icon?: IconDefinition; title: string; subtitle: string }) {
   return (
     <div className="flex flex-col items-center justify-center h-32 gap-2 text-center px-4">
-      <span className="text-2xl">{icon}</span>
+      <span className="text-2xl"><FontAwesomeIcon icon={icon} /></span>
       <p className="text-xs font-medium text-gray-600">{title}</p>
       <p className="text-xs text-gray-400 max-w-xs">{subtitle}</p>
     </div>
@@ -149,7 +152,7 @@ export default function QRCodeAnalytics({ codeId, codeName, range = "30d", custo
 
         {!loading && activeTab === 0 && (
           noScans || data!.visitsByDay.every(d => d.count === 0) ? (
-            <Empty icon="📈" title="No scans yet" subtitle="Share your QR code to start seeing scan data." />
+            <Empty icon={faChartLine} title="No scans yet" subtitle="Share your QR code to start seeing scan data." />
           ) : (
             <>
               <p className="text-xs text-gray-400 mb-2">
@@ -169,7 +172,7 @@ export default function QRCodeAnalytics({ codeId, codeName, range = "30d", custo
 
         {!loading && activeTab === 1 && (
           noScans || !data!.visitsByCountry.length ? (
-            <Empty icon="🌍" title="No location data yet" subtitle="You'll see where your scans are coming from." />
+            <Empty icon={faGlobe} title="No location data yet" subtitle="You'll see where your scans are coming from." />
           ) : (
             <>
               <p className="text-xs text-gray-400 mb-2">Top countries</p>
@@ -180,7 +183,7 @@ export default function QRCodeAnalytics({ codeId, codeName, range = "30d", custo
 
         {!loading && activeTab === 2 && (
           noScans || !data!.visitsByDevice.length ? (
-            <Empty icon="📱" title="No device data yet" subtitle="Device, browser, and OS breakdown will appear here." />
+            <Empty icon={faMobileScreenButton} title="No device data yet" subtitle="Device, browser, and OS breakdown will appear here." />
           ) : (
             <>
               <p className="text-xs text-gray-400 mb-1">Device type</p>
@@ -195,7 +198,7 @@ export default function QRCodeAnalytics({ codeId, codeName, range = "30d", custo
 
         {!loading && activeTab === 3 && (
           noScans || !data!.visitsByReferrer.length ? (
-            <Empty icon="🔗" title="No source data yet" subtitle="Traffic sources will appear once people start scanning." />
+            <Empty icon={faLink} title="No source data yet" subtitle="Traffic sources will appear once people start scanning." />
           ) : (
             <>
               <p className="text-xs text-gray-400 mb-2">Traffic sources</p>

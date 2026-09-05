@@ -3,6 +3,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import apiClient from "@/libs/api";
 import ImagePicker from "@/components/ImagePicker";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faDownload, faShareNodes } from "@fortawesome/free-solid-svg-icons";
 
 interface Props {
   user: any;
@@ -66,7 +68,9 @@ export default function BusinessCard({ user, setUser }: Props) {
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [alert, setAlert] = useState("");
+  const [alert, setAlertRaw] = useState("");
+  const [alertOk, setAlertOk] = useState(false);
+  const setAlert = (msg: string, ok = false) => { setAlertRaw(msg); setAlertOk(ok); };
   const [rendering, setRendering] = useState(false);
   const [cardBlob, setCardBlob] = useState<Blob | null>(null);
 
@@ -241,7 +245,7 @@ export default function BusinessCard({ user, setUser }: Props) {
       fd.append("businessCard", JSON.stringify({ displayName, bgColor, avatar }));
       await apiClient.post("/user", fd, { headers: { "Content-Type": "multipart/form-data" } });
       setUser((prev: any) => ({ ...prev, businessCard: { displayName, bgColor, avatar } }));
-      setAlert("✅ Business card saved");
+      setAlert("Business card saved", true);
     } catch {
       setAlert("Could not save business card");
     } finally {
@@ -293,17 +297,17 @@ export default function BusinessCard({ user, setUser }: Props) {
           </div>
         </div>
 
-        {alert && <p className={`text-xs ${alert.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
+        {alert && <p className={`text-xs ${alertOk ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
 
         <div className="flex flex-wrap gap-2 pt-1">
           <button type="button" className="btn btn-primary btn-sm" disabled={saving} onClick={handleSave}>
             {saving ? "Saving…" : "Save"}
           </button>
           <button type="button" className="btn btn-sm btn-outline" disabled={rendering} onClick={handleDownload}>
-            ⬇ Download image
+            <FontAwesomeIcon icon={faDownload} className="mr-1.5" /> Download image
           </button>
           <button type="button" className="btn btn-sm btn-outline" disabled={rendering} onClick={handleShare}>
-            ↗ Share
+            <FontAwesomeIcon icon={faShareNodes} className="mr-1.5" /> Share
           </button>
         </div>
       </div>

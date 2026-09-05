@@ -10,6 +10,20 @@ import * as XLSX from "xlsx";
 import NewsletterAnalytics from "@/components/NewsletterAnalytics";
 import ImagePicker from "@/components/ImagePicker";
 import { fetchAllPrintifyProducts } from "@/libs/printify-products";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faFileLines,
+  faMusic,
+  faCompactDisc,
+  faClapperboard,
+  faFileArrowUp,
+  faFileArrowDown,
+  faCopy,
+  faXmark,
+  faCartShopping,
+  faBullhorn,
+} from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 const IMPORT_FIELDS: ImportField[] = [
   { key: "email", label: "Email", aliases: ["e-mail", "mail"] },
@@ -33,11 +47,11 @@ interface Contact { id: string; name: string; email: string; phone: string; inst
 const FREE_CONTACT_LIMIT = 50;
 const FREE_NEWSLETTER_LIMIT = 5;
 
-const TEMPLATES = [
-  { key: "blank", icon: "📝", label: "Blank", desc: "Start from scratch" },
-  { key: "song_release", icon: "🎵", label: "Song", desc: "Announce a new single" },
-  { key: "album_release", icon: "💿", label: "Album", desc: "Announce a new album" },
-  { key: "music_video_release", icon: "🎬", label: "Music Video", desc: "Announce a new video" },
+const TEMPLATES: { key: string; icon: IconDefinition; label: string; desc: string }[] = [
+  { key: "blank", icon: faFileLines, label: "Blank", desc: "Start from scratch" },
+  { key: "song_release", icon: faMusic, label: "Song", desc: "Announce a new single" },
+  { key: "album_release", icon: faCompactDisc, label: "Album", desc: "Announce a new album" },
+  { key: "music_video_release", icon: faClapperboard, label: "Music Video", desc: "Announce a new video" },
 ];
 
 const TEMPLATE_SEED: Record<string, { title: string; subject: string; description: string }> = {
@@ -144,7 +158,9 @@ export default function Outreach() {
   const [editingContact, setEditingContact] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [alert, setAlert] = useState("");
+  const [alert, setAlertRaw] = useState("");
+  const [alertOk, setAlertOk] = useState(false);
+  const setAlert = (msg: string, ok = false) => { setAlertRaw(msg); setAlertOk(ok); };
 
   // Populate-from sources
   const [releasePages, setReleasePages] = useState<any[]>([]);
@@ -222,7 +238,7 @@ export default function Outreach() {
     XLSX.writeFile(workbook, "outreach-contacts.xlsx");
   };
   const copyContacts = async () => {
-    try { await navigator.clipboard.writeText(contactsToCsv()); setAlert("✅ Contacts copied to clipboard"); }
+    try { await navigator.clipboard.writeText(contactsToCsv()); setAlert("Contacts copied to clipboard", true); }
     catch { setAlert("Could not copy"); }
   };
 
@@ -272,7 +288,7 @@ export default function Outreach() {
       const merch = buildMerchLinks(linkInBioSelectedProducts);
       setNl({ links: [...bioLinks, ...merch], urlRedirect: bioUrl });
       setLinkInBioAdded(true);
-      setAlert("✅ Pulled links from your Link in Bio");
+      setAlert("Pulled links from your Link in Bio", true);
       return;
     }
     const rp = releasePages.find(p => String(p.id) === value);
@@ -289,7 +305,7 @@ export default function Outreach() {
         linksColor: rp.linksColor || nl.linksColor,
         urlRedirect: rp.name ? `https://${config.domainName}/release/${encodeURIComponent(rp.name)}` : "",
       });
-      setAlert(`✅ Pulled content from "${rp.name}"`);
+      setAlert(`Pulled content from "${rp.name}"`, true);
     }
   };
 
@@ -374,7 +390,7 @@ export default function Outreach() {
             <button key={t.key}
               onClick={() => { setEditing(blankNewsletter(t.key)); setView("form"); setAlert(""); }}
               className="text-left border border-gray-200 rounded-xl p-4 hover:border-indigo-400 hover:bg-indigo-50 transition-colors">
-              <div className="text-3xl mb-2">{t.icon}</div>
+              <div className="text-3xl mb-2 text-indigo-500"><FontAwesomeIcon icon={t.icon} /></div>
               <div className="font-semibold">{t.label}</div>
               <div className="text-xs text-gray-500">{t.desc}</div>
             </button>
@@ -402,10 +418,10 @@ export default function Outreach() {
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <h2 className="text-xl font-bold">Contacts</h2>
           <div className="flex gap-2">
-            <button className="btn btn-sm btn-outline" onClick={() => { setShowImport(true); setAlert(""); }}>⬆ Import</button>
-            <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={exportCsv}>⬇ Export CSV</button>
-            <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={exportXlsx}>⬇ Export XLSX</button>
-            <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={copyContacts}>📋 Copy Contacts</button>
+            <button className="btn btn-sm btn-outline" onClick={() => { setShowImport(true); setAlert(""); }}><FontAwesomeIcon icon={faFileArrowUp} className="mr-1.5" /> Import</button>
+            <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={exportCsv}><FontAwesomeIcon icon={faFileArrowDown} className="mr-1.5" /> Export CSV</button>
+            <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={exportXlsx}><FontAwesomeIcon icon={faFileArrowDown} className="mr-1.5" /> Export XLSX</button>
+            <button className="btn btn-sm btn-outline" disabled={!contacts.length} onClick={copyContacts}><FontAwesomeIcon icon={faCopy} className="mr-1.5" /> Copy Contacts</button>
             <button className="btn btn-sm" onClick={() => { setView("list"); setContactForm({}); setEditingContact(null); setAlert(""); }}>← Back</button>
           </div>
         </div>
@@ -505,7 +521,7 @@ export default function Outreach() {
       if (!newLinks.length) return;
       setNl({ links: [...links.filter(l => l.name || l.url), ...newLinks] });
       setSocialLinksAdded(true);
-      setAlert("✅ Social links added");
+      setAlert("Social links added", true);
     };
 
     const removeSocialLinksBlock = () => {
@@ -621,7 +637,7 @@ export default function Outreach() {
                   <div key={i} className="flex gap-2">
                     <input className="input input-sm input-bordered flex-1" placeholder="Label (e.g. Spotify)" value={l.name} onChange={e => setLink(i, { name: e.target.value })} />
                     <input className="input input-sm input-bordered flex-1" placeholder="https://…" value={l.url} onChange={e => setLink(i, { url: e.target.value })} />
-                    <button type="button" className="btn btn-xs btn-error" onClick={() => setNl({ links: links.filter(x => x !== l) })}>✕</button>
+                    <button type="button" className="btn btn-xs btn-error" onClick={() => setNl({ links: links.filter(x => x !== l) })}><FontAwesomeIcon icon={faXmark} /></button>
                   </div>
                 ))}
                 {regularLinks.length === 0 && <p className="text-xs text-gray-400">No links yet</p>}
@@ -633,7 +649,7 @@ export default function Outreach() {
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <span className="text-sm font-semibold text-purple-800">🛒 Merch</span>
+                    <span className="text-sm font-semibold text-purple-800"><FontAwesomeIcon icon={faCartShopping} className="mr-1.5" /> Merch</span>
                     {selectedMerchIds.length > 0 && <span className="ml-2 text-xs text-purple-600">{selectedMerchIds.length} selected</span>}
                   </div>
                   <button type="button" className="btn btn-xs btn-outline border-purple-400 text-purple-700" onClick={() => setShowMerchPicker(p => !p)}>
@@ -646,7 +662,7 @@ export default function Outreach() {
                       <div key={l.id} className="flex items-center gap-1 bg-white border border-purple-200 rounded-full px-2 py-0.5 text-xs">
                         {l.image && <img src={l.image} alt="" className="w-4 h-4 rounded-full object-cover" />}
                         <span className="text-purple-800 font-medium truncate max-w-[100px]">{l.name}</span>
-                        <button type="button" onClick={() => setNl({ links: links.filter(x => x !== l) })} className="text-purple-400 hover:text-red-500 ml-1">✕</button>
+                        <button type="button" onClick={() => setNl({ links: links.filter(x => x !== l) })} className="text-purple-400 hover:text-red-500 ml-1"><FontAwesomeIcon icon={faXmark} /></button>
                       </div>
                     ))}
                   </div>
@@ -716,7 +732,7 @@ export default function Outreach() {
               ))}
             </div>
 
-            {alert && <p className={`text-sm ${alert.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
+            {alert && <p className={`text-sm ${alertOk ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
 
             <div className="flex gap-3 flex-wrap">
               <button className="btn btn-primary" disabled={isLoading} onClick={handleSave}>{isLoading ? "Saving…" : "Save"}</button>
@@ -783,11 +799,11 @@ export default function Outreach() {
         </p>
       )}
 
-      {alert && <p className={`text-sm mb-3 ${alert.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
+      {alert && <p className={`text-sm mb-3 ${alertOk ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
 
       {newsletters.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
-          <div className="text-5xl mb-3">📣</div>
+          <div className="text-5xl mb-3 text-gray-300"><FontAwesomeIcon icon={faBullhorn} /></div>
           <p className="font-medium text-gray-600">No newsletters yet</p>
           <p className="text-sm mt-1">Hit <strong>+ New Newsletter</strong> to create your first one</p>
         </div>
@@ -836,7 +852,7 @@ export default function Outreach() {
           onClose={() => setSendDialog(null)}
           onSent={async () => {
             setSendDialog(null);
-            setAlert("✅ Newsletter sent!");
+            setAlert("Newsletter sent!", true);
             await loadNewsletters();
           }}
         />

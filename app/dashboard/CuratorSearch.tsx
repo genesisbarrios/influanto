@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import posthog from "posthog-js";
 import apiClient from "@/libs/api";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEnvelope, faXmark, faCheck, faCopy } from "@fortawesome/free-solid-svg-icons";
 
 const LINK_PLACEHOLDER = '[ paste your track link here ]';
 
@@ -73,7 +75,9 @@ const PitchToSpotify: React.FC = () => {
   const [emailForm, setEmailForm] = useState({ subject: '', body: '' });
   const [sending, setSending] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [emailAlert, setEmailAlert] = useState('');
+  const [emailAlert, setEmailAlertRaw] = useState('');
+  const [emailAlertOk, setEmailAlertOk] = useState(false);
+  const setEmailAlert = (msg: string, ok = false) => { setEmailAlertRaw(msg); setEmailAlertOk(ok); };
 
   // ── Track link (release page dropdown or a pasted link) ──
   const [releasePages, setReleasePages] = useState<{ name: string; image?: string }[]>([]);
@@ -160,7 +164,7 @@ ${(data?.user?.name as string) || ''}`,
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || 'Failed to send');
       posthog.capture('curator_email_sent', { playlist: emailModal.name });
-      setEmailAlert('✅ Email sent!');
+      setEmailAlert('Email sent!', true);
       setTimeout(() => setEmailModal(null), 1200);
     } catch (e: any) {
       setEmailAlert(e?.message || 'Failed to send');
@@ -345,7 +349,7 @@ ${(data?.user?.name as string) || ''}`,
                     onClick={() => openEmail(playlist)}
                     className="inline-block mt-2 px-4 py-2 text-white bg-green-500 rounded-lg text-sm hover:bg-green-600"
                   >
-                    ✉️ Email
+                    <FontAwesomeIcon icon={faEnvelope} className="mr-1.5" /> Email
                   </button>
                 )}
               </div>
@@ -363,7 +367,7 @@ ${(data?.user?.name as string) || ''}`,
                 <h3 className="text-lg font-semibold">Email curator</h3>
                 <p className="text-sm text-gray-500 mt-0.5">{emailModal.owner} · {emailModal.email}</p>
               </div>
-              <button className="text-gray-400 hover:text-gray-600" onClick={() => setEmailModal(null)}>✕</button>
+              <button className="text-gray-400 hover:text-gray-600" onClick={() => setEmailModal(null)}><FontAwesomeIcon icon={faXmark} /></button>
             </div>
 
             <div className="p-5 space-y-3">
@@ -406,16 +410,16 @@ ${(data?.user?.name as string) || ''}`,
                 />
               </div>
               <p className="text-xs text-gray-400">Replies go straight to your account email. Edit the template before sending.</p>
-              {emailAlert && <p className={`text-sm ${emailAlert.startsWith('✅') ? 'text-green-600' : 'text-red-500'}`}>{emailAlert}</p>}
+              {emailAlert && <p className={`text-sm ${emailAlertOk ? 'text-green-600' : 'text-red-500'}`}>{emailAlert}</p>}
             </div>
 
             <div className="px-5 pb-5 flex justify-end gap-2 flex-wrap">
               <button className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50" onClick={() => setEmailModal(null)}>Cancel</button>
               <button className="px-4 py-2 text-sm border border-indigo-300 text-indigo-700 rounded-md hover:bg-indigo-50" onClick={copyTemplate}>
-                {copied ? '✓ Copied' : '📋 Copy template'}
+                {copied ? <><FontAwesomeIcon icon={faCheck} className="mr-1" /> Copied</> : <><FontAwesomeIcon icon={faCopy} className="mr-1" /> Copy template</>}
               </button>
               <button className="px-4 py-2 text-sm text-white bg-green-600 rounded-md hover:bg-green-700 disabled:bg-gray-400" disabled={sending} onClick={sendCuratorEmail}>
-                {sending ? 'Sending…' : '✉️ Send email'}
+                {sending ? 'Sending…' : <><FontAwesomeIcon icon={faEnvelope} className="mr-1" /> Send email</>}
               </button>
             </div>
           </div>

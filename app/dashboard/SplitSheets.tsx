@@ -6,6 +6,8 @@ import { useSession } from "next-auth/react";
 import jsPDF from "jspdf";
 import posthog from "posthog-js";
 import ImportContactsModal, { ImportField } from "@/components/ImportContactsModal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFileArrowUp, faXmark, faFileLines } from "@fortawesome/free-solid-svg-icons";
 
 const FREE_SPLIT_SHEET_LIMIT = 5;
 
@@ -255,7 +257,9 @@ export default function SplitSheets() {
   const [showImport, setShowImport] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [alert, setAlert] = useState("");
+  const [alert, setAlertRaw] = useState("");
+  const [alertOk, setAlertOk] = useState(false);
+  const setAlert = (msg: string, ok = false) => { setAlertRaw(msg); setAlertOk(ok); };
 
   // Load user + data
   useEffect(() => {
@@ -298,11 +302,11 @@ export default function SplitSheets() {
       };
       if ((sheet as any).id) {
         await apiClient.put(`/split-sheets/${(sheet as any).id}`, payload);
-        setAlert("✅ Saved");
+        setAlert("Saved", true);
       } else {
         await apiClient.post("/split-sheets", payload);
         posthog.capture("split_sheet_created");
-        setAlert("✅ Created");
+        setAlert("Created", true);
       }
       // Auto-add contributors with valid emails to collaborator contacts (skip existing)
       const existingEmails = new Set(contacts.map(c => c.email.toLowerCase()));
@@ -379,7 +383,7 @@ export default function SplitSheets() {
           <h2 className="text-xl font-bold">Collaborator Contacts</h2>
           <div className="flex gap-2">
             <button className="btn btn-sm btn-primary" onClick={() => { setShowAddForm(v => !v); setEditingContact(null); setContactForm({}); setAlert(""); }}>Add +</button>
-            <button className="btn btn-sm btn-outline" onClick={() => { setShowImport(true); setAlert(""); }}>⬆ Import</button>
+            <button className="btn btn-sm btn-outline" onClick={() => { setShowImport(true); setAlert(""); }}><FontAwesomeIcon icon={faFileArrowUp} className="mr-1.5" /> Import</button>
             <button className="btn btn-sm" onClick={() => { setView("list"); setContactForm({}); setEditingContact(null); setAlert(""); }}>← Back</button>
           </div>
         </div>
@@ -518,7 +522,7 @@ export default function SplitSheets() {
                     </div>
                     <button type="button" className="btn btn-xs btn-outline" onClick={() => setSigModal(i)}>Sign</button>
                     {c.signatureDate && <span className="text-xs text-gray-500">{c.signatureDate}</span>}
-                    <button type="button" className="btn btn-xs btn-error" onClick={() => setSheet({ contributors: contributors.filter((_,idx) => idx !== i) })}>✕</button>
+                    <button type="button" className="btn btn-xs btn-error" onClick={() => setSheet({ contributors: contributors.filter((_,idx) => idx !== i) })}><FontAwesomeIcon icon={faXmark} /></button>
                   </div>
                 </div>
               ))}
@@ -538,7 +542,7 @@ export default function SplitSheets() {
                   <input className="input input-sm w-full sm:flex-1 min-w-0" placeholder="Publisher" value={p.publisher} onChange={e => setPublishing(i, { publisher: e.target.value })} />
                   <div className="flex gap-2">
                     <input className="input input-sm flex-1 sm:w-20 sm:flex-none min-w-0" placeholder="%" value={p.percent} onChange={e => setPublishing(i, { percent: e.target.value })} />
-                    <button type="button" className="btn btn-xs btn-error shrink-0" onClick={() => setSheet({ publishing: publishing.filter((_,idx) => idx !== i) })}>✕</button>
+                    <button type="button" className="btn btn-xs btn-error shrink-0" onClick={() => setSheet({ publishing: publishing.filter((_,idx) => idx !== i) })}><FontAwesomeIcon icon={faXmark} /></button>
                   </div>
                 </div>
               ))}
@@ -551,7 +555,7 @@ export default function SplitSheets() {
             <p className="mt-1">Each contributor agrees to the ownership percentages specified above. All royalties will be distributed accordingly. Dispute resolution under the laws of <em>{sheet.stateCountry || "[State/Country]"}</em>. By signing, all parties acknowledge their contributions are accurately reflected.</p>
           </div>
 
-          {alert && <p className={`text-sm ${alert.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
+          {alert && <p className={`text-sm ${alertOk ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
 
           <div className="flex gap-3 flex-wrap">
             <button className="btn btn-primary" disabled={isLoading} onClick={handleSave}>{isLoading ? "Saving…" : "Save"}</button>
@@ -604,11 +608,11 @@ export default function SplitSheets() {
         </p>
       )}
 
-      {alert && <p className={`text-sm mb-3 ${alert.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
+      {alert && <p className={`text-sm mb-3 ${alertOk ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
 
       {sheets.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
-          <div className="text-5xl mb-3">📄</div>
+          <div className="text-5xl mb-3 text-gray-300"><FontAwesomeIcon icon={faFileLines} /></div>
           <p className="font-medium text-gray-600">No split sheets yet</p>
           <p className="text-sm mt-1">Hit <strong>+ New Sheet</strong> to create your first one</p>
         </div>
@@ -647,7 +651,7 @@ export default function SplitSheets() {
           onClose={() => setSendDialog(null)}
           onSent={async () => {
             setSendDialog(null);
-            setAlert("✅ Split sheet sent!");
+            setAlert("Split sheet sent!", true);
             await loadSheets();
           }}
         />

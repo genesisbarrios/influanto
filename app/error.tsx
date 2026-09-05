@@ -131,7 +131,7 @@ export default function Error({
         </div>
 
         <p className="font-medium md:text-xl md:font-semibold">
-          Something went wrong 🥲
+          Something went wrong
         </p>
 
         <p className="text-red-500">{error?.message}</p>

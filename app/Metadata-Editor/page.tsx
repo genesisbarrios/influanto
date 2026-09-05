@@ -6,6 +6,8 @@ import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import { ID3Writer } from "browser-id3-writer";
 import { readWavTags, writeWavTags } from "@/libs/wav-tags";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMusic, faCircleCheck, faDownload } from "@fortawesome/free-solid-svg-icons";
 
 interface Tags {
   title: string; artist: string; album: string; composer: string;
@@ -102,7 +104,7 @@ export default function MetadataEditor() {
         });
         if (savedUrl) URL.revokeObjectURL(savedUrl);
         setSavedUrl(URL.createObjectURL(blob));
-        setStatus("✅ Tags saved — preview and download below.");
+        setStatus("Tags saved — preview and download below.");
         return;
       }
       const writer: any = new ID3Writer(buffer.slice(0));
@@ -121,7 +123,7 @@ export default function MetadataEditor() {
       const blob = writer.getBlob();
       if (savedUrl) URL.revokeObjectURL(savedUrl);
       setSavedUrl(URL.createObjectURL(blob));
-      setStatus("✅ Tags saved — preview and download below.");
+      setStatus("Tags saved — preview and download below.");
     } catch (e: any) {
       setError(e?.message?.includes("ID3") || e?.message?.includes("MP3") ? "Tag editing currently supports MP3 files. For WAV, convert to MP3 first." : (e?.message || "Could not save tags"));
     }
@@ -147,7 +149,7 @@ export default function MetadataEditor() {
                 {/* Cover */}
                 <div className="text-center">
                   <div style={{ width: 120, height: 120, borderRadius: 10, overflow: "hidden", background: "#e5e7eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {cover ? <img src={cover} alt="cover" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 36 }}>🎵</span>}
+                    {cover ? <img src={cover} alt="cover" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 36, color: "#9ca3af" }}><FontAwesomeIcon icon={faMusic} /></span>}
                   </div>
                   {isWav ? (
                     <p className="text-[11px] text-gray-400 mt-2" style={{ maxWidth: 120 }}>Cover art isn&apos;t supported in WAV</p>
@@ -174,11 +176,11 @@ export default function MetadataEditor() {
               </div>
 
               {error && <p className="text-sm text-red-600">{error}</p>}
-              {status && <p className="text-sm text-green-600">{status}</p>}
+              {status && <p className="text-sm text-green-600"><FontAwesomeIcon icon={faCircleCheck} className="mr-1.5" /> {status}</p>}
 
               <div className="flex gap-3 flex-wrap">
                 <button className="btn btn-primary" style={{ background: "#2563eb", border: "none", color: "#fff" }} onClick={save}>Save tags</button>
-                {savedUrl && <a className="btn" style={{ background: "#16a34a", color: "#fff", border: "none" }} href={savedUrl} download={downloadName}>⬇️ Download</a>}
+                {savedUrl && <a className="btn" style={{ background: "#16a34a", color: "#fff", border: "none" }} href={savedUrl} download={downloadName}><FontAwesomeIcon icon={faDownload} className="mr-1.5" /> Download</a>}
                 <button className="btn btn-outline" onClick={() => { setFile(null); setBuffer(null); setTags(EMPTY); setCover(""); setCoverBuffer(null); setSavedUrl(""); setStatus(""); setError(""); }}>Upload new file</button>
               </div>
 

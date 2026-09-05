@@ -4,6 +4,17 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import { PianoDiagram, SheetMusic } from "@/components/ChordDiagrams";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faHeadphones,
+  faMusic,
+  faKeyboard,
+  faMicrophone,
+  faTrophy,
+  faRotateRight,
+  faCircleCheck,
+} from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 // ── Pitch detection (autocorrelation, same as Tuner) ─────────────────────────
 
@@ -91,10 +102,10 @@ const accColor = (pct: number) => pct >= 80 ? "#16a34a" : pct >= 50 ? "#d97706" 
 type Mode = "pitch" | "interval" | "chord";
 type Voicing = "bass" | "tenor" | "alto" | "soprano";
 type Presentation = "listening" | "sheet" | "piano";
-const PRESENTATIONS: { id: Presentation; icon: string; label: string }[] = [
-  { id: "listening", icon: "🎧", label: "Listening" },
-  { id: "sheet", icon: "🎼", label: "Sheet Music" },
-  { id: "piano", icon: "🎹", label: "Piano" },
+const PRESENTATIONS: { id: Presentation; icon: IconDefinition; label: string }[] = [
+  { id: "listening", icon: faHeadphones, label: "Listening" },
+  { id: "sheet", icon: faMusic, label: "Sheet Music" },
+  { id: "piano", icon: faKeyboard, label: "Piano" },
 ];
 
 const VOICINGS: { id: Voicing; label: string; melodyBase: number; rootMin: number; rootMax: number }[] = [
@@ -407,7 +418,7 @@ export default function EarTraining() {
           onClick={() => setPresentation(p.id)}
           className={`px-3 py-1.5 rounded-full text-xs font-semibold border-2 transition-all cursor-pointer ${presentation === p.id ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-500 hover:border-gray-400"}`}
         >
-          {p.icon} {p.label}
+          <FontAwesomeIcon icon={p.icon} className="mr-1" /> {p.label}
         </button>
       ))}
     </div>
@@ -433,7 +444,7 @@ export default function EarTraining() {
         <div className="max-w-2xl mx-auto px-4 py-10">
 
           <div className="text-center mb-6">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">🎵 Ear Training</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2"><FontAwesomeIcon icon={faMusic} className="mr-2" /> Ear Training</h1>
             <p className="text-gray-500">Train your ear to match pitches and recognize intervals and chords.</p>
           </div>
 
@@ -454,9 +465,9 @@ export default function EarTraining() {
           {!mode && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {([
-                { id: "pitch" as Mode, icon: "🎤", title: "Pitch Matching", desc: "Sing back a melody and score your accuracy" },
-                { id: "interval" as Mode, icon: "🎼", title: "Interval Recognition", desc: "Identify all intervals from minor 2nd to octave" },
-                { id: "chord" as Mode, icon: "🎹", title: "Chord Recognition", desc: "Identify major, minor, major 7, minor 7, and dominant 7 chords" },
+                { id: "pitch" as Mode, icon: faMicrophone, title: "Pitch Matching", desc: "Sing back a melody and score your accuracy" },
+                { id: "interval" as Mode, icon: faMusic, title: "Interval Recognition", desc: "Identify all intervals from minor 2nd to octave" },
+                { id: "chord" as Mode, icon: faKeyboard, title: "Chord Recognition", desc: "Identify major, minor, major 7, minor 7, and dominant 7 chords" },
               ] as const).map(m => (
                 <button key={m.id}
                   onClick={() => {
@@ -466,7 +477,7 @@ export default function EarTraining() {
                   }}
                   className="p-6 bg-white rounded-2xl border-2 border-gray-200 hover:border-blue-500 hover:shadow-md transition-all text-left cursor-pointer"
                 >
-                  <div className="text-4xl mb-3">{m.icon}</div>
+                  <div className="text-4xl mb-3 text-blue-600"><FontAwesomeIcon icon={m.icon} /></div>
                   <h3 className="font-bold text-gray-900 mb-1">{m.title}</h3>
                   <p className="text-sm text-gray-500">{m.desc}</p>
                 </button>
@@ -483,7 +494,7 @@ export default function EarTraining() {
           {/* ── Session Complete ── */}
           {sessionDone && (
             <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
-              <div className="text-5xl mb-4">🏆</div>
+              <div className="text-5xl mb-4 text-yellow-500"><FontAwesomeIcon icon={faTrophy} /></div>
               <h2 className="text-2xl font-bold text-gray-900 mb-1">Session Complete!</h2>
               <p className="text-gray-500 text-sm mb-6">{SESSION_ROUNDS} rounds finished</p>
 
@@ -491,10 +502,16 @@ export default function EarTraining() {
                 {(["pitch", "interval", "chord"] as Mode[]).map(m => {
                   const s = sessionStatsRef.current[m];
                   if (s === undefined) return null;
-                  const labels: Record<Mode, string> = { pitch: "🎤 Pitch Matching", interval: "🎼 Interval Recognition", chord: "🎹 Chord Recognition" };
+                  const labels: Record<Mode, { icon: IconDefinition; text: string }> = {
+                    pitch: { icon: faMicrophone, text: "Pitch Matching" },
+                    interval: { icon: faMusic, text: "Interval Recognition" },
+                    chord: { icon: faKeyboard, text: "Chord Recognition" },
+                  };
                   return (
                     <div key={m} className="flex justify-between items-center px-4 py-3 rounded-xl bg-gray-50 border border-gray-200">
-                      <span className="text-sm font-medium text-gray-700">{labels[m]}</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        <FontAwesomeIcon icon={labels[m].icon} className="mr-1.5" /> {labels[m].text}
+                      </span>
                       <span className="text-lg font-bold" style={{ color: accColor(s) }}>{s}%</span>
                     </div>
                   );
@@ -570,7 +587,7 @@ export default function EarTraining() {
 
               {phase === "playing" && (
                 <div className="text-center">
-                  <p className="text-xl font-semibold text-blue-600 mb-3">🎵 Listen to the melody…</p>
+                  <p className="text-xl font-semibold text-blue-600 mb-3"><FontAwesomeIcon icon={faMusic} className="mr-2" /> Listen to the melody…</p>
                   <div className="flex justify-center gap-2">
                     {melody.map((_, i) => (
                       <div key={i} style={{ width: 12, height: 12, borderRadius: "50%", background: activeNote === i ? "#3b82f6" : "#e5e7eb", transition: "background 0.15s" }} />
@@ -581,7 +598,7 @@ export default function EarTraining() {
 
               {phase === "singing" && (
                 <div className="text-center">
-                  <p className="text-xl font-semibold text-green-600 mb-1">🎤 Sing the whole melody back!</p>
+                  <p className="text-xl font-semibold text-green-600 mb-1"><FontAwesomeIcon icon={faMicrophone} className="mr-2" /> Sing the whole melody back!</p>
                   {liveFreq > 0 && (
                     <p className="text-xs text-gray-400 mb-3">{liveFreq.toFixed(1)} Hz · {midiToName(freqToMidi(liveFreq))}</p>
                   )}
@@ -599,10 +616,10 @@ export default function EarTraining() {
                     {roundScore!.toFixed(0)}%
                   </p>
                   <p className="text-gray-500 text-sm mb-5">
-                    {roundScore! >= 90 ? "Perfect pitch! 🎉" : roundScore! >= 70 ? "Great job! Keep it up." : roundScore! >= 40 ? "Good try — keep practicing!" : "Keep going, practice makes perfect!"}
+                    {roundScore! >= 90 ? <><FontAwesomeIcon icon={faTrophy} className="mr-1.5 text-yellow-500" /> Perfect pitch!</> : roundScore! >= 70 ? "Great job! Keep it up." : roundScore! >= 40 ? "Good try — keep practicing!" : "Keep going, practice makes perfect!"}
                   </p>
                   <div className="flex justify-center gap-3">
-                    <button onClick={replayMelody} className="btn btn-outline btn-sm">🔁 Replay Melody</button>
+                    <button onClick={replayMelody} className="btn btn-outline btn-sm"><FontAwesomeIcon icon={faRotateRight} className="mr-1.5" /> Replay Melody</button>
                     <button onClick={startPitchRound} className="btn btn-primary btn-sm">Next Round</button>
                   </div>
                 </div>
@@ -631,7 +648,7 @@ export default function EarTraining() {
                       : <SheetMusic root={intervalPayloadRef.current.root} intervals={[0, intervalPayloadRef.current.semitones]} />}
                   </div>
                 )}
-                <button onClick={replayInterval} className="btn btn-outline btn-sm">🔁 Play Again</button>
+                <button onClick={replayInterval} className="btn btn-outline btn-sm"><FontAwesomeIcon icon={faRotateRight} className="mr-1.5" /> Play Again</button>
               </div>
 
               {question && (
@@ -645,7 +662,7 @@ export default function EarTraining() {
                   {selected !== null && !sessionDone && (
                     <div className="text-center mt-2">
                       <p className={`font-bold mb-3 ${isCorrect ? "text-green-600" : "text-red-500"}`}>
-                        {isCorrect ? "Correct! 🎉" : `Not quite — it was ${question.answer}`}
+                        {isCorrect ? <><FontAwesomeIcon icon={faCircleCheck} className="mr-1.5" /> Correct!</> : `Not quite — it was ${question.answer}`}
                       </p>
                       <button onClick={newIntervalQuestion} className="btn btn-primary btn-sm">Next Interval</button>
                     </div>
@@ -676,7 +693,7 @@ export default function EarTraining() {
                       : <SheetMusic root={chordPayloadRef.current.root} intervals={chordPayloadRef.current.intervals} />}
                   </div>
                 )}
-                <button onClick={replayChord} className="btn btn-outline btn-sm">🔁 Play Again</button>
+                <button onClick={replayChord} className="btn btn-outline btn-sm"><FontAwesomeIcon icon={faRotateRight} className="mr-1.5" /> Play Again</button>
               </div>
 
               {question && (
@@ -690,7 +707,7 @@ export default function EarTraining() {
                   {selected !== null && !sessionDone && (
                     <div className="text-center mt-2">
                       <p className={`font-bold mb-3 ${isCorrect ? "text-green-600" : "text-red-500"}`}>
-                        {isCorrect ? "Correct! 🎉" : `Not quite — it was ${question.answer}`}
+                        {isCorrect ? <><FontAwesomeIcon icon={faCircleCheck} className="mr-1.5" /> Correct!</> : `Not quite — it was ${question.answer}`}
                       </p>
                       <button onClick={newChordQuestion} className="btn btn-primary btn-sm">Next Chord</button>
                     </div>

@@ -1,5 +1,7 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 
 interface PrintifyProduct {
   id: string;
@@ -118,7 +120,7 @@ const PrintifyProducts = ({
   if (error) {
     return (
       <div className="text-center py-4" style={{ color: textColor, fontFamily: font }}>
-        <p className="text-sm">❌ {error}</p>
+        <p className="text-sm"><FontAwesomeIcon icon={faTriangleExclamation} className="mr-1.5" /> {error}</p>
         <button
           onClick={() => fetchProducts(1, false)}
           className="text-xs underline mt-2"

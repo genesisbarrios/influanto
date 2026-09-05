@@ -44,7 +44,7 @@ export default function NewsletterEmbed() {
             fields={lib.newsletterFields}
             textColor="#111827"
             linksColor={lib.linksColor || "#4f46e5"}
-            heading={`📣 Join ${data?.user?.name || username}'s newsletter`}
+            heading={`Join ${data?.user?.name || username}'s newsletter`}
             style={data?.user?.newsletterStyle}
           />
         ) : (

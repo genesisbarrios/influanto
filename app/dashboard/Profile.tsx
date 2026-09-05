@@ -8,7 +8,23 @@ import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faDiscord, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube, faBluesky } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGlobe, faLocation, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import {
+  faGlobe,
+  faLocation,
+  faEnvelope,
+  faPalette,
+  faCreditCard,
+  faPlug,
+  faCheck,
+  faXmark,
+  faPen,
+  faBullhorn,
+  faCircleCheck,
+  faClock,
+  faRotate,
+  faHand,
+  faCopy,
+} from "@fortawesome/free-solid-svg-icons";
 
 import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
@@ -924,7 +940,7 @@ const handleYouTubeMusicChange = (e: any) => {
       {!user.username && !welcomeDismissedLocally && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 text-black">
-            <div className="text-4xl mb-2">👋</div>
+            <div className="text-4xl mb-2 text-gray-300"><FontAwesomeIcon icon={faHand} /></div>
             <h3 className="text-lg font-bold mb-3">Welcome to Influanto!</h3>
             <p className="text-sm text-gray-600 mb-3">Here&apos;s how to get set up:</p>
             <ol className="text-sm text-gray-700 list-decimal list-inside space-y-2 mb-4">
@@ -1045,7 +1061,7 @@ const handleYouTubeMusicChange = (e: any) => {
               return (
                 <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">
                   <div className="flex items-center gap-2 mb-1">
-                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}>📨</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faEnvelope} /></span>
                     <h3 className="font-bold text-base text-gray-800">Embed your newsletter</h3>
                   </div>
                   <p className="text-sm text-gray-500 mb-3">Paste this code on any website to collect newsletter signups (works once newsletter signups are enabled on your Link in Bio).</p>
@@ -1062,10 +1078,10 @@ const handleYouTubeMusicChange = (e: any) => {
                       className="btn btn-sm btn-primary"
                       onClick={async () => { try { await navigator.clipboard.writeText(embedCode); setEmbedCopied(true); setTimeout(() => setEmbedCopied(false), 2000); } catch { /* ignore */ } }}
                     >
-                      {embedCopied ? '✓ Copied' : '📋 Copy embed code'}
+                      {embedCopied ? <><FontAwesomeIcon icon={faCheck} className="mr-1" /> Copied</> : <><FontAwesomeIcon icon={faCopy} className="mr-1" /> Copy embed code</>}
                     </button>
                     <button type="button" className="btn btn-sm btn-outline" onClick={() => setShowNewsletterStyle(s => !s)}>
-                      {showNewsletterStyle ? '✕ Close style' : '✏️ Edit style'}
+                      {showNewsletterStyle ? <><FontAwesomeIcon icon={faXmark} className="mr-1" /> Close style</> : <><FontAwesomeIcon icon={faPen} className="mr-1" /> Edit style</>}
                     </button>
                     <a href={`/embed/newsletter/${user.username}`} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 underline">Preview</a>
                   </div>
@@ -1077,7 +1093,7 @@ const handleYouTubeMusicChange = (e: any) => {
             {showNewsletterStyle && (
             <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">
               <div className="flex items-center gap-2 mb-1">
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}>🎨</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faPalette} /></span>
                 <h3 className="font-bold text-base text-gray-800">Newsletter Style</h3>
               </div>
               <p className="text-sm text-gray-500 mb-3">Customize the signup form that appears on your pages and embed.</p>
@@ -1085,7 +1101,7 @@ const handleYouTubeMusicChange = (e: any) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium mb-1">Heading</label>
-                  <input className="input input-sm input-bordered w-full" placeholder="📣 Join my newsletter" value={newsletterStyle.heading ?? ""} onChange={e => setNL({ heading: e.target.value })} />
+                  <input className="input input-sm input-bordered w-full" placeholder="Join my newsletter" value={newsletterStyle.heading ?? ""} onChange={e => setNL({ heading: e.target.value })} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1">Subtitle</label>
@@ -1156,7 +1172,7 @@ const handleYouTubeMusicChange = (e: any) => {
             {/* ── Business Cards ── */}
             <div className="mt-5 p-4 border border-gray-200 rounded-lg bg-white text-left">
               <div className="flex items-center gap-2 mb-1">
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}>💳</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faCreditCard} /></span>
                 <span className="font-semibold text-sm text-gray-800">Digital Business Card</span>
               </div>
               <p className="text-sm text-gray-500 mb-4">Create a digital business card for Google or Apple Wallet. Let people scan the QR code for a shortcut to your Links page.</p>
@@ -1170,7 +1186,7 @@ const handleYouTubeMusicChange = (e: any) => {
             {/* ── Integrations ── */}
             <div className="mt-5 p-4 border border-gray-200 rounded-lg bg-white text-left">
               <div className="flex items-center gap-2 mb-4">
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 7, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 13 }}>🔌</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 7, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 13 }}><FontAwesomeIcon icon={faPlug} /></span>
                 <h3 className="m-0 font-semibold text-base">Integrations</h3>
               </div>
 
@@ -1213,7 +1229,7 @@ const handleYouTubeMusicChange = (e: any) => {
               ) : user?.metaPixelId ? (
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-medium text-green-700">✅ Pixel Connected</div>
+                    <div className="text-sm font-medium text-green-700"><FontAwesomeIcon icon={faCircleCheck} className="mr-1.5" /> Pixel Connected</div>
                     <div className="text-xs text-gray-500 mt-0.5">ID: {user.metaPixelId}</div>
                   </div>
                   <div className="flex gap-2">
@@ -1249,7 +1265,7 @@ const handleYouTubeMusicChange = (e: any) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-green-800">
-                        ✅ Printify Store Connected
+                        <FontAwesomeIcon icon={faCircleCheck} className="mr-1.5" /> Printify Store Connected
                       </div>
                       <div className="text-xs text-green-600 mt-1">
                         Store: {user.printifyStoreName || 'Connected Store'}<br/>
@@ -1283,19 +1299,19 @@ const handleYouTubeMusicChange = (e: any) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
               <div className="flex items-center space-x-2 text-sm text-gray-700">
                 <span className="flex-shrink-0 w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 text-xs">✓</span>
+                  <FontAwesomeIcon icon={faCheck} className="text-green-600 text-xs" />
                 </span>
                 <span>Advanced Styling Features</span>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-700">
                 <span className="flex-shrink-0 w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 text-xs">✓</span>
+                  <FontAwesomeIcon icon={faCheck} className="text-green-600 text-xs" />
                 </span>
                 <span>Advanced QR Code Generator</span>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-700">
                 <span className="flex-shrink-0 w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 text-xs">✓</span>
+                  <FontAwesomeIcon icon={faCheck} className="text-green-600 text-xs" />
                 </span>
                 <span>More Release Pages</span>
               </div>
@@ -1311,22 +1327,22 @@ const handleYouTubeMusicChange = (e: any) => {
               {/* Enhanced trial notice */}
               <div className="mt-4 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-white/20">
                 <div className="flex items-center justify-center space-x-2 mb-1">
-                  <span className="text-lg">⏰</span>
+                  <FontAwesomeIcon icon={faClock} className="text-lg" />
                   <span className="text-sm font-semibold text-gray-800">
                     14-Day FREE Trial
                   </span>
-                  <span className="text-lg">⏰</span>
+                  <FontAwesomeIcon icon={faClock} className="text-lg" />
                 </div>
                 <p className="text-xs text-gray-600 leading-relaxed">
                   Start your free trial today • No commitment required • Cancel anytime
                 </p>
                 <div className="flex items-center justify-center space-x-4 mt-2 text-xs text-gray-500">
                   <div className="flex items-center space-x-1">
-                    <span>💳</span>
+                    <FontAwesomeIcon icon={faCreditCard} />
                     <span>No charges for 14 days</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <span>🔄</span>
+                    <FontAwesomeIcon icon={faRotate} />
                     <span>Cancel with one click</span>
                   </div>
                 </div>

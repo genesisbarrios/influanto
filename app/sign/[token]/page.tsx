@@ -3,6 +3,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import jsPDF from "jspdf";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLinkSlash, faCircleCheck, faDownload, faRightToBracket } from "@fortawesome/free-solid-svg-icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -208,7 +210,7 @@ export default function SignPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="bg-white rounded-2xl shadow-lg p-10 max-w-md text-center">
-          <div className="text-5xl mb-4">🔗</div>
+          <div className="text-5xl mb-4 text-gray-300"><FontAwesomeIcon icon={faLinkSlash} /></div>
           <h1 className="text-xl font-bold text-gray-800 mb-2">Invalid or Expired Link</h1>
           <p className="text-gray-500 text-sm">{error || "This signing link is no longer valid."}</p>
           <a href="https://influanto.com" className="mt-6 inline-block btn btn-primary btn-sm">Go to Influanto</a>
@@ -317,13 +319,13 @@ export default function SignPage() {
                 </div>
               )}
               <p className="text-xs text-green-700 mb-4">
-                ✅ Signed{signer.signedAt ? ` on ${new Date(signer.signedAt).toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" })}` : ""}
+                <FontAwesomeIcon icon={faCircleCheck} className="mr-1.5" /> Signed{signer.signedAt ? ` on ${new Date(signer.signedAt).toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" })}` : ""}
               </p>
               <button
                 onClick={() => downloadPDF(sheet, signer.signatureData ? { name: signer.name, data: signer.signatureData } : undefined)}
                 className="btn btn-primary w-full"
               >
-                ⬇️ Download PDF
+                <FontAwesomeIcon icon={faDownload} className="mr-1.5" /> Download PDF
               </button>
             </>
           ) : (
@@ -339,7 +341,7 @@ export default function SignPage() {
               <p className="text-xs text-gray-400">Log in to manage and track your own split sheets</p>
             </div>
             <a href={loginUrl} className="btn btn-sm btn-outline">
-              🔐 Login / Sign up
+              <FontAwesomeIcon icon={faRightToBracket} className="mr-1.5" /> Login / Sign up
             </a>
           </div>
         )}

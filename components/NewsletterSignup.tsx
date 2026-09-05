@@ -1,6 +1,8 @@
 "use client";
 /* eslint-disable */
 import React, { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 
 export interface NewsletterStyle {
   heading?: string;
@@ -63,7 +65,7 @@ export default function NewsletterSignup({ username, source, fields = ["name", "
 
   const text = style?.textColor || textColor || "#ffffff";
   const accent = style?.buttonColor || linksColor || "#4f46e5";
-  const headingText = style?.heading || heading || "📣 Join my newsletter";
+  const headingText = style?.heading || heading || "Join my newsletter";
   const subtitle = style?.subtitle || "Get updates on new releases straight to your inbox.";
   const cardBg = style?.bgColor;
   // Optional fields (email is rendered separately and always required). The
@@ -131,7 +133,7 @@ export default function NewsletterSignup({ username, source, fields = ["name", "
   if (status === "done") {
     return (
       <div style={{ maxWidth: 420, margin: "24px auto", textAlign: "center", color: text }}>
-        <div style={{ fontSize: 32, marginBottom: 8 }}>🎉</div>
+        <div style={{ fontSize: 32, marginBottom: 8 }}><FontAwesomeIcon icon={faCircleCheck} /></div>
         <p style={{ fontWeight: 700 }}>You're on the list!</p>
         <p style={{ opacity: 0.7, fontSize: 14 }}>Thanks for subscribing.</p>
       </div>

@@ -2,6 +2,8 @@
 /* eslint-disable */
 import React from "react";
 import { CldUploadWidget } from "next-cloudinary";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark, faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
 
 interface Props {
   images: string[];                 // the user's existing images (gallery)
@@ -21,7 +23,7 @@ export default function ImagePicker({ images, uploadPreset, uploadOptions, onUpl
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col text-black">
         <div className="px-5 py-4 border-b flex items-center justify-between">
           <h3 className="text-lg font-semibold">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none"><FontAwesomeIcon icon={faXmark} /></button>
         </div>
 
         <div className="p-5 overflow-y-auto">
@@ -32,7 +34,7 @@ export default function ImagePicker({ images, uploadPreset, uploadOptions, onUpl
           >
             {({ open }: { open: () => void }) => (
               <button type="button" onClick={() => open()} className="btn btn-primary w-full mb-4">
-                ⬆️ Upload a new image
+                <FontAwesomeIcon icon={faArrowUpFromBracket} className="mr-1.5" /> Upload a new image
               </button>
             )}
           </CldUploadWidget>

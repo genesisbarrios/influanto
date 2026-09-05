@@ -4,6 +4,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faQrcode, faEarListen, faFileLines, faEnvelope, faLink, faMusic } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 export const metadata: Metadata = {
   title: "Music Blog for Independent Artists & Producers | Influanto",
@@ -32,7 +35,7 @@ const posts = [
     readTime: "7 min read",
     tag: "Marketing",
     tagColor: "#ec4899",
-    emoji: "🎯",
+    icon: faQrcode as IconDefinition,
   },
   {
     slug: "ear-training-for-musicians",
@@ -42,7 +45,7 @@ const posts = [
     readTime: "7 min read",
     tag: "Music Theory",
     tagColor: "#8b5cf6",
-    emoji: "👂",
+    icon: faEarListen as IconDefinition,
   },
   {
     slug: "split-sheets-indie-artists",
@@ -52,7 +55,7 @@ const posts = [
     readTime: "6 min read",
     tag: "Business",
     tagColor: "#f59e0b",
-    emoji: "📄",
+    icon: faFileLines as IconDefinition,
   },
   {
     slug: "newsletter-for-independent-artists",
@@ -62,7 +65,7 @@ const posts = [
     readTime: "6 min read",
     tag: "Marketing",
     tagColor: "#0ea5e9",
-    emoji: "📧",
+    icon: faEnvelope as IconDefinition,
   },
   {
     slug: "link-in-bio-for-independent-artists",
@@ -72,7 +75,7 @@ const posts = [
     readTime: "6 min read",
     tag: "Marketing",
     tagColor: "#6366f1",
-    emoji: "🔗",
+    icon: faLink as IconDefinition,
   },
   {
     slug: "music-release-pages-indie-artists",
@@ -82,7 +85,7 @@ const posts = [
     readTime: "7 min read",
     tag: "Releases",
     tagColor: "#10b981",
-    emoji: "🎵",
+    icon: faMusic as IconDefinition,
   },
 ];
 
@@ -124,8 +127,8 @@ export default function BlogIndex() {
                 }}
                   className="blog-card"
                 >
-                  <div style={{ fontSize: "2.5rem", lineHeight: 1, flexShrink: 0, width: 56, height: 56, background: "#f3f4f6", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {post.emoji}
+                  <div style={{ fontSize: "1.5rem", lineHeight: 1, flexShrink: 0, width: 56, height: 56, background: "#f3f4f6", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", color: post.tagColor }}>
+                    <FontAwesomeIcon icon={post.icon} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>

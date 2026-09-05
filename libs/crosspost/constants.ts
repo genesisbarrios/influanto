@@ -1,5 +1,7 @@
 // Shared crossposting metadata: platforms, what each accepts, and the
 // aspect-ratio / duration specs used for validation + 1-click auto-crop.
+import { faInstagram, faTiktok, faYoutube } from "@fortawesome/free-brands-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 export type Platform = "instagram" | "tiktok" | "youtube";
 export type PostKind = "image" | "video";
@@ -7,15 +9,15 @@ export type PostKind = "image" | "video";
 export interface PlatformMeta {
   key: Platform;
   label: string;
-  icon: string;
+  icon: IconDefinition;
   kinds: PostKind[]; // which post kinds this platform accepts
   videoLabel?: string; // e.g. "Reels", "Shorts"
 }
 
 export const PLATFORMS: PlatformMeta[] = [
-  { key: "instagram", label: "Instagram", icon: "📸", kinds: ["image", "video"], videoLabel: "Reels" },
-  { key: "tiktok", label: "TikTok", icon: "🎵", kinds: ["image", "video"] },
-  { key: "youtube", label: "YouTube", icon: "▶️", kinds: ["video"], videoLabel: "Shorts" },
+  { key: "instagram", label: "Instagram", icon: faInstagram, kinds: ["image", "video"], videoLabel: "Reels" },
+  { key: "tiktok", label: "TikTok", icon: faTiktok, kinds: ["image", "video"] },
+  { key: "youtube", label: "YouTube", icon: faYoutube, kinds: ["video"], videoLabel: "Shorts" },
 ];
 
 export const PLATFORM_LABEL: Record<Platform, string> = {
