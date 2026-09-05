@@ -98,6 +98,12 @@ const migrations = [
   // column was never actually created, so every profile save (not just avatar
   // updates) has been failing with a 500 since then.
   `ALTER TABLE users ADD COLUMN IF NOT EXISTS category TEXT[] DEFAULT '{}'`,
+
+  // free-plan newsletter subscriber cap (50 outreach_contacts) — tracks whether
+  // we've already emailed the artist about hitting the cap (so it only sends
+  // once) and whether they've dismissed the dashboard banner about it.
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS newsletter_limit_notified BOOLEAN DEFAULT FALSE`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS newsletter_limit_banner_dismissed BOOLEAN DEFAULT FALSE`,
 ];
 
 async function run() {

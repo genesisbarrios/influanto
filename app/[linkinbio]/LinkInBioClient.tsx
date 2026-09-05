@@ -593,7 +593,7 @@ return (
       )}
 
         {/* ── Newsletter signup (above the brand / Influanto logo) ── */}
-        {linkInBio?.newsletterEnabled && (
+        {linkInBio?.newsletterEnabled && !user?.newsletterFull && (
           <div className="mt-8 px-4">
             <NewsletterSignup
               username={userName}

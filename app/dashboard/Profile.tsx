@@ -925,6 +925,15 @@ const handleYouTubeMusicChange = (e: any) => {
     fetch('/api/my-images').then(r => r.json()).then(j => setGalleryImages(Array.isArray(j?.images) ? j.images : [])).catch(() => {});
   };
 
+  const dismissNewsletterLimitBanner = async () => {
+    setUser((prev: any) => ({ ...prev, newsletterLimitBannerDismissed: true }));
+    try {
+      const fd = new FormData();
+      fd.append("newsletterLimitBannerDismissed", "true");
+      await apiClient.post("/user", fd, { headers: { "Content-Type": "multipart/form-data" } });
+    } catch { /* local state already reflects the dismissal */ }
+  };
+
   const containerStyle = {
     width: "100%", // Limit width on larger screens
     margin: "0 auto", // Center the container
@@ -970,6 +979,25 @@ const handleYouTubeMusicChange = (e: any) => {
         </div>
       )}
       <div className="p-4 bg-white shadow rounded-md text-black" style={containerStyle}>
+        {user.newsletterLimitNotified && !user.newsletterLimitBannerDismissed && (
+          <div className="relative mb-4 p-4 pr-10 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+            <button
+              type="button"
+              className="absolute top-2 right-2 text-amber-500 hover:text-amber-700"
+              onClick={dismissNewsletterLimitBanner}
+              aria-label="Dismiss"
+            >
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+            <p className="font-semibold mb-1">Your newsletter subscriber list is full</p>
+            <p className="mb-3">
+              You&apos;ve hit the free plan&apos;s 50-subscriber limit, so new newsletter signups on your Link in Bio and Release Pages are paused. Unlock unlimited newsletter subscribers with Influanto Pro — start with a 14-day free trial.
+            </p>
+            <div className="max-w-xs">
+              <ButtonCheckout mode="subscription" priceId={config.stripe.plans[1].priceId} buttonText="Upgrade to Pro" />
+            </div>
+          </div>
+        )}
          <div className="w-full flex justify-between items-center">
             <h2 className="text-xl sm:text-2xl font-bold mb-2">Profile</h2>
            

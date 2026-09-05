@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase, { mapOutreachContact } from "@/libs/supabase";
+import { notifyIfNewsletterLimitReached } from "@/libs/newsletter-limit";
 
 export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -60,5 +61,8 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  await notifyIfNewsletterLimitReached(session.user.id);
+
   return NextResponse.json({ data: mapOutreachContact(data) }, { status: 201 });
 }

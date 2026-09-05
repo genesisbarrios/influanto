@@ -796,7 +796,7 @@ const renderMerchSection = () => {
         </div>
 
         {/* ── Newsletter signup ── */}
-        {releasePage?.newsletterEnabled && (
+        {releasePage?.newsletterEnabled && !user?.newsletterFull && (
           <div className="mt-8 px-4">
             <NewsletterSignup
               username={userName}
