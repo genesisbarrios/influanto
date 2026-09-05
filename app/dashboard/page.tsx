@@ -38,7 +38,7 @@ const TABS: Tab[] = [
   { key: 'link-in-bio', label: 'Link in Bio', icon: faLink },
   { key: 'release-page', label: 'Releases', icon: faCompactDisc },
   { key: 'outreach', label: 'Outreach', icon: faBullhorn },
-  { key: 'split-sheets', label: 'Splits', icon: faFileSignature },
+  { key: 'split-sheets', label: 'Split Sheets', icon: faFileSignature },
   { key: 'curator-search', label: 'Playlisting', icon: faHeadphones },
   { key: 'qr-code-generator', label: 'QR Codes', icon: faQrcode },
   { key: 'community', label: 'Community', icon: faUsers },

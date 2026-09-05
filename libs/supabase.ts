@@ -32,6 +32,7 @@ export function mapUser(row: any) {
     image: row.image,
     location: row.location,
     bio: row.bio,
+    category: row.category ?? [],
     website: row.website,
     etsy: row.etsy,
     instagram: row.instagram,

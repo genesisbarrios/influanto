@@ -118,6 +118,14 @@ export async function POST(req: Request) {
       try { updates.business_card = JSON.parse(businessCard); } catch { /* ignore bad json */ }
     }
 
+    const category = formData.get("category") as string | null;
+    if (category !== null) {
+      try {
+        const parsed = JSON.parse(category);
+        if (Array.isArray(parsed)) updates.category = parsed;
+      } catch { /* ignore bad json */ }
+    }
+
     const { data: updated, error } = await supabase
       .from("users")
       .update(updates)
