@@ -16,6 +16,12 @@ interface Feature {
   format?: string;
   alt?: string;
   svg?: JSX.Element;
+  // Only needed when `path` is a plain string (not a static import) — static
+  // imports already carry their real dimensions, but a bare path has no way
+  // to tell the browser its real aspect ratio, so it falls back to a square
+  // and gets stretched. Set these to the file's actual pixel dimensions.
+  width?: number;
+  height?: number;
 }
 
 // The features array is a list of features that will be displayed in the accordion.
