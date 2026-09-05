@@ -32,6 +32,7 @@ import { CldUploadWidget } from 'next-cloudinary';
 import PrintifyProducts from '@/components/PrintifyProducts';
 import { fetchAllPrintifyProducts } from '@/libs/printify-products';
 import * as HeroPatterns from 'hero-patterns';
+import { normalizeUrl } from '@/libs/urls';
 
 const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
@@ -586,7 +587,7 @@ const LinkInBio = () => {
                           {link.image && (
                             <img src={link.image} alt="Link Image" style={{ borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px' }} />
                           )}
-                          <a href={link.url} target="_blank" rel="noopener noreferrer" style={{ color: linksColor, fontFamily: linkInBio?.font || 'inherit' }}>
+                          <a href={normalizeUrl(link.url)} target="_blank" rel="noopener noreferrer" style={{ color: linksColor, fontFamily: linkInBio?.font || 'inherit' }}>
                             {link.name}
                           </a>
                         </>

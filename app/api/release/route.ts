@@ -2,6 +2,11 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase, { mapReleasePage } from "@/libs/supabase";
+import { normalizeUrl } from "@/libs/urls";
+
+function normalizeLinks(links: any): any {
+  return Array.isArray(links) ? links.map((l: any) => ({ ...l, url: normalizeUrl(l.url) })) : links;
+}
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -25,7 +30,7 @@ export async function POST(req: NextRequest) {
       if (description !== undefined) updates.description = description;
       if (font) updates.font = font;
       if (video !== undefined) updates.video = video;
-      if (Array.isArray(links)) updates.links = links;
+      if (Array.isArray(links)) updates.links = normalizeLinks(links);
       if (selectedProducts !== undefined) updates.selected_products = selectedProducts ?? [];
       if (newsletterEnabled !== undefined) updates.newsletter_enabled = newsletterEnabled;
       if (newsletterFields !== undefined) updates.newsletter_fields = newsletterFields ?? ["name", "email"];
@@ -59,7 +64,7 @@ export async function POST(req: NextRequest) {
         text_color: textColor,
         links_color: linksColor,
         font,
-        links: links ?? [],
+        links: normalizeLinks(links ?? []),
         video,
         image,
         description,

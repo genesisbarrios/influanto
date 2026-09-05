@@ -3,6 +3,11 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase, { mapUser } from "@/libs/supabase";
 import { v2 as cloudinary } from "cloudinary";
+import { normalizeUrl } from "@/libs/urls";
+
+// Fields stored as full URLs (as opposed to bare handles like "instagram")
+// that need a scheme so the profile page's href works when clicked.
+const FULL_URL_FIELDS = new Set(["website", "facebook", "bandcamp"]);
 
 export const dynamic = "force-dynamic";
 
@@ -86,7 +91,7 @@ export async function POST(req: Request) {
 
     for (const [formKey, dbKey] of textFields) {
       const val = formData.get(formKey) as string | null;
-      if (val !== null && val !== "") updates[dbKey] = val;
+      if (val !== null && val !== "") updates[dbKey] = FULL_URL_FIELDS.has(formKey) ? normalizeUrl(val) : val;
     }
 
     const displayEmail = formData.get("displayEmail");

@@ -34,6 +34,7 @@ import NewsletterSignup from "@/components/NewsletterSignup";
 import BusinessCard from "@/components/BusinessCard";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import SettingsDropdown from "@/components/SettingsDropdown";
+import { normalizeUrl } from "@/libs/urls";
 
 
 const Profile =  () => {
@@ -198,10 +199,8 @@ const validateEmail = (value: string) => {
 
 const validateWebsite = (value: string) => {
   if (!value) return true; // Empty is allowed
-  if (!value.startsWith("https://") && !value.startsWith("http://")) {
-    setAlertt("Website must start with 'https://' or 'http://'.");
-    return false;
-  }
+  // A missing https:// is fixed automatically (here and again on save),
+  // not treated as invalid input.
   if (value.length > 200) {
     setAlertt("Website URL is too long.");
     return false;
@@ -261,34 +260,28 @@ const validateYouTubeHandle = (value: string) => {
 
 const validateFacebookLink = (value: string) => {
   if (!value) return true; // Empty is allowed
-  
-  if (!value.startsWith("https://")) {
-    setAlertt("Facebook link must start with 'https://'.");
-    return false;
-  }
-  
+
+  // A missing https:// is fixed automatically (here and again on save),
+  // not treated as invalid input.
   if (!value.includes("facebook.com")) {
     setAlertt("Must be a valid Facebook URL.");
     return false;
   }
-  
+
   setAlertt("");
   return true;
 };
 
 const validateBandcampLink = (value: string) => {
   if (!value) return true; // Empty is allowed
-  
-  if (!value.startsWith("https://")) {
-    setAlertt("Bandcamp link must start with 'https://'.");
-    return false;
-  }
-  
+
+  // A missing https:// is fixed automatically (here and again on save),
+  // not treated as invalid input.
   if (!value.includes("bandcamp.com")) {
     setAlertt("Must be a valid Bandcamp URL.");
     return false;
   }
-  
+
   setAlertt("");
   return true;
 };
@@ -1016,7 +1009,7 @@ const handleYouTubeMusicChange = (e: any) => {
             <p>{user.username}</p>
             <p>
               {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} />{user.location}</span>}
-              {user.website && <a href={ user.website } target="_blank"><FontAwesomeIcon icon={faGlobe} /> Website</a>}
+              {user.website && <a href={normalizeUrl(user.website)} target="_blank"><FontAwesomeIcon icon={faGlobe} /> Website</a>}
             </p>
           
             <p className="text-xs">{user.bio}</p>
@@ -1024,7 +1017,7 @@ const handleYouTubeMusicChange = (e: any) => {
             {user.instagram && <a href={"https://instagram.com/" + user.instagram } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faInstagram} /></a>}
             {user.tiktok && <a href={"https://tiktok.com/@" + user.tiktok } target="_blank" style={{marginRight:"10px", color:"pink"}}><FontAwesomeIcon icon={faTiktok} /></a>}
             {user.twitter && <a href={"https://twitter.com/" + user.twitter } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faTwitter} /></a>}
-            {user.facebook && <a href={user.facebook } target="_blank" style={{marginRight:"10px", color:"blue"}}><FontAwesomeIcon icon={faFacebook} /></a>}
+            {user.facebook && <a href={normalizeUrl(user.facebook)} target="_blank" style={{marginRight:"10px", color:"blue"}}><FontAwesomeIcon icon={faFacebook} /></a>}
             {user.discord && <a href={user.discord } target="_blank" style={{marginRight:"10px", color:"purple"}}><FontAwesomeIcon icon={faDiscord} /></a>}
             {user.etsy && <a href={"https://etsy.com/shop/" + user.etsy } target="_blank" style={{marginRight:"10px", color:"brown"}}><FontAwesomeIcon icon={faEtsy} /></a> }
             {user.youtube && <a href={"https://youtube.com/@" + user.youtube } target="_blank" style={{marginRight:"10px", color:"red"}}><FontAwesomeIcon icon={faYoutube} /></a>}
@@ -1046,7 +1039,7 @@ const handleYouTubeMusicChange = (e: any) => {
             {user.soundcloud && <a href={"https://soundcloud.com/" + user.soundcloud } target="_blank" style={{marginRight:"10px", color:"orange"}}><FontAwesomeIcon icon={faSoundcloud} /></a>}
             {user.deezer && <a href={"https://deezer.com/" + user.deezer } target="_blank" style={{marginRight:"10px", color:"purple"}}><FontAwesomeIcon icon={faDeezer} /></a>}
             {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{marginRight:"10px", color:"darkblue", display:"inline-block"}}><img src="/pandora.png" width={16}/></a>}
-            {user.bandcamp && <a href={ user.bandcamp } target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
+            {user.bandcamp && <a href={normalizeUrl(user.bandcamp)} target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
             
             <br></br>
             {alertMsg && <div className="alert mt-10 w-1/2 m-auto">{alertMsg}</div>}
