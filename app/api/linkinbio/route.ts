@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
           pattern_opacity: body.patternOpacity,
           links: (body.links ?? []).map((l: any) => ({ ...l, url: normalizeUrl(l.url) })),
           selected_products: body.selectedProducts ?? [],
+          custom_merch_links: (body.customMerchLinks ?? []).map((l: any) => ({ ...l, url: normalizeUrl(l.url) })),
           brand_logo_url: body.brandLogoUrl ?? null,
           newsletter_enabled: body.newsletterEnabled ?? false,
           newsletter_fields: body.newsletterFields ?? ["name", "email"],

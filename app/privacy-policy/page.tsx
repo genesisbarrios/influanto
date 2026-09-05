@@ -1,30 +1,24 @@
+import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { getSEOTags } from "@/libs/seo";
 import config from "@/config";
-import { useEffect } from "react";
-
-// - Website: https://influanto.com
-// - Name: influanto
-// - Description: A JavaScript code boilerplate to help entrepreneurs launch their startups faster
-// - User data collected: name, email and payment information
-// - Non-personal data collection: web cookies
-// - Purpose of Data Collection: Order processing
-// - Data sharing: we do not share the data with any other parties
-// - Children's Privacy: we do not collect any data from children
-// - Updates to the Privacy Policy: users will be updated by email
-// - Contact information: info@influanto.com
-
-// Please write a simple privacy policy for my site. Add the current date.  Do not add or explain your reasoning. Answer:
 
 export const metadata = getSEOTags({
   title: `Privacy Policy | ${config.appName}`,
   canonicalUrlRelative: "/privacy-policy",
 });
 
+const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <section className="mb-8">
+    <h2 className="text-xl font-bold mb-3">{title}</h2>
+    <div className="space-y-3 leading-relaxed text-gray-800">{children}</div>
+  </section>
+);
+
 const PrivacyPolicy = () => {
-  
   return (
-    <main className="max-w-xl mx-auto">
+    <main className="max-w-2xl mx-auto">
       <div className="p-5">
         <Link href="/" className="btn btn-ghost">
           <svg
@@ -41,60 +35,160 @@ const PrivacyPolicy = () => {
           </svg>{" "}
           Back
         </Link>
-        <h1 className="text-3xl font-extrabold pb-6">
-          Privacy Policy for {config.appName}
-        </h1>
 
-        <pre
-          className="leading-relaxed whitespace-pre-wrap"
-          style={{ fontFamily: "sans-serif" }}
-        >
-          {`Last Updated: 2025-03-14
+        <div className="flex items-center gap-3 mt-4 mb-2">
+          <Image src="/icon.png" alt={`${config.appName} icon`} width={40} height={40} className="rounded-lg" />
+          <span className="text-lg font-bold">{config.appName}</span>
+        </div>
 
-Thank you for visiting influanto ("we," "us," or "our"). This Privacy Policy outlines how we collect, use, and protect your personal and non-personal information when you use our website located at https://influanto.com (the "Website").
+        <h1 className="text-3xl font-extrabold pb-2">Privacy Policy</h1>
+        <p className="text-sm text-gray-500 mb-8">Last updated: September 5, 2026</p>
 
-By accessing or using the Website, you agree to the terms of this Privacy Policy. If you do not agree with the practices described in this policy, please do not use the Website.
+        <p className="mb-8 leading-relaxed">
+          Thank you for using influanto ("we," "us," or "our"). This Privacy Policy explains how we collect,
+          use, share, and protect information when you use our website at{" "}
+          <a href="https://influanto.com" className="link">influanto.com</a> and the services offered
+          through it (the "Service"). By using the Service, you agree to this Privacy Policy. If you do not
+          agree, please do not use the Service.
+        </p>
 
-1. Information We Collect
+        <Section title="1. Information We Collect">
+          <p className="font-semibold">Account information.</p>
+          <p>
+            When you sign in with Google or via a one-time email link, we receive your name, email address,
+            and (if you use Google) your profile picture.
+          </p>
+          <p className="font-semibold">Profile & content you provide.</p>
+          <p>
+            Information you add to build your pages — such as your bio, location, streaming/social media
+            links, uploaded images (album art, logos), release page and link-in-bio content, split sheets,
+            QR codes, digital business card details, and outreach/newsletter contact lists.
+          </p>
+          <p className="font-semibold">Connected third-party accounts.</p>
+          <p>
+            If you choose to connect a Printify store or a social media account (Instagram, TikTok, YouTube),
+            we store the access tokens and account identifiers needed to perform the specific action you
+            request — such as fetching your merch catalog or publishing content you select to your own
+            connected account. We only use this access for the feature you activate; we do not access these
+            accounts for any other purpose, and you can disconnect them at any time from your dashboard.
+          </p>
+          <p className="font-semibold">Payment information.</p>
+          <p>
+            If you purchase a paid plan, payment is processed by Stripe. We do not store your full card
+            details on our servers.
+          </p>
+          <p className="font-semibold">Usage & analytics data.</p>
+          <p>
+            We and our analytics providers (including Google Analytics, PostHog, Plausible, Ahrefs, and Meta
+            Pixel/Conversions API) automatically collect non-personal technical information such as IP
+            address, browser and device type, pages viewed, and referring pages, using cookies and similar
+            technologies. When your fans visit your public link-in-bio or release pages, we also record
+            aggregate visit analytics (country, city, device, browser, referrer) so you can see how your
+            pages are performing — we do not sell this information.
+          </p>
+        </Section>
 
-1.1 Personal Data
+        <Section title="2. How We Use Your Information">
+          <ul className="list-disc pl-6 space-y-1">
+            <li>To create and operate your account and the pages/tools you build with the Service;</li>
+            <li>To process payments and manage subscriptions;</li>
+            <li>To fetch your merch or publish content to a third-party account, only when you initiate that action;</li>
+            <li>To send you service-related emails (magic-link sign-in, welcome emails, billing notices) and, if you opt in, product updates;</li>
+            <li>To provide you with analytics about your pages and audience;</li>
+            <li>To detect, prevent, and address fraud, abuse, and security issues; and</li>
+            <li>To improve and develop the Service.</li>
+          </ul>
+        </Section>
 
-We collect the following personal information from you:
+        <Section title="3. TikTok, Instagram & YouTube Integrations">
+          <p>
+            The Service allows you to connect your own TikTok, Instagram, or YouTube account so you can
+            publish content you create to that account through influanto's dashboard. We access these
+            integrations only when you take an action that requires them (for example, clicking "publish" or
+            "cross-post"), and only to perform that action on your behalf. We do not post automatically, and
+            we do not use data from these platforms for advertising or share it with third parties for their
+            own purposes. You can review or revoke a connected account's access at any time from your
+            dashboard, which stops any further access immediately. Use of these integrations is also subject
+            to the respective platform's own terms and developer policies.
+          </p>
+        </Section>
 
-Name: We collect your name to personalize your experience and communicate with you effectively.
-Email: We collect your email address to send you important information regarding your orders, updates, and communication.
-Payment Information: We collect payment details to process your orders securely. However, we do not store your payment information on our servers. Payments are processed by trusted third-party payment processors.
+        <Section title="4. How We Share Information">
+          <p>
+            We do not sell your personal information. We share information only with the service providers
+            necessary to operate the Service, including:
+          </p>
+          <ul className="list-disc pl-6 space-y-1">
+            <li>Stripe (payment processing);</li>
+            <li>Supabase (database hosting);</li>
+            <li>Cloudinary (image storage and delivery);</li>
+            <li>Our email delivery providers (magic-link sign-in and transactional/newsletter email);</li>
+            <li>Printify (merch catalog and fulfillment, if you connect a store); and</li>
+            <li>TikTok, Instagram, and YouTube (only when you direct us to publish content to your own connected account on that platform).</li>
+          </ul>
+          <p>
+            We may also disclose information if required by law, to protect our rights, or in connection with
+            a merger, acquisition, or sale of assets.
+          </p>
+        </Section>
 
-1.2 Non-Personal Data
+        <Section title="5. Data Retention & Your Rights">
+          <p>
+            We retain your information for as long as your account is active or as needed to provide the
+            Service, comply with legal obligations, and resolve disputes. You may request access to,
+            correction of, or deletion of your personal information, or export of your data, at any time by
+            emailing <a href="mailto:info@influanto.com" className="link">info@influanto.com</a>. Deleting your
+            account removes your profile and page content; some records may be retained where required by
+            law (for example, billing records).
+          </p>
+        </Section>
 
-We may use web cookies and similar technologies to collect non-personal information such as your IP address, browser type, device information, and browsing patterns. This information helps us to enhance your browsing experience, analyze trends, and improve our services.
+        <Section title="6. Cookies">
+          <p>
+            We use cookies and similar technologies to keep you signed in, remember your preferences, and
+            understand how the Service is used. You can control cookies through your browser settings; note
+            that disabling cookies may affect how the Service functions.
+          </p>
+        </Section>
 
-2. Purpose of Data Collection
+        <Section title="7. Children's Privacy">
+          <p>
+            influanto is not directed to children under 13, and we do not knowingly collect personal
+            information from children under 13. If you believe a child has provided us with personal
+            information, contact us at{" "}
+            <a href="mailto:info@influanto.com" className="link">info@influanto.com</a> and we will delete it.
+          </p>
+        </Section>
 
-We collect and use your personal data for the sole purpose of order processing. This includes processing your orders, sending order confirmations, providing customer support, and keeping you updated about the status of your orders.
+        <Section title="8. Security">
+          <p>
+            We use reasonable administrative, technical, and physical safeguards to protect your information.
+            No method of transmission or storage is completely secure, so we cannot guarantee absolute
+            security.
+          </p>
+        </Section>
 
-3. Data Sharing
+        <Section title="9. International Users">
+          <p>
+            The Service is operated from the United States, and your information may be processed and stored
+            there. By using the Service, you consent to this transfer.
+          </p>
+        </Section>
 
-We do not share your personal data with any third parties except as required for order processing (e.g., sharing your information with payment processors). We do not sell, trade, or rent your personal information to others.
+        <Section title="10. Changes to This Privacy Policy">
+          <p>
+            We may update this Privacy Policy from time to time. If we make material changes, we will notify
+            you by email or through the Service. The "Last updated" date above reflects the most recent
+            revision.
+          </p>
+        </Section>
 
-4. Children's Privacy
-
-influanto is not intended for children under the age of 13. We do not knowingly collect personal information from children. If you are a parent or guardian and believe that your child has provided us with personal information, please contact us at the email address provided below.
-
-5. Updates to the Privacy Policy
-
-We may update this Privacy Policy from time to time to reflect changes in our practices or for other operational, legal, or regulatory reasons. Any updates will be posted on this page, and we may notify you via email about significant changes.
-
-6. Contact Information
-
-If you have any questions, concerns, or requests related to this Privacy Policy, you can contact us at:
-
-Email: info@influanto.com
-
-For all other inquiries, please visit our Contact Us page on the Website.
-
-By using influanto, you consent to the terms of this Privacy Policy.`}
-        </pre>
+        <Section title="11. Contact Us">
+          <p>
+            Questions about this Privacy Policy or your data? Contact us at{" "}
+            <a href="mailto:info@influanto.com" className="link">info@influanto.com</a>.
+          </p>
+        </Section>
       </div>
     </main>
   );
