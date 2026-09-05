@@ -8,6 +8,7 @@ import posthog from "posthog-js";
 import ImportContactsModal, { ImportField } from "@/components/ImportContactsModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFileArrowUp, faXmark, faFileLines } from "@fortawesome/free-solid-svg-icons";
+import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from "recharts";
 
 const FREE_SPLIT_SHEET_LIMIT = 5;
 
@@ -38,6 +39,65 @@ const BLANK_SHEET = (): Partial<SplitSheet> => ({
   title: "", date: new Date().toLocaleDateString("en-US"), artists: "",
   stateCountry: "", contributors: [{ ...BLANK_CONTRIBUTOR }], publishing: [], status: "draft",
 });
+
+// ─── Ownership pie chart ────────────────────────────────────────────────────────
+
+const PIE_PALETTE = [
+  "#4f46e5", "#7c3aed", "#0ea5e9", "#10b981", "#f59e0b",
+  "#ef4444", "#ec4899", "#14b8a6", "#8b5cf6", "#84cc16",
+];
+
+function getOwnershipData(contributors: Contributor[]): { name: string; value: number }[] {
+  return (contributors ?? [])
+    .filter(c => c.name)
+    .map(c => ({ name: c.name, value: parseFloat(String(c.ownership).replace("%", "")) || 0 }))
+    .filter(c => c.value > 0);
+}
+
+function OwnershipPie({ contributors, size = "large" }: { contributors: Contributor[]; size?: "large" | "small" }) {
+  const data = getOwnershipData(contributors);
+
+  if (data.length === 0) {
+    return size === "small" ? null : (
+      <p className="text-xs text-gray-400 text-center py-8">Add ownership % to see the split</p>
+    );
+  }
+
+  if (size === "small") {
+    return (
+      <ResponsiveContainer width={56} height={56}>
+        <PieChart>
+          <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={26}>
+            {data.map((_, i) => <Cell key={i} fill={PIE_PALETTE[i % PIE_PALETTE.length]} />)}
+          </Pie>
+          <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #e5e7eb" }} formatter={(v: any) => `${v}%`} />
+        </PieChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={220}>
+      <PieChart>
+        <Pie
+          data={data}
+          dataKey="value"
+          nameKey="name"
+          cx="50%"
+          cy="50%"
+          outerRadius={70}
+          innerRadius={32}
+          label={({ name, value }: any) => `${name} ${value}%`}
+          labelLine={false}
+        >
+          {data.map((_, i) => <Cell key={i} fill={PIE_PALETTE[i % PIE_PALETTE.length]} />)}
+        </Pie>
+        <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e5e7eb" }} formatter={(v: any) => `${v}%`} />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+}
 
 // ─── PDF export (mirrors the public split sheet generator) ────────────────────
 
@@ -549,10 +609,16 @@ export default function SplitSheets() {
             </div>
           </div>
 
-          {/* Agreement terms preview */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-xs text-gray-600 leading-relaxed">
-            <strong className="text-sm text-gray-800">Agreement Terms:</strong>
-            <p className="mt-1">Each contributor agrees to the ownership percentages specified above. All royalties will be distributed accordingly. Dispute resolution under the laws of <em>{sheet.stateCountry || "[State/Country]"}</em>. By signing, all parties acknowledge their contributions are accurately reflected.</p>
+          {/* Agreement terms + ownership split */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-xs text-gray-600 leading-relaxed">
+              <strong className="text-sm text-gray-800">Agreement Terms:</strong>
+              <p className="mt-1">Each contributor agrees to the ownership percentages specified above. All royalties will be distributed accordingly. Dispute resolution under the laws of <em>{sheet.stateCountry || "[State/Country]"}</em>. By signing, all parties acknowledge their contributions are accurately reflected.</p>
+            </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <strong className="text-sm text-gray-800">Ownership Split:</strong>
+              <OwnershipPie contributors={contributors} />
+            </div>
           </div>
 
           {alert && <p className={`text-sm ${alertOk ? "text-green-600" : "text-red-500"}`}>{alert}</p>}
@@ -621,16 +687,19 @@ export default function SplitSheets() {
           {sheets.map(s => (
             <div key={s.id} className="border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors">
               <div className="flex items-start justify-between gap-2 flex-wrap">
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-bold text-base">{s.title || "Untitled"}</h3>
-                    {statusBadge(s.status)}
+                <div className="flex items-center gap-3">
+                  <OwnershipPie contributors={(s.contributors as Contributor[]) ?? []} size="small" />
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-bold text-base">{s.title || "Untitled"}</h3>
+                      {statusBadge(s.status)}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {s.date && <span>{s.date} · </span>}
+                      {s.artists && <span>{s.artists} · </span>}
+                      {((s.contributors as any[]) ?? []).filter(c => c.name).length} contributor{((s.contributors as any[]) ?? []).filter(c => c.name).length !== 1 ? "s" : ""}
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {s.date && <span>{s.date} · </span>}
-                    {s.artists && <span>{s.artists} · </span>}
-                    {((s.contributors as any[]) ?? []).filter(c => c.name).length} contributor{((s.contributors as any[]) ?? []).filter(c => c.name).length !== 1 ? "s" : ""}
-                  </p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <button className="btn btn-xs btn-outline" onClick={() => { setEditingSheet({ ...s, stateCountry: (s as any).state_country ?? "" }); setView("form"); setAlert(""); }}>Edit</button>
