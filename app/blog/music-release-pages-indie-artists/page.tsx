@@ -27,14 +27,14 @@ export const metadata: Metadata = {
     title: "Why Indie Artists Should Use Release Pages Instead of Pasting Links",
     description: "A single release page beats a Spotify link every time. Here's why smart links are the standard for independent artists in 2025.",
     type: "article",
-    url: "https://influanto.com/blog/music-release-pages-indie-artists",
+    url: "https://www.influanto.com/blog/music-release-pages-indie-artists",
   },
   twitter: {
     card: "summary_large_image",
     title: "Why Indie Artists Should Use Release Pages Instead of Pasting Links",
     description: "A single release page beats a Spotify link every time. Here's why smart links are the standard for independent artists in 2025.",
   },
-  alternates: { canonical: "https://influanto.com/blog/music-release-pages-indie-artists" },
+  alternates: { canonical: "https://www.influanto.com/blog/music-release-pages-indie-artists" },
 };
 
 export default function PostReleasePages() {

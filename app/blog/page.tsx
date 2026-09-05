@@ -17,14 +17,14 @@ export const metadata: Metadata = {
     title: "Music Blog for Independent Artists & Producers | Influanto",
     description: "Tips, guides, and tools for independent musicians and music producers. Learn how to grow your music career, protect your royalties, and promote your releases online.",
     type: "website",
-    url: "https://influanto.com/blog",
+    url: "https://www.influanto.com/blog",
   },
   twitter: {
     card: "summary_large_image",
     title: "Music Blog for Independent Artists & Producers | Influanto",
     description: "Tips, guides, and tools for independent musicians and music producers.",
   },
-  alternates: { canonical: "https://influanto.com/blog" },
+  alternates: { canonical: "https://www.influanto.com/blog" },
 };
 
 const posts = [
