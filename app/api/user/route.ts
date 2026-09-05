@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase, { mapUser } from "@/libs/supabase";
-import { v2 as cloudinary } from "cloudinary";
 import { normalizeUrl, normalizeBandcampLink, normalizeLinkedInHandle } from "@/libs/urls";
 
 // Fields stored as full URLs (as opposed to bare handles like "instagram")
@@ -10,26 +9,6 @@ import { normalizeUrl, normalizeBandcampLink, normalizeLinkedInHandle } from "@/
 const FULL_URL_FIELDS = new Set(["website", "facebook"]);
 
 export const dynamic = "force-dynamic";
-
-cloudinary.config({
-  cloud_name: "duwwnsyur",
-  api_key: "929533944976281",
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-async function uploadImageToCloudinary(imageBuffer: Buffer, userId: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader
-      .upload_stream(
-        { public_id: `user-${userId}-profile`, resource_type: "auto" },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result!.secure_url);
-        }
-      )
-      .end(imageBuffer);
-  });
-}
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -49,10 +28,11 @@ export async function POST(req: Request) {
 
     const updates: Record<string, any> = {};
 
-    const imageFile = formData.get("image") as File | null;
-    if (imageFile && imageFile.size > 0) {
-      const buffer = Buffer.from(await imageFile.arrayBuffer());
-      updates.image = await uploadImageToCloudinary(buffer, id);
+    // Avatars are uploaded client-side via the shared ImagePicker (Cloudinary
+    // widget), so "image" here is already a secure_url string, not a file.
+    const imageUrl = formData.get("image") as string | null;
+    if (typeof imageUrl === "string" && imageUrl) {
+      updates.image = imageUrl;
     }
 
     const textFields: [string, string][] = [

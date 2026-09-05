@@ -32,6 +32,7 @@ import PrintifyIntegration from "@/components/PrintifyIntegration";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import BusinessCard from "@/components/BusinessCard";
+import ImagePicker from "@/components/ImagePicker";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import SettingsDropdown from "@/components/SettingsDropdown";
 import { normalizeUrl } from "@/libs/urls";
@@ -47,7 +48,8 @@ const Profile =  () => {
   const [formUserName, setFormUserName] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
-  const [formImage, setFormImage] = useState(null);
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [location, setLocation] = useState("");
   const [instagram, setInstagram] = useState("");
   const [twitter, setTwitter] = useState("");
@@ -750,6 +752,7 @@ const handleYouTubeMusicChange = (e: any) => {
     if(!avatarImage){
       setAvatarImage(data?.user?.image ?? null);
     }
+    loadGallery();
   }, []);
 
   // Drives the "Setup Links Page" nudge on the Visit button below.
@@ -890,11 +893,11 @@ const handleYouTubeMusicChange = (e: any) => {
       if (youtubeMusic !== undefined && youtubeMusic !== null) formData.append("youtubeMusic", youtubeMusic);
       if (bandcamp !== undefined && bandcamp !== null) formData.append("bandcamp", bandcamp);
 
-      // Only append the image if it exists
-      if (formImage) {
-        formData.append("image", formImage);
+      // Only append the image if one is set
+      if (avatarImage) {
+        formData.append("image", avatarImage);
       }
-  
+
       // Send the form data
       const { data } = await apiClient.post("/user", formData, {
         headers: {
@@ -906,7 +909,6 @@ const handleYouTubeMusicChange = (e: any) => {
       // otherwise keeps showing the old image until a full page reload).
       setUser(data);
       if (data?.image) setAvatarImage(data.image);
-      setFormImage(null);
     } catch (error) {
       console.error("Error:", error.response || error.message);
       posthog.captureException(error);
@@ -918,15 +920,9 @@ const handleYouTubeMusicChange = (e: any) => {
       setAlertt("Profile updated successfully", true);
     }
   };
-    
-  const handleFileSelection = (e:any) => {
-    if (e.target.files && e.target.files.length > 0) {
-      // Update the state with the first selected file
-      //const avatar = convertToBase64(e.target.files[0]);
-      const avatar = e.target.files[0];
-      console.log(avatar);
-      setFormImage(avatar);
-    }
+
+  const loadGallery = () => {
+    fetch('/api/my-images').then(r => r.json()).then(j => setGalleryImages(Array.isArray(j?.images) ? j.images : [])).catch(() => {});
   };
 
   const containerStyle = {
@@ -1376,13 +1372,9 @@ const handleYouTubeMusicChange = (e: any) => {
           <div>
             <div className="flex items-center mb-3">
               <img src={avatarImage || fallbackImageUrl} style={{ borderRadius: '50%', width:"75px", height:"75px"}} alt="Avatar" />
-              <input
-                  className="ml-3 text-sm"
-                  style={{ maxWidth: "180px" }}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileSelection(e)}
-                />
+              <button type="button" className="btn btn-xs btn-outline ml-3" onClick={() => setAvatarPickerOpen(true)}>
+                Change photo
+              </button>
             </div>
             <label style={{display:"block"}}>Bio</label>
             <textarea
@@ -1614,6 +1606,17 @@ const handleYouTubeMusicChange = (e: any) => {
           </div>{/* end Listen card */}
         </div>{/* end Socials + Listen grid */}
         {showArtistIdHelp && <ArtistIdHelpModal onClose={() => setShowArtistIdHelp(false)} />}
+        {avatarPickerOpen && (
+          <ImagePicker
+            images={galleryImages}
+            uploadPreset="ReleasePageImages"
+            uploadOptions={{ publicId: `user_${user?.id}_avatar_${Date.now()}` }}
+            onUploaded={(result: any) => { setAvatarImage(result.info?.secure_url || ""); loadGallery(); }}
+            onSelect={(url: string) => setAvatarImage(url)}
+            onClose={() => setAvatarPickerOpen(false)}
+            title="Choose Profile Photo"
+          />
+        )}
         {alertMsg && <div className="alert mt-5 w-100" style={alertOk ? {backgroundColor:"#16a34a", color: "#fff", border:"1px #16a34a solid"} : {backgroundColor:"darkred", border:"1px darkred solid"}}>{alertMsg}</div>}
         <button 
           className="btn btn-primary btn-block btn-sm btn-narrow"
