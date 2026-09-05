@@ -548,7 +548,7 @@ const LinkInBio = () => {
           }}
         >
           <div className="w-full flex justify-between items-center">
-            <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Link In Bio</h2>
+            <h2 className="text-2xl font-bold mb-2" style={{ color: textColor, fontFamily: linkInBio?.font || 'inherit' }}>Link In Bio</h2>
             <div className="flex items-center gap-2">
               <button
                 className="btn btn-sm btn-narrow"
@@ -709,7 +709,7 @@ const LinkInBio = () => {
           className="mx-auto mt-4 shadow rounded-md text-black"
           style={{ width: "calc(100% - 16px)", padding: "0.75rem 1rem", boxSizing: "border-box", backgroundColor: linkInBio?.cardBgColor || 'white', fontFamily: linkInBio?.font || 'inherit' }}
         >
-          <h2 className="text-xl font-bold mb-1" style={{ color: '#fff' }}>Analytics</h2>
+          <h2 className="text-xl font-bold mb-1" style={{ color: textColor, fontFamily: linkInBio?.font || 'inherit' }}>Analytics</h2>
           <LinkInBioAnalytics />
         </div>
       </>
