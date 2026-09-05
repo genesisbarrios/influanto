@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLaptopCode, faFaceTired, faFaceSadTear } from "@fortawesome/free-solid-svg-icons";
+import { faShareNodes, faHourglassHalf, faHeartCrack } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 const Arrow = ({ extraStyle }: { extraStyle: string }) => {
@@ -27,8 +27,10 @@ const Arrow = ({ extraStyle }: { extraStyle: string }) => {
 };
 const Step = ({ icon, text }: { icon: IconDefinition; text: string }) => {
   return (
-    <div className="w-full md:w-48 flex flex-col gap-2 items-center justify-center">
-      <span className="text-4xl"><FontAwesomeIcon icon={icon} /></span>
+    <div className="w-full md:w-48 flex flex-col gap-4 items-center justify-center">
+      <span className="flex items-center justify-center w-20 h-20 rounded-full bg-neutral-content/10 ring-1 ring-neutral-content/20 shadow-lg text-3xl text-accent">
+        <FontAwesomeIcon icon={icon} />
+      </span>
       <h3 className="font-bold">{text}</h3>
     </div>
   );
@@ -51,19 +53,19 @@ const Problem = () => {
           Tiring of having to go to multiple platforms for support?
         </h2>
         <p className="max-w-xl mx-auto text-lg opacity-90 leading-relaxed mb-12 md:mb-20">
-          with influanto you can create your Link in Bio, fully customizable Release Pages with Analytics, generate QR Codes, find Playlist Curators, and send Newsletters and manage contacts all in one place.
+          with influanto you can create your Link in Bio, fully customizable Release Pages with Analytics, generate QR Codes, find Playlist Curators, Send Newsletters and manage contacts all in one place.
         </p>
 
         <div className="flex flex-col md:flex-row justify-center items-center md:items-start gap-6">
-          <Step icon={faLaptopCode} text="managing promotion across multiple platforms" />
+          <Step icon={faShareNodes} text="managing promotion across multiple platforms" />
 
           <Arrow extraStyle="max-md:-scale-x-100 md:-rotate-90" />
 
-          <Step icon={faFaceTired} text="Struggling to find time" />
+          <Step icon={faHourglassHalf} text="Struggling to find time" />
 
           <Arrow extraStyle="md:-scale-x-100 md:-rotate-90" />
 
-          <Step icon={faFaceSadTear} text="Stops Following up and Promoting, losing fans in the process" />
+          <Step icon={faHeartCrack} text="Stops Following up and Promoting, losing fans in the process" />
         </div>
       </div>
     </section>
