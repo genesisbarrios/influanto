@@ -36,6 +36,7 @@ const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-3
 import SettingsDropdown from "@/components/SettingsDropdown";
 import { normalizeUrl } from "@/libs/urls";
 import ArtistIdHelpModal from "@/components/ArtistIdHelpModal";
+import { MUSIC_CATEGORIES } from "@/libs/categories";
 
 
 const Profile =  () => {
@@ -64,6 +65,8 @@ const Profile =  () => {
   const [etsy, setEtsy] = useState("");
   const [website, setWebsite] = useState("");
   const [bio, setBio] = useState("");
+  const [category, setCategory] = useState<string[]>([]);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [spotify, setSpotify] = useState("");
   const [appleMusic, setAppleMusic] = useState("");
   const [tidal, setTidal] = useState("");
@@ -707,6 +710,7 @@ const handleYouTubeMusicChange = (e: any) => {
       setLocation(data.location);
       setWebsite(data.website);
       setBio(data.bio);
+      setCategory(Array.isArray(data.category) ? data.category : []);
       setInstagram(data.instagram);
       setTwitter(data.twitter);
       setFacebook(data.facebook);
@@ -861,6 +865,7 @@ const handleYouTubeMusicChange = (e: any) => {
       if (location !== undefined && location !== null) formData.append("location", location);
       if (website !== undefined && website !== null) formData.append("website", website);
       if (bio !== undefined && bio !== null) formData.append("bio", bio);
+      formData.append("category", JSON.stringify(category));
       if (instagram !== undefined && instagram !== null) formData.append("instagram", instagram);
       if (twitter !== undefined && twitter !== null) formData.append("twitter", twitter);
       if (facebook !== undefined && facebook !== null) formData.append("facebook", facebook);
@@ -1014,6 +1019,9 @@ const handleYouTubeMusicChange = (e: any) => {
             <img src={avatarImage || fallbackImageUrl} style={{ borderRadius: '50%', width:"75px", height:"75px", display:"inline"}} alt="Avatar" />
             <p>{user.name}</p>
             <p>{user.username}</p>
+            {Array.isArray(user.category) && user.category.length > 0 && (
+              <p className="text-xs text-gray-500">{user.category.join(" · ")}</p>
+            )}
             <p>
               {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} />{user.location}</span>}
               {user.website && <a href={normalizeUrl(user.website)} target="_blank"><FontAwesomeIcon icon={faGlobe} /> Website</a>}
@@ -1393,6 +1401,48 @@ const handleYouTubeMusicChange = (e: any) => {
               value={location || ""}
               onChange={(e) => handleLocationChange(e)}
             />
+            <br />
+            <label style={{display:"block"}}>Category</label>
+            {!showCategoryPicker && (
+              <button
+                type="button"
+                className="btn btn-sm btn-outline mb-2"
+                onClick={() => setShowCategoryPicker(true)}
+              >
+                {category.length > 0 ? "Edit category" : "+ Select category"}
+              </button>
+            )}
+            {category.length > 0 && !showCategoryPicker && (
+              <p className="text-xs text-gray-500 mb-2">{category.join(" · ")}</p>
+            )}
+            {showCategoryPicker && (
+              <div className="mb-2 p-3 border border-gray-200 rounded-md bg-gray-50 w-3/4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 max-h-56 overflow-y-auto mb-2">
+                  {MUSIC_CATEGORIES.map((c) => (
+                    <label key={c} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-xs"
+                        checked={category.includes(c)}
+                        onChange={(e) => {
+                          setCategory((prev) =>
+                            e.target.checked ? [...prev, c] : prev.filter((x) => x !== c)
+                          );
+                        }}
+                      />
+                      {c}
+                    </label>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-xs btn-primary"
+                  onClick={() => setShowCategoryPicker(false)}
+                >
+                  Done
+                </button>
+              </div>
+            )}
           </div>
           {/* Right column: name, username, website, email */}
           <div>
