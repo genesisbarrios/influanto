@@ -159,12 +159,12 @@ export default function PostGuerrillaMarketing() {
             <h3 style={{ color: "#374151", fontWeight: 700, fontSize: "1rem", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: 1 }}>Keep Reading</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem" }}>
               <Link href="/blog/link-in-bio-for-independent-artists" style={{ background: "#fff", borderRadius: 12, padding: "1.25rem", boxShadow: "0 1px 6px rgba(0,0,0,0.06)", textDecoration: "none", display: "block", border: "1px solid #f3f4f6" }}>
-                <FontAwesomeIcon icon={faLink} />
+                <FontAwesomeIcon icon={faLink} style={{ height: "1.4rem" }} />
                 <p style={{ color: "#111827", fontWeight: 700, marginTop: 8, fontSize: "0.95rem" }}>Why Every Independent Artist Needs a Link in Bio</p>
                 <span style={{ color: "#6366f1", fontSize: 13, fontWeight: 600 }}>Read →</span>
               </Link>
               <Link href="/blog/music-release-pages-indie-artists" style={{ background: "#fff", borderRadius: 12, padding: "1.25rem", boxShadow: "0 1px 6px rgba(0,0,0,0.06)", textDecoration: "none", display: "block", border: "1px solid #f3f4f6" }}>
-                <FontAwesomeIcon icon={faMusic} />
+                <FontAwesomeIcon icon={faMusic} style={{ height: "1.4rem" }} />
                 <p style={{ color: "#111827", fontWeight: 700, marginTop: 8, fontSize: "0.95rem" }}>Why Indie Artists Should Use Release Pages</p>
                 <span style={{ color: "#6366f1", fontSize: 13, fontWeight: 600 }}>Read →</span>
               </Link>

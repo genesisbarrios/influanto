@@ -8,6 +8,14 @@ import config from "@/config";
 import { Analytics } from "@vercel/analytics/next"
 import { PostHogWrapper } from "@/app/providers";
 import "./globals.css";
+import "@fortawesome/fontawesome-svg-core/styles.css";
+import { config as fontawesomeConfig } from "@fortawesome/fontawesome-svg-core";
+
+// Load the icon-sizing CSS as a normal stylesheet instead of letting the
+// library inject it client-side on mount — the injected version can lose
+// the race on a fresh page load, leaving icons briefly (or, on a slow
+// hydration, indefinitely) rendered at their raw un-styled SVG size.
+fontawesomeConfig.autoAddCss = false;
 
 
 const font = Inter({ subsets: ["latin"] });

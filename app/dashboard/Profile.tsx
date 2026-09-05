@@ -35,6 +35,7 @@ import BusinessCard from "@/components/BusinessCard";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import SettingsDropdown from "@/components/SettingsDropdown";
 import { normalizeUrl } from "@/libs/urls";
+import ArtistIdHelpModal from "@/components/ArtistIdHelpModal";
 
 
 const Profile =  () => {
@@ -81,9 +82,12 @@ const Profile =  () => {
   const [pixelSaving, setPixelSaving] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [alertMsg, setAlertt] = useState("");
+  const [alertMsg, setAlertMsgRaw] = useState("");
+  const [alertOk, setAlertOk] = useState(false);
+  const setAlertt = (msg: string, ok = false) => { setAlertMsgRaw(msg); setAlertOk(ok); };
   const [embedCopied, setEmbedCopied] = useState(false);
   const [showNewsletterStyle, setShowNewsletterStyle] = useState(false);
+  const [showArtistIdHelp, setShowArtistIdHelp] = useState(false);
   const [newsletterStyle, setNewsletterStyle] = useState<{
     heading?: string; subtitle?: string; buttonColor?: string; textColor?: string; bgColor?: string;
     showInstagram?: boolean; showPhone?: boolean;
@@ -455,10 +459,11 @@ const handleLinkedInChange = (e: any) => {
   const newValue = e.target.value;
   // Always update the state
   setLinkedIn(newValue);
-  
-  // Validate only if there's a value
-  if (newValue && !validateSocialHandle(newValue, "LinkedIn")) {
-    // Error already set in validateSocialHandle function
+
+  // LinkedIn can be a personal profile or a company page, so unlike other
+  // social fields this one accepts a pasted URL, not just a bare handle.
+  if (newValue.includes(" ")) {
+    setAlertt("LinkedIn URL or handle cannot contain spaces.");
   } else {
     setAlertt("");
   }
@@ -891,10 +896,12 @@ const handleYouTubeMusicChange = (e: any) => {
           "Content-Type": "multipart/form-data",
         },
       });
-      setAlertt("Loading.. Updating Your Profile..");
-  
-      console.log(data);
-  
+
+      // Reflect the saved data immediately (a new avatar in particular
+      // otherwise keeps showing the old image until a full page reload).
+      setUser(data);
+      if (data?.image) setAvatarImage(data.image);
+      setFormImage(null);
     } catch (error) {
       console.error("Error:", error.response || error.message);
       posthog.captureException(error);
@@ -903,7 +910,7 @@ const handleYouTubeMusicChange = (e: any) => {
       setIsLoading(false);
       setEditing(false);
       posthog.capture("profile_updated");
-      setAlertt("Profile updated successfully");
+      setAlertt("Profile updated successfully", true);
     }
   };
     
@@ -1042,7 +1049,7 @@ const handleYouTubeMusicChange = (e: any) => {
             {user.bandcamp && <a href={normalizeUrl(user.bandcamp)} target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
             
             <br></br>
-            {alertMsg && <div className="alert mt-10 w-1/2 m-auto">{alertMsg}</div>}
+            {alertMsg && <div className="alert mt-10 w-1/2 m-auto" style={alertOk ? { backgroundColor: "#16a34a", color: "#fff", border: "1px #16a34a solid" } : undefined}>{alertMsg}</div>}
             
             <br></br>
 
@@ -1054,7 +1061,7 @@ const handleYouTubeMusicChange = (e: any) => {
               return (
                 <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">
                   <div className="flex items-center gap-2 mb-1">
-                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faEnvelope} /></span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#4f46e5,#3b82f6)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faEnvelope} /></span>
                     <h3 className="font-bold text-base text-gray-800">Embed your newsletter</h3>
                   </div>
                   <p className="text-sm text-gray-500 mb-3">Paste this code on any website to collect newsletter signups (works once newsletter signups are enabled on your Link in Bio).</p>
@@ -1086,7 +1093,7 @@ const handleYouTubeMusicChange = (e: any) => {
             {showNewsletterStyle && (
             <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">
               <div className="flex items-center gap-2 mb-1">
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faPalette} /></span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#4f46e5,#3b82f6)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faPalette} /></span>
                 <h3 className="font-bold text-base text-gray-800">Newsletter Style</h3>
               </div>
               <p className="text-sm text-gray-500 mb-3">Customize the signup form that appears on your pages and embed.</p>
@@ -1153,7 +1160,7 @@ const handleYouTubeMusicChange = (e: any) => {
                     fd.append("newsletterStyle", JSON.stringify(newsletterStyle || {}));
                     await apiClient.post("/user", fd, { headers: { "Content-Type": "multipart/form-data" } });
                     setUser((prev: any) => ({ ...prev, newsletterStyle }));
-                    setAlertt("Newsletter style saved");
+                    setAlertt("Newsletter style saved", true);
                   } catch { setAlertt("Could not save newsletter style"); }
                 }}
               >
@@ -1165,7 +1172,7 @@ const handleYouTubeMusicChange = (e: any) => {
             {/* ── Business Cards ── */}
             <div className="mt-5 p-4 border border-gray-200 rounded-lg bg-white text-left">
               <div className="flex items-center gap-2 mb-1">
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faCreditCard} /></span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#4f46e5,#3b82f6)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faCreditCard} /></span>
                 <span className="font-semibold text-sm text-gray-800">Digital Business Card</span>
               </div>
               <p className="text-sm text-gray-500 mb-4">Create a digital business card for Google or Apple Wallet. Let people scan the QR code for a shortcut to your Links page.</p>
@@ -1179,7 +1186,7 @@ const handleYouTubeMusicChange = (e: any) => {
             {/* ── Integrations ── */}
             <div className="mt-5 p-4 border border-gray-200 rounded-lg bg-white text-left">
               <div className="flex items-center gap-2 mb-4">
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 7, background: 'linear-gradient(135deg,#6366f1,#a855f7)', color: '#fff', fontSize: 13 }}><FontAwesomeIcon icon={faPlug} /></span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 7, background: 'linear-gradient(135deg,#4f46e5,#3b82f6)', color: '#fff', fontSize: 13 }}><FontAwesomeIcon icon={faPlug} /></span>
                 <h3 className="m-0 font-semibold text-base">Integrations</h3>
               </div>
 
@@ -1462,8 +1469,8 @@ const handleYouTubeMusicChange = (e: any) => {
                 <input type="text" className="input w-full" placeholder="link" value={facebook || ""} onChange={(e) => handleFacebookChange(e)} />
               </div>
               <div className="mb-2">
-                <label style={{display:"block"}}>LinkedIn</label>
-                <input type="text" className="input w-full" placeholder="handle" value={linkedin || ""} onChange={(e) => handleLinkedInChange(e)} />
+                <label style={{display:"block"}}>LinkedIn URL or Handle</label>
+                <input type="text" className="input w-full" placeholder="https://linkedin.com/company/... or handle" value={linkedin || ""} onChange={(e) => handleLinkedInChange(e)} />
               </div>
               <div className="mb-2">
                 <label style={{display:"block"}}>Etsy</label>
@@ -1506,7 +1513,16 @@ const handleYouTubeMusicChange = (e: any) => {
 
           {/* Listen card */}
           <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-            <h1 className="mb-3">Listen</h1>
+            <div className="flex items-center gap-2 mb-3">
+              <h1>Listen</h1>
+              <button
+                type="button"
+                onClick={() => setShowArtistIdHelp(true)}
+                className="text-xs text-indigo-600 hover:underline"
+              >
+                How to find my artist ID?
+              </button>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
               <div className="mb-2">
                 <label style={{display:"block"}}>Spotify</label>
@@ -1547,7 +1563,8 @@ const handleYouTubeMusicChange = (e: any) => {
             </div>
           </div>{/* end Listen card */}
         </div>{/* end Socials + Listen grid */}
-        {alertMsg && <div className="alert mt-5 w-100" style={{backgroundColor:"darkred", border:"1px darkred solid"}}>{alertMsg}</div>}
+        {showArtistIdHelp && <ArtistIdHelpModal onClose={() => setShowArtistIdHelp(false)} />}
+        {alertMsg && <div className="alert mt-5 w-100" style={alertOk ? {backgroundColor:"#16a34a", color: "#fff", border:"1px #16a34a solid"} : {backgroundColor:"darkred", border:"1px darkred solid"}}>{alertMsg}</div>}
         <button 
           className="btn btn-primary btn-block btn-sm btn-narrow"
           style={{width:"35%", display:"inline", margin:"8% 0 0"}}

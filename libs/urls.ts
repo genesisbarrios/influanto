@@ -27,3 +27,18 @@ export function normalizeBandcampLink(value: string): string {
   const handle = v.split(/[\/?#]/)[0];
   return handle ? `https://${handle}.bandcamp.com` : "";
 }
+
+// LinkedIn is stored as the path after linkedin.com/ (e.g. "in/janedoe" or
+// "company/influanto") so it can be a personal profile OR a company page —
+// unlike most platforms this field can't assume one fixed URL shape. Accepts
+// a bare handle, a path, or a full linkedin.com URL, and defaults a bare
+// handle with no page-type prefix to a personal profile ("in/").
+export function normalizeLinkedInHandle(value: string): string {
+  let v = String(value ?? "").trim();
+  if (!v) return "";
+  v = v.replace(/^[a-z][a-z0-9+.-]*:\/\//i, "").replace(/^www\./i, "").replace(/^linkedin\.com\//i, "");
+  v = v.replace(/^@/, "");
+  v = v.split(/[?#]/)[0].replace(/\/+$/, "");
+  if (v && !/^(in|company|school|showcase)\//i.test(v)) v = `in/${v}`;
+  return v;
+}
