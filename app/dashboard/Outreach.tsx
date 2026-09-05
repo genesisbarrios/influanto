@@ -777,7 +777,7 @@ export default function Outreach() {
   return (
     <div className="p-4 bg-white shadow rounded-md text-black">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h2 className="text-xl font-bold">Outreach</h2>
+        <h2 className="text-xl font-bold">Audience Outreach</h2>
         <div className="flex gap-2">
           <button className="btn btn-sm btn-outline" onClick={() => { setView("contacts"); setAlert(""); }}>
             Contacts ({contacts.length})
