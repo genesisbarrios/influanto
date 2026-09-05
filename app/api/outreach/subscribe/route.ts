@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import supabase from "@/libs/supabase";
+import { notifyIfNewsletterLimitReached, isNewsletterFull } from "@/libs/newsletter-limit";
 
 // Reduces a bare handle, an @handle, or a full profile URL down to just the
 // username — the storage convention used everywhere else in the app.
@@ -55,6 +56,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Signups are not enabled" }, { status: 403 });
     }
 
+    if (await isNewsletterFull(owner.id)) {
+      return NextResponse.json({ error: "This newsletter isn't accepting new subscribers right now." }, { status: 403 });
+    }
+
     const { error } = await supabase
       .from("outreach_contacts")
       .upsert(
@@ -71,6 +76,9 @@ export async function POST(req: NextRequest) {
       );
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    await notifyIfNewsletterLimitReached(owner.id);
+
     return NextResponse.json({ message: "Subscribed" });
   } catch (e: any) {
     console.error("Subscribe error:", e);

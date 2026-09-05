@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase from "@/libs/supabase";
+import { notifyIfNewsletterLimitReached } from "@/libs/newsletter-limit";
 
 const isEmail = (s: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
 
@@ -56,6 +57,8 @@ export async function POST(req: NextRequest) {
       .from("outreach_contacts")
       .insert(toInsert.map(c => ({ user_id: session.user.id, source: "manual", ...c })));
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    await notifyIfNewsletterLimitReached(session.user.id);
   }
 
   const message = capSkipped

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import supabase, { mapUser, mapReleasePage } from "@/libs/supabase";
+import { isNewsletterFull } from "@/libs/newsletter-limit";
 
 // Always serve fresh data — never cache this public lookup.
 export const dynamic = "force-dynamic";
@@ -32,8 +33,10 @@ export async function GET(_req: NextRequest, { params }: { params: { slug: strin
       return NextResponse.json({ error: "User Not Found." }, { status: 404 });
     }
 
+    const newsletterFull = await isNewsletterFull(user.id);
+
     return NextResponse.json(
-      { data: { releasePage: mapReleasePage(releasePage), user: mapUser(user) } },
+      { data: { releasePage: mapReleasePage(releasePage), user: { ...mapUser(user), newsletterFull } } },
       { status: 200 }
     );
   } catch (e) {

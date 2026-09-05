@@ -71,6 +71,8 @@ export function mapUser(row: any) {
     newsletterStyle: row.newsletter_style ?? {},
     businessCard: row.business_card ?? {},
     onboardingSeen: row.onboarding_seen ?? false,
+    newsletterLimitNotified: row.newsletter_limit_notified ?? false,
+    newsletterLimitBannerDismissed: row.newsletter_limit_banner_dismissed ?? false,
   };
 }
 

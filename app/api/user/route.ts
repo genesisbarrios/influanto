@@ -88,6 +88,10 @@ export async function POST(req: Request) {
     if (onboardingSeen === "true") updates.onboarding_seen = true;
     else if (onboardingSeen === "false") updates.onboarding_seen = false;
 
+    const newsletterLimitBannerDismissed = formData.get("newsletterLimitBannerDismissed");
+    if (newsletterLimitBannerDismissed === "true") updates.newsletter_limit_banner_dismissed = true;
+    else if (newsletterLimitBannerDismissed === "false") updates.newsletter_limit_banner_dismissed = false;
+
     const newsletterStyle = formData.get("newsletterStyle") as string | null;
     if (newsletterStyle) {
       try { updates.newsletter_style = JSON.parse(newsletterStyle); } catch { /* ignore bad json */ }
