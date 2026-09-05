@@ -17,7 +17,7 @@ const CTA = () => {
             Market your music the right way.
           </h2>
           <p className="text-lg opacity-80 mb-12 md:mb-16">
-            everything you need for mmusic marketing.
+            everything you need for music marketing.
           </p>
 
           <a href="/api/auth/signin">
