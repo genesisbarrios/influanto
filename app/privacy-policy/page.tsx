@@ -45,10 +45,10 @@ const PrivacyPolicy = () => {
         <p className="text-sm text-gray-500 mb-8">Last updated: September 5, 2026</p>
 
         <p className="mb-8 leading-relaxed">
-          Thank you for using influanto ("we," "us," or "our"). This Privacy Policy explains how we collect,
+          Thank you for using influanto (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). This Privacy Policy explains how we collect,
           use, share, and protect information when you use our website at{" "}
           <a href="https://influanto.com" className="link">influanto.com</a> and the services offered
-          through it (the "Service"). By using the Service, you agree to this Privacy Policy. If you do not
+          through it (the &quot;Service&quot;). By using the Service, you agree to this Privacy Policy. If you do not
           agree, please do not use the Service.
         </p>
 
@@ -103,13 +103,13 @@ const PrivacyPolicy = () => {
         <Section title="3. TikTok, Instagram & YouTube Integrations">
           <p>
             The Service allows you to connect your own TikTok, Instagram, or YouTube account so you can
-            publish content you create to that account through influanto's dashboard. We access these
-            integrations only when you take an action that requires them (for example, clicking "publish" or
-            "cross-post"), and only to perform that action on your behalf. We do not post automatically, and
+            publish content you create to that account through influanto&apos;s dashboard. We access these
+            integrations only when you take an action that requires them (for example, clicking &quot;publish&quot; or
+            &quot;cross-post&quot;), and only to perform that action on your behalf. We do not post automatically, and
             we do not use data from these platforms for advertising or share it with third parties for their
-            own purposes. You can review or revoke a connected account's access at any time from your
+            own purposes. You can review or revoke a connected account&apos;s access at any time from your
             dashboard, which stops any further access immediately. Use of these integrations is also subject
-            to the respective platform's own terms and developer policies.
+            to the respective platform&apos;s own terms and developer policies.
           </p>
         </Section>
 
@@ -178,7 +178,7 @@ const PrivacyPolicy = () => {
         <Section title="10. Changes to This Privacy Policy">
           <p>
             We may update this Privacy Policy from time to time. If we make material changes, we will notify
-            you by email or through the Service. The "Last updated" date above reflects the most recent
+            you by email or through the Service. The &quot;Last updated&quot; date above reflects the most recent
             revision.
           </p>
         </Section>
