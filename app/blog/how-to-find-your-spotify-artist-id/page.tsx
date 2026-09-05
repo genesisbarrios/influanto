@@ -3,6 +3,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Suspense } from "react";
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEarListen, faFileLines } from "@fortawesome/free-solid-svg-icons";
@@ -38,9 +39,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.influanto.com/blog/how-to-find-your-spotify-artist-id" },
 };
 
-const h2Style: React.CSSProperties = { color: "#111827", fontWeight: 800, fontSize: "1.4rem", margin: "2rem 0 1rem" };
-const h3Style: React.CSSProperties = { color: "#374151", fontWeight: 700, fontSize: "1.1rem", margin: "1.5rem 0 0.75rem", display: "flex", alignItems: "center", gap: 8 };
-const captionStyle: React.CSSProperties = { fontSize: "0.85rem", color: "#9ca3af", marginTop: 6 };
+const h2Style: CSSProperties = { color: "#111827", fontWeight: 800, fontSize: "1.4rem", margin: "2rem 0 1rem" };
+const h3Style: CSSProperties = { color: "#374151", fontWeight: 700, fontSize: "1.1rem", margin: "1.5rem 0 0.75rem", display: "flex", alignItems: "center", gap: 8 };
+const captionStyle: CSSProperties = { fontSize: "0.85rem", color: "#9ca3af", marginTop: 6 };
 
 export default function PostSpotifyArtistId() {
   return (

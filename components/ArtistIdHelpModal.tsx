@@ -40,11 +40,11 @@ export default function ArtistIdHelpModal({ onClose }: { onClose: () => void }) 
             </p>
             <ol className="text-sm text-gray-600 list-decimal list-inside space-y-1 mb-2">
               <li>Open <span className="font-medium">music.apple.com</span> and search for your artist page</li>
-              <li>Copy the page's URL from your browser's address bar</li>
+              <li>Copy the page&apos;s URL from your browser&apos;s address bar</li>
               <li>Paste everything after <span className="font-mono">music.apple.com/</span> into the field</li>
             </ol>
             <UrlAnatomy before="music.apple.com/" id="us/artist/your-artist-name/1440833725" />
-            <p className="text-xs text-gray-400 mt-1">Include the locale, "artist", your name, and the number — all of it.</p>
+            <p className="text-xs text-gray-400 mt-1">Include the locale, &quot;artist&quot;, your name, and the number — all of it.</p>
           </div>
 
           {/* Tidal */}
