@@ -275,10 +275,10 @@ const validateFacebookLink = (value: string) => {
 const validateBandcampLink = (value: string) => {
   if (!value) return true; // Empty is allowed
 
-  // A missing https:// is fixed automatically (here and again on save),
-  // not treated as invalid input.
-  if (!value.includes("bandcamp.com")) {
-    setAlertt("Must be a valid Bandcamp URL.");
+  // Accepts a bare handle ("artistname"), a bandcamp.com URL, or an
+  // artist's custom domain — all get turned into a working link on save.
+  if (/\s/.test(value)) {
+    setAlertt("Bandcamp handle or URL cannot contain spaces.");
     return false;
   }
 
@@ -1525,8 +1525,8 @@ const handleYouTubeMusicChange = (e: any) => {
                 <input type="text" className="input w-full" placeholder="Artist ID" value={amazonMusic || ""} onChange={(e) => handleAmazonMusicChange(e)} />
               </div>
               <div className="mb-2">
-                <label style={{display:"block"}}>Bandcamp</label>
-                <input type="text" className="input w-full" placeholder="link" value={bandcamp || ""} onChange={(e) => handleBandcampChange(e)} />
+                <label style={{display:"block"}}>Bandcamp URL or Handle</label>
+                <input type="text" className="input w-full" placeholder="https://bandcamp.com or artistname" value={bandcamp || ""} onChange={(e) => handleBandcampChange(e)} />
               </div>
               <div className="mb-2">
                 <label style={{display:"block"}}>Soundcloud</label>

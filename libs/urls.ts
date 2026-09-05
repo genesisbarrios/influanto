@@ -10,3 +10,20 @@ export function normalizeUrl(url: string): string {
   if (/^[a-z][a-z0-9+.-]*:/i.test(u)) return ""; // unknown/unsafe scheme (e.g. javascript:)
   return `https://${u}`;
 }
+
+// Bandcamp artist links use a subdomain (artist.bandcamp.com), not a path
+// like most platforms (instagram.com/artist) — so a bare handle needs its
+// own domain built, not just a protocol prepended. Also accepts a full
+// bandcamp.com URL or an artist's custom domain unchanged (just normalized).
+export function normalizeBandcampLink(value: string): string {
+  let v = String(value ?? "").trim().replace(/\s+/g, "");
+  if (!v) return "";
+  v = v.replace(/^@/, "");
+  // Already a URL or a domain (bandcamp.com or a custom domain) — keep as-is.
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(v) || v.includes(".")) {
+    return normalizeUrl(v);
+  }
+  // Bare handle — build the artist's bandcamp subdomain.
+  const handle = v.split(/[\/?#]/)[0];
+  return handle ? `https://${handle}.bandcamp.com` : "";
+}
