@@ -17,6 +17,7 @@ export const MUSIC_CATEGORIES = [
   "Tour Manager",
   "Booking Agent",
   "Publicist",
+  "Marketing",
   "Label Executive",
   "Music Supervisor",
   "Distributor",
