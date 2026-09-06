@@ -15,7 +15,7 @@ const Hero = () => {
           Link In Bio, Release Pages, Split Sheet Generator, Newsletter and Contact Management, QR Code Generator, and Playlist Curator Contact Tool.
         </p>
         <p className="text-lg opacity-80 leading-relaxed">
-          Free Musician Tools: Delay / Reverb & BPM Calculator, Key Finder, Chromatic Tuner, Online Synth + more.
+          Free Musician Tools: Delay / Reverb & BPM Calculator, Key Finder, Online Synth + more.
         </p>
         <ButtonGetInfluanto />
 
