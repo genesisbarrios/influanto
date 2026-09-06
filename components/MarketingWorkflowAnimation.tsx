@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faLightbulb,
-  faLink,
+  faUserPlus,
   faCompactDisc,
   faEnvelopeOpenText,
   faChartLine,
@@ -15,7 +15,7 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 const NODES: { icon: IconDefinition; label: string; left: number; top: number }[] = [
   { icon: faLightbulb, label: "Create", left: 10, top: 72.22 },
-  { icon: faLink, label: "Share", left: 32.5, top: 25 },
+  { icon: faUserPlus, label: "Register", left: 32.5, top: 25 },
   { icon: faCompactDisc, label: "Release", left: 55, top: 72.22 },
   { icon: faEnvelopeOpenText, label: "Notify", left: 77.5, top: 25 },
   { icon: faChartLine, label: "Grow", left: 93.33, top: 55.56 },
