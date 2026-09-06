@@ -1,11 +1,15 @@
+"use client";
+
+import { useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShareNodes, faHourglassHalf, faHeartCrack } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
-const Arrow = ({ extraStyle }: { extraStyle: string }) => {
+const Arrow = ({ extraStyle, delay }: { extraStyle: string; delay: number }) => {
   return (
     <svg
-      className={`shrink-0 w-12 fill-neutral-content opacity-70 ${extraStyle}`}
+      className={`shrink-0 w-12 fill-neutral-content opacity-70 problem-arrow ${extraStyle}`}
+      style={{ animationDelay: `${delay}ms` }}
       viewBox="0 0 138 138"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -25,12 +29,62 @@ const Arrow = ({ extraStyle }: { extraStyle: string }) => {
     </svg>
   );
 };
-const Step = ({ icon, text }: { icon: IconDefinition; text: string }) => {
+
+// A circular icon badge with a mouse-tracked 3D tilt (like a physical card
+// pivoting toward the cursor) plus a continuous idle float, so the three
+// pain points feel alive instead of three flat glyphs sitting in a row.
+const TiltBadge = ({ icon, delay }: { icon: IconDefinition; delay: number }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [tilt, setTilt] = useState<CSSProperties>({});
+
+  const handleMove = (e: MouseEvent<HTMLSpanElement>) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    const rotateY = (x / (rect.width / 2)) * 20;
+    const rotateX = -(y / (rect.height / 2)) * 20;
+    setTilt({
+      transform: `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.1,1.1,1.1)`,
+    });
+  };
+
+  const handleLeave = () => {
+    setTilt({ transform: "perspective(600px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)" });
+  };
+
+  return (
+    <div className="problem-badge-float" style={{ animationDelay: `${delay}ms` }}>
+      <span
+        ref={ref}
+        onMouseMove={handleMove}
+        onMouseLeave={handleLeave}
+        style={{ ...tilt, transformStyle: "preserve-3d" }}
+        className="problem-badge-tilt relative flex items-center justify-center w-20 h-20 rounded-full text-3xl text-accent
+          bg-gradient-to-br from-neutral-content/25 to-neutral-content/5 ring-1 ring-neutral-content/25
+          shadow-[0_12px_28px_rgba(0,0,0,0.35)]"
+      >
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-full"
+          style={{
+            background: "radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55), rgba(255,255,255,0) 55%)",
+            transform: "translateZ(1px)",
+          }}
+        />
+        <span style={{ transform: "translateZ(24px)" }} className="drop-shadow-[0_4px_6px_rgba(0,0,0,0.4)]">
+          <FontAwesomeIcon icon={icon} />
+        </span>
+      </span>
+    </div>
+  );
+};
+
+const Step = ({ icon, text, delay }: { icon: IconDefinition; text: string; delay: number }) => {
   return (
     <div className="w-full md:w-48 flex flex-col gap-4 items-center justify-center">
-      <span className="flex items-center justify-center w-20 h-20 rounded-full bg-neutral-content/10 ring-1 ring-neutral-content/20 shadow-lg text-3xl text-accent">
-        <FontAwesomeIcon icon={icon} />
-      </span>
+      <TiltBadge icon={icon} delay={delay} />
       <h3 className="font-bold">{text}</h3>
     </div>
   );
@@ -48,6 +102,29 @@ const Step = ({ icon, text }: { icon: IconDefinition; text: string }) => {
 const Problem = () => {
   return (
     <section className="bg-neutral text-neutral-content">
+      <style>{`
+        @keyframes problem-float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        .problem-badge-float {
+          animation: problem-float 3.2s ease-in-out infinite;
+        }
+        .problem-badge-tilt {
+          transition: transform 0.15s ease-out;
+          will-change: transform;
+        }
+        @keyframes problem-arrow-pulse {
+          0%, 100% { opacity: 0.5; transform: scale(1); }
+          50% { opacity: 0.9; transform: scale(1.08); }
+        }
+        .problem-arrow {
+          animation: problem-arrow-pulse 2.4s ease-in-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .problem-badge-float, .problem-arrow { animation: none; }
+        }
+      `}</style>
       <div className="max-w-7xl mx-auto px-8 py-16 md:py-32 text-center">
         <h2 className="max-w-3xl mx-auto font-extrabold text-4xl md:text-5xl tracking-tight mb-6 md:mb-8">
           Tiring of having to go to multiple platforms for support?
@@ -57,15 +134,15 @@ const Problem = () => {
         </p>
 
         <div className="flex flex-col md:flex-row justify-center items-center md:items-start gap-6">
-          <Step icon={faShareNodes} text="managing promotion across multiple platforms" />
+          <Step icon={faShareNodes} text="managing promotion across multiple platforms" delay={0} />
 
-          <Arrow extraStyle="max-md:-scale-x-100 md:-rotate-90" />
+          <Arrow extraStyle="max-md:-scale-x-100 md:-rotate-90" delay={200} />
 
-          <Step icon={faHourglassHalf} text="Struggling to find time" />
+          <Step icon={faHourglassHalf} text="Struggling to find time" delay={150} />
 
-          <Arrow extraStyle="md:-scale-x-100 md:-rotate-90" />
+          <Arrow extraStyle="md:-scale-x-100 md:-rotate-90" delay={400} />
 
-          <Step icon={faHeartCrack} text="Stops Following up and Promoting, losing fans in the process" />
+          <Step icon={faHeartCrack} text="Stops Following up and Promoting, losing fans in the process" delay={300} />
         </div>
       </div>
     </section>
