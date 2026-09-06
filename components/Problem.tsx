@@ -1,4 +1,6 @@
-import Image from "next/image";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faDesktop, faHourglassHalf, faHeartCrack } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 const Arrow = ({ extraStyle, delay }: { extraStyle: string; delay: number }) => {
   return (
@@ -25,20 +27,23 @@ const Arrow = ({ extraStyle, delay }: { extraStyle: string; delay: number }) => 
   );
 };
 
-// Hand-crafted 3D renders from 3dicons.co (CC0 — free for commercial use, no
-// attribution required), floating gently in place of a flat icon.
-const Badge3D = ({ src, alt, delay }: { src: string; alt: string; delay: number }) => {
+// Same visual language as the hero's MarketingWorkflowAnimation: a plain
+// white circular node with a pulsing "active" ring, no color, no imagery.
+const WorkflowNode = ({ icon, delay }: { icon: IconDefinition; delay: number }) => {
   return (
-    <div className="problem-badge-float" style={{ animationDelay: `${delay}ms` }}>
-      <Image src={src} alt={alt} width={96} height={96} className="w-20 h-20 md:w-24 md:h-24 drop-shadow-[0_16px_20px_rgba(0,0,0,0.35)]" />
+    <div
+      className="workflow-node w-16 h-16 md:w-20 md:h-20 rounded-full border border-white/40 bg-white/10 flex items-center justify-center text-white text-2xl md:text-3xl"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <FontAwesomeIcon icon={icon} />
     </div>
   );
 };
 
-const Step = ({ src, alt, text, delay }: { src: string; alt: string; text: string; delay: number }) => {
+const Step = ({ icon, text, delay }: { icon: IconDefinition; text: string; delay: number }) => {
   return (
     <div className="w-full md:w-48 flex flex-col gap-4 items-center justify-center">
-      <Badge3D src={src} alt={alt} delay={delay} />
+      <WorkflowNode icon={icon} delay={delay} />
       <h3 className="font-bold">{text}</h3>
     </div>
   );
@@ -57,12 +62,12 @@ const Problem = () => {
   return (
     <section className="bg-neutral text-neutral-content">
       <style>{`
-        @keyframes problem-float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
+        @keyframes workflow-pulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.25); }
+          50% { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(255,255,255,0); }
         }
-        .problem-badge-float {
-          animation: problem-float 3.2s ease-in-out infinite;
+        .workflow-node {
+          animation: workflow-pulse 3s ease-in-out infinite;
         }
         @keyframes problem-arrow-pulse {
           0%, 100% { opacity: 0.5; transform: scale(1); }
@@ -72,7 +77,7 @@ const Problem = () => {
           animation: problem-arrow-pulse 2.4s ease-in-out infinite;
         }
         @media (prefers-reduced-motion: reduce) {
-          .problem-badge-float, .problem-arrow { animation: none; }
+          .workflow-node, .problem-arrow { animation: none; }
         }
       `}</style>
       <div className="max-w-7xl mx-auto px-8 py-16 md:py-32 text-center">
@@ -84,15 +89,15 @@ const Problem = () => {
         </p>
 
         <div className="flex flex-col md:flex-row justify-center items-center md:items-start gap-6">
-          <Step src="/3d-icons/desktop.png" alt="Desktop computer representing juggling multiple platforms" text="managing promotion across multiple platforms" delay={0} />
+          <Step icon={faDesktop} text="managing promotion across multiple platforms" delay={0} />
 
           <Arrow extraStyle="max-md:-scale-x-100 md:-rotate-90" delay={200} />
 
-          <Step src="/3d-icons/time.png" alt="Alarm clock representing struggling to find time" text="Struggling to find time" delay={150} />
+          <Step icon={faHourglassHalf} text="Struggling to find time" delay={500} />
 
           <Arrow extraStyle="md:-scale-x-100 md:-rotate-90" delay={400} />
 
-          <Step src="/3d-icons/losing-fans.png" alt="Heart representing losing fans" text="Stops Following up and Promoting, losing fans in the process" delay={300} />
+          <Step icon={faHeartCrack} text="Stops Following up and Promoting, losing fans in the process" delay={1000} />
         </div>
       </div>
     </section>
