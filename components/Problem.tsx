@@ -1,6 +1,4 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faShareNodes, faHourglassHalf, faHeartCrack } from "@fortawesome/free-solid-svg-icons";
-import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import Image from "next/image";
 
 const Arrow = ({ extraStyle, delay }: { extraStyle: string; delay: number }) => {
   return (
@@ -27,48 +25,20 @@ const Arrow = ({ extraStyle, delay }: { extraStyle: string; delay: number }) => 
   );
 };
 
-// A hand-sketched circle (two loose, slightly offset pen strokes) that draws
-// itself in on load, slowly spinning like a coin in 3D — a deliberately
-// un-corporate, no-gloss alternative to a flat icon or a glossy sphere badge.
-const SketchSpinBadge = ({ icon, delay }: { icon: IconDefinition; delay: number }) => {
+// Hand-crafted 3D renders from 3dicons.co (CC0 — free for commercial use, no
+// attribution required), floating gently in place of a flat icon.
+const Badge3D = ({ src, alt, delay }: { src: string; alt: string; delay: number }) => {
   return (
     <div className="problem-badge-float" style={{ animationDelay: `${delay}ms` }}>
-      <div
-        className="problem-badge-spin relative flex items-center justify-center w-20 h-20"
-        style={{ animationDelay: `${delay}ms` }}
-      >
-        <svg viewBox="0 0 80 80" className="absolute inset-0 w-full h-full overflow-visible">
-          <path
-            className="problem-sketch-stroke"
-            style={{ animationDelay: `${delay}ms` }}
-            d="M41,5 C60,4 76,20 75,40 C76,60 59,76 39,75 C20,76 5,59 6,39 C5,20 21,5 41,5 Z"
-            fill="none"
-            stroke="rgba(255,255,255,0.85)"
-            strokeWidth={2}
-            strokeLinecap="round"
-          />
-          <path
-            className="problem-sketch-stroke"
-            style={{ animationDelay: `${delay + 80}ms` }}
-            d="M39,3 C58,6 74,23 73,42 C73,61 56,74 37,73 C19,73 4,57 7,37 C9,18 22,2 39,3 Z"
-            fill="none"
-            stroke="rgba(255,255,255,0.35)"
-            strokeWidth={1.5}
-            strokeLinecap="round"
-          />
-        </svg>
-        <span className="relative text-3xl text-accent">
-          <FontAwesomeIcon icon={icon} />
-        </span>
-      </div>
+      <Image src={src} alt={alt} width={96} height={96} className="w-20 h-20 md:w-24 md:h-24 drop-shadow-[0_16px_20px_rgba(0,0,0,0.35)]" />
     </div>
   );
 };
 
-const Step = ({ icon, text, delay }: { icon: IconDefinition; text: string; delay: number }) => {
+const Step = ({ src, alt, text, delay }: { src: string; alt: string; text: string; delay: number }) => {
   return (
     <div className="w-full md:w-48 flex flex-col gap-4 items-center justify-center">
-      <SketchSpinBadge icon={icon} delay={delay} />
+      <Badge3D src={src} alt={alt} delay={delay} />
       <h3 className="font-bold">{text}</h3>
     </div>
   );
@@ -94,22 +64,6 @@ const Problem = () => {
         .problem-badge-float {
           animation: problem-float 3.2s ease-in-out infinite;
         }
-        @keyframes problem-spin {
-          from { transform: perspective(500px) rotateY(0deg); }
-          to { transform: perspective(500px) rotateY(360deg); }
-        }
-        .problem-badge-spin {
-          animation: problem-spin 7s linear infinite;
-          transform-style: preserve-3d;
-        }
-        @keyframes problem-sketch-draw {
-          from { stroke-dashoffset: 220; }
-          to { stroke-dashoffset: 0; }
-        }
-        .problem-sketch-stroke {
-          stroke-dasharray: 220;
-          animation: problem-sketch-draw 1.4s ease-out both;
-        }
         @keyframes problem-arrow-pulse {
           0%, 100% { opacity: 0.5; transform: scale(1); }
           50% { opacity: 0.9; transform: scale(1.08); }
@@ -118,8 +72,7 @@ const Problem = () => {
           animation: problem-arrow-pulse 2.4s ease-in-out infinite;
         }
         @media (prefers-reduced-motion: reduce) {
-          .problem-badge-float, .problem-arrow, .problem-badge-spin, .problem-sketch-stroke { animation: none; }
-          .problem-sketch-stroke { stroke-dashoffset: 0; }
+          .problem-badge-float, .problem-arrow { animation: none; }
         }
       `}</style>
       <div className="max-w-7xl mx-auto px-8 py-16 md:py-32 text-center">
@@ -131,15 +84,15 @@ const Problem = () => {
         </p>
 
         <div className="flex flex-col md:flex-row justify-center items-center md:items-start gap-6">
-          <Step icon={faShareNodes} text="managing promotion across multiple platforms" delay={0} />
+          <Step src="/3d-icons/multi-platform.png" alt="Chain link representing juggling multiple platforms" text="managing promotion across multiple platforms" delay={0} />
 
           <Arrow extraStyle="max-md:-scale-x-100 md:-rotate-90" delay={200} />
 
-          <Step icon={faHourglassHalf} text="Struggling to find time" delay={150} />
+          <Step src="/3d-icons/time.png" alt="Alarm clock representing struggling to find time" text="Struggling to find time" delay={150} />
 
           <Arrow extraStyle="md:-scale-x-100 md:-rotate-90" delay={400} />
 
-          <Step icon={faHeartCrack} text="Stops Following up and Promoting, losing fans in the process" delay={300} />
+          <Step src="/3d-icons/losing-fans.png" alt="Heart representing losing fans" text="Stops Following up and Promoting, losing fans in the process" delay={300} />
         </div>
       </div>
     </section>
