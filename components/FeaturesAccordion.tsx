@@ -269,7 +269,7 @@ const FeaturesAccordion = () => {
           </span>
         </h2>
         <div className=" flex flex-col md:flex-row gap-12 md:gap-24">
-          <div className="grid grid-cols-1 items-stretch gap-8 sm:gap-12 lg:grid-cols-2 lg:gap-20">
+          <div className="grid grid-cols-1 items-center gap-8 sm:gap-12 lg:grid-cols-2 lg:gap-20">
             <ul className="w-full">
               {features.map((feature, i) => (
                 <Item
