@@ -84,7 +84,7 @@ const Problem = () => {
         </p>
 
         <div className="flex flex-col md:flex-row justify-center items-center md:items-start gap-6">
-          <Step src="/3d-icons/multi-platform.png" alt="Chain link representing juggling multiple platforms" text="managing promotion across multiple platforms" delay={0} />
+          <Step src="/3d-icons/desktop.png" alt="Desktop computer representing juggling multiple platforms" text="managing promotion across multiple platforms" delay={0} />
 
           <Arrow extraStyle="max-md:-scale-x-100 md:-rotate-90" delay={200} />
 
