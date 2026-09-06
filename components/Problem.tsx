@@ -1,6 +1,3 @@
-"use client";
-
-import { useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShareNodes, faHourglassHalf, faHeartCrack } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
@@ -30,53 +27,40 @@ const Arrow = ({ extraStyle, delay }: { extraStyle: string; delay: number }) => 
   );
 };
 
-// A circular icon badge with a mouse-tracked 3D tilt (like a physical card
-// pivoting toward the cursor) plus a continuous idle float, so the three
-// pain points feel alive instead of three flat glyphs sitting in a row.
-const TiltBadge = ({ icon, delay }: { icon: IconDefinition; delay: number }) => {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [tilt, setTilt] = useState<CSSProperties>({});
-
-  const handleMove = (e: MouseEvent<HTMLSpanElement>) => {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    const rotateY = (x / (rect.width / 2)) * 20;
-    const rotateX = -(y / (rect.height / 2)) * 20;
-    setTilt({
-      transform: `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.1,1.1,1.1)`,
-    });
-  };
-
-  const handleLeave = () => {
-    setTilt({ transform: "perspective(600px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)" });
-  };
-
+// A hand-sketched circle (two loose, slightly offset pen strokes) that draws
+// itself in on load, slowly spinning like a coin in 3D — a deliberately
+// un-corporate, no-gloss alternative to a flat icon or a glossy sphere badge.
+const SketchSpinBadge = ({ icon, delay }: { icon: IconDefinition; delay: number }) => {
   return (
     <div className="problem-badge-float" style={{ animationDelay: `${delay}ms` }}>
-      <span
-        ref={ref}
-        onMouseMove={handleMove}
-        onMouseLeave={handleLeave}
-        style={{ ...tilt, transformStyle: "preserve-3d" }}
-        className="problem-badge-tilt relative flex items-center justify-center w-20 h-20 rounded-full text-3xl text-accent
-          bg-gradient-to-br from-neutral-content/25 to-neutral-content/5 ring-1 ring-neutral-content/25
-          shadow-[0_12px_28px_rgba(0,0,0,0.35)]"
+      <div
+        className="problem-badge-spin relative flex items-center justify-center w-20 h-20"
+        style={{ animationDelay: `${delay}ms` }}
       >
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-full"
-          style={{
-            background: "radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55), rgba(255,255,255,0) 55%)",
-            transform: "translateZ(1px)",
-          }}
-        />
-        <span style={{ transform: "translateZ(24px)" }} className="drop-shadow-[0_4px_6px_rgba(0,0,0,0.4)]">
+        <svg viewBox="0 0 80 80" className="absolute inset-0 w-full h-full overflow-visible">
+          <path
+            className="problem-sketch-stroke"
+            style={{ animationDelay: `${delay}ms` }}
+            d="M41,5 C60,4 76,20 75,40 C76,60 59,76 39,75 C20,76 5,59 6,39 C5,20 21,5 41,5 Z"
+            fill="none"
+            stroke="rgba(255,255,255,0.85)"
+            strokeWidth={2}
+            strokeLinecap="round"
+          />
+          <path
+            className="problem-sketch-stroke"
+            style={{ animationDelay: `${delay + 80}ms` }}
+            d="M39,3 C58,6 74,23 73,42 C73,61 56,74 37,73 C19,73 4,57 7,37 C9,18 22,2 39,3 Z"
+            fill="none"
+            stroke="rgba(255,255,255,0.35)"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+          />
+        </svg>
+        <span className="relative text-3xl text-accent">
           <FontAwesomeIcon icon={icon} />
         </span>
-      </span>
+      </div>
     </div>
   );
 };
@@ -84,7 +68,7 @@ const TiltBadge = ({ icon, delay }: { icon: IconDefinition; delay: number }) => 
 const Step = ({ icon, text, delay }: { icon: IconDefinition; text: string; delay: number }) => {
   return (
     <div className="w-full md:w-48 flex flex-col gap-4 items-center justify-center">
-      <TiltBadge icon={icon} delay={delay} />
+      <SketchSpinBadge icon={icon} delay={delay} />
       <h3 className="font-bold">{text}</h3>
     </div>
   );
@@ -110,9 +94,21 @@ const Problem = () => {
         .problem-badge-float {
           animation: problem-float 3.2s ease-in-out infinite;
         }
-        .problem-badge-tilt {
-          transition: transform 0.15s ease-out;
-          will-change: transform;
+        @keyframes problem-spin {
+          from { transform: perspective(500px) rotateY(0deg); }
+          to { transform: perspective(500px) rotateY(360deg); }
+        }
+        .problem-badge-spin {
+          animation: problem-spin 7s linear infinite;
+          transform-style: preserve-3d;
+        }
+        @keyframes problem-sketch-draw {
+          from { stroke-dashoffset: 220; }
+          to { stroke-dashoffset: 0; }
+        }
+        .problem-sketch-stroke {
+          stroke-dasharray: 220;
+          animation: problem-sketch-draw 1.4s ease-out both;
         }
         @keyframes problem-arrow-pulse {
           0%, 100% { opacity: 0.5; transform: scale(1); }
@@ -122,7 +118,8 @@ const Problem = () => {
           animation: problem-arrow-pulse 2.4s ease-in-out infinite;
         }
         @media (prefers-reduced-motion: reduce) {
-          .problem-badge-float, .problem-arrow { animation: none; }
+          .problem-badge-float, .problem-arrow, .problem-badge-spin, .problem-sketch-stroke { animation: none; }
+          .problem-sketch-stroke { stroke-dashoffset: 0; }
         }
       `}</style>
       <div className="max-w-7xl mx-auto px-8 py-16 md:py-32 text-center">
