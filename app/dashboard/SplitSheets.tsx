@@ -43,7 +43,7 @@ const BLANK_SHEET = (): Partial<SplitSheet> => ({
 // ─── Ownership pie chart ────────────────────────────────────────────────────────
 
 const PIE_PALETTE = [
-  "#4f46e5", "#7c3aed", "#0ea5e9", "#10b981", "#f59e0b",
+  "#2563eb", "#7c3aed", "#0ea5e9", "#10b981", "#f59e0b",
   "#ef4444", "#ec4899", "#14b8a6", "#8b5cf6", "#84cc16",
 ];
 
