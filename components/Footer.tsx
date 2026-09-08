@@ -60,7 +60,11 @@ const Footer = () => {
                 <Link href="/tools" className="link link-hover">
                   FREE Music Tools
                 </Link>
-                
+
+                <Link href="/blog" className="link link-hover">
+                  Blog
+                </Link>
+
                 <Link href="/how-to-start" className="link link-hover">
                   How To Start Guide
                 </Link>
