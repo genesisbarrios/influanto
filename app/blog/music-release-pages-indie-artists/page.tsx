@@ -44,7 +44,7 @@ export default function PostReleasePages() {
       <main style={{ background: "#f9fafb", minHeight: "80vh" }}>
         {/* Hero */}
         <div style={{ background: "linear-gradient(135deg, #064e3b 0%, #065f46 50%, #10b981 100%)", padding: "3.5rem 1.5rem 3rem" }}>
-          <div style={{ maxWidth: 760, margin: "0 auto" }}>
+          <div style={{ maxWidth: 900, margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
               <Link href="/blog" style={{ color: "#6ee7b7", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>← Blog</Link>
               <span style={{ color: "#10b981", fontSize: 13 }}>/</span>
@@ -65,7 +65,7 @@ export default function PostReleasePages() {
         </div>
 
         {/* Article */}
-        <article style={{ maxWidth: 760, margin: "0 auto", padding: "3rem 1.5rem" }}>
+        <article style={{ maxWidth: 900, margin: "0 auto", padding: "3rem 1.5rem" }}>
           <div style={{ background: "#fff", borderRadius: 16, padding: "2.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", lineHeight: 1.8, color: "#374151", fontSize: "1.05rem" }}>
 
             <p style={{ fontSize: "1.1rem", color: "#1f2937", fontWeight: 500, marginBottom: "1.5rem" }}>
