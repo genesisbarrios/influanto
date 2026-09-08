@@ -43,7 +43,7 @@ export default function PostNewsletter() {
       <main style={{ background: "#f9fafb", minHeight: "80vh" }}>
         {/* Hero */}
         <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0ea5e9 100%)", padding: "3.5rem 1.5rem 3rem" }}>
-          <div style={{ maxWidth: 760, margin: "0 auto" }}>
+          <div style={{ maxWidth: 900, margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
               <Link href="/blog" style={{ color: "#7dd3fc", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>← Blog</Link>
               <span style={{ color: "#0ea5e9", fontSize: 13 }}>/</span>
@@ -64,7 +64,7 @@ export default function PostNewsletter() {
         </div>
 
         {/* Article */}
-        <article style={{ maxWidth: 760, margin: "0 auto", padding: "3rem 1.5rem" }}>
+        <article style={{ maxWidth: 900, margin: "0 auto", padding: "3rem 1.5rem" }}>
           <div style={{ background: "#fff", borderRadius: 16, padding: "2.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", lineHeight: 1.8, color: "#374151", fontSize: "1.05rem" }}>
 
             {/* Hero image */}
