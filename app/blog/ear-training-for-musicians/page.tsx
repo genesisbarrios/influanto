@@ -45,7 +45,7 @@ export default function PostEarTraining() {
       <main style={{ background: "#f9fafb", minHeight: "80vh" }}>
         {/* Hero */}
         <div style={{ background: "linear-gradient(135deg, rgba(76,29,149,0.92) 0%, rgba(109,40,217,0.90) 50%, rgba(139,92,246,0.88) 100%), url('https://dt7v1i9vyp3mf.cloudfront.net/styles/news_large/s3/imagelibrary/2/2001-07-eartraining-1-_w6jPs0TQpOdBr0mQfflz.EXRFEyiV4q.jpg')", backgroundSize: "cover", backgroundPosition: "center", padding: "3.5rem 1.5rem 3rem" }}>
-          <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
               <Link href="/blog" style={{ color: "#ddd6fe", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>← Blog</Link>
               <span style={{ color: "#a78bfa", fontSize: 13 }}>/</span>
@@ -66,7 +66,7 @@ export default function PostEarTraining() {
         </div>
 
         {/* Article */}
-        <article style={{ maxWidth: 900, margin: "0 auto", padding: "3rem 1.5rem" }}>
+        <article style={{ maxWidth: 1100, margin: "0 auto", padding: "3rem 2rem" }}>
           <div style={{ background: "#fff", borderRadius: 16, padding: "2.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", lineHeight: 1.8, color: "#374151", fontSize: "1.05rem" }}>
 
             <p style={{ fontSize: "1.1rem", color: "#1f2937", fontWeight: 500, marginBottom: "1.5rem" }}>
