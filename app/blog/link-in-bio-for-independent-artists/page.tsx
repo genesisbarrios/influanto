@@ -26,10 +26,12 @@ export const metadata: Metadata = {
     title: "Why Every Independent Artist Needs a Link in Bio",
     description: "One bio link isn't enough. Here's why every independent musician needs a dedicated link in bio page — and what to put on it.",
     type: "article",
+    images: [{ url: "https://www.influanto.com/twitter-image.png", width: 1920, height: 1080 }],
     url: "https://www.influanto.com/blog/link-in-bio-for-independent-artists",
   },
   twitter: {
     card: "summary_large_image",
+    images: ["https://www.influanto.com/twitter-image.png"],
     title: "Why Every Independent Artist Needs a Link in Bio",
     description: "One bio link isn't enough. Here's why every independent musician needs a dedicated link in bio page.",
   },
