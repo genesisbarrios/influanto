@@ -1047,7 +1047,7 @@ const handleYouTubeMusicChange = (e: any) => {
               <p className="text-xs text-gray-500">{user.category.join(" · ")}</p>
             )}
             <p>
-              {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} />{user.location}</span>}
+              {user.location && <span className='mr-2'><FontAwesomeIcon icon={faLocation} /> {user.location}</span>}
               {user.website && <a href={normalizeUrl(user.website)} target="_blank"><FontAwesomeIcon icon={faGlobe} /> Website</a>}
             </p>
           
