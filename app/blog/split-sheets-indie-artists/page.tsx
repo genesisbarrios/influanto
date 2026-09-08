@@ -28,12 +28,10 @@ export const metadata: Metadata = {
     title: "Why Split Sheets Are Non-Negotiable for Indie Music Collaborations",
     description: "A verbal agreement won't protect your royalties. Every independent artist and producer needs a split sheet before releasing collaborative music.",
     type: "article",
-    images: [{ url: "https://www.influanto.com/twitter-image.png", width: 1920, height: 1080 }],
     url: "https://www.influanto.com/blog/split-sheets-indie-artists",
   },
   twitter: {
     card: "summary_large_image",
-    images: ["https://www.influanto.com/twitter-image.png"],
     title: "Why Split Sheets Are Non-Negotiable for Indie Music Collaborations",
     description: "A verbal agreement won't protect your royalties. Here's what every indie artist and producer needs to know about split sheets.",
   },
