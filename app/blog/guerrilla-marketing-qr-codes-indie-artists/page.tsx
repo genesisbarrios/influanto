@@ -24,10 +24,12 @@ export const metadata: Metadata = {
     title: "Guerrilla Marketing for Indie Artists: Using QR Codes to Market in the Real World",
     description: "No street team, no budget, no problem. Here's how independent artists use QR codes and guerrilla marketing tactics to turn flyers and stickers into streams.",
     type: "article",
+    images: [{ url: "https://www.influanto.com/twitter-image.png", width: 1920, height: 1080 }],
     url: "https://www.influanto.com/blog/guerrilla-marketing-qr-codes-indie-artists",
   },
   twitter: {
     card: "summary_large_image",
+    images: ["https://www.influanto.com/twitter-image.png"],
     title: "Guerrilla Marketing for Indie Artists: Using QR Codes to Market in the Real World",
     description: "No street team, no budget, no problem. Here's how independent artists use QR codes and guerrilla marketing tactics to turn flyers and stickers into streams.",
   },

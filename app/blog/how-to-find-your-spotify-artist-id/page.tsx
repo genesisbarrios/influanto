@@ -29,10 +29,12 @@ export const metadata: Metadata = {
     title: "How to Find Your Spotify Artist ID (and Apple, Tidal, Amazon, Pandora, Deezer, Qobuz)",
     description: "Step-by-step instructions for finding your artist ID on every major streaming platform — with the exact URL to look at for each one.",
     type: "article",
+    images: [{ url: "https://www.influanto.com/twitter-image.png", width: 1920, height: 1080 }],
     url: "https://www.influanto.com/blog/how-to-find-your-spotify-artist-id",
   },
   twitter: {
     card: "summary_large_image",
+    images: ["https://www.influanto.com/twitter-image.png"],
     title: "How to Find Your Spotify Artist ID (and Apple, Tidal, Amazon, Pandora, Deezer, Qobuz)",
     description: "Step-by-step instructions for finding your artist ID on every major streaming platform.",
   },

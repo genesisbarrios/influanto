@@ -28,10 +28,12 @@ export const metadata: Metadata = {
     title: "Struggling to Write Melodies? You Might Need Ear Training",
     description: "Can't come up with melodies that stick? Ear training builds the skill that connects what you hear to what you play — here's how to start.",
     type: "article",
+    images: [{ url: "https://www.influanto.com/twitter-image.png", width: 1920, height: 1080 }],
     url: "https://www.influanto.com/blog/ear-training-for-musicians",
   },
   twitter: {
     card: "summary_large_image",
+    images: ["https://www.influanto.com/twitter-image.png"],
     title: "Struggling to Write Melodies? You Might Need Ear Training",
     description: "Can't come up with melodies that stick? Ear training builds the skill that connects what you hear to what you play.",
   },
