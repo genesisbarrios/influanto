@@ -136,6 +136,31 @@ export const createCustomerPortal = async ({
   return portalSession.url;
 };
 
+// Checks Stripe directly (not just our own users table) for any customer
+// with this email that already has an active or trialing subscription.
+// Guards against duplicate subscriptions: a rapid double-click, a reopened
+// checkout link, or any other retry before the first checkout's webhook has
+// landed would otherwise each spin up their own new Stripe customer +
+// subscription, since our DB's customer_id isn't saved until the first
+// checkout.session.completed webhook is processed.
+export const findActiveSubscriptionByEmail = async (
+  email: string
+): Promise<{ customerId: string; subscriptionId: string } | null> => {
+  if (!process.env.STRIPE_SECRET_KEY) return null;
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: "2023-08-16",
+    typescript: true,
+  });
+
+  const customers = await stripe.customers.list({ email, limit: 20 });
+  for (const customer of customers.data) {
+    const subs = await stripe.subscriptions.list({ customer: customer.id, status: "all", limit: 10 });
+    const active = subs.data.find((s) => s.status === "active" || s.status === "trialing");
+    if (active) return { customerId: customer.id, subscriptionId: active.id };
+  }
+  return null;
+};
+
 // This is used to get the uesr checkout session and populate the data so we get the planId the user subscribed to
 export const findCheckoutSession = async (sessionId: string) => {
   try {
