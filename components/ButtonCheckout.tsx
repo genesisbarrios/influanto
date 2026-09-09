@@ -26,7 +26,7 @@ const ButtonCheckout = ({
     posthog.capture("checkout_started", { price_id: priceId, mode });
 
     try {
-      const { url }: { url: string } = await apiClient.post(
+      const { url, alreadySubscribed }: { url: string; alreadySubscribed?: boolean } = await apiClient.post(
         "/stripe/create-checkout",
         {
           priceId,
@@ -35,6 +35,10 @@ const ButtonCheckout = ({
           mode,
         }
       );
+
+      if (alreadySubscribed) {
+        posthog.capture("checkout_blocked_already_subscribed", { price_id: priceId });
+      }
 
       window.location.href = url;
     } catch (e) {
@@ -50,6 +54,7 @@ const ButtonCheckout = ({
       type="button"
       className="btn btn-primary btn-block group"
       onClick={() => handlePayment()}
+      disabled={isLoading}
     >
       {isLoading ? (
         <span className="loading loading-spinner loading-xs"></span>

@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
-import { createCheckout } from "@/libs/stripe";
+import { createCheckout, createCustomerPortal, findActiveSubscriptionByEmail } from "@/libs/stripe";
 import supabase, { mapUser } from "@/libs/supabase";
 
 export async function POST(req: NextRequest) {
@@ -26,6 +26,21 @@ export async function POST(req: NextRequest) {
 
     const user = userRow ? mapUser(userRow) : null;
     const { priceId, mode, successUrl, cancelUrl } = body;
+
+    // Guard against duplicate subscriptions: if this email already has an
+    // active or trialing subscription anywhere in Stripe (even under a
+    // different customer object than the one saved on our side), send them
+    // to the billing portal instead of creating another paid subscription.
+    if (mode === "subscription" && user?.email) {
+      const existing = await findActiveSubscriptionByEmail(user.email);
+      if (existing) {
+        const portalUrl = await createCustomerPortal({
+          customerId: existing.customerId,
+          returnUrl: successUrl,
+        });
+        return NextResponse.json({ url: portalUrl, alreadySubscribed: true });
+      }
+    }
 
     const stripeSessionURL = await createCheckout({
       priceId,
