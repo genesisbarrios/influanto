@@ -24,7 +24,7 @@ export function normalizeBandcampLink(value: string): string {
     return normalizeUrl(v);
   }
   // Bare handle — build the artist's bandcamp subdomain.
-  const handle = v.split(/[\/?#]/)[0];
+  const handle = v.split(/[/?#]/)[0];
   return handle ? `https://${handle}.bandcamp.com` : "";
 }
 
@@ -41,4 +41,19 @@ export function normalizeLinkedInHandle(value: string): string {
   v = v.split(/[?#]/)[0].replace(/\/+$/, "");
   if (v && !/^(in|company|school|showcase)\//i.test(v)) v = `in/${v}`;
   return v;
+}
+
+// Turns free text (e.g. a song title with spaces/punctuation) into a
+// URL-safe slug: lowercase, accents stripped, non-alphanumeric runs
+// collapsed to a single hyphen, leading/trailing hyphens trimmed.
+export function slugify(text: string): string {
+  const slug = String(text ?? "")
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+  return slug || "release";
 }

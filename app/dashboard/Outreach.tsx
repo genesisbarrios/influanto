@@ -303,7 +303,7 @@ export default function Outreach() {
         bgColor: rp.bgColor || nl.bgColor,
         textColor: rp.textColor || nl.textColor,
         linksColor: rp.linksColor || nl.linksColor,
-        urlRedirect: rp.name ? `https://${config.domainName}/release/${encodeURIComponent(rp.name)}` : "",
+        urlRedirect: rp.slug ? `https://${config.domainName}/release/${encodeURIComponent(rp.slug)}` : "",
       });
       setAlert(`Pulled content from "${rp.name}"`, true);
     }

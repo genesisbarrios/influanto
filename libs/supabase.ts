@@ -108,6 +108,7 @@ export function mapReleasePage(row: any) {
     id: row.id,
     userId: row.user_id,
     name: row.name,
+    slug: row.slug,
     image: row.image,
     description: row.description,
     video: row.video,

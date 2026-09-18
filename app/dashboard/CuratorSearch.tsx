@@ -80,7 +80,7 @@ const PitchToSpotify: React.FC = () => {
   const setEmailAlert = (msg: string, ok = false) => { setEmailAlertRaw(msg); setEmailAlertOk(ok); };
 
   // ── Track link (release page dropdown or a pasted link) ──
-  const [releasePages, setReleasePages] = useState<{ name: string; image?: string }[]>([]);
+  const [releasePages, setReleasePages] = useState<{ id?: string; name: string; slug?: string; image?: string }[]>([]);
   const [selectedReleasePageName, setSelectedReleasePageName] = useState('');
   const [customLink, setCustomLink] = useState('');
   const [trackLink, setTrackLink] = useState('');
@@ -100,10 +100,10 @@ const PitchToSpotify: React.FC = () => {
     setTrackLink(newLink);
   };
 
-  const handleSelectReleasePage = (pageName: string) => {
-    setSelectedReleasePageName(pageName);
+  const handleSelectReleasePage = (pageSlug: string) => {
+    setSelectedReleasePageName(pageSlug);
     setCustomLink('');
-    applyLink(pageName ? `${window.location.origin}/release/${pageName}` : '');
+    applyLink(pageSlug ? `${window.location.origin}/release/${pageSlug}` : '');
   };
 
   const handleCustomLinkChange = (value: string) => {
@@ -380,7 +380,7 @@ ${(data?.user?.name as string) || ''}`,
                 >
                   <option value="">Select a release page…</option>
                   {releasePages.map((page) => (
-                    <option key={page.name} value={page.name}>{page.name}</option>
+                    <option key={page.id ?? page.slug} value={page.slug}>{page.name}</option>
                   ))}
                 </select>
                 <p className="text-xs text-gray-400 mt-1 mb-1">Or paste the link you want to use:</p>

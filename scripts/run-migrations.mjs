@@ -104,6 +104,16 @@ const migrations = [
   // once) and whether they've dismissed the dashboard banner about it.
   `ALTER TABLE users ADD COLUMN IF NOT EXISTS newsletter_limit_notified BOOLEAN DEFAULT FALSE`,
   `ALTER TABLE users ADD COLUMN IF NOT EXISTS newsletter_limit_banner_dismissed BOOLEAN DEFAULT FALSE`,
+
+  // release_pages.name is now a free-form song title (spaces, punctuation
+  // allowed) instead of doubling as the page's URL slug. Split that out into
+  // its own unique, URL-safe slug column, backfilled from the existing name
+  // (already URL-safe for every current row under the old validation rules).
+  `ALTER TABLE release_pages ADD COLUMN IF NOT EXISTS slug TEXT`,
+  `UPDATE release_pages SET slug = name WHERE slug IS NULL`,
+  `ALTER TABLE release_pages ALTER COLUMN slug SET NOT NULL`,
+  `ALTER TABLE release_pages DROP CONSTRAINT IF EXISTS release_pages_name_key`,
+  `ALTER TABLE release_pages ADD CONSTRAINT release_pages_slug_key UNIQUE (slug)`,
 ];
 
 async function run() {
