@@ -16,7 +16,7 @@ export async function GET(_req: NextRequest, { params }: { params: { slug: strin
     const { data: releasePage, error: rpError } = await supabase
       .from("release_pages")
       .select()
-      .eq("name", slug)
+      .eq("slug", slug)
       .single();
 
     if (rpError || !releasePage) {

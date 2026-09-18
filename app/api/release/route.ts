@@ -2,10 +2,25 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase, { mapReleasePage } from "@/libs/supabase";
-import { normalizeUrl } from "@/libs/urls";
+import { normalizeUrl, slugify } from "@/libs/urls";
 
 function normalizeLinks(links: any): any {
   return Array.isArray(links) ? links.map((l: any) => ({ ...l, url: normalizeUrl(l.url) })) : links;
+}
+
+// The display name (song title) can repeat across pages/users, so the
+// unique URL slug is derived from it and de-duplicated with a numeric
+// suffix on collision — set once at creation and never changed by later
+// edits to the name, so existing shared links keep working.
+async function generateUniqueSlug(name: string): Promise<string> {
+  const base = slugify(name);
+  let slug = base;
+  let suffix = 2;
+  for (;;) {
+    const { data } = await supabase.from("release_pages").select("id").eq("slug", slug).maybeSingle();
+    if (!data) return slug;
+    slug = `${base}-${suffix++}`;
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -57,6 +72,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ data: mapReleasePage(data) }, { status: 200 });
     }
 
+    const slug = await generateUniqueSlug(name);
+
     const { data, error } = await supabase
       .from("release_pages")
       .insert({
@@ -70,6 +87,7 @@ export async function POST(req: NextRequest) {
         image,
         description,
         name,
+        slug,
         selected_products: selectedProducts ?? [],
         custom_merch_links: normalizeLinks(customMerchLinks ?? []),
         newsletter_enabled: newsletterEnabled ?? false,

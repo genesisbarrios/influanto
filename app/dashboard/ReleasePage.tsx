@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
 import { useSession } from "next-auth/react";
 import ReleasePageAnalytics from "@/components/ReleasePageAnalytics";
-import { debounce } from "lodash";
 import posthog from "posthog-js";
 import { parseColorValue, combineColor } from "@/libs/color";
 import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
@@ -73,7 +72,6 @@ const ReleasePages = () => {
   const [editingPage, setEditingPage] = useState<any | null>(null);
   const [userData, setUserData] = useState<any>(null);
   const [createPage, setCreatePage] = useState(false);
-  const [isNameUnique, setIsNameUnique] = useState(true);
   const [bgColor, setBgColor] = useState("#ffffff");
   const [bgOpacity, setBgOpacity] = useState(100);
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
@@ -347,19 +345,6 @@ const ReleasePages = () => {
     }
   };
 
-  const checkNameUniqueness = debounce(async (name: string) => {
-    try {
-      const { data } = await apiClient.get("/get-release-page-uniqueness", {
-        params: { name: name },
-      });
-      if (data !== undefined) {
-        setIsNameUnique(data);
-      }
-    } catch (e: any) {
-      console.error(e?.message);
-    }
-  }, 300);
-
   const validateName = (value: string) => {
     if (!value.trim()) {
       setAlert("Release page name is required.");
@@ -371,18 +356,6 @@ const ReleasePages = () => {
     }
     if (value.length > 50) {
       setAlert("Release page name cannot be longer than 50 characters.");
-      return false;
-    }
-    if (value.includes(' ')) {
-      setAlert("Release page name cannot contain spaces. Use hyphens (-) or underscores (_) instead.");
-      return false;
-    }
-    if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
-      setAlert("Release page name can only contain letters, numbers, hyphens (-), and underscores (_).");
-      return false;
-    }
-    if (!/^[a-zA-Z0-9]/.test(value)) {
-      setAlert("Release page name must start with a letter or number.");
       return false;
     }
     setAlert("");
@@ -505,19 +478,14 @@ const ReleasePages = () => {
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let name = e.target.value;
+    const name = e.target.value;
 
-    // Remove spaces as user types — this name doubles as the page's URL slug,
-    // so spaces aren't allowed, but case is otherwise left as typed since it's
-    // also shown as the release's display title.
-    name = name.replace(/\s+/g, '-');
-    
     // Always update the state so user can type
-    setEditingPage({ 
-      ...editingPage, 
+    setEditingPage({
+      ...editingPage,
       name
     });
-    
+
     // Validate and set error message, but don't prevent typing
     if (name && !validateName(name)) {
       // Error already set in validateName function
@@ -728,12 +696,6 @@ const removeCustomLink = (index: number) => {
         return;
       }
 
-      // Check name uniqueness for new pages
-      if (!editingPage?._id && !isNameUnique) {
-        setAlert("This name is already taken. Please choose another.");
-        return;
-      }
-
       const nlFields: string[] = Array.isArray(editingPage?.newsletterFields) ? editingPage.newsletterFields : ["name", "email"];
       const dataToSend = {
         ...editingPage,
@@ -767,41 +729,6 @@ const removeCustomLink = (index: number) => {
       console.error('❌ Save error:', e?.message);
       posthog.captureException(e);
       setAlert(e?.response?.data?.message || e?.message || "Failed to save release page.");
-    }
-  };
-
-  const validateReleasePageName = (name: string): { isValid: boolean; message: string } => {
-    if (!name) return { isValid: true, message: "" };
-    
-    if (name.includes(' ')) {
-      return { isValid: false, message: "Release page name cannot contain spaces. Use hyphens (-) or underscores (_) instead." };
-    }
-    
-    if (name.length < 2) {
-      return { isValid: false, message: "Release page name must be at least 2 characters long." };
-    }
-    
-    if (name.length > 50) {
-      return { isValid: false, message: "Release page name must be 50 characters or less." };
-    }
-    
-    const allowedPattern = /^[a-zA-Z0-9_-]+$/;
-    if (!allowedPattern.test(name)) {
-      return { isValid: false, message: "Release page name can only contain letters, numbers, hyphens (-), and underscores (_)." };
-    }
-    
-    const startsWithLetterOrNumber = /^[a-zA-Z0-9]/.test(name);
-    if (!startsWithLetterOrNumber) {
-      return { isValid: false, message: "Release page name must start with a letter or number." };
-    }
-    
-    return { isValid: true, message: "" };
-  };
-
-  const handleNameBlur = () => {
-    if (editingPage?.name) {
-      console.log('checking uniqueness', editingPage.name);
-      checkNameUniqueness(editingPage.name);
     }
   };
 
@@ -1011,23 +938,12 @@ const removeCustomLink = (index: number) => {
                     <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Name</label>
                     <input
                       type="text"
-                      className={`input w-full ${!isNameUnique || editingPage?.nameError ? "border-red-500" : ""}`}
-                      placeholder="Enter release page name"
+                      className="input w-full"
+                      placeholder="Enter song or release name"
                       value={editingPage?.name || ""}
                       onChange={handleNameChange}
-                      onBlur={handleNameBlur}
                       style={{ fontFamily: font || 'inherit' }}
                     />
-                    {editingPage?.nameError && (
-                      <p className="text-red-500 text-sm mt-1" style={{ fontFamily: font || 'inherit' }}>
-                        {editingPage.nameError}
-                      </p>
-                    )}
-                    {!isNameUnique && (
-                      <p className="text-red-500 text-sm mt-1" style={{ fontFamily: font || 'inherit' }}>
-                        This name is already taken. Please choose another.
-                      </p>
-                    )}
                   </div>
                   <div className="sm:w-40 flex-shrink-0">
                     <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Album Cover</label>
@@ -1339,7 +1255,7 @@ const removeCustomLink = (index: number) => {
                         </button>
                         <button
                           className="btn btn-secondary btn-sm"
-                          onClick={() => window.location.href = `/release/${page.name}`}
+                          onClick={() => window.location.href = `/release/${page.slug}`}
                           style={{ fontFamily: page.font || 'inherit' }}
                         >
                           Visit
@@ -1383,12 +1299,11 @@ const removeCustomLink = (index: number) => {
                   <input
                     type="text"
                     className="input w-full"
-                    placeholder="Enter release page name"
+                    placeholder="Enter song or release name"
                     value={editingPage?.name || ""}
                     onChange={(e) => {
                       setEditingPage({ ...editingPage, name: e.target.value });
                     }}
-                    onBlur={handleNameBlur}
                     style={{ fontFamily: font || 'inherit' }}
                   />
                 </div>
