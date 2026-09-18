@@ -60,6 +60,7 @@ function sanitizeSocialHandle(value: string, domain: string): string {
 export default function NewsletterSignup({ username, source, fields = ["name", "email"], bgColor, textColor, linksColor, heading, style }: Props) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [hp, setHp] = useState(""); // honeypot
+  const [renderedAt] = useState(() => Date.now()); // spam guard: min. time-to-submit
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [error, setError] = useState("");
 
@@ -105,7 +106,7 @@ export default function NewsletterSignup({ username, source, fields = ["name", "
       const res = await fetch("/api/outreach/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, source, hp, ...payload }),
+        body: JSON.stringify({ username, source, hp, renderedAt, ...payload }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
