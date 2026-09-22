@@ -201,6 +201,7 @@ const LinkInBio = () => {
   const [headerImage, setHeaderImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
+  const [shareCopied, setShareCopied] = useState(false);
   const [showProducts, setShowProducts] = useState(false);
   const [availableProducts, setAvailableProducts] = useState<any[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
@@ -488,6 +489,28 @@ const LinkInBio = () => {
     });
   };
 
+  // ── Share ──────────────────────────────────────────────────────────────────
+
+  const handleShare = async () => {
+    if (!user?.username) return;
+    const url = `https://influanto.com/${user.username}`;
+    if (typeof navigator !== "undefined" && (navigator as any).share) {
+      try {
+        await (navigator as any).share({ title: data?.user?.name || "My Link in Bio", url });
+        return;
+      } catch {
+        // User cancelled the native share sheet, or it failed — fall back to copying.
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {
+      setAlertt("Could not copy link");
+    }
+  };
+
   // ── Save ───────────────────────────────────────────────────────────────────
 
   const handleEditLinkInBio = async (e: any) => {
@@ -567,6 +590,16 @@ const LinkInBio = () => {
                 >
                   Visit
                 </a>
+              )}
+              {user?.username && (
+                <button
+                  type="button"
+                  className="btn btn-sm btn-narrow"
+                  style={{ fontFamily: linkInBio?.font || 'inherit', backgroundColor: '#6b7280', borderColor: '#6b7280', color: '#fff' }}
+                  onClick={handleShare}
+                >
+                  {shareCopied ? "Copied!" : "Share"}
+                </button>
               )}
             </div>
           </div>
@@ -691,13 +724,23 @@ const LinkInBio = () => {
                 )}
 
                 <br />
-                <a
-                  className="btn btn-primary btn-block btn-lg btn-narrow"
-                  style={{ width: "auto", display: "inline", fontFamily: linkInBio?.font || 'inherit' }}
-                  href={`https://influanto.com/${user.username}`}
-                >
-                  Visit
-                </a>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
+                  <a
+                    className="btn btn-primary btn-block btn-lg btn-narrow"
+                    style={{ width: "auto", display: "inline", fontFamily: linkInBio?.font || 'inherit' }}
+                    href={`https://influanto.com/${user.username}`}
+                  >
+                    Visit
+                  </a>
+                  <button
+                    type="button"
+                    className="btn btn-lg btn-narrow"
+                    style={{ width: "auto", display: "inline", fontFamily: linkInBio?.font || 'inherit', backgroundColor: '#6b7280', borderColor: '#6b7280', color: '#fff' }}
+                    onClick={handleShare}
+                  >
+                    {shareCopied ? "Copied!" : "Share"}
+                  </button>
+                </div>
               </div>
             )}
           </div>

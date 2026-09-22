@@ -86,6 +86,7 @@ const ReleasePages = () => {
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [showMerchSection, setShowMerchSection] = useState(false);
   const [expandedAnalytics, setExpandedAnalytics] = useState<string | null>(null);
+  const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
   const [brandLogoPickerOpen, setBrandLogoPickerOpen] = useState(false);
   const [bgImagePickerOpen, setBgImagePickerOpen] = useState(false);
@@ -325,6 +326,26 @@ const ReleasePages = () => {
   const removeCustomMerchLink = (index: number) => {
     const updated = (editingPage?.customMerchLinks || []).filter((_: any, i: number) => i !== index);
     setEditingPage({ ...editingPage, customMerchLinks: updated });
+  };
+
+  const handleShare = async (page: any) => {
+    const pageId = page.id || page._id;
+    const url = `${window.location.origin}/release/${page.slug}`;
+    if (typeof navigator !== "undefined" && (navigator as any).share) {
+      try {
+        await (navigator as any).share({ title: page.name, url });
+        return;
+      } catch {
+        // User cancelled the native share sheet, or it failed — fall back to copying.
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedShareId(pageId);
+      setTimeout(() => setCopiedShareId((prev) => (prev === pageId ? null : prev)), 2000);
+    } catch {
+      setAlert("Could not copy link");
+    }
   };
 
   const handleDelete = async (pageId: any) => {
@@ -1247,11 +1268,11 @@ const removeCustomLink = (index: number) => {
                       <p className="text-sm" style={{ fontFamily: page.font || 'inherit' }}>{page.description}</p>
                       <div className="flex space-x-2 mt-2 flex-wrap justify-center gap-y-1">
                         <button
-                          className="btn btn-primary btn-sm"
-                          onClick={() => handleEdit(page)}
-                          style={{ fontFamily: page.font || 'inherit' }}
+                          className="btn btn-sm"
+                          style={{ backgroundColor: "rgba(255,255,255,0.2)", color: "white", fontFamily: page.font || 'inherit' }}
+                          onClick={() => handleShare(page)}
                         >
-                          Edit
+                          {copiedShareId === pageId ? "Copied!" : "Share"}
                         </button>
                         <button
                           className="btn btn-secondary btn-sm"
@@ -1266,6 +1287,13 @@ const removeCustomLink = (index: number) => {
                           onClick={() => setExpandedAnalytics(analyticsOpen ? null : pageId)}
                         >
                           {analyticsOpen ? "Hide Analytics" : "Analytics"}
+                        </button>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => handleEdit(page)}
+                          style={{ fontFamily: page.font || 'inherit' }}
+                        >
+                          Edit
                         </button>
                         <button
                           className="btn btn-alert btn-sm"
