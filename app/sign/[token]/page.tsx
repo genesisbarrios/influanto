@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import jsPDF from "jspdf";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLinkSlash, faCircleCheck, faDownload, faRightToBracket } from "@fortawesome/free-solid-svg-icons";
+import { sanitizeFilename } from "@/libs/urls";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -105,7 +106,10 @@ function downloadPDF(sheet: SheetData, overrideSignature?: { name: string; data:
   });
   doc.setTextColor(0);
 
-  doc.save(`${sheet.title||"split-sheet"}_signed_influanto.pdf`);
+  const filenameParts = [sanitizeFilename(sheet.title || "") || "split-sheet", "splitsheet", "influanto"];
+  if (sheet.date) filenameParts.push(sanitizeFilename(sheet.date));
+  filenameParts.push("signed");
+  doc.save(`${filenameParts.join("_")}.pdf`);
 }
 
 // ─── Signature canvas ─────────────────────────────────────────────────────────

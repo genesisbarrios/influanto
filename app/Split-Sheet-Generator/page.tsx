@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import jsPDF from "jspdf";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { sanitizeFilename } from "@/libs/urls";
 
 export default function SplitSheetTemplate() {
 
@@ -338,7 +339,9 @@ const handleDownloadPDF = () => {
     y += h;
   });
 
-  doc.save(`${form.songTitle + " SplitSheet " + form.date + " influanto" || "split-sheet"}.pdf`);
+  const filenameParts = [sanitizeFilename(form.songTitle || "") || "split-sheet", "splitsheet", "influanto"];
+  if (form.date) filenameParts.push(sanitizeFilename(form.date));
+  doc.save(`${filenameParts.join("_")}.pdf`);
 };
 
   return (

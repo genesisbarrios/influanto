@@ -9,6 +9,7 @@ import ImportContactsModal, { ImportField } from "@/components/ImportContactsMod
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFileArrowUp, faXmark, faFileLines } from "@fortawesome/free-solid-svg-icons";
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from "recharts";
+import { sanitizeFilename } from "@/libs/urls";
 
 const FREE_SPLIT_SHEET_LIMIT = 5;
 
@@ -195,7 +196,9 @@ function downloadSheetPDF(sheet: Partial<SplitSheet>) {
   });
   doc.setTextColor(0);
 
-  doc.save(`${sheet.title||"split-sheet"}_${sheet.date||""}_influanto.pdf`);
+  const filenameParts = [sanitizeFilename(sheet.title || "") || "split-sheet", "splitsheet", "influanto"];
+  if (sheet.date) filenameParts.push(sanitizeFilename(sheet.date));
+  doc.save(`${filenameParts.join("_")}.pdf`);
 }
 
 // ─── Signature canvas modal ───────────────────────────────────────────────────

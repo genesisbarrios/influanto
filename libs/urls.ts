@@ -57,3 +57,10 @@ export function slugify(text: string): string {
     .slice(0, 60);
   return slug || "release";
 }
+
+// Strips characters that are invalid/unsafe in a downloaded filename — a
+// date like "6/24/2026" would otherwise break the saved filename, since "/"
+// is a path separator — while keeping the text otherwise readable.
+export function sanitizeFilename(text: string): string {
+  return String(text ?? "").trim().replace(/[\\/:*?"<>|]/g, "-");
+}
