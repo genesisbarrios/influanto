@@ -2,6 +2,9 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase from "@/libs/supabase";
+import { sendEmail } from "@/libs/resend";
+import { buildSplitSheetPdf, splitSheetPdfFilename } from "@/libs/splitSheetPdf";
+import config from "@/config";
 
 // ── GET — public, fetch split sheet + signer details by token ────────────────
 export async function GET(_req: NextRequest, { params }: { params: { token: string } }) {
@@ -129,7 +132,64 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
     .update({ contributors: updatedContributors, publishing: updatedPublishing })
     .eq("id", sheet.id);
 
-  // 3. If the signer is logged in, save a copy of the sheet under their account
+  // 3. Email the signer their own copy right away ("just in case" they never
+  // click Download on the confirmation screen) — and, once every invited
+  // signer has now signed, email the final fully-executed PDF to everyone
+  // else too. Never let an email hiccup fail the signing request itself.
+  try {
+    const pdfSheet = {
+      title: sheet.title ?? "",
+      date: sheet.date ?? "",
+      artists: sheet.artists ?? "",
+      stateCountry: sheet.state_country ?? "",
+      contributors: updatedContributors,
+      publishing: updatedPublishing,
+    };
+    const pdfBuffer = Buffer.from(buildSplitSheetPdf(pdfSheet).output("arraybuffer"));
+    const filename = splitSheetPdfFilename(pdfSheet);
+
+    const { data: allSigners } = await supabase
+      .from("split_sheet_signers")
+      .select("contributor_email, signed_at")
+      .eq("split_sheet_id", sheet.id);
+
+    const fullySigned = !!allSigners?.length && allSigners.every((s) => !!s.signed_at);
+
+    if (signer.contributor_email) {
+      await sendEmail({
+        to: signer.contributor_email,
+        subject: `✍️ Your signed copy: "${sheet.title}"`,
+        text: `Attached is your copy of the split sheet for "${sheet.title}".`,
+        html: `<p>Hi ${finalContributorName || signer.contributor_name || ""},</p><p>Attached is your copy of the split sheet for "<strong>${sheet.title}</strong>". Keep it for your records${fullySigned ? "" : " — once every contributor has signed, everyone will get the final version too"}.</p><p style="color:#9ca3af;font-size:12px;">Powered by <a href="https://influanto.com">Influanto</a></p>`,
+        replyTo: config.mailgun.supportEmail || "noreply@influanto.com",
+        attachments: [{ filename, content: pdfBuffer }],
+      });
+    }
+
+    if (fullySigned) {
+      const others = (allSigners ?? []).filter(
+        (s) => (s.contributor_email ?? "").toLowerCase() !== signerEmail
+      );
+      await Promise.all(
+        others
+          .filter((s) => s.contributor_email)
+          .map((s) =>
+            sendEmail({
+              to: s.contributor_email as string,
+              subject: `🎉 Fully signed: "${sheet.title}"`,
+              text: `Everyone has now signed the split sheet for "${sheet.title}". Attached is the final signed copy.`,
+              html: `<p>Great news — everyone has now signed the split sheet for "<strong>${sheet.title}</strong>". Attached is the final, fully-executed copy for your records.</p><p style="color:#9ca3af;font-size:12px;">Powered by <a href="https://influanto.com">Influanto</a></p>`,
+              replyTo: config.mailgun.supportEmail || "noreply@influanto.com",
+              attachments: [{ filename, content: pdfBuffer }],
+            })
+          )
+      );
+    }
+  } catch (e) {
+    console.error("Failed to email split sheet PDF:", e);
+  }
+
+  // 4. If the signer is logged in, save a copy of the sheet under their account
   //    (so it appears in their own Split Sheets dashboard) and report premium status.
   let premium = false;
   const session = await getServerSession(authOptions);

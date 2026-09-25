@@ -2,10 +2,9 @@
 /* eslint-disable */
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import jsPDF from "jspdf";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLinkSlash, faCircleCheck, faDownload, faRightToBracket, faXmark } from "@fortawesome/free-solid-svg-icons";
-import { sanitizeFilename } from "@/libs/urls";
+import { faLinkSlash, faCircleCheck, faDownload, faRightToBracket, faXmark, faPen } from "@fortawesome/free-solid-svg-icons";
+import { buildSplitSheetPdf, splitSheetPdfFilename } from "@/libs/splitSheetPdf";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,96 +19,8 @@ interface SignerData { id: string; name: string; email: string; signedAt: string
 // ─── PDF generation ───────────────────────────────────────────────────────────
 
 function downloadPDF(sheet: SheetData, overrideSignature?: { name: string; data: string }) {
-  const doc = new jsPDF();
-  const contributors = sheet.contributors ?? [];
-  const publishing = sheet.publishing ?? [];
-  const ph = doc.internal.pageSize.getHeight();
-  let y = 0;
-
-  doc.setFontSize(10); doc.setTextColor(100);
-  const brand = "influanto";
-  doc.text(brand, doc.internal.pageSize.getWidth() - doc.getTextWidth(brand) - 10, 10);
-  doc.setFontSize(16); doc.setTextColor(0);
-  doc.text("SPLIT SHEET AGREEMENT", 10, 15);
-  doc.setFontSize(12);
-  doc.text(`Song Title: ${sheet.title}`, 10, 30);
-  doc.text(`Date: ${sheet.date}`, 10, 40);
-  doc.text(`Artist(s): ${sheet.artists}`, 10, 50);
-  doc.text("Primary Contributors:", 10, 60);
-  y = 65;
-
-  const headers = () => {
-    doc.setFillColor(243, 244, 246);
-    [[10,40],[50,50],[100,15],[115,75]].forEach(([x,w]) => doc.rect(x, y, w, 8, "F"));
-    doc.text("Name",12,y+6); doc.text("Role",52,y+6); doc.text("Own%",102,y+6); doc.text("Contact",117,y+6);
-    y += 8;
-  };
-  headers();
-
-  contributors.forEach(c => {
-    const h = Math.max(Math.ceil((c.name||"").length/18), Math.ceil((c.role||"").length/25), Math.ceil((c.contact||"").length/32), 1) * 8;
-    if (y + h > ph - 20) { doc.addPage(); y = 20; headers(); }
-    [[10,40],[50,50],[100,15],[115,75]].forEach(([x,w]) => doc.rect(x, y, w, h));
-    doc.text(c.name||"",12,y+6,{maxWidth:38}); doc.text(c.role||"",52,y+6,{maxWidth:48});
-    doc.text(c.ownership ? `${c.ownership}%`:"",102,y+6); doc.text(c.contact||"",117,y+6,{maxWidth:73});
-    y += h;
-  });
-
-  if (publishing.length) {
-    y += 6; if (y+20 > ph-20) { doc.addPage(); y=20; }
-    doc.text("Publishing Details:", 10, y); y += 5;
-    doc.setFillColor(243,244,246);
-    [[10,60],[70,60],[130,60]].forEach(([x,w]) => doc.rect(x, y, w, 8, "F"));
-    doc.text("Contributor",12,y+6); doc.text("Publisher",72,y+6); doc.text("%",132,y+6); y += 8;
-    publishing.forEach(p => {
-      const h = Math.max(Math.ceil((p.contributorName||"").length/30), Math.ceil((p.publisher||"").length/30), 1) * 8;
-      if (y+h > ph-20) { doc.addPage(); y=20; }
-      [[10,60],[70,60],[130,60]].forEach(([x,w]) => doc.rect(x, y, w, h));
-      doc.text(p.contributorName||"",12,y+6,{maxWidth:58}); doc.text(p.publisher||"",72,y+6,{maxWidth:58});
-      doc.text(p.percent ? `${p.percent}%`:"",132,y+6); y += h;
-    });
-  }
-
-  // Signatures
-  y += 8; if (y+20 > ph-20) { doc.addPage(); y=20; }
-  doc.text("Signatures:", 10, y); y += 5;
-  [[10,60],[70,60],[130,60]].forEach(([x,w]) => doc.rect(x, y, w, 8, "F"));
-  doc.text("Name",12,y+6); doc.text("Signature",72,y+6); doc.text("Date",132,y+6); y += 8;
-
-  contributors.forEach(c => {
-    const h = 20; if (y+h > ph-20) { doc.addPage(); y=20; }
-    [[10,60],[70,60],[130,60]].forEach(([x,w]) => doc.rect(x, y, w, h));
-    doc.text(c.name||"",12,y+6,{maxWidth:58});
-    // Use override signature if this contributor's name matches
-    const sigData = overrideSignature && (c.name||"").toLowerCase() === overrideSignature.name.toLowerCase()
-      ? overrideSignature.data
-      : c.signature;
-    if (sigData) { try { doc.addImage(sigData,"PNG",72,y+2,56,h-4); } catch {} }
-    const sigDate = overrideSignature && (c.name||"").toLowerCase() === overrideSignature.name.toLowerCase()
-      ? new Date().toLocaleDateString("en-US")
-      : c.signatureDate;
-    doc.text(sigDate||"",132,y+6,{maxWidth:58}); y += h;
-  });
-
-  // Agreement terms (matches the on-screen terms)
-  y += 10; if (y+30 > ph-20) { doc.addPage(); y=20; }
-  doc.setFontSize(12); doc.setTextColor(0);
-  doc.text("Agreement Terms:", 10, y); y += 6;
-  doc.setFontSize(10); doc.setTextColor(60);
-  const termsText =
-    `Each contributor agrees to the ownership percentages of the composition and master recording specified above. ` +
-    `All royalties will be distributed accordingly. Dispute resolution under the laws of ${sheet.stateCountry || "[State/Country]"}. ` +
-    `By signing, all parties acknowledge their contributions are accurately reflected.`;
-  doc.splitTextToSize(termsText, 190).forEach((line: string) => {
-    if (y+6 > ph-20) { doc.addPage(); y=20; }
-    doc.text(line, 10, y); y += 6;
-  });
-  doc.setTextColor(0);
-
-  const filenameParts = [sanitizeFilename(sheet.title || "") || "split-sheet", "splitsheet", "influanto"];
-  if (sheet.date) filenameParts.push(sanitizeFilename(sheet.date));
-  filenameParts.push("signed");
-  doc.save(`${filenameParts.join("_")}.pdf`);
+  const doc = buildSplitSheetPdf(sheet, overrideSignature);
+  doc.save(splitSheetPdfFilename(sheet));
 }
 
 // ─── Signature canvas ─────────────────────────────────────────────────────────
@@ -168,6 +79,9 @@ export default function SignPage() {
   // previewed live without mutating the source of truth until submitted.
   const [myContributor, setMyContributor] = useState<Contributor | null>(null);
   const [myPublishing, setMyPublishing] = useState<Publishing[]>([]);
+  // Lets an already-signed visitor reopen their details/signature for editing
+  // instead of being stuck on the read-only confirmation screen.
+  const [editing, setEditing] = useState(false);
 
   const isMe = (c: { name?: string; contact?: string }, s: SignerData) => {
     const n = (c.name || "").toLowerCase();
@@ -220,6 +134,7 @@ export default function SignPage() {
         return;
       }
       setStep("done");
+      setEditing(false);
     } finally {
       setSubmitting(false);
     }
@@ -265,6 +180,12 @@ export default function SignPage() {
     setMyPublishing((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
   };
 
+  // Your own row is inline-editable directly in the tables below, without a
+  // separate duplicate card: it's already editable pre-signature, and the
+  // pencil icon reopens it after you've signed.
+  const showSignedConfirmation = step === "done" && !editing;
+  const canEditMine = !showSignedConfirmation;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 py-10 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -300,24 +221,77 @@ export default function SignPage() {
                 </tr>
               </thead>
               <tbody>
-                {displayContributors.map((c, i) => (
-                  <tr key={i} className={`border-t border-gray-50 ${isMe(c, signer) ? "bg-indigo-50" : ""}`}>
-                    <td className="p-3 font-medium">
-                      {c.name}
-                      {isMe(c, signer) && (
-                        <span className="ml-2 text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full">You</span>
-                      )}
-                    </td>
-                    <td className="p-3 text-gray-500">{c.role}</td>
-                    <td className="p-3 font-semibold">{c.ownership ? `${c.ownership}%` : "—"}</td>
-                  </tr>
-                ))}
+                {displayContributors.map((c, i) => {
+                  const mine = isMe(c, signer);
+                  if (mine && myContributor && canEditMine) {
+                    return (
+                      <tr key={i} className="border-t border-gray-50 bg-indigo-50">
+                        <td className="p-2 align-top">
+                          <input
+                            type="text"
+                            className="input input-xs w-full mb-1"
+                            placeholder="Name"
+                            value={myContributor.name}
+                            onChange={(e) => setMyContributor({ ...myContributor, name: e.target.value })}
+                          />
+                          <input
+                            type="text"
+                            className="input input-xs w-full"
+                            placeholder="Email or phone"
+                            value={myContributor.contact}
+                            onChange={(e) => setMyContributor({ ...myContributor, contact: e.target.value })}
+                          />
+                        </td>
+                        <td className="p-2 align-top">
+                          <input
+                            type="text"
+                            className="input input-xs w-full"
+                            placeholder="Producer, Writer…"
+                            value={myContributor.role}
+                            onChange={(e) => setMyContributor({ ...myContributor, role: e.target.value })}
+                          />
+                        </td>
+                        <td className="p-2 align-top">
+                          <input
+                            type="text"
+                            className="input input-xs w-16"
+                            placeholder="%"
+                            value={myContributor.ownership}
+                            onChange={(e) => setMyContributor({ ...myContributor, ownership: e.target.value })}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  }
+                  return (
+                    <tr key={i} className={`border-t border-gray-50 ${mine ? "bg-indigo-50" : ""}`}>
+                      <td className="p-3 font-medium">
+                        {c.name}
+                        {mine && (
+                          <>
+                            <span className="ml-2 text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full">You</span>
+                            <button
+                              type="button"
+                              onClick={() => setEditing(true)}
+                              className="ml-2 text-gray-300 hover:text-indigo-600"
+                              aria-label="Edit your details"
+                            >
+                              <FontAwesomeIcon icon={faPen} />
+                            </button>
+                          </>
+                        )}
+                      </td>
+                      <td className="p-3 text-gray-500">{c.role}</td>
+                      <td className="p-3 font-semibold">{c.ownership ? `${c.ownership}%` : "—"}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
           {/* Publishing */}
-          {displayPublishing.length > 0 && (
+          {(displayPublishing.length > 0 || canEditMine) && (
             <>
               <h2 className="font-semibold text-gray-800 mb-2 text-sm">Publishing</h2>
               <div className="overflow-x-auto rounded-lg border border-gray-100 mb-4">
@@ -330,13 +304,82 @@ export default function SignPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {displayPublishing.map((p, i) => (
-                      <tr key={i} className="border-t border-gray-50">
+                    {otherPublishing.map((p, i) => (
+                      <tr key={`other-${i}`} className="border-t border-gray-50">
                         <td className="p-3">{p.contributorName}</td>
                         <td className="p-3 text-gray-500">{p.publisher}</td>
                         <td className="p-3">{p.percent ? `${p.percent}%` : "—"}</td>
                       </tr>
                     ))}
+                    {myPublishing.map((p, i) =>
+                      canEditMine ? (
+                        <tr key={`mine-${i}`} className="border-t border-gray-50 bg-indigo-50">
+                          <td className="p-3">{myContributor?.name || signer.name}</td>
+                          <td className="p-2">
+                            <input
+                              type="text"
+                              className="input input-xs w-full"
+                              placeholder="Publisher"
+                              value={p.publisher}
+                              onChange={(e) => updateMyPublishing(i, "publisher", e.target.value)}
+                            />
+                          </td>
+                          <td className="p-2">
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="text"
+                                className="input input-xs w-14"
+                                placeholder="%"
+                                value={p.percent}
+                                onChange={(e) => updateMyPublishing(i, "percent", e.target.value)}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setMyPublishing((prev) => prev.filter((_, idx) => idx !== i))}
+                                className="text-red-400 hover:text-red-600 text-xs px-1"
+                                aria-label="Remove publisher"
+                              >
+                                <FontAwesomeIcon icon={faXmark} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        <tr key={`mine-${i}`} className="border-t border-gray-50 bg-indigo-50">
+                          <td className="p-3">{p.contributorName}</td>
+                          <td className="p-3 text-gray-500">{p.publisher}</td>
+                          <td className="p-3">
+                            {p.percent ? `${p.percent}%` : "—"}
+                            <button
+                              type="button"
+                              onClick={() => setEditing(true)}
+                              className="ml-2 text-gray-300 hover:text-indigo-600"
+                              aria-label="Edit your publishing"
+                            >
+                              <FontAwesomeIcon icon={faPen} />
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    )}
+                    {canEditMine && (
+                      <tr className="border-t border-gray-50 bg-indigo-50">
+                        <td className="p-2" colSpan={3}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setMyPublishing((prev) => [
+                                ...prev,
+                                { contributorName: myContributor?.name || signer.name, publisher: "", percent: "" },
+                              ])
+                            }
+                            className="text-xs text-indigo-600 hover:underline"
+                          >
+                            + Add publisher
+                          </button>
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -351,97 +394,11 @@ export default function SignPage() {
           </div>
         </div>
 
-        {/* ── Your details (editable) ── */}
-        {step !== "done" && myContributor && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="font-bold text-gray-800 mb-1">Your Details</h2>
-            <p className="text-xs text-gray-400 mb-4">Fix anything that's wrong or missing before you sign — this only edits your own row.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Name</label>
-                <input
-                  type="text"
-                  className="input input-sm w-full"
-                  value={myContributor.name}
-                  onChange={(e) => setMyContributor({ ...myContributor, name: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Role</label>
-                <input
-                  type="text"
-                  className="input input-sm w-full"
-                  placeholder="Producer, Writer…"
-                  value={myContributor.role}
-                  onChange={(e) => setMyContributor({ ...myContributor, role: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Ownership %</label>
-                <input
-                  type="text"
-                  className="input input-sm w-full"
-                  placeholder="e.g. 25"
-                  value={myContributor.ownership}
-                  onChange={(e) => setMyContributor({ ...myContributor, ownership: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Contact</label>
-                <input
-                  type="text"
-                  className="input input-sm w-full"
-                  placeholder="Email or phone"
-                  value={myContributor.contact}
-                  onChange={(e) => setMyContributor({ ...myContributor, contact: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <h3 className="font-semibold text-gray-700 text-sm mt-5 mb-2">Your Publishing</h3>
-            <div className="space-y-2">
-              {myPublishing.map((p, i) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <input
-                    type="text"
-                    className="input input-sm flex-1 min-w-0"
-                    placeholder="Publisher"
-                    value={p.publisher}
-                    onChange={(e) => updateMyPublishing(i, "publisher", e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    className="input input-sm w-20"
-                    placeholder="%"
-                    value={p.percent}
-                    onChange={(e) => updateMyPublishing(i, "percent", e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setMyPublishing((prev) => prev.filter((_, idx) => idx !== i))}
-                    className="text-red-400 hover:text-red-600 text-xs px-1"
-                    aria-label="Remove publisher"
-                  >
-                    <FontAwesomeIcon icon={faXmark} />
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => setMyPublishing((prev) => [...prev, { contributorName: myContributor.name, publisher: "", percent: "" }])}
-                className="text-xs text-indigo-600 hover:underline"
-              >
-                + Add publisher
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* ── Signature ── */}
         <div className="bg-white rounded-2xl shadow-sm border border-indigo-100 p-6">
           <h2 className="font-bold text-gray-800 mb-4">Your Signature</h2>
 
-          {step === "done" ? (
+          {showSignedConfirmation ? (
             <>
               {signer.signatureData && (
                 <div className="flex justify-center border border-gray-200 rounded-xl bg-white p-2 mb-2">
@@ -462,7 +419,22 @@ export default function SignPage() {
               </button>
             </>
           ) : (
-            <SignatureCanvas saving={submitting} onSave={submitSignature} />
+            <>
+              {step === "done" && signer.signatureData && (
+                <div className="mb-3">
+                  <p className="text-xs text-gray-400 mb-1">Signature currently on file — draw below to replace it</p>
+                  <div className="flex justify-center border border-gray-200 rounded-xl bg-gray-50 p-2">
+                    <img src={signer.signatureData} alt="Current signature on file" className="max-h-16 object-contain opacity-70" />
+                  </div>
+                </div>
+              )}
+              <SignatureCanvas saving={submitting} onSave={submitSignature} />
+              {step === "done" && (
+                <button type="button" onClick={() => setEditing(false)} className="mt-3 text-xs text-gray-400 hover:text-gray-600 underline">
+                  Cancel, keep my existing signature
+                </button>
+              )}
+            </>
           )}
         </div>
 
