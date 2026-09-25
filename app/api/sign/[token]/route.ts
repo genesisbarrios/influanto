@@ -37,9 +37,10 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
   });
 }
 
-// ── POST — public, submit signature ─────────────────────────────────────────
+// ── POST — public, submit signature (and, optionally, the signer's own
+// updated contributor/publishing details) ───────────────────────────────────
 export async function POST(req: NextRequest, { params }: { params: { token: string } }) {
-  const { signatureData } = await req.json();
+  const { signatureData, contributor, publishing } = await req.json();
   if (!signatureData) {
     return NextResponse.json({ error: "Signature data is required" }, { status: 400 });
   }
@@ -63,28 +64,69 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
     .update({ signature_data: signatureData, signed_at: signedAt })
     .eq("token", params.token);
 
-  // 2. Patch the matching contributor in split_sheets.contributors JSONB
+  // 2. Patch the matching contributor in split_sheets.contributors JSONB.
+  // Always locate "this signer's" row using the STABLE identity captured on
+  // the signer record (name/email as of when the link was sent) — never the
+  // possibly-just-edited name — so a signer correcting their own name can't
+  // accidentally desync from their own row.
   const sheet = signer.split_sheets as any;
   const contributors: any[] = sheet.contributors ?? [];
   const signerName = (signer.contributor_name ?? "").toLowerCase();
   const signerEmail = (signer.contributor_email ?? "").toLowerCase();
-
-  const updatedContributors = contributors.map((c: any) => {
+  const isMe = (c: any) => {
     const nameMatch = (c.name ?? "").toLowerCase() === signerName;
     const contactMatch = (c.contact ?? "").toLowerCase().includes(signerEmail);
-    if (nameMatch || contactMatch) {
-      return {
-        ...c,
-        signature: signatureData,
-        signatureDate: new Date().toLocaleDateString("en-US"),
-      };
-    }
-    return c;
+    return nameMatch || contactMatch;
+  };
+
+  // Captured during the map below — isMe() matches against the ORIGINAL
+  // name, so it can no longer find the row once that same pass has renamed
+  // it; track the new name directly instead of re-deriving it afterward.
+  let finalContributorName = signer.contributor_name || "";
+
+  const updatedContributors = contributors.map((c: any) => {
+    if (!isMe(c)) return c;
+    const updated = {
+      ...c,
+      // Signers may only edit their own row's editable fields — name, role,
+      // ownership, and contact — everything else (signature bookkeeping)
+      // stays server-controlled.
+      ...(contributor && typeof contributor === "object"
+        ? {
+            name: String(contributor.name ?? c.name ?? "").trim() || c.name,
+            role: String(contributor.role ?? c.role ?? "").trim(),
+            ownership: String(contributor.ownership ?? c.ownership ?? "").trim(),
+            contact: String(contributor.contact ?? c.contact ?? "").trim(),
+          }
+        : {}),
+      signature: signatureData,
+      signatureDate: new Date().toLocaleDateString("en-US"),
+    };
+    finalContributorName = updated.name;
+    return updated;
   });
+
+  // 3. Replace this signer's own publishing row(s) wholesale with whatever
+  // they submitted (they may add, edit, or remove their own rows) — every
+  // other contributor's publishing rows are left untouched.
+  const existingPublishing: any[] = sheet.publishing ?? [];
+  const otherPublishing = existingPublishing.filter(
+    (p: any) => (p.contributorName ?? "").toLowerCase() !== signerName
+  );
+  const myPublishing = Array.isArray(publishing)
+    ? publishing
+        .filter((p: any) => (p?.publisher ?? "").trim() || (p?.percent ?? "").toString().trim())
+        .map((p: any) => ({
+          contributorName: finalContributorName,
+          publisher: String(p.publisher ?? "").trim(),
+          percent: String(p.percent ?? "").trim(),
+        }))
+    : existingPublishing.filter((p: any) => (p.contributorName ?? "").toLowerCase() === signerName);
+  const updatedPublishing = [...otherPublishing, ...myPublishing];
 
   await supabase
     .from("split_sheets")
-    .update({ contributors: updatedContributors })
+    .update({ contributors: updatedContributors, publishing: updatedPublishing })
     .eq("id", sheet.id);
 
   // 3. If the signer is logged in, save a copy of the sheet under their account
@@ -117,7 +159,7 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
         artists: sheet.artists ?? "",
         state_country: sheet.state_country ?? "",
         contributors: updatedContributors,
-        publishing: sheet.publishing ?? [],
+        publishing: updatedPublishing,
         status: "completed",
       });
     }
