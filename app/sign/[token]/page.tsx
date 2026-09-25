@@ -181,10 +181,9 @@ export default function SignPage() {
   };
 
   // Your own row is inline-editable directly in the tables below, without a
-  // separate duplicate card: it's already editable pre-signature, and the
-  // pencil icon reopens it after you've signed.
+  // separate duplicate card — click the pencil next to your row to open it.
   const showSignedConfirmation = step === "done" && !editing;
-  const canEditMine = !showSignedConfirmation;
+  const canEditMine = editing;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 py-10 px-4">
@@ -361,24 +360,6 @@ export default function SignPage() {
                           </td>
                         </tr>
                       )
-                    )}
-                    {canEditMine && (
-                      <tr className="border-t border-gray-50 bg-indigo-50">
-                        <td className="p-2" colSpan={3}>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setMyPublishing((prev) => [
-                                ...prev,
-                                { contributorName: myContributor?.name || signer.name, publisher: "", percent: "" },
-                              ])
-                            }
-                            className="text-xs text-indigo-600 hover:underline"
-                          >
-                            + Add publisher
-                          </button>
-                        </td>
-                      </tr>
                     )}
                   </tbody>
                 </table>
