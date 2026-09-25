@@ -82,6 +82,12 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
     return nameMatch || contactMatch;
   };
 
+  // Publishing rows are tagged by contributor name, not email, so they were
+  // filed under this contributor's actual name at the time — which can
+  // differ from the invite's contact name (signerName). Match against the
+  // pre-edit contributor row's own name, not the invite name.
+  const myOriginalName = (contributors.find(isMe)?.name ?? signer.contributor_name ?? "").toLowerCase();
+
   // Captured during the map below — isMe() matches against the ORIGINAL
   // name, so it can no longer find the row once that same pass has renamed
   // it; track the new name directly instead of re-deriving it afterward.
@@ -114,7 +120,7 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
   // other contributor's publishing rows are left untouched.
   const existingPublishing: any[] = sheet.publishing ?? [];
   const otherPublishing = existingPublishing.filter(
-    (p: any) => (p.contributorName ?? "").toLowerCase() !== signerName
+    (p: any) => (p.contributorName ?? "").toLowerCase() !== myOriginalName
   );
   const myPublishing = Array.isArray(publishing)
     ? publishing
@@ -124,7 +130,7 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
           publisher: String(p.publisher ?? "").trim(),
           percent: String(p.percent ?? "").trim(),
         }))
-    : existingPublishing.filter((p: any) => (p.contributorName ?? "").toLowerCase() === signerName);
+    : existingPublishing.filter((p: any) => (p.contributorName ?? "").toLowerCase() === myOriginalName);
   const updatedPublishing = [...otherPublishing, ...myPublishing];
 
   await supabase
