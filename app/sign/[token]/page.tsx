@@ -185,6 +185,15 @@ export default function SignPage() {
   const showSignedConfirmation = step === "done" && !editing;
   const canEditMine = editing;
 
+  // Every pencil routes through here so you always land on an editable
+  // publishing row, even if you don't have one on file yet.
+  const startEditing = () => {
+    setEditing(true);
+    setMyPublishing((prev) =>
+      prev.length > 0 ? prev : [{ contributorName: myContributor?.name || signer.name, publisher: "", percent: "" }]
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 py-10 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -271,7 +280,7 @@ export default function SignPage() {
                             <span className="ml-2 text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full">You</span>
                             <button
                               type="button"
-                              onClick={() => setEditing(true)}
+                              onClick={startEditing}
                               className="ml-2 text-gray-300 hover:text-indigo-600"
                               aria-label="Edit your details"
                             >
@@ -289,83 +298,97 @@ export default function SignPage() {
             </table>
           </div>
 
-          {/* Publishing */}
-          {(displayPublishing.length > 0 || canEditMine) && (
-            <>
-              <h2 className="font-semibold text-gray-800 mb-2 text-sm">Publishing</h2>
-              <div className="overflow-x-auto rounded-lg border border-gray-100 mb-4">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="text-left p-3 text-xs text-gray-500 font-medium">Contributor</th>
-                      <th className="text-left p-3 text-xs text-gray-500 font-medium">Publisher</th>
-                      <th className="text-left p-3 text-xs text-gray-500 font-medium">%</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {otherPublishing.map((p, i) => (
-                      <tr key={`other-${i}`} className="border-t border-gray-50">
-                        <td className="p-3">{p.contributorName}</td>
-                        <td className="p-3 text-gray-500">{p.publisher}</td>
-                        <td className="p-3">{p.percent ? `${p.percent}%` : "—"}</td>
-                      </tr>
-                    ))}
-                    {myPublishing.map((p, i) =>
-                      canEditMine ? (
-                        <tr key={`mine-${i}`} className="border-t border-gray-50 bg-indigo-50">
-                          <td className="p-3">{myContributor?.name || signer.name}</td>
-                          <td className="p-2">
+          {/* Publishing — always shown so the signer can always find their
+              row's pencil, even before they have a publisher on file */}
+          <h2 className="font-semibold text-gray-800 mb-2 text-sm">Publishing</h2>
+          <div className="overflow-x-auto rounded-lg border border-gray-100 mb-4">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left p-3 text-xs text-gray-500 font-medium">Contributor</th>
+                  <th className="text-left p-3 text-xs text-gray-500 font-medium">Publisher</th>
+                  <th className="text-left p-3 text-xs text-gray-500 font-medium">%</th>
+                </tr>
+              </thead>
+              <tbody>
+                {otherPublishing.map((p, i) => (
+                  <tr key={`other-${i}`} className="border-t border-gray-50">
+                    <td className="p-3">{p.contributorName}</td>
+                    <td className="p-3 text-gray-500">{p.publisher}</td>
+                    <td className="p-3">{p.percent ? `${p.percent}%` : "—"}</td>
+                  </tr>
+                ))}
+                {myPublishing.length > 0 ? (
+                  myPublishing.map((p, i) =>
+                    canEditMine ? (
+                      <tr key={`mine-${i}`} className="border-t border-gray-50 bg-indigo-50">
+                        <td className="p-3">{myContributor?.name || signer.name}</td>
+                        <td className="p-2">
+                          <input
+                            type="text"
+                            className="input input-xs w-full"
+                            placeholder="Publisher"
+                            value={p.publisher}
+                            onChange={(e) => updateMyPublishing(i, "publisher", e.target.value)}
+                          />
+                        </td>
+                        <td className="p-2">
+                          <div className="flex items-center gap-1">
                             <input
                               type="text"
-                              className="input input-xs w-full"
-                              placeholder="Publisher"
-                              value={p.publisher}
-                              onChange={(e) => updateMyPublishing(i, "publisher", e.target.value)}
+                              className="input input-xs w-14"
+                              placeholder="%"
+                              value={p.percent}
+                              onChange={(e) => updateMyPublishing(i, "percent", e.target.value)}
                             />
-                          </td>
-                          <td className="p-2">
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="text"
-                                className="input input-xs w-14"
-                                placeholder="%"
-                                value={p.percent}
-                                onChange={(e) => updateMyPublishing(i, "percent", e.target.value)}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setMyPublishing((prev) => prev.filter((_, idx) => idx !== i))}
-                                className="text-red-400 hover:text-red-600 text-xs px-1"
-                                aria-label="Remove publisher"
-                              >
-                                <FontAwesomeIcon icon={faXmark} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : (
-                        <tr key={`mine-${i}`} className="border-t border-gray-50 bg-indigo-50">
-                          <td className="p-3">{p.contributorName}</td>
-                          <td className="p-3 text-gray-500">{p.publisher}</td>
-                          <td className="p-3">
-                            {p.percent ? `${p.percent}%` : "—"}
                             <button
                               type="button"
-                              onClick={() => setEditing(true)}
-                              className="ml-2 text-gray-300 hover:text-indigo-600"
-                              aria-label="Edit your publishing"
+                              onClick={() => setMyPublishing((prev) => prev.filter((_, idx) => idx !== i))}
+                              className="text-red-400 hover:text-red-600 text-xs px-1"
+                              aria-label="Remove publisher"
                             >
-                              <FontAwesomeIcon icon={faPen} />
+                              <FontAwesomeIcon icon={faXmark} />
                             </button>
-                          </td>
-                        </tr>
-                      )
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      <tr key={`mine-${i}`} className="border-t border-gray-50 bg-indigo-50">
+                        <td className="p-3">{p.contributorName}</td>
+                        <td className="p-3 text-gray-500">{p.publisher}</td>
+                        <td className="p-3">
+                          {p.percent ? `${p.percent}%` : "—"}
+                          <button
+                            type="button"
+                            onClick={startEditing}
+                            className="ml-2 text-gray-300 hover:text-indigo-600"
+                            aria-label="Edit your publishing"
+                          >
+                            <FontAwesomeIcon icon={faPen} />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  )
+                ) : (
+                  <tr className="border-t border-gray-50 bg-indigo-50">
+                    <td className="p-3">{myContributor?.name || signer.name}</td>
+                    <td className="p-3 text-gray-400 italic" colSpan={2}>
+                      No publisher on file
+                      <button
+                        type="button"
+                        onClick={startEditing}
+                        className="ml-2 text-gray-300 hover:text-indigo-600 not-italic"
+                        aria-label="Add your publishing"
+                      >
+                        <FontAwesomeIcon icon={faPen} />
+                      </button>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
           {/* Agreement terms */}
           <div className="bg-gray-50 rounded-xl p-4 text-xs text-gray-600 leading-relaxed">
