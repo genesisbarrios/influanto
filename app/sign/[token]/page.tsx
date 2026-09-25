@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import jsPDF from "jspdf";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLinkSlash, faCircleCheck, faDownload, faRightToBracket } from "@fortawesome/free-solid-svg-icons";
+import { faLinkSlash, faCircleCheck, faDownload, faRightToBracket, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { sanitizeFilename } from "@/libs/urls";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -163,6 +163,18 @@ export default function SignPage() {
   const [step, setStep] = useState<"sign" | "done">("sign");
   const [submitting, setSubmitting] = useState(false);
 
+  // The signer's own editable contributor row and publishing row(s) — kept
+  // separate from `sheet` (the original fetched data) so edits can be
+  // previewed live without mutating the source of truth until submitted.
+  const [myContributor, setMyContributor] = useState<Contributor | null>(null);
+  const [myPublishing, setMyPublishing] = useState<Publishing[]>([]);
+
+  const isMe = (c: { name?: string; contact?: string }, s: SignerData) => {
+    const n = (c.name || "").toLowerCase();
+    const ct = (c.contact || "").toLowerCase();
+    return (n && n === (s.name || "").toLowerCase()) || (s.email && ct.includes((s.email || "").toLowerCase()));
+  };
+
   useEffect(() => {
     if (!token) return;
     fetch(`/api/sign/${token}`)
@@ -172,6 +184,19 @@ export default function SignPage() {
         setSheet(d.sheet);
         setSigner(d.signer);
         if (d.signer.signedAt) setStep("done");
+
+        const mine = (d.sheet.contributors ?? []).find((c: Contributor) => isMe(c, d.signer));
+        setMyContributor(
+          mine
+            ? { ...mine }
+            : { name: d.signer.name || "", role: "", ownership: "", contact: d.signer.email || "", signature: "", signatureDate: "" }
+        );
+        const signerNameLower = (d.signer.name || "").toLowerCase();
+        setMyPublishing(
+          (d.sheet.publishing ?? [])
+            .filter((p: Publishing) => (p.contributorName || "").toLowerCase() === signerNameLower)
+            .map((p: Publishing) => ({ ...p }))
+        );
       })
       .catch(() => setError("Failed to load split sheet"))
       .finally(() => setLoading(false));
@@ -184,11 +209,11 @@ export default function SignPage() {
       const res = await fetch(`/api/sign/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ signatureData }),
+        body: JSON.stringify({ signatureData, contributor: myContributor, publishing: myPublishing }),
       });
       const data = await res.json();
       if (!res.ok) { alert(data.error || "Failed to save signature"); return; }
-      setSigner(prev => prev ? { ...prev, signedAt: data.signedAt, signatureData } : prev);
+      setSigner(prev => prev ? { ...prev, signedAt: data.signedAt, signatureData, name: myContributor?.name || prev.name } : prev);
       // Premium signers (logged in) get a copy saved to their account — send them there.
       if (data.premium) {
         window.location.href = "/dashboard?tab=split-sheets";
@@ -225,6 +250,21 @@ export default function SignPage() {
 
   const loginUrl = `/api/auth/signin?callbackUrl=${encodeURIComponent(`/sign/${token}`)}`;
 
+  // The overview tables below always reflect the signer's live edits (from
+  // myContributor/myPublishing) so what they see matches exactly what will
+  // be saved — everyone else's rows are shown exactly as originally entered.
+  const displayContributors = sheet.contributors.map((c) => (isMe(c, signer) && myContributor ? myContributor : c));
+  const signerNameLower = (signer.name || "").toLowerCase();
+  const otherPublishing = sheet.publishing.filter((p) => (p.contributorName || "").toLowerCase() !== signerNameLower);
+  const displayPublishing = [
+    ...otherPublishing,
+    ...myPublishing.map((p) => ({ ...p, contributorName: myContributor?.name || signer.name })),
+  ];
+
+  const updateMyPublishing = (index: number, field: "publisher" | "percent", value: string) => {
+    setMyPublishing((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 py-10 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -260,11 +300,11 @@ export default function SignPage() {
                 </tr>
               </thead>
               <tbody>
-                {sheet.contributors.map((c, i) => (
-                  <tr key={i} className={`border-t border-gray-50 ${(c.name||"").toLowerCase() === (signer.name||"").toLowerCase() ? "bg-indigo-50" : ""}`}>
+                {displayContributors.map((c, i) => (
+                  <tr key={i} className={`border-t border-gray-50 ${isMe(c, signer) ? "bg-indigo-50" : ""}`}>
                     <td className="p-3 font-medium">
                       {c.name}
-                      {(c.name||"").toLowerCase() === (signer.name||"").toLowerCase() && (
+                      {isMe(c, signer) && (
                         <span className="ml-2 text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full">You</span>
                       )}
                     </td>
@@ -277,7 +317,7 @@ export default function SignPage() {
           </div>
 
           {/* Publishing */}
-          {sheet.publishing.length > 0 && (
+          {displayPublishing.length > 0 && (
             <>
               <h2 className="font-semibold text-gray-800 mb-2 text-sm">Publishing</h2>
               <div className="overflow-x-auto rounded-lg border border-gray-100 mb-4">
@@ -290,7 +330,7 @@ export default function SignPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sheet.publishing.map((p, i) => (
+                    {displayPublishing.map((p, i) => (
                       <tr key={i} className="border-t border-gray-50">
                         <td className="p-3">{p.contributorName}</td>
                         <td className="p-3 text-gray-500">{p.publisher}</td>
@@ -311,6 +351,92 @@ export default function SignPage() {
           </div>
         </div>
 
+        {/* ── Your details (editable) ── */}
+        {step !== "done" && myContributor && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 className="font-bold text-gray-800 mb-1">Your Details</h2>
+            <p className="text-xs text-gray-400 mb-4">Fix anything that's wrong or missing before you sign — this only edits your own row.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Name</label>
+                <input
+                  type="text"
+                  className="input input-sm w-full"
+                  value={myContributor.name}
+                  onChange={(e) => setMyContributor({ ...myContributor, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Role</label>
+                <input
+                  type="text"
+                  className="input input-sm w-full"
+                  placeholder="Producer, Writer…"
+                  value={myContributor.role}
+                  onChange={(e) => setMyContributor({ ...myContributor, role: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Ownership %</label>
+                <input
+                  type="text"
+                  className="input input-sm w-full"
+                  placeholder="e.g. 25"
+                  value={myContributor.ownership}
+                  onChange={(e) => setMyContributor({ ...myContributor, ownership: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Contact</label>
+                <input
+                  type="text"
+                  className="input input-sm w-full"
+                  placeholder="Email or phone"
+                  value={myContributor.contact}
+                  onChange={(e) => setMyContributor({ ...myContributor, contact: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <h3 className="font-semibold text-gray-700 text-sm mt-5 mb-2">Your Publishing</h3>
+            <div className="space-y-2">
+              {myPublishing.map((p, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    className="input input-sm flex-1 min-w-0"
+                    placeholder="Publisher"
+                    value={p.publisher}
+                    onChange={(e) => updateMyPublishing(i, "publisher", e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    className="input input-sm w-20"
+                    placeholder="%"
+                    value={p.percent}
+                    onChange={(e) => updateMyPublishing(i, "percent", e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setMyPublishing((prev) => prev.filter((_, idx) => idx !== i))}
+                    className="text-red-400 hover:text-red-600 text-xs px-1"
+                    aria-label="Remove publisher"
+                  >
+                    <FontAwesomeIcon icon={faXmark} />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setMyPublishing((prev) => [...prev, { contributorName: myContributor.name, publisher: "", percent: "" }])}
+                className="text-xs text-indigo-600 hover:underline"
+              >
+                + Add publisher
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── Signature ── */}
         <div className="bg-white rounded-2xl shadow-sm border border-indigo-100 p-6">
           <h2 className="font-bold text-gray-800 mb-4">Your Signature</h2>
@@ -326,7 +452,10 @@ export default function SignPage() {
                 <FontAwesomeIcon icon={faCircleCheck} className="mr-1.5" /> Signed{signer.signedAt ? ` on ${new Date(signer.signedAt).toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" })}` : ""}
               </p>
               <button
-                onClick={() => downloadPDF(sheet, signer.signatureData ? { name: signer.name, data: signer.signatureData } : undefined)}
+                onClick={() => downloadPDF(
+                  { ...sheet, contributors: displayContributors, publishing: displayPublishing },
+                  signer.signatureData ? { name: myContributor?.name || signer.name, data: signer.signatureData } : undefined
+                )}
                 className="btn btn-primary w-full"
               >
                 <FontAwesomeIcon icon={faDownload} className="mr-1.5" /> Download PDF
