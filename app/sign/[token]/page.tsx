@@ -105,10 +105,15 @@ export default function SignPage() {
             ? { ...mine }
             : { name: d.signer.name || "", role: "", ownership: "", contact: d.signer.email || "", signature: "", signatureDate: "" }
         );
-        const signerNameLower = (d.signer.name || "").toLowerCase();
+        // Publishing rows are only ever tagged with a contributorName, not an
+        // email, so they have to be matched against the contributor row's own
+        // name (which is what publishing was tagged against when it was
+        // entered) — not the invite's contact name, which can differ (e.g.
+        // "Jon" on the invite vs "Jonathan Smith" on the contributor row).
+        const myNameLower = ((mine?.name || d.signer.name || "") as string).toLowerCase();
         setMyPublishing(
           (d.sheet.publishing ?? [])
-            .filter((p: Publishing) => (p.contributorName || "").toLowerCase() === signerNameLower)
+            .filter((p: Publishing) => (p.contributorName || "").toLowerCase() === myNameLower)
             .map((p: Publishing) => ({ ...p }))
         );
       })
@@ -169,8 +174,11 @@ export default function SignPage() {
   // myContributor/myPublishing) so what they see matches exactly what will
   // be saved — everyone else's rows are shown exactly as originally entered.
   const displayContributors = sheet.contributors.map((c) => (isMe(c, signer) && myContributor ? myContributor : c));
-  const signerNameLower = (signer.name || "").toLowerCase();
-  const otherPublishing = sheet.publishing.filter((p) => (p.contributorName || "").toLowerCase() !== signerNameLower);
+  // Publishing rows are tagged by contributor name, not email, so "mine" has
+  // to be matched against my own contributor row's name — same reasoning as
+  // the initial load above.
+  const myNameLower = (myContributor?.name || signer.name || "").toLowerCase();
+  const otherPublishing = sheet.publishing.filter((p) => (p.contributorName || "").toLowerCase() !== myNameLower);
   const displayPublishing = [
     ...otherPublishing,
     ...myPublishing.map((p) => ({ ...p, contributorName: myContributor?.name || signer.name })),
