@@ -76,6 +76,19 @@ export function mapUser(row: any) {
   };
 }
 
+// For public pages (link in bio, release pages): drops tokens, billing ids and
+// account state, and only includes the email when the artist chose to show it.
+export function mapPublicUser(row: any) {
+  const user = mapUser(row);
+  if (!user) return null;
+  const {
+    customerId, priceId, printifyAccessToken, hasMetaCapiToken,
+    onboardingSeen, newsletterLimitNotified, newsletterLimitBannerDismissed,
+    businessCard, ...rest
+  } = user;
+  return { ...rest, email: user.displayEmail ? user.email : undefined };
+}
+
 export function mapLinkInBio(row: any) {
   if (!row) return null;
   return {
