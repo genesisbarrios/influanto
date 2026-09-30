@@ -34,6 +34,8 @@ export async function POST(req: NextRequest) {
       email: body.email.trim().toLowerCase(),
       role: body.role?.trim() ?? "",
       phone: body.phone?.trim() ?? "",
+      publisher: body.publisher?.trim() ?? "",
+      publishing_percent: String(body.publishing_percent ?? "").trim(),
     })
     .select()
     .single();

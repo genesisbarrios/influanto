@@ -8,14 +8,18 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
+  // Only touch fields that were sent, so partial updates (e.g. syncing publishing
+  // details from a split sheet) don't wipe the rest of the contact
+  const update: Record<string, string> = {};
+  if (body.name !== undefined) update.name = String(body.name).trim();
+  if (body.email !== undefined) update.email = String(body.email).trim().toLowerCase();
+  for (const key of ["role", "phone", "publisher", "publishing_percent"]) {
+    if (body[key] !== undefined) update[key] = String(body[key] ?? "").trim();
+  }
+
   const { data, error } = await supabase
     .from("collaborator_contacts")
-    .update({
-      name: body.name?.trim(),
-      email: body.email?.trim().toLowerCase(),
-      role: body.role?.trim() ?? "",
-      phone: body.phone?.trim() ?? "",
-    })
+    .update(update)
     .eq("id", params.id)
     .eq("user_id", session.user.id)
     .select()

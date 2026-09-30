@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
       email: String(c.email ?? "").trim().toLowerCase(),
       role: String(c.role ?? "").trim(),
       phone: String(c.phone ?? "").trim(),
+      publisher: String(c.publisher ?? "").trim(),
+      publishing_percent: String(c.publishing_percent ?? "").trim(),
     }))
     .filter(c => isEmail(c.email))
     .filter(c => (seen.has(c.email) ? false : (seen.add(c.email), true)));
