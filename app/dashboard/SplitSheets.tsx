@@ -18,6 +18,8 @@ const IMPORT_FIELDS: ImportField[] = [
   { key: "name", label: "Name", aliases: ["full name", "fullname"] },
   { key: "role", label: "Role", aliases: ["title", "credit"] },
   { key: "phone", label: "Phone", aliases: ["phone number", "tel", "mobile"] },
+  { key: "publisher", label: "Publisher", aliases: ["publishing", "publishing company"] },
+  { key: "publishing_percent", label: "Publishing %", aliases: ["publishing percent", "publishing share", "pub %"] },
 ];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -32,7 +34,12 @@ interface SplitSheet {
   contributors: Contributor[]; publishing: Publishing[];
   status: "draft" | "sent" | "completed"; created_at: string;
 }
-interface Contact { id: string; name: string; email: string; role: string; phone: string }
+interface Contact {
+  id: string; name: string; email: string; role: string; phone: string;
+  publisher?: string; publishing_percent?: string;
+}
+
+const norm = (s?: string) => (s ?? "").trim().toLowerCase();
 
 const BLANK_CONTRIBUTOR: Contributor = { name: "", role: "", ownership: "", contact: "", signature: "", signatureDate: "" };
 const BLANK_PUBLISHING: Publishing = { contributorName: "", publisher: "", percent: "" };
@@ -371,23 +378,7 @@ export default function SplitSheets() {
         posthog.capture("split_sheet_created");
         setAlert("Created", true);
       }
-      // Auto-add contributors with valid emails to collaborator contacts (skip existing)
-      const existingEmails = new Set(contacts.map(c => c.email.toLowerCase()));
-      const newContribs = ((sheet.contributors ?? []) as Contributor[]).filter(
-        c => c.name?.trim() && c.contact?.includes("@") && !existingEmails.has(c.contact.trim().toLowerCase())
-      );
-      if (newContribs.length > 0) {
-        await Promise.all(
-          newContribs.map(c =>
-            apiClient.post("/collaborator-contacts", {
-              name: c.name.trim(),
-              email: c.contact.trim(),
-              role: c.role?.trim() ?? "",
-            }).catch(() => {})
-          )
-        );
-        await loadContacts();
-      }
+      await syncContactsFromSheet();
       await loadSheets();
       setView("list");
       setEditingSheet(null);
@@ -397,6 +388,78 @@ export default function SplitSheets() {
       setIsLoading(false);
     }
   };
+
+  // Save contributor + publishing details back onto collaborator contacts:
+  // contributors with an email become contacts (or update the existing one), and
+  // each publishing row updates the contact whose name matches it.
+  const syncContactsFromSheet = async () => {
+    const contribs = ((sheet.contributors ?? []) as Contributor[]).filter(c => c.name?.trim());
+    const pubs = ((sheet.publishing ?? []) as Publishing[]).filter(p => p.contributorName?.trim());
+    const pubFor = (name: string) => pubs.find(p => norm(p.contributorName) === norm(name));
+
+    const byEmail = new Map(contacts.map(c => [norm(c.email), c]));
+    const byName = new Map(contacts.map(c => [norm(c.name), c]));
+    const requests: Promise<unknown>[] = [];
+    const touched = new Set<string>();
+
+    const diff = (ct: Contact, fields: Partial<Contact>) => {
+      const patch: Partial<Contact> = {};
+      (Object.keys(fields) as (keyof Contact)[]).forEach(k => {
+        const v = (fields[k] ?? "").trim();
+        if (v && v !== (ct[k] ?? "")) (patch as any)[k] = v;
+      });
+      return patch;
+    };
+
+    for (const c of contribs) {
+      const email = c.contact?.trim();
+      const pub = pubFor(c.name);
+      const fields: Partial<Contact> = {
+        role: c.role, publisher: pub?.publisher, publishing_percent: pub?.percent,
+      };
+      const existing = (email?.includes("@") && byEmail.get(norm(email))) || byName.get(norm(c.name));
+      if (existing) {
+        touched.add(existing.id);
+        const patch = diff(existing, fields);
+        if (Object.keys(patch).length) requests.push(apiClient.put(`/collaborator-contacts/${existing.id}`, patch).catch(() => {}));
+      } else if (email?.includes("@")) {
+        requests.push(apiClient.post("/collaborator-contacts", { name: c.name.trim(), email, ...fields }).catch(() => {}));
+      }
+    }
+
+    // Publishing rows for people who aren't listed as contributors on this sheet
+    for (const p of pubs) {
+      const existing = byName.get(norm(p.contributorName));
+      if (!existing || touched.has(existing.id)) continue;
+      touched.add(existing.id);
+      const patch = diff(existing, { publisher: p.publisher, publishing_percent: p.percent });
+      if (Object.keys(patch).length) requests.push(apiClient.put(`/collaborator-contacts/${existing.id}`, patch).catch(() => {}));
+    }
+
+    if (requests.length) {
+      await Promise.all(requests);
+      await loadContacts();
+    }
+  };
+
+  // Fill a contributor row from a saved contact, and their publishing row too
+  const fillContributorFromContact = (i: number, ct: Contact) => {
+    const contributors = (sheet.contributors as Contributor[]).map((c, idx) =>
+      idx === i ? { ...c, name: ct.name || "", role: ct.role || c.role, contact: ct.email || c.contact } : c
+    );
+    let publishing = [...((sheet.publishing ?? []) as Publishing[])];
+    if (ct.publisher || ct.publishing_percent) {
+      const prevName = norm((sheet.contributors as Contributor[])[i]?.name);
+      const idx = publishing.findIndex(p => norm(p.contributorName) === norm(ct.name) || (prevName && norm(p.contributorName) === prevName));
+      const row = { contributorName: ct.name, publisher: ct.publisher || "", percent: ct.publishing_percent || "" };
+      if (idx >= 0) publishing[idx] = { ...publishing[idx], ...row };
+      else publishing.push(row);
+    }
+    setSheet({ contributors, publishing });
+  };
+
+  const fillPublishingFromContact = (i: number, ct: Contact) =>
+    setPublishing(i, { contributorName: ct.name, publisher: ct.publisher || "", percent: ct.publishing_percent || "" });
 
   // ── Delete ──────────────────────────────────────────────────────────────────
 
@@ -485,6 +548,14 @@ export default function SplitSheets() {
               <label className="block text-xs font-medium mb-1">Phone</label>
               <input className="input input-sm w-full" placeholder="Optional" value={contactForm.phone ?? ""} onChange={e => setContactForm(p => ({ ...p, phone: e.target.value }))} />
             </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Publisher</label>
+              <input className="input input-sm w-full" placeholder="Publishing company" value={contactForm.publisher ?? ""} onChange={e => setContactForm(p => ({ ...p, publisher: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Publishing %</label>
+              <input className="input input-sm w-full" placeholder="e.g. 50" value={contactForm.publishing_percent ?? ""} onChange={e => setContactForm(p => ({ ...p, publishing_percent: e.target.value }))} />
+            </div>
           </div>
           {alert && <p className="text-xs text-red-500 mt-2">{alert}</p>}
           <div className="flex gap-2 mt-3">
@@ -502,10 +573,10 @@ export default function SplitSheets() {
               <div key={c.id} className="flex items-center justify-between py-3">
                 <div>
                   <p className="font-medium text-sm">{c.name}</p>
-                  <p className="text-xs text-gray-400">{c.email}{c.role ? ` · ${c.role}` : ""}{c.phone ? ` · ${c.phone}` : ""}</p>
+                  <p className="text-xs text-gray-400">{c.email}{c.role ? ` · ${c.role}` : ""}{c.phone ? ` · ${c.phone}` : ""}{c.publisher ? ` · ${c.publisher}${c.publishing_percent ? ` (${c.publishing_percent}%)` : ""}` : ""}</p>
                 </div>
                 <div className="flex gap-2">
-                  <button className="btn btn-xs btn-outline" onClick={() => { setEditingContact(c.id); setContactForm({ name: c.name, email: c.email, role: c.role, phone: c.phone }); setShowAddForm(true); }}>Edit</button>
+                  <button className="btn btn-xs btn-outline" onClick={() => { setEditingContact(c.id); setContactForm({ name: c.name, email: c.email, role: c.role, phone: c.phone, publisher: c.publisher ?? "", publishing_percent: c.publishing_percent ?? "" }); setShowAddForm(true); }}>Edit</button>
                   <button className="btn btn-xs btn-error" onClick={() => handleDeleteContact(c.id)}>Delete</button>
                 </div>
               </div>
@@ -565,7 +636,7 @@ export default function SplitSheets() {
                       value=""
                       onChange={e => {
                         const ct = contacts.find(x => x.id === e.target.value);
-                        if (ct) setContributor(i, { name: ct.name || "", role: ct.role || "", contact: ct.email || "" });
+                        if (ct) fillContributorFromContact(i, ct);
                       }}
                     >
                       <option value="">＋ Fill from saved contact…</option>
@@ -600,13 +671,28 @@ export default function SplitSheets() {
             </div>
             <div className="space-y-2">
               {publishing.map((p, i) => (
-                <div key={i} className="flex flex-col sm:flex-row gap-2">
+                <div key={i} className="space-y-2">
+                {contacts.length > 0 && (
+                  <select
+                    className="select select-xs select-bordered w-full"
+                    value=""
+                    onChange={e => {
+                      const ct = contacts.find(x => x.id === e.target.value);
+                      if (ct) fillPublishingFromContact(i, ct);
+                    }}
+                  >
+                    <option value="">＋ Fill from saved contact…</option>
+                    {contacts.map(ct => <option key={ct.id} value={ct.id}>{ct.name || ct.email}{ct.publisher ? ` (${ct.publisher})` : ""}</option>)}
+                  </select>
+                )}
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input className="input input-sm w-full sm:flex-1 min-w-0" placeholder="Contributor Name" value={p.contributorName} onChange={e => setPublishing(i, { contributorName: e.target.value })} />
                   <input className="input input-sm w-full sm:flex-1 min-w-0" placeholder="Publisher" value={p.publisher} onChange={e => setPublishing(i, { publisher: e.target.value })} />
                   <div className="flex gap-2">
                     <input className="input input-sm flex-1 sm:w-20 sm:flex-none min-w-0" placeholder="%" value={p.percent} onChange={e => setPublishing(i, { percent: e.target.value })} />
                     <button type="button" className="btn btn-xs btn-error shrink-0" onClick={() => setSheet({ publishing: publishing.filter((_,idx) => idx !== i) })}><FontAwesomeIcon icon={faXmark} /></button>
                   </div>
+                </div>
                 </div>
               ))}
             </div>

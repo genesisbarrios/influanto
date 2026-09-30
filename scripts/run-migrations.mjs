@@ -114,6 +114,11 @@ const migrations = [
   `ALTER TABLE release_pages ALTER COLUMN slug SET NOT NULL`,
   `ALTER TABLE release_pages DROP CONSTRAINT IF EXISTS release_pages_name_key`,
   `ALTER TABLE release_pages ADD CONSTRAINT release_pages_slug_key UNIQUE (slug)`,
+
+  // split sheet publishing details remembered per collaborator contact, so
+  // picking a saved contact on a new sheet also fills their publishing row
+  `ALTER TABLE collaborator_contacts ADD COLUMN IF NOT EXISTS publisher TEXT DEFAULT ''`,
+  `ALTER TABLE collaborator_contacts ADD COLUMN IF NOT EXISTS publishing_percent TEXT DEFAULT ''`,
 ];
 
 async function run() {
