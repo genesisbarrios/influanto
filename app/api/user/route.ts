@@ -35,8 +35,19 @@ export async function POST(req: Request) {
       updates.image = imageUrl;
     }
 
+    // Meta Pixel ID: an empty value removes the pixel. Accepts the bare ID or a
+    // pasted pixel snippet, and stores only the numeric ID.
+    const pixelVal = formData.get("metaPixelId") as string | null;
+    if (pixelVal !== null) {
+      const trimmed = pixelVal.trim();
+      const pixelId = trimmed.match(/\d{10,20}/)?.[0];
+      if (trimmed && !pixelId) {
+        return NextResponse.json({ error: "That doesn't look like a Meta Pixel ID (it should be a 15–16 digit number)." }, { status: 400 });
+      }
+      updates.meta_pixel_id = pixelId ?? null;
+    }
+
     const textFields: [string, string][] = [
-      ["metaPixelId", "meta_pixel_id"],
       ["metaCapiToken", "meta_capi_token"],
       ["name", "name"],
       ["username", "username"],

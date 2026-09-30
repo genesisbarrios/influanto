@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
-import supabase, { mapUser, mapLinkInBio } from "@/libs/supabase";
+import supabase, { mapPublicUser, mapLinkInBio } from "@/libs/supabase";
 import { isNewsletterFull } from "@/libs/newsletter-limit";
 
 // Always serve fresh data — never cache this public lookup.
@@ -32,7 +32,7 @@ export async function GET(_req: NextRequest, { params }: { params: { slug: strin
     const newsletterFull = await isNewsletterFull(user.id);
 
     return NextResponse.json(
-      { data: { user: { ...mapUser(user), newsletterFull }, linkInBio: linkInBio ? mapLinkInBio(linkInBio) : null } },
+      { data: { user: { ...mapPublicUser(user), newsletterFull }, linkInBio: linkInBio ? mapLinkInBio(linkInBio) : null } },
       { status: 200 }
     );
   } catch (e) {
