@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faQrcode, faEarListen, faFileLines, faEnvelope, faLink, faMusic } from "@fortawesome/free-solid-svg-icons";
-import { faSpotify } from "@fortawesome/free-brands-svg-icons";
+import { faSpotify, faMeta } from "@fortawesome/free-brands-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 export const metadata: Metadata = {
@@ -28,6 +28,16 @@ export const metadata: Metadata = {
 };
 
 const posts = [
+  {
+    slug: "how-to-set-up-meta-pixel-for-musicians",
+    title: "How to Set Up a Meta Pixel for Your Music (and Make Sure It Works)",
+    excerpt: "Create a Meta Pixel, connect it to your Link in Bio and Release Pages, and confirm it's firing with Test Events — so your next release ads reach fans who already clicked through to stream.",
+    date: "October 2026",
+    readTime: "6 min read",
+    tag: "Marketing",
+    tagColor: "#1d4ed8",
+    icon: faMeta as IconDefinition,
+  },
   {
     slug: "how-to-find-your-spotify-artist-id",
     title: "How to Find Your Spotify Artist ID (Plus Apple, Tidal, Amazon, Pandora, Deezer & Qobuz)",

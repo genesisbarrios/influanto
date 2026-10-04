@@ -1243,7 +1243,15 @@ const handleYouTubeMusicChange = (e: any) => {
                     autoFocus
                   />
                   <p className="text-xs text-gray-400">
-                    Find your Pixel ID in Meta Events Manager → Data Sources.
+                    Find your Pixel ID in Meta Events Manager → Data Sources.{" "}
+                    <a
+                      href="/blog/how-to-set-up-meta-pixel-for-musicians"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 font-medium hover:underline"
+                    >
+                      Setup &amp; testing guide ↗
+                    </a>
                   </p>
                   <div className="flex gap-2">
                     <button
@@ -1284,7 +1292,17 @@ const handleYouTubeMusicChange = (e: any) => {
                 </div>
               ) : (
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-400">No pixel connected</p>
+                  <div>
+                    <p className="text-sm text-gray-400">No pixel connected</p>
+                    <a
+                      href="/blog/how-to-set-up-meta-pixel-for-musicians"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 font-medium hover:underline"
+                    >
+                      How to create &amp; test a pixel ↗
+                    </a>
+                  </div>
                   <button
                     onClick={() => { setPixelInput(""); setIsEditingPixel(true); }}
                     className="btn btn-sm btn-outline"
