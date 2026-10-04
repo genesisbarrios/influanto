@@ -5,12 +5,12 @@ import { getSEOTags } from "@/libs/seo";
 // server-rendered for search engines.
 export const metadata = getSEOTags({
   title: "Free Music Tools for Artists & Producers | Influanto",
-  description: "Free online tools for musicians: split sheet generator, BPM calculator, song key finder, delay and reverb calculator, chromatic tuner, ear training, online synth, and metadata editor.",
-  keywords: ["free music tools", "tools for musicians", "music producer tools", "online music tools", "split sheet generator", "bpm calculator", "key finder"],
+  description: "Free online tools for musicians: split sheet generator, BPM calculator, song key finder, delay and reverb calculator, chromatic tuner, metronome, ear training, online synth, and metadata editor.",
+  keywords: ["free music tools", "tools for musicians", "music producer tools", "online music tools", "split sheet generator", "bpm calculator", "key finder", "online metronome"],
   canonicalUrlRelative: "/tools",
   openGraph: {
     title: "Free Music Tools for Artists & Producers | Influanto",
-    description: "Free online tools for musicians: split sheet generator, BPM calculator, song key finder, delay and reverb calculator, chromatic tuner, ear training, online synth, and metadata editor.",
+    description: "Free online tools for musicians: split sheet generator, BPM calculator, song key finder, delay and reverb calculator, chromatic tuner, metronome, ear training, online synth, and metadata editor.",
     url: "https://www.influanto.com/tools",
   },
 });
