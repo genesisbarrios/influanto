@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 import { getSEOTags } from "@/libs/seo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
@@ -35,6 +36,7 @@ function detectBPM(data: Float32Array, sampleRate: number): number {
 }
 
 export default function BPMCalculator() {
+  const showSidebar = useShowJoinSidebar();
   const [bpm, setBpm] = useState<number>(0);
   const [tapTimes, setTapTimes] = useState<number[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
@@ -148,7 +150,7 @@ export default function BPMCalculator() {
             background: "#f9fafb",
             touchAction: "manipulation" // Prevent zoom and other touch gestures
           }}
-          className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
+          className={toolPaneClass(showSidebar, "p-8")}
         >
             <h1 className="text-3xl font-bold mb-4" style={{color: "#181b20"}}>Tap Tempo - BPM Calculator</h1>
             <p style={{color: "#181b20"}}>
@@ -200,42 +202,7 @@ export default function BPMCalculator() {
               <p style={{ color: "#181b20", fontSize: "0.8rem", marginTop: "0.5rem", opacity: 0.7 }}>Estimate — works best on beat-driven tracks.</p>
             </div>
         </div>
-        {/* Right: Sign up and info */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "#fff"
-          }} 
-          className="w-full sm:w-1/4 p-8"
-        >
-          <h3 className="text-xl font-bold mb-4">Join Influanto</h3>
-          <button
-            className="btn btn-primary"
-            style={{
-              padding: "0.75rem 2rem",
-              fontSize: "1.1rem",
-              borderRadius: "8px",
-              marginBottom: "1.5rem",
-              background: "#2563eb",
-              color: "#fff",
-              border: "none",
-              cursor: "pointer",
-              touchAction: "manipulation"
-            }}
-           onClick={() => window.location.href = "api/auth/signin?callbackUrl=/dashboard"}
-           onTouchStart={(e) => e.stopPropagation()} // Prevent tap counting
-          >
-            Sign Up
-          </button>
-          <div style={{ textAlign: "center" }}>
-            <p>
-             Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.
-            </p>
-          </div>
-        </div>
+        <ToolJoinSidebar show={showSidebar} />
       </div>
       <style>{`
         #bpm-bg {

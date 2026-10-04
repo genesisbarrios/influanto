@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
@@ -52,6 +53,7 @@ function centsOff(freq: number, note: number): number {
 }
 
 export default function Tuner() {
+  const showSidebar = useShowJoinSidebar();
   const [listening, setListening] = useState(false);
   const [note, setNote] = useState<string>("–");
   const [octave, setOctave] = useState<number | null>(null);
@@ -129,7 +131,7 @@ export default function Tuner() {
         style={{ display: "flex", flexDirection: "column", minHeight: "80vh", width: "100%", textAlign: "center" }}
       >
         {/* Left: Tuner */}
-        <div style={{ background: "#f9fafb" }} className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300">
+        <div style={{ background: "#f9fafb" }} className={toolPaneClass(showSidebar, "p-8")}>
           <h1 className="text-3xl font-bold mb-2" style={{ color: "#181b20" }}>Chromatic Tuner</h1>
           <p style={{ color: "#181b20" }}>Tune any instrument with your microphone.</p>
 
@@ -179,23 +181,7 @@ export default function Tuner() {
           </button>
         </div>
 
-        {/* Right: Sign up and info */}
-        <div
-          style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#fff" }}
-          className="w-full sm:w-1/4 p-8"
-        >
-          <h3 className="text-xl font-bold mb-4">Join Influanto</h3>
-          <button
-            className="btn btn-primary"
-            style={{ padding: "0.75rem 2rem", fontSize: "1.1rem", borderRadius: 8, marginBottom: "1.5rem", background: "#2563eb", color: "#fff", border: "none", cursor: "pointer" }}
-            onClick={() => (window.location.href = "api/auth/signin?callbackUrl=/dashboard")}
-          >
-            Sign Up
-          </button>
-          <div style={{ textAlign: "center" }}>
-            <p>Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.</p>
-          </div>
-        </div>
+        <ToolJoinSidebar show={showSidebar} />
       </div>
       <style>{`
         #tuner-bg { background: #638bcf !important; }

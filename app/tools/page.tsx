@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useShowJoinSidebar } from "@/components/ToolJoinSidebar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFileLines,
@@ -114,7 +114,7 @@ const tools: { title: string; description: string; href: string; icon: IconDefin
 ];
 
 export default function Tools() {
-  const { data: session } = useSession();
+  const showSidebar = useShowJoinSidebar();
 
   return (
     <>  
@@ -137,7 +137,7 @@ export default function Tools() {
           padding: "2rem",
           background: "#f9fafb"
         }}
-        className={`w-full p-8 ${session ? "" : "sm:w-3/4 sm:border-r sm:border-gray-300"}`}
+        className={`w-full p-8 ${showSidebar ? "sm:w-3/4 sm:border-r sm:border-gray-300" : ""}`}
       >
         <h1 className="text-2xl font-bold ml-8 mb-8 mt-4" style={{color: "#181b20"}}>Free Music Tools for Artists &amp; Producers</h1>
         <div
@@ -147,7 +147,7 @@ export default function Tools() {
             width: "100%",
             margin: "0 auto",
           }}
-          className={`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 ${session ? "tools-grid-loggedin" : ""}`}
+          className={`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 ${showSidebar ? "" : "tools-grid-loggedin"}`}
         >
           {tools.map((tool) => (
             <Link
@@ -180,7 +180,7 @@ export default function Tools() {
         </div>
       </div>
       {/* Right: Sign up and info */}
-      {!session && (
+      {showSidebar && (
         <div style={{ background: "#fff" }} className="w-full sm:w-1/4">
           <div
             style={{

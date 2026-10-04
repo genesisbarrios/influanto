@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 import SplitSheetSeo from "@/components/SplitSheetSeo";
 import jsPDF from "jspdf";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -10,6 +11,7 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { sanitizeFilename } from "@/libs/urls";
 
 export default function SplitSheetTemplate() {
+  const showSidebar = useShowJoinSidebar();
 
   const [form, setForm] = useState({
     songTitle: "",
@@ -320,7 +322,7 @@ const handleDownloadPDF = () => {
             flexDirection: "column",
             alignItems: "start"
           }}
-          className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
+          className={toolPaneClass(showSidebar, "p-8")}
         >
           <h1 className="text-3xl font-bold mb-4" style={{ color: "#181b20" }}>
             Free Split Sheet Generator
@@ -634,40 +636,7 @@ const handleDownloadPDF = () => {
             </button>
           </form>
         </div>
-        <div
-          style={{
-            padding: "2rem",
-            background: "#fff",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-          className="w-full sm:w-1/4 p-8"
-        >
-            <h3 className="text-xl font-bold mb-4" style={{color: "#181b20"}}>Join Influanto</h3>
-          <button
-            className="btn btn-primary"
-            style={{
-              padding: "0.75rem 2rem",
-              fontSize: "1.1rem",
-              borderRadius: "8px",
-              marginBottom: "1.5rem",
-              background: "#2563eb",
-              color: "#fff",
-              border: "none",
-              cursor: "pointer",
-            }}
-          onClick={() => window.location.href = "api/auth/signin?callbackUrl=/dashboard"}
-          >
-            Sign Up
-          </button>
-          <div style={{ textAlign: "center" }}>
-            <p>
-               Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.
-            </p>
-          </div>
-        </div>
+        <ToolJoinSidebar show={showSidebar} />
       </div>
       <style>{`
         #split-sheet-bg {
