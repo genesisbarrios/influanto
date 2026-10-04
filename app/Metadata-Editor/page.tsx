@@ -55,13 +55,6 @@ export default function MetadataEditor() {
   const fileRef = useRef<HTMLInputElement>(null);
   const coverRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    document.title = "Music Metadata Editor - Tag MP3 Files | Influanto";
-    const meta = (n: string, a: string, v: string) => { let e = document.querySelector(`meta[${a}="${n}"]`); if (!e) { e = document.createElement("meta"); e.setAttribute(a, n); document.head.appendChild(e); } e.setAttribute("content", v); };
-    const d = "Free music metadata editor. Upload an MP3 to edit title, artist, composer/producer, copyright, cover art and more, then download. By Influanto.";
-    meta("description", "name", d); meta("og:title", "property", "Music Metadata Editor | Influanto"); meta("og:description", "property", d);
-  }, []);
-
   useEffect(() => () => { if (savedUrl) URL.revokeObjectURL(savedUrl); }, [savedUrl]);
 
   const setTag = (k: keyof Tags, v: string) => setTags(prev => ({ ...prev, [k]: v }));

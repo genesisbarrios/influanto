@@ -77,6 +77,21 @@ const Footer = () => {
 
             <div className="lg:w-1/4 md:w-1/3 w-full px-4">
               <div className="footer-title font-semibold text-base-content tracking-widest text-sm md:text-left mb-3">
+                FEATURES
+              </div>
+
+              <div className="flex flex-col justify-center items-center md:items-start gap-2 mb-10 text-sm">
+                <Link href="/link-in-bio" className="link link-hover">Link in Bio</Link>
+                <Link href="/newsletter" className="link link-hover">Newsletter &amp; Mailing List</Link>
+                <Link href="/Split-Sheet-Generator" className="link link-hover">Split Sheet Generator</Link>
+                <Link href="/Split-Sheet-Template" className="link link-hover">Split Sheet Template</Link>
+                <Link href="/qr-code-generator" className="link link-hover">QR Code Generator</Link>
+                <Link href="/playlist-curator-tool" className="link link-hover">Playlist Curator Tool</Link>
+              </div>
+            </div>
+
+            <div className="lg:w-1/4 md:w-1/3 w-full px-4">
+              <div className="footer-title font-semibold text-base-content tracking-widest text-sm md:text-left mb-3">
                 SOCIAL MEDIA
               </div>
 

@@ -33,12 +33,6 @@ export default function ImagePrivacy() {
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    document.title = "Image Privacy Cleaner - Remove EXIF / Location | Influanto";
-    const meta = (n: string, a: string, v: string) => { let e = document.querySelector(`meta[${a}="${n}"]`); if (!e) { e = document.createElement("meta"); e.setAttribute(a, n); document.head.appendChild(e); } e.setAttribute("content", v); };
-    const d = "Free image privacy tool. Remove GPS location, camera info and other EXIF metadata from your JPEGs, or edit it, then download. By Influanto.";
-    meta("description", "name", d); meta("og:title", "property", "Image Privacy Cleaner | Influanto"); meta("og:description", "property", d);
-  }, []);
   useEffect(() => () => { if (outUrl) URL.revokeObjectURL(outUrl); }, [outUrl]);
 
   const onFile = (f?: File) => {
