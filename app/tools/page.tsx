@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
@@ -18,82 +18,99 @@ import {
   faShieldHalved,
   faScrewdriverWrench,
 } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 const calcDelayMs = (bpm: number, note: number) => {
   if (!bpm || !note) return "";
   return ((60000 / bpm) * note).toFixed(2);
 };
 
-const tools = [
-   {
+// No metronome icon in Font Awesome's free set, so it's drawn here in the same format
+const faMetronome = {
+  prefix: "fas",
+  iconName: "metronome",
+  icon: [512, 512, [], "", "M200 32H312L448 448H64Z M224 80L148 400H364L288 80Z M244 368L318 112L342 119L268 375Z M290 190L338 204L326 246L278 232Z M40 448H472V480H40Z"],
+} as unknown as IconDefinition;
+
+// Desktop shows 4 per row, so rows are: tools 1-4, 5-8 (synth, ear training, tuner, metronome), 9+
+const tools: { title: string; description: string; href: string; icon: IconDefinition; color: string }[] = [
+  {
     title: "Split Sheet Generator",
     description: "Create and export split sheets for your music collaborations.",
-    href: "/Split-Sheet-Generator",   
+    href: "/Split-Sheet-Generator",
     icon: faFileLines,
+    color: "#1e40af",
   },
-   {
+  {
     title: "Song Key Finder",
     description: "Upload a song or use your mic to detect its musical key.",
     href: "/Key-Finder",
     icon: faMusic,
+    color: "#2563eb",
   },
   {
     title: "BPM Calculator",
     description: "Tap/click on beat or upload the audio to find the tempo of your track.",
     href: "/BPM-Calculator",
     icon: faDrum,
+    color: "#0284c7",
   },
   {
     title: "Delay & Reverb Time Calculator",
     description: "Calculate delay and reverb times for your song.",
     href: "/Reverb-and-Delay-Calculator",
     icon: faStopwatch,
-  },
-  {
-    title: "Chromatic Tuner",
-    description: "Tune guitar, bass, violin, or any instrument with your mic.",
-    href: "/Tuner",
-    icon: faGuitar,
-  },
-  {
-    title: "Ear Training",
-    description: "Pitch matching, interval recognition, and chord recognition for musicians, producers, and singers.",
-    href: "/Ear-Training",
-    icon: faEarListen,
+    color: "#3b82f6",
   },
   {
     title: "Synthfluanto",
     description: "Create and share your own melodies with our synth.",
     href: "/Synthfluanto",
     icon: faKeyboard,
+    color: "#1d4ed8",
   },
-
+  {
+    title: "Ear Training",
+    description: "Pitch matching, interval recognition, and chord recognition for musicians, producers, and singers.",
+    href: "/Ear-Training",
+    icon: faEarListen,
+    color: "#0ea5e9",
+  },
+  {
+    title: "Chromatic Tuner",
+    description: "Tune guitar, bass, violin, or any instrument with your mic.",
+    href: "/Tuner",
+    icon: faGuitar,
+    color: "#1e3a8a",
+  },
+  {
+    title: "Metronome",
+    description: "Free online metronome with tap tempo, time signatures, and subdivisions.",
+    href: "/Metronome",
+    icon: faMetronome,
+    color: "#0369a1",
+  },
   {
     title: "Music Metadata Editor",
     description: "Edit MP3 & WAV tags — artist, composer, cover art, copyright — and download.",
     href: "/Metadata-Editor",
     icon: faTag,
+    color: "#60a5fa",
   },
   {
     title: "Image Privacy Cleaner",
     description: "Strip GPS location & camera data (EXIF) from your photos.",
     href: "/Image-Privacy",
     icon: faShieldHalved,
+    color: "#3a6fd8",
   },
-  
-//   {
-//     title: "WAV to MP3 Converter",
-//     description: "Convert WAV files to MP3 format easily.",
-//     href: "/MP3Converter",
-//     icon: "🎛️",
-//   },
   {
     title: "More Tools",
     description: "Sign Up to get access to more tools.",
     href: "api/auth/signin?callbackUrl=/dashboard",
     icon: faScrewdriverWrench,
+    color: "#0c4a6e",
   },
-  
 ];
 
 export default function Tools() {
@@ -126,13 +143,11 @@ export default function Tools() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: "2rem",
+            gap: "1.25rem",
             width: "100%",
-            maxWidth: "900px",
             margin: "0 auto",
           }}
-          className={session ? "tools-grid-loggedin" : ""}
+          className={`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 ${session ? "tools-grid-loggedin" : ""}`}
         >
           {tools.map((tool) => (
             <Link
@@ -150,12 +165,12 @@ export default function Tools() {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                aspectRatio: "1 / 1",
+                minHeight: "220px",
                 transition: "box-shadow 0.2s",
               }}
               className="tool-card"
             >
-              <span style={{ fontSize: "2.5rem", marginBottom: "1rem" }}><FontAwesomeIcon icon={tool.icon} /></span>
+              <span style={{ fontSize: "2.5rem", marginBottom: "1rem", color: tool.color }}><FontAwesomeIcon icon={tool.icon} /></span>
               <span style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.5rem" }}>
                 {tool.title}
               </span>
