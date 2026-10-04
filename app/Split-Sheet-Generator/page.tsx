@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import SplitSheetSeo from "@/components/SplitSheetSeo";
 import jsPDF from "jspdf";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
@@ -59,55 +60,6 @@ export default function SplitSheetTemplate() {
       return arr;
     });
   };
-
-  useEffect(() => {
-    document.title = "Split Sheet Generator | Influanto";
-    
-    // Update meta description
-    let metaDescription = document.querySelector('meta[name="description"]');
-    if (!metaDescription) {
-      metaDescription = document.createElement('meta');
-      metaDescription.setAttribute('name', 'description');
-      document.head.appendChild(metaDescription);
-    }
-    metaDescription.setAttribute('content', 'Split Sheet Generator - Create professional split sheets for your music collaborations powered by Influanto.');
-    
-    // Update og:title
-    let ogTitle = document.querySelector('meta[property="og:title"]');
-    if (!ogTitle) {
-      ogTitle = document.createElement('meta');
-      ogTitle.setAttribute('property', 'og:title');
-      document.head.appendChild(ogTitle);
-    }
-    ogTitle.setAttribute('content', 'Split Sheet Generator | Influanto');
-    
-    // Update og:description
-    let ogDescription = document.querySelector('meta[property="og:description"]');
-    if (!ogDescription) {
-      ogDescription = document.createElement('meta');
-      ogDescription.setAttribute('property', 'og:description');
-      document.head.appendChild(ogDescription);
-    }
-    ogDescription.setAttribute('content', 'Fill out and save your Split Sheets easily. Free musician tools by Influanto.');
-    
-    // Update twitter:title
-    let twitterTitle = document.querySelector('meta[name="twitter:title"]');
-    if (!twitterTitle) {
-      twitterTitle = document.createElement('meta');
-      twitterTitle.setAttribute('name', 'twitter:title');
-      document.head.appendChild(twitterTitle);
-    }
-    twitterTitle.setAttribute('content', 'Split Sheet Generator | Influanto');
-    
-    // Update twitter:description
-    let twitterDescription = document.querySelector('meta[name="twitter:description"]');
-    if (!twitterDescription) {
-      twitterDescription = document.createElement('meta');
-      twitterDescription.setAttribute('name', 'twitter:description');
-      document.head.appendChild(twitterDescription);
-    }
-    twitterDescription.setAttribute('content', 'Generate and share your Split Sheets easily. Free musician tools by Influanto.');
-  }, []);
 
   const addContributor = () => setContributors([...contributors, { name: "", role: "", ownership: "", contact: "", signature: "", signatureDate: "" }]);
   const removeContributor = (idx: number) => setContributors(contributors.filter((_, i) => i !== idx));
@@ -371,7 +323,7 @@ const handleDownloadPDF = () => {
           className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
         >
           <h1 className="text-3xl font-bold mb-4" style={{ color: "#181b20" }}>
-            Split Sheet Generator
+            Free Split Sheet Generator
           </h1>
           <form
             style={{ width: "100%", textAlign: "left" }}
@@ -503,7 +455,6 @@ const handleDownloadPDF = () => {
             >+ Add Contributor</button>
 
             <h2 className="text-xl font-bold mb-4">Publishing Details:</h2>
-
 
             {publishing.map((p, idx) => (
               <div key={idx} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }} className="publishing-row">
@@ -738,6 +689,7 @@ const handleDownloadPDF = () => {
           }
         }
       `}</style>
+      <SplitSheetSeo variant="generator" />
       <Footer />
     </>
   );

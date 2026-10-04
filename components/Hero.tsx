@@ -1,3 +1,4 @@
+import Link from "next/link";
 import TestimonialsAvatars from "./TestimonialsAvatars";
 import config from "@/config";
 import ButtonGetInfluanto from "./ButtonGetInfluanto";
@@ -12,7 +13,11 @@ const Hero = () => {
          The all in one marketing platform for artists and musicians.
         </h1>
         <p className="text-lg opacity-80 leading-relaxed">
-          Link In Bio, Release Pages, Split Sheet Generator, Newsletter and Contact Management, QR Code Generator, and Playlist Curator Contact Tool.
+          <Link href="/link-in-bio" className="link link-hover">Link In Bio</Link>, Release Pages,{" "}
+          <Link href="/Split-Sheet-Generator" className="link link-hover">Split Sheet Generator</Link>,{" "}
+          <Link href="/newsletter" className="link link-hover">Newsletter and Contact Management</Link>,{" "}
+          <Link href="/qr-code-generator" className="link link-hover">QR Code Generator</Link>, and{" "}
+          <Link href="/playlist-curator-tool" className="link link-hover">Playlist Curator Contact Tool</Link>.
         </p>
         <p className="text-lg opacity-80 leading-relaxed">
           Free Musician Tools: Delay / Reverb & BPM Calculator, Key Finder, Online Synth + more.

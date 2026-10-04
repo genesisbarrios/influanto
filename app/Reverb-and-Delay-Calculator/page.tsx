@@ -29,7 +29,6 @@ const calcDelayMs = (bpm: number, note: number) => {
   return ((60000 / bpm) * note).toFixed(2);
 };
 
-
 export default function ReverbandDelay() {
   const [bpm, setBpm] = useState<number>(120);
   const [preDelayOption, setPreDelayOption] = useState<"1/32" | "1/64">("1/64");
@@ -39,63 +38,6 @@ export default function ReverbandDelay() {
   useEffect(() => {
     setDelay1Bar(calcDelayMs(bpm, 4));
   }, [bpm]);
-
-  useEffect(() => {
-    document.title = "Delay & Reverb Calculator | Influanto";
-    
-    // Update meta description
-    let metaDescription = document.querySelector('meta[name="description"]');
-    if (!metaDescription) {
-      metaDescription = document.createElement('meta');
-      metaDescription.setAttribute('name', 'description');
-      document.head.appendChild(metaDescription);
-    }
-    metaDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator,Key Finder, Chromatic Tuner, Split Sheet Generator Split Sheet Generator + more');
-    
-    // Update og:title
-    let ogTitle = document.querySelector('meta[property="og:title"]');
-    if (!ogTitle) {
-      ogTitle = document.createElement('meta');
-      ogTitle.setAttribute('property', 'og:title');
-      document.head.appendChild(ogTitle);
-    }
-    ogTitle.setAttribute('content', 'FREE Musician Tools | Influanto');
-    
-    // Update og:description
-    let ogDescription = document.querySelector('meta[property="og:description"]');
-    if (!ogDescription) {
-      ogDescription = document.createElement('meta');
-      ogDescription.setAttribute('property', 'og:description');
-      document.head.appendChild(ogDescription);
-    }
-    ogDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner, Split Sheet Generator + more');
-
-    // Update twitter:card
-    let twitterCard = document.querySelector('meta[name="twitter:card"]');
-    if (!twitterCard) {
-      twitterCard = document.createElement('meta');
-      twitterCard.setAttribute('name', 'twitter:card');
-      document.head.appendChild(twitterCard);
-    }
-    // Update twitter:title
-    let twitterTitle = document.querySelector('meta[name="twitter:title"]');
-    if (!twitterTitle) {
-      twitterTitle = document.createElement('meta');
-      twitterTitle.setAttribute('name', 'twitter:title');
-      document.head.appendChild(twitterTitle);
-    }
-    twitterTitle.setAttribute('content', 'FREE Musician Tools | Influanto');
-
-    // Update twitter:description
-    let twitterDescription = document.querySelector('meta[name="twitter:description"]');
-    if (!twitterDescription) {
-      twitterDescription = document.createElement('meta');
-      twitterDescription.setAttribute('name', 'twitter:description');
-      document.head.appendChild(twitterDescription);
-    }
-    twitterDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner, Split Sheet Generator + more');
-    twitterCard.setAttribute('content', 'summary_large_image');
-  }, []);
 
   return (
     <>  

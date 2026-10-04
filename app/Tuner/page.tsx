@@ -66,20 +66,6 @@ export default function Tuner() {
   const bufRef = useRef<Float32Array | null>(null);
 
   // SEO
-  useEffect(() => {
-    document.title = "Chromatic Tuner - Tune Any Instrument | Influanto";
-    const meta = (name: string, attr: string, val: string) => {
-      let el = document.querySelector(`meta[${attr}="${name}"]`);
-      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
-      el.setAttribute("content", val);
-    };
-    const desc = "Free online chromatic tuner. Tune guitar, bass, violin, ukulele, or any instrument using your microphone. Producer tools by Influanto.";
-    meta("description", "name", desc);
-    meta("og:title", "property", "Chromatic Tuner | Influanto");
-    meta("og:description", "property", desc);
-    meta("twitter:title", "name", "Chromatic Tuner | Influanto");
-    meta("twitter:description", "name", desc);
-  }, []);
 
   const stop = () => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);

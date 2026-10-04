@@ -299,55 +299,6 @@ export default function Synthfluanto() {
   const pressedKeysRef = useRef<Set<string>>(new Set());
   
 
-  useEffect(() => {
-        document.title = "Synthfluanto, the online Synthesizer | Influanto";
-        
-        // Update meta description
-        let metaDescription = document.querySelector('meta[name="description"]');
-        if (!metaDescription) {
-          metaDescription = document.createElement('meta');
-          metaDescription.setAttribute('name', 'description');
-          document.head.appendChild(metaDescription);
-        }
-        metaDescription.setAttribute('content', 'Online Synthesizer, Online Synth, Web Synth, Free Synth, Web Synthesizer, Free Synthesizer - Synthfluanto by Influanto');
-    
-        // Update og:title
-        let ogTitle = document.querySelector('meta[property="og:title"]');
-        if (!ogTitle) {
-          ogTitle = document.createElement('meta');
-          ogTitle.setAttribute('property', 'og:title');
-          document.head.appendChild(ogTitle);
-        }
-        ogTitle.setAttribute('content', 'Synthfluanto, the online Synthesizer | Influanto');
-  
-        // Update og:description
-        let ogDescription = document.querySelector('meta[property="og:description"]');
-        if (!ogDescription) {
-          ogDescription = document.createElement('meta');
-          ogDescription.setAttribute('property', 'og:description');
-          document.head.appendChild(ogDescription);
-        }
-        ogDescription.setAttribute('content', 'Online Synthesizer - Synthfluanto by Influanto');
-  
-        // Update twitter:title
-        let twitterTitle = document.querySelector('meta[name="twitter:title"]');
-        if (!twitterTitle) {
-          twitterTitle = document.createElement('meta');
-          twitterTitle.setAttribute('name', 'twitter:title');
-          document.head.appendChild(twitterTitle);
-        }
-        twitterTitle.setAttribute('content', 'Synthfluanto, the online Synthesizer | Influanto');
-    
-        // Update twitter:description
-        let twitterDescription = document.querySelector('meta[name="twitter:description"]');
-        if (!twitterDescription) {
-          twitterDescription = document.createElement('meta');
-          twitterDescription.setAttribute('name', 'twitter:description');
-          document.head.appendChild(twitterDescription);
-        }
-        twitterDescription.setAttribute('content', 'Online Synthesizer - Synthfluanto by Influanto');
-      }, []);
-
   // --- Synth/FX chain setup ---
   useEffect(() => {
     try { synthRef.current?.dispose(); } catch (e) { /* ignore error */ }
@@ -833,7 +784,6 @@ const stopNote = useCallback((noteName: string) => {
   setActiveNotes((prev) => prev.filter(n => n !== noteName));
   synthRef.current?.triggerRelease(noteName);
 }, []);
-
 
   const [isMobile, setIsMobile] = useState(false);
   const { data: session } = useSession();

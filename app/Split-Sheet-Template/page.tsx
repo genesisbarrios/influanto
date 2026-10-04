@@ -2,6 +2,7 @@
 import React, { Suspense } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SplitSheetSeo from "@/components/SplitSheetSeo";
 
 export default function SplitSheetTemplate() {
   return (
@@ -11,7 +12,7 @@ export default function SplitSheetTemplate() {
       </Suspense>
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold text-center mb-8">Split Sheet Template</h1>
+          <h1 className="text-4xl font-bold text-center mb-8">Free Music Split Sheet Template</h1>
           <div className="bg-base-200 p-8 rounded-lg shadow-lg">
             <p className="text-lg text-center text-base-content/70 mb-6">
               A sample split sheet template for music collaborations.
@@ -64,6 +65,7 @@ export default function SplitSheetTemplate() {
           </div>
         </div>
       </main>
+      <SplitSheetSeo variant="template" />
       <Footer />
     </div>
   );

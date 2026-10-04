@@ -123,21 +123,6 @@ export default function KeyFinder() {
   const rafRef = useRef<number | null>(null);
   const chromaRef = useRef<number[]>(new Array(12).fill(0));
 
-  useEffect(() => {
-    document.title = "Song Key Finder - Detect the Key of Any Song | Influanto";
-    const meta = (name: string, attr: string, val: string) => {
-      let el = document.querySelector(`meta[${attr}="${name}"]`);
-      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
-      el.setAttribute("content", val);
-    };
-    const desc = "Free song key finder. Upload a track or use your mic to detect the musical key (major/minor) of any song. Producer tools by Influanto.";
-    meta("description", "name", desc);
-    meta("og:title", "property", "Song Key Finder | Influanto");
-    meta("og:description", "property", desc);
-    meta("twitter:title", "name", "Song Key Finder | Influanto");
-    meta("twitter:description", "name", desc);
-  }, []);
-
   // ── Upload a song ──
   // Auto-play the uploaded file; revoke the object URL when it changes/unmounts.
   useEffect(() => {

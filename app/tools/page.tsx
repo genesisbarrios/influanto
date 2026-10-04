@@ -99,56 +99,6 @@ const tools = [
 export default function Tools() {
   const { data: session } = useSession();
 
-useEffect(() => {
-    document.title = "Music Tools | Influanto";
-    
-    // Update meta description
-    let metaDescription = document.querySelector('meta[name="description"]');
-    if (!metaDescription) {
-      metaDescription = document.createElement('meta');
-      metaDescription.setAttribute('name', 'description');
-      document.head.appendChild(metaDescription);
-    }
-    metaDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner, Split Sheet Generator + more');
-
-    // Update og:title
-    let ogTitle = document.querySelector('meta[property="og:title"]');
-    if (!ogTitle) {
-      ogTitle = document.createElement('meta');
-      ogTitle.setAttribute('property', 'og:title');
-      document.head.appendChild(ogTitle);
-    }
-    ogTitle.setAttribute('content', 'Musician Tools | Influanto');
-
-    // Update og:description
-    let ogDescription = document.querySelector('meta[property="og:description"]');
-    if (!ogDescription) {
-      ogDescription = document.createElement('meta');
-      ogDescription.setAttribute('property', 'og:description');
-      document.head.appendChild(ogDescription);
-    }
-    ogDescription.setAttribute('content', 'Free Musician Tools: Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner,Split Sheet Generator + more');
-
-    // Update twitter:title
-    let twitterTitle = document.querySelector('meta[name="twitter:title"]');
-    if (!twitterTitle) {
-      twitterTitle = document.createElement('meta');
-      twitterTitle.setAttribute('name', 'twitter:title');
-      document.head.appendChild(twitterTitle);
-    }
-    twitterTitle.setAttribute('content', 'Musician Tools | Influanto');
-
-    // Update twitter:description
-    let twitterDescription = document.querySelector('meta[name="twitter:description"]');
-    if (!twitterDescription) {
-      twitterDescription = document.createElement('meta');
-      twitterDescription.setAttribute('name', 'twitter:description');
-      document.head.appendChild(twitterDescription);
-    }
-    twitterDescription.setAttribute('content', 'Delay & Reverb Calculator, BPM Calculator, Key Finder, Chromatic Tuner, Split Sheet Generator + more');
-  }, []);
-
-
   return (
     <>  
     <Suspense>
@@ -172,7 +122,7 @@ useEffect(() => {
         }}
         className={`w-full p-8 ${session ? "" : "sm:w-3/4 sm:border-r sm:border-gray-300"}`}
       >
-        <h2 className="text-2xl font-bold ml-8 mb-8 mt-4" style={{color: "#181b20"}}>Music Tools</h2>
+        <h1 className="text-2xl font-bold ml-8 mb-8 mt-4" style={{color: "#181b20"}}>Free Music Tools for Artists &amp; Producers</h1>
         <div
           style={{
             display: "grid",

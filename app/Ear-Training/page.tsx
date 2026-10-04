@@ -156,16 +156,6 @@ export default function EarTraining() {
   const chordPayloadRef = useRef<{ root: number; intervals: readonly number[] } | null>(null);
 
   useEffect(() => {
-    document.title = "Ear Training | Influanto";
-    const setMeta = (attr: string, name: string, val: string) => {
-      let el = document.querySelector(`meta[${attr}="${name}"]`);
-      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
-      el.setAttribute("content", val);
-    };
-    const desc = "Train your ear for pitch, intervals, and chords. Free ear training tool for musicians, producers, and singers.";
-    setMeta("name", "description", desc);
-    setMeta("property", "og:title", "Ear Training | Influanto");
-    setMeta("property", "og:description", desc);
     return () => { cancelRef.current = true; stopMic(); };
   }, []);
 
