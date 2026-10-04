@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 import { ID3Writer } from "browser-id3-writer";
 import { readWavTags, writeWavTags } from "@/libs/wav-tags";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -43,6 +44,7 @@ async function readTags(file: File): Promise<{ tags: Partial<Tags>; cover?: stri
 }
 
 export default function MetadataEditor() {
+  const showSidebar = useShowJoinSidebar();
   const [file, setFile] = useState<File | null>(null);
   const [buffer, setBuffer] = useState<ArrayBuffer | null>(null);
   const [tags, setTags] = useState<Tags>(EMPTY);
@@ -128,7 +130,7 @@ export default function MetadataEditor() {
     <>
       <Suspense><Header /></Suspense>
       <div id="meta-bg" style={{ display: "flex", flexDirection: "column", minHeight: "80vh", width: "100%" }}>
-        <div style={{ background: "#f9fafb", textAlign: "center" }} className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300">
+        <div style={{ background: "#f9fafb", textAlign: "center" }} className={toolPaneClass(showSidebar, "p-8")}>
           <h1 className="text-3xl font-bold mb-2" style={{ color: "#181b20" }}>Music Metadata Editor</h1>
           <p className="mb-4" style={{ color: "#181b20" }}>Upload an MP3 or WAV, edit its tags &amp; cover art, then download.</p>
 
@@ -183,11 +185,7 @@ export default function MetadataEditor() {
           <input ref={fileRef} type="file" accept=".mp3,.wav,audio/mpeg,audio/wav,audio/x-wav" className="hidden" onChange={e => onFile(e.target.files?.[0])} />
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#fff" }} className="w-full sm:w-1/4 p-8">
-          <h3 className="text-xl font-bold mb-4">Join Influanto</h3>
-          <button className="btn btn-primary" style={{ padding: "0.75rem 2rem", borderRadius: 8, marginBottom: "1.5rem", background: "#2563eb", color: "#fff", border: "none", cursor: "pointer" }} onClick={() => (window.location.href = "api/auth/signin?callbackUrl=/dashboard")}>Sign Up</button>
-          <div style={{ textAlign: "center" }}><p>Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.</p></div>
-        </div>
+        <ToolJoinSidebar show={showSidebar} />
       </div>
       <style>{`#meta-bg{background:#638bcf !important;} @media (min-width:640px){#meta-bg{flex-direction:row !important;}}`}</style>
       <Footer />

@@ -20,7 +20,8 @@ const Hero = () => {
           <Link href="/playlist-curator-tool" className="link link-hover">Playlist Curator Contact Tool</Link>.
         </p>
         <p className="text-lg opacity-80 leading-relaxed">
-          Free Musician Tools: Delay / Reverb & BPM Calculator, Key Finder, Online Synth + more.
+          <Link href="/tools" className="link link-hover">Free Musician Tools</Link>: Delay / Reverb & BPM Calculator, Key Finder,{" "}
+          <Link href="/Metronome" className="link link-hover">Online Metronome</Link>, Online Synth + more.
         </p>
         <ButtonGetInfluanto />
 

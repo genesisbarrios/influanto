@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 // @ts-ignore
 import piexif from "piexifjs";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -19,6 +20,7 @@ function dataUrlToBlob(dataUrl: string): Blob {
 }
 
 export default function ImagePrivacy() {
+  const showSidebar = useShowJoinSidebar();
   const [src, setSrc] = useState<string>("");      // original data URL
   const [fileName, setFileName] = useState("");
   const [exif, setExif] = useState<any>(null);
@@ -138,7 +140,7 @@ export default function ImagePrivacy() {
     <>
       <Suspense><Header /></Suspense>
       <div id="img-bg" style={{ display: "flex", flexDirection: "column", minHeight: "80vh", width: "100%" }}>
-        <div style={{ background: "#f9fafb", textAlign: "center" }} className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300">
+        <div style={{ background: "#f9fafb", textAlign: "center" }} className={toolPaneClass(showSidebar, "p-8")}>
           <h1 className="text-3xl font-bold mb-2" style={{ color: "#181b20" }}>Image Privacy Cleaner</h1>
           <p className="mb-4" style={{ color: "#181b20" }}>Remove GPS location &amp; camera data from your photos (JPEG), or edit it, then download.</p>
 
@@ -183,11 +185,7 @@ export default function ImagePrivacy() {
           <input ref={fileRef} type="file" accept="image/jpeg,.jpg,.jpeg" className="hidden" onChange={e => onFile(e.target.files?.[0])} />
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#fff" }} className="w-full sm:w-1/4 p-8">
-          <h3 className="text-xl font-bold mb-4">Join Influanto</h3>
-          <button className="btn btn-primary" style={{ padding: "0.75rem 2rem", borderRadius: 8, marginBottom: "1.5rem", background: "#2563eb", color: "#fff", border: "none", cursor: "pointer" }} onClick={() => (window.location.href = "api/auth/signin?callbackUrl=/dashboard")}>Sign Up</button>
-          <div style={{ textAlign: "center" }}><p>Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.</p></div>
-        </div>
+        <ToolJoinSidebar show={showSidebar} />
       </div>
       <style>{`#img-bg{background:#638bcf !important;} @media (min-width:640px){#img-bg{flex-direction:row !important;}}`}</style>
       <Footer />

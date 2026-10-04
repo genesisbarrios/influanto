@@ -3,7 +3,8 @@ import React, { useCallback, useEffect, useRef, useState, Suspense } from "react
 import dynamic from "next/dynamic";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import SeoContent from "@/components/SeoContent";
+import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
+import SeoContent, { JsonLd } from "@/components/SeoContent";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay, faStop, faMinus, faPlus, faHandPointer } from "@fortawesome/free-solid-svg-icons";
 
@@ -39,6 +40,7 @@ function tempoMarking(bpm: number) {
 const clampBpm = (n: number) => Math.min(MAX_BPM, Math.max(MIN_BPM, Math.round(n)));
 
 export default function MetronomePage() {
+  const showSidebar = useShowJoinSidebar();
   const [bpm, setBpm] = useState(120);
   const [running, setRunning] = useState(false);
   const [beatsPerBar, setBeatsPerBar] = useState(4);
@@ -202,9 +204,9 @@ export default function MetronomePage() {
   return (
     <>
       <Suspense><Header /></Suspense>
-      <div id="metronome-bg" style={{ display: "flex", flexDirection: "column", minHeight: "80vh", width: "100%", textAlign: "center" }}>
+      <div id="metronome-bg" style={{ display: "flex", flexDirection: "column", width: "100%", textAlign: "center" }} className="min-h-[calc(100svh-57px)] lg:min-h-[calc(100svh-80px)]">
         {/* Left: metronome */}
-        <div style={{ background: "#f9fafb", color: "#181b20" }} className="w-full sm:w-3/4 p-6 sm:p-8 sm:border-r sm:border-gray-300">
+        <div style={{ background: "#f9fafb", color: "#181b20" }} className={toolPaneClass(showSidebar, "p-6 sm:p-8 flex flex-col justify-center")}>
           <h1 className="text-3xl font-bold mb-2">Free Online Metronome</h1>
           <p className="mb-4 opacity-80">Press play or hit the spacebar. Use the arrow keys to nudge the tempo.</p>
 
@@ -279,18 +281,7 @@ export default function MetronomePage() {
           </div>
         </div>
 
-        {/* Right: sign up */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#fff", color: "#181b20" }} className="w-full sm:w-1/4 p-8">
-          <h3 className="text-xl font-bold mb-4">Join Influanto</h3>
-          <button
-            className="btn btn-primary"
-            style={{ padding: "0.75rem 2rem", fontSize: "1.1rem", borderRadius: 8, marginBottom: "1.5rem", background: "#2563eb", color: "#fff", border: "none" }}
-            onClick={() => (window.location.href = "/api/auth/signin?callbackUrl=/dashboard")}
-          >
-            Sign Up
-          </button>
-          <p>Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.</p>
-        </div>
+        <ToolJoinSidebar show={showSidebar} />
       </div>
 
       <SeoContent
@@ -330,6 +321,30 @@ export default function MetronomePage() {
           ]}
       />
 
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          name: "Influanto Online Metronome",
+          url: "https://www.influanto.com/Metronome",
+          description: "Free online metronome with tap tempo, 30-260 BPM, time signatures from 1/4 to 7/8, eighth-note, triplet, and sixteenth subdivisions, and a 3D swinging pendulum.",
+          applicationCategory: "MultimediaApplication",
+          operatingSystem: "Web",
+          browserRequirements: "Requires JavaScript and the Web Audio API",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+          publisher: { "@type": "Organization", name: "Influanto", url: "https://www.influanto.com" },
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Music Tools", item: "https://www.influanto.com/tools" },
+            { "@type": "ListItem", position: 2, name: "Metronome", item: "https://www.influanto.com/Metronome" },
+          ],
+        }}
+      />
       <style>{`
         #metronome-bg { background: #638bcf !important; }
         @media (min-width: 640px) { #metronome-bg { flex-direction: row !important; } }

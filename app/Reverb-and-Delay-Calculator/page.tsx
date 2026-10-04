@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 
 const noteOptions = [
   { label: "Whole (1/1)", value: 4 },
@@ -30,6 +31,7 @@ const calcDelayMs = (bpm: number, note: number) => {
 };
 
 export default function ReverbandDelay() {
+  const showSidebar = useShowJoinSidebar();
   const [bpm, setBpm] = useState<number>(120);
   const [preDelayOption, setPreDelayOption] = useState<"1/32" | "1/64">("1/64");
   const [delay1Bar, setDelay1Bar] = useState<string>(calcDelayMs(bpm, 4));
@@ -63,11 +65,11 @@ export default function ReverbandDelay() {
           display: "flex",
           flexDirection: "column"
         }}
-        className="w-full sm:w-3/4 p-8 sm:border-r sm:border-gray-300"
+        className={toolPaneClass(showSidebar, "p-8")}
       >
         <div style={{ display: "flex", flexDirection: "column", width: "100%", marginBottom: "1.5rem" }}>
           <div style={{ width: "100%", marginBottom: "1rem" }}>
-            <h2 className="text-2xl font-bold mb-4" style={{color: "#181b20"}}>Delay & Reverb Time Calculator</h2>
+            <h1 className="text-2xl font-bold mb-4" style={{color: "#181b20"}}>Delay & Reverb Time Calculator</h1>
             <p style={{color: "#181b20"}}>
               Enter your song&apos;s BPM and select a note value to calculate delay times. If the provided settings do not fit your needs you can also tweak them. As long as you use values that divide into the total reverb time.
             </p>
@@ -213,42 +215,7 @@ export default function ReverbandDelay() {
           </div>
         </div>
       </div>
-      {/* Right: Sign up and info */}
-      <div
-        style={{
-          padding: "2rem",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#fff",
-          color: "#181b20"
-        }}
-        className="w-full sm:w-1/4 p-8"
-      >
-        <h3 className="text-xl font-bold mb-4" style={{color: "#181b20"}}>Join Influanto</h3>
-        <button
-          className="btn btn-primary"
-          style={{
-            padding: "0.75rem 2rem",
-            fontSize: "1.1rem",
-            borderRadius: "8px",
-            marginBottom: "1.5rem",
-            background: "#2563eb",
-            color: "#fff",
-            border: "none",
-            cursor: "pointer",
-          }}
-          onClick={() => window.location.href = "api/auth/signin?callbackUrl=/dashboard"}
-        >
-          Sign Up
-        </button>
-        <div style={{ color: "#181b20", textAlign: "center" }}>
-          <p>
-            Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.
-          </p>
-        </div>
-      </div>
+      <ToolJoinSidebar show={showSidebar} />
     </div>
     <style>{`
       #delay-bg {
