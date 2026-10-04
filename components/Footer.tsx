@@ -86,7 +86,7 @@ const Footer = () => {
                 <Link href="/Split-Sheet-Generator" className="link link-hover">Split Sheet Generator</Link>
                 <Link href="/Split-Sheet-Template" className="link link-hover">Split Sheet Template</Link>
                 <Link href="/qr-code-generator" className="link link-hover">QR Code Generator</Link>
-                <Link href="/playlist-curator-tool" className="link link-hover">Playlist Curator Tool</Link>
+                <Link href="/playlist-curator-tool" className="link link-hover">Spotify Playlist Curator Contact Tool</Link>
               </div>
             </div>
 

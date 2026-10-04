@@ -4,10 +4,16 @@ import { getSEOTags } from "@/libs/seo";
 import FeatureLanding from "@/components/FeatureLanding";
 
 export const metadata: Metadata = getSEOTags({
-  title: "Spotify Playlist Curator Finder & Contact Tool for Artists | Influanto",
+  title: "Spotify Playlist Curator Contact Tool — Search & Contact Curators | Influanto",
   description:
-    "Find Spotify playlist curators in your genre and get their contact info — email, Instagram, or TikTok — then pitch your release page directly. Free for independent artists.",
+    "Search & contact Spotify playlist curators in your genre. Influanto's free Spotify playlist curator contact tool finds curator emails, Instagram, and TikTok so you can pitch your music directly.",
   keywords: [
+    "spotify playlist curator contact tool",
+    "search & contact spotify playlist curators",
+    "search and contact spotify playlist curators",
+    "spotify playlist curator search",
+    "spotify playlist curator contacts",
+    "spotify curator email",
     "playlist curator tool",
     "spotify playlist curators",
     "find playlist curators",
@@ -19,8 +25,8 @@ export const metadata: Metadata = getSEOTags({
   ],
   canonicalUrlRelative: "/playlist-curator-tool",
   openGraph: {
-    title: "Spotify Playlist Curator Finder & Contact Tool",
-    description: "Search Spotify playlists by genre, find curator contact info, and pitch your release directly.",
+    title: "Spotify Playlist Curator Contact Tool — Search & Contact Curators",
+    description: "Search & contact Spotify playlist curators by genre — find curator emails, Instagram, and TikTok, then pitch your release directly.",
     url: "https://www.influanto.com/playlist-curator-tool",
   },
 });
@@ -29,10 +35,10 @@ export default function PlaylistCuratorLanding() {
   return (
     <FeatureLanding
       path="/playlist-curator-tool"
-      eyebrow="Playlist Curator Tool"
-      h1="Find and Contact Spotify Playlist Curators"
+      eyebrow="Spotify Playlist Curator Contact Tool"
+      h1="Search & Contact Spotify Playlist Curators"
       subtitle="Search Spotify playlists in your genre, see the curator contact info listed on each playlist, and pitch your release page directly — no paid submission platforms in the middle."
-      appName="Influanto Playlist Curator Tool"
+      appName="Influanto Spotify Playlist Curator Contact Tool"
       appDescription="Search Spotify playlists by genre or keyword and find curator contact details to pitch your music directly."
       ctaText="Find Curators Free"
       features={[
