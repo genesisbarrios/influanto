@@ -682,16 +682,19 @@ const handleYouTubeMusicChange = (e: any) => {
   }
 };
 
-  const saveMetaPixel = async () => {
+  // Takes the value explicitly so "Remove" can save an empty ID without
+  // racing the pixelInput state update.
+  const saveMetaPixel = async (value: string = pixelInput) => {
     setPixelSaving(true);
     try {
       const formData = new FormData();
-      formData.append("metaPixelId", pixelInput.trim());
-      await apiClient.post("/user", formData, {
+      formData.append("metaPixelId", value.trim());
+      const res: any = await apiClient.post("/user", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setMetaPixelId(pixelInput.trim());
-      setUser((prev: any) => ({ ...prev, metaPixelId: pixelInput.trim() }));
+      const saved = res?.data?.metaPixelId ?? "";
+      setMetaPixelId(saved);
+      setUser((prev: any) => ({ ...prev, metaPixelId: saved }));
       setIsEditingPixel(false);
     } catch (e: any) {
       setAlertt(e?.message || "Failed to save Pixel ID");
@@ -1244,7 +1247,7 @@ const handleYouTubeMusicChange = (e: any) => {
                   </p>
                   <div className="flex gap-2">
                     <button
-                      onClick={saveMetaPixel}
+                      onClick={() => saveMetaPixel()}
                       disabled={pixelSaving}
                       className="btn btn-primary btn-sm"
                     >
@@ -1272,7 +1275,7 @@ const handleYouTubeMusicChange = (e: any) => {
                       Edit
                     </button>
                     <button
-                      onClick={() => { setPixelInput(""); saveMetaPixel(); }}
+                      onClick={() => { setPixelInput(""); saveMetaPixel(""); }}
                       className="text-xs text-red-500 hover:underline"
                     >
                       Remove
