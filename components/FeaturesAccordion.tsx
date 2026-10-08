@@ -54,8 +54,8 @@ const features = [
     ),
   },
   {
-    title: "Newsletters and Contact Management",
-    description: "Use our Outreach Dashboard to manage your contacts, send email campaigns to your fans, and track analytics.",
+    title: "Newsletter & Mailing List",
+    description: "Grow your mailing list from your Link in Bio and Release Pages, manage your contacts, send newsletters to your fans, and track analytics.",
     type: "image",
     path: outreach,
     alt: "A computer",

@@ -1205,7 +1205,7 @@ const removeCustomLink = (index: number) => {
                 </button>
                 <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}><FontAwesomeIcon icon={faBullhorn} className="mr-1.5" /> Collect newsletter signups</span>
               </div>
-              <p className="text-indigo-600 text-sm mt-1">Show a signup form on this release page so fans can join your Outreach contacts.</p>
+              <p className="text-indigo-600 text-sm mt-1">Show a signup form on this release page so fans can join your mailing list.</p>
               {editingPage?.newsletterEnabled && (
                 <div className="mt-3">
                   <p className="text-xs font-semibold text-indigo-700 mb-2">Fields to collect (email is always required):</p>
@@ -1570,7 +1570,7 @@ const removeCustomLink = (index: number) => {
                 </button>
                 <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setEditingPage({ ...editingPage, newsletterEnabled: !editingPage?.newsletterEnabled })}><FontAwesomeIcon icon={faBullhorn} className="mr-1.5" /> Collect newsletter signups</span>
               </div>
-              <p className="text-indigo-600 text-sm mt-1">Show a signup form on this release page so fans can join your Outreach contacts.</p>
+              <p className="text-indigo-600 text-sm mt-1">Show a signup form on this release page so fans can join your mailing list.</p>
               {editingPage?.newsletterEnabled && (
                 <div className="mt-3">
                   <p className="text-xs font-semibold text-indigo-700 mb-2">Fields to collect (email is always required):</p>

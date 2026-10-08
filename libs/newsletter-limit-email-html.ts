@@ -60,7 +60,7 @@ export function renderNewsletterLimitEmailHtml(opts: { name?: string; limit: num
             </p>
             <p style="font-size:15px;line-height:1.9;margin:8px 0 0;color:${TEXT};">
               <span style="color:${ACCENT};font-weight:800;">•</span> Unlimited newsletter subscribers<br/>
-              <span style="color:${ACCENT};font-weight:800;">•</span> Unlimited outreach contacts &amp; newsletters<br/>
+              <span style="color:${ACCENT};font-weight:800;">•</span> Unlimited mailing list contacts &amp; newsletters<br/>
               <span style="color:${ACCENT};font-weight:800;">•</span> Advanced analytics and more Release Pages
             </p>
           </td>

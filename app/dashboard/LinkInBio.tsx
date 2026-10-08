@@ -1393,7 +1393,7 @@ const LinkInBio = () => {
               </button>
               <span className="font-bold text-indigo-800 cursor-pointer" onClick={() => setNewsletterEnabled(!newsletterEnabled)}><FontAwesomeIcon icon={faBullhorn} className="mr-1.5" /> Collect newsletter signups</span>
             </div>
-            <p className="text-indigo-600 text-sm mt-1">Show a signup form on your public page so fans can join your Outreach contacts.</p>
+            <p className="text-indigo-600 text-sm mt-1">Show a signup form on your public page so fans can join your mailing list.</p>
             {newsletterEnabled && (
               <div className="mt-3">
                 <p className="text-xs font-semibold text-indigo-700 mb-2">Fields to collect (email is always required):</p>
