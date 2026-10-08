@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
-import supabase, { mapPublicUser, mapReleasePage } from "@/libs/supabase";
+import supabase, { mapPublicUser, mapReleasePage, findReleasePageBySlug } from "@/libs/supabase";
 import { isNewsletterFull } from "@/libs/newsletter-limit";
 
 // Always serve fresh data — never cache this public lookup.
@@ -13,11 +13,7 @@ export async function GET(_req: NextRequest, { params }: { params: { slug: strin
   }
 
   try {
-    const { data: releasePage, error: rpError } = await supabase
-      .from("release_pages")
-      .select()
-      .eq("slug", slug)
-      .single();
+    const { data: releasePage, error: rpError } = await findReleasePageBySlug(slug);
 
     if (rpError || !releasePage) {
       return NextResponse.json({ error: "Release Page Not Found." }, { status: 404 });
