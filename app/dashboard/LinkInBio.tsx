@@ -727,7 +727,7 @@ const LinkInBio = () => {
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
                   <a
                     className="btn btn-primary btn-block btn-lg btn-narrow"
-                    style={{ width: "auto", display: "inline", fontFamily: linkInBio?.font || 'inherit' }}
+                    style={{ width: "auto", display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: linkInBio?.font || 'inherit' }}
                     href={`https://influanto.com/${user.username}`}
                   >
                     Visit
@@ -735,7 +735,7 @@ const LinkInBio = () => {
                   <button
                     type="button"
                     className="btn btn-lg btn-narrow"
-                    style={{ width: "auto", display: "inline", fontFamily: linkInBio?.font || 'inherit', backgroundColor: '#6b7280', borderColor: '#6b7280', color: '#fff' }}
+                    style={{ width: "auto", display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: linkInBio?.font || 'inherit', backgroundColor: '#6b7280', borderColor: '#6b7280', color: '#fff' }}
                     onClick={handleShare}
                   >
                     {shareCopied ? "Copied!" : "Share"}
@@ -1420,14 +1420,14 @@ const LinkInBio = () => {
           <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
             <button
               className="btn btn-alert btn-block btn-sm btn-narrow"
-              style={{ width: "35%", display: "inline", margin: "2% 5%", fontFamily: linkInBio?.font || 'inherit' }}
+              style={{ width: "35%", display: "inline-flex", alignItems: "center", justifyContent: "center", margin: "2% 5%", fontFamily: linkInBio?.font || 'inherit' }}
               onClick={() => setEditing(false)}
             >
               Cancel
             </button>
             <button
               className="btn btn-primary btn-block btn-sm btn-narrow"
-              style={{ width: "35%", display: "inline", margin: "8% 0 0", fontFamily: linkInBio?.font || 'inherit' }}
+              style={{ width: "35%", display: "inline-flex", alignItems: "center", justifyContent: "center", margin: "2% 5%", fontFamily: linkInBio?.font || 'inherit' }}
               onClick={(e) => handleEditLinkInBio(e)}
               type="submit"
             >
