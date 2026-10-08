@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import supabase, { mapUser, mapReleasePage } from "@/libs/supabase";
+import supabase, { mapUser, mapReleasePage, findReleasePageBySlug } from "@/libs/supabase";
 import { getSEOTags } from "@/libs/seo";
 import ReleasePageClient from "./ReleasePageClient";
 
@@ -16,11 +16,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const slug = params.slug;
 
-  const { data: releasePageRow } = await supabase
-    .from("release_pages")
-    .select()
-    .eq("name", slug)
-    .single();
+  const { data: releasePageRow } = await findReleasePageBySlug(slug);
   const releasePage = mapReleasePage(releasePageRow);
 
   let user = null;

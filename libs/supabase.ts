@@ -19,6 +19,20 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 
 export default supabase;
 
+// Escape LIKE wildcards so a slug is matched literally by ilike()
+const escapeLike = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
+
+// Release page by URL slug, ignoring case — older pages kept mixed-case slugs
+// (e.g. "GENESIS"), and address bars often lowercase what people type. Prefers
+// an exact match so a case-only twin can never shadow the page that was linked.
+export async function findReleasePageBySlug(slug: string, columns = "*"): Promise<{ data: any; error: any }> {
+  // Route params can arrive URL-encoded or not; a stray "%" must not throw
+  try { slug = decodeURIComponent(slug); } catch { /* already decoded */ }
+  const exact = await supabase.from("release_pages").select(columns).eq("slug", slug).maybeSingle();
+  if (exact.data || exact.error) return exact;
+  return supabase.from("release_pages").select(columns).ilike("slug", escapeLike(slug)).limit(1).maybeSingle();
+}
+
 // ── Mappers: DB row (snake_case) → API response (camelCase) ──────────────────
 
 export function mapUser(row: any) {

@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
-import supabase, { mapReleasePage } from "@/libs/supabase";
+import supabase, { mapReleasePage, findReleasePageBySlug } from "@/libs/supabase";
 import { normalizeUrl, slugify } from "@/libs/urls";
 
 function normalizeLinks(links: any): any {
@@ -17,7 +17,8 @@ async function generateUniqueSlug(name: string): Promise<string> {
   let slug = base;
   let suffix = 2;
   for (;;) {
-    const { data } = await supabase.from("release_pages").select("id").eq("slug", slug).maybeSingle();
+    // Case-insensitive, since lookups by slug ignore case
+    const { data } = await findReleasePageBySlug(slug, "id");
     if (!data) return slug;
     slug = `${base}-${suffix++}`;
   }
