@@ -60,7 +60,7 @@ export default function EpkTemplate({
     const startY = window.scrollY;
     const mark = () => { interacted = true; };
     const onScroll = () => {
-      if (!interacted && document.activeElement?.tagName === "IFRAME") window.scrollTo({ top: startY, behavior: "instant" as ScrollBehavior });
+      if (!interacted && document.activeElement?.tagName === "IFRAME") window.scrollTo({ top: startY, behavior: "instant" as any });
     };
     const events = ["wheel", "touchstart", "pointerdown", "keydown"] as const;
     events.forEach((e) => window.addEventListener(e, mark, { passive: true, capture: true }));

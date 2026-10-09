@@ -1,3 +1,4 @@
+import type React from "react";
 import config from "@/config";
 import ButtonCheckout from "./ButtonCheckout";
 
@@ -10,7 +11,7 @@ const Pricing = () => {
   return (
     <section className="bg-base-200 overflow-hidden" id="pricing">
       <div className="py-24 px-8 max-w-5xl mx-auto">
-        <div className="flex flex-col text-center w-full mb-20">
+        <div data-reveal className="flex flex-col text-center w-full mb-20">
           <p className="font-medium text-primary mb-8">Pricing</p>
           <h2 className="font-bold text-3xl lg:text-5xl tracking-tight">
             Save hours of managing multiple accounts and platforms!
@@ -18,8 +19,8 @@ const Pricing = () => {
         </div>
 
         <div className="relative flex justify-center flex-col lg:flex-row items-center lg:items-stretch gap-8">
-          {config.stripe.plans.map((plan) => (
-            <div key={plan.priceId} className="relative w-full max-w-lg">
+          {config.stripe.plans.map((plan, idx) => (
+            <div key={plan.priceId} data-reveal className="relative w-full max-w-lg" style={{ "--reveal-delay": `${idx * 120}ms` } as React.CSSProperties}>
               {plan.isFeatured && (
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
                   <span

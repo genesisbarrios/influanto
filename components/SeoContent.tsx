@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 // Crawlable explainer + FAQ block for public tool/feature pages. Renders the FAQ
 // as FAQPage structured data too, so it can show up as rich results in Google.
@@ -39,7 +39,7 @@ export default function SeoContent({
   return (
     <section className={`max-w-4xl mx-auto px-6 py-12 text-left text-base-content ${className}`}>
       {sections.map(s => (
-        <div key={s.heading} className="mb-10">
+        <div key={s.heading} data-reveal className="mb-10">
           <h2 className="text-2xl font-extrabold mb-3">{s.heading}</h2>
           <div className="space-y-3 leading-relaxed opacity-90">{s.body}</div>
         </div>
@@ -49,8 +49,8 @@ export default function SeoContent({
         <div className="mb-10">
           <h2 className="text-2xl font-extrabold mb-4">Frequently Asked Questions</h2>
           <div className="space-y-3">
-            {faqs.map(f => (
-              <details key={f.q} className="bg-base-200 rounded-lg px-5 py-4">
+            {faqs.map((f, i) => (
+              <details key={f.q} data-reveal className="bg-base-200 rounded-lg px-5 py-4" style={{ "--reveal-delay": `${Math.min(i, 6) * 60}ms` } as CSSProperties}>
                 <summary className="font-semibold cursor-pointer">{f.q}</summary>
                 <p className="mt-2 leading-relaxed opacity-90">{f.a}</p>
               </details>

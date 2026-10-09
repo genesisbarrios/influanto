@@ -419,8 +419,10 @@ return (
           link.url && (
             <div 
               key={index} 
-              className="p-2 border rounded-lg mb-2" 
+              data-reveal
+              className="p-2 border rounded-lg mb-2 hover-lift" 
               style={{
+                ["--reveal-delay" as any]: `${Math.min(index, 8) * 60}ms`,
                 borderRadius: '12px', 
                 display: 'flex', 
                 alignItems: 'center', 

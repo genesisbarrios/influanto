@@ -60,7 +60,7 @@ const Step = ({ icon, text, delay }: { icon: IconDefinition; text: string; delay
 // - Features: "influanto has user auth, Stripe, emails all set up for you"
 const Problem = () => {
   return (
-    <section className="bg-neutral text-neutral-content">
+    <section data-reveal className="bg-neutral text-neutral-content">
       <style>{`
         @keyframes workflow-pulse {
           0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.25); }
