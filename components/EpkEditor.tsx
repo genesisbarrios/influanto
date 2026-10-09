@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import apiClient from "@/libs/api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash, faPlus, faCheck, faImage } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faPlus, faCheck, faImage, faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import ImagePicker from "@/components/ImagePicker";
 import { EPK_LIMITS, withEpkDefaults, type Epk, type EpkRelease } from "@/libs/epk";
 import { isEmbeddableVideo } from "@/libs/videoEmbed";
@@ -13,6 +13,17 @@ import { isEmbeddableVideo } from "@/libs/videoEmbed";
 // artist photo, tagline, featured video, and streaming links.
 
 const label = "block font-bold mb-1";
+
+// Compact stacked up/down arrows for reordering a row
+function MoveButtons({ index, count, onMove }: { index: number; count: number; onMove: (from: number, to: number) => void }) {
+  const btn = "w-6 h-[18px] flex items-center justify-center rounded text-[10px] text-gray-500 hover:bg-gray-200 hover:text-gray-800 disabled:opacity-25 disabled:hover:bg-transparent";
+  return (
+    <div className="flex flex-col gap-0.5 flex-shrink-0">
+      <button type="button" className={btn} disabled={index === 0} onClick={() => onMove(index, index - 1)} aria-label="Move up"><FontAwesomeIcon icon={faChevronUp} /></button>
+      <button type="button" className={btn} disabled={index === count - 1} onClick={() => onMove(index, index + 1)} aria-label="Move down"><FontAwesomeIcon icon={faChevronDown} /></button>
+    </div>
+  );
+}
 const addBtn = "text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-0.5 rounded border border-blue-400 hover:border-blue-600 transition-colors";
 
 export default function EpkEditor({
@@ -50,6 +61,13 @@ export default function EpkEditor({
 
   const setAt = <K extends "highlights" | "videos" | "gallery">(key: K, i: number, v: string) =>
     set({ [key]: epk[key].map((x, idx) => (idx === i ? v : x)) } as Partial<Epk>);
+  const moveIn = (key: "highlights" | "videos" | "venues") => (from: number, to: number) => {
+    const arr = [...(epk[key] as any[])];
+    if (to < 0 || to >= arr.length) return;
+    const [item] = arr.splice(from, 1);
+    arr.splice(to, 0, item);
+    set({ [key]: arr } as Partial<Epk>);
+  };
   const removeAt = (key: keyof Epk, i: number) =>
     set({ [key]: (epk[key] as any[]).filter((_, idx) => idx !== i) } as Partial<Epk>);
 
@@ -109,8 +127,9 @@ export default function EpkEditor({
         <p className="text-xs text-gray-500 mb-2">Streams, playlists, press, awards, support slots — one per line.</p>
         <div className="space-y-2">
           {epk.highlights.map((h, i) => (
-            <div key={i} className="flex gap-2">
+            <div key={i} className="flex gap-2 items-center">
               <input className="input w-full" placeholder="e.g. 1M+ streams on Spotify" value={h} onChange={(e) => setAt("highlights", i, e.target.value)} />
+              <MoveButtons index={i} count={epk.highlights.length} onMove={moveIn("highlights")} />
               <button type="button" className="btn btn-sm btn-alert" onClick={() => removeAt("highlights", i)} aria-label="Remove highlight"><FontAwesomeIcon icon={faTrash} /></button>
             </div>
           ))}
@@ -127,8 +146,9 @@ export default function EpkEditor({
         <div className="space-y-2">
           {epk.videos.map((v, i) => (
             <div key={i}>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 <input className="input w-full" placeholder="YouTube or Vimeo video / playlist link" value={v} onChange={(e) => setAt("videos", i, e.target.value)} />
+                <MoveButtons index={i} count={epk.videos.length} onMove={moveIn("videos")} />
                 <button type="button" className="btn btn-sm btn-alert" onClick={() => removeAt("videos", i)} aria-label="Remove video"><FontAwesomeIcon icon={faTrash} /></button>
               </div>
               {v.trim() && !isEmbeddableVideo(v) && <p className="text-xs text-red-500 mt-1">That doesn't look like a YouTube or Vimeo link — it won't be shown.</p>}
@@ -146,10 +166,11 @@ export default function EpkEditor({
         <p className="text-xs text-gray-500 mb-2">Venues, festivals, and events you've performed at.</p>
         <div className="space-y-2">
           {epk.venues.map((v, i) => (
-            <div key={i} className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)_minmax(0,0.8fr)_auto] gap-1.5 sm:gap-2 items-center">
+            <div key={i} className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)_minmax(0,0.8fr)_auto_auto] gap-1.5 sm:gap-2 items-center">
               <input className="input input-sm sm:input-md w-full min-w-0 px-2 sm:px-4 text-sm" placeholder="Venue" aria-label="Venue or festival" value={v.name} onChange={(e) => set({ venues: epk.venues.map((x, idx) => (idx === i ? { ...x, name: e.target.value } : x)) })} />
               <input className="input input-sm sm:input-md w-full min-w-0 px-2 sm:px-4 text-sm" placeholder="City" aria-label="City" value={v.city} onChange={(e) => set({ venues: epk.venues.map((x, idx) => (idx === i ? { ...x, city: e.target.value } : x)) })} />
               <input className="input input-sm sm:input-md w-full min-w-0 px-2 sm:px-4 text-sm" placeholder="Year" aria-label="Year or date" value={v.date} onChange={(e) => set({ venues: epk.venues.map((x, idx) => (idx === i ? { ...x, date: e.target.value } : x)) })} />
+              <MoveButtons index={i} count={epk.venues.length} onMove={moveIn("venues")} />
               <button type="button" className="btn btn-xs sm:btn-sm btn-alert" onClick={() => removeAt("venues", i)} aria-label="Remove venue"><FontAwesomeIcon icon={faTrash} /></button>
             </div>
           ))}
