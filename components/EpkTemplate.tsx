@@ -53,6 +53,26 @@ export default function EpkTemplate({
     }
   };
 
+  // Some embeds (e.g. Vimeo) grab focus when they load, which makes the browser
+  // jump down to them. Until the visitor scrolls/taps/types, undo that jump.
+  useEffect(() => {
+    let interacted = false;
+    const startY = window.scrollY;
+    const mark = () => { interacted = true; };
+    const onScroll = () => {
+      if (!interacted && document.activeElement?.tagName === "IFRAME") window.scrollTo({ top: startY, behavior: "instant" as ScrollBehavior });
+    };
+    const events = ["wheel", "touchstart", "pointerdown", "keydown"] as const;
+    events.forEach((e) => window.addEventListener(e, mark, { passive: true, capture: true }));
+    window.addEventListener("scroll", onScroll, { passive: true });
+    const stop = window.setTimeout(mark, 10000);
+    return () => {
+      events.forEach((e) => window.removeEventListener(e, mark, { capture: true } as any));
+      window.removeEventListener("scroll", onScroll);
+      window.clearTimeout(stop);
+    };
+  }, []);
+
   const step = useCallback((d: number) => setLightbox((i) => (i === null ? i : (i + d + epk.gallery.length) % epk.gallery.length)), [epk.gallery.length]);
   useEffect(() => {
     if (lightbox === null) return;
@@ -69,7 +89,7 @@ export default function EpkTemplate({
     <div className="epk-wrap" style={{ color: textColor, fontFamily: font, textAlign: "left" }}>
       <style>{`
         .epk-wrap { width: 90%; max-width: 1400px; margin: 0 auto; }
-        .epk-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; margin-top: 32px; }
+        .epk-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
         .epk-col { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
         .epk-videos { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
         @media (min-width: 900px) {
@@ -79,45 +99,42 @@ export default function EpkTemplate({
         }
       `}</style>
 
-      {/* Hero */}
-      <div style={{ textAlign: "center" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={page.image || fallbackImage}
-          onError={(e) => (e.currentTarget.src = fallbackImage)}
-          alt={page.name}
-          style={{ width: 180, height: 180, objectFit: "cover", borderRadius: "50%", display: "inline-block", boxShadow: "0 8px 30px rgba(0,0,0,0.25)" }}
-        />
-        <h1 style={{ fontSize: "clamp(2rem, 6vw, 3rem)", fontWeight: 900, lineHeight: 1.1, margin: "14px 0 0", fontFamily: font, color: textColor }}>{page.name}</h1>
-        <p style={{ fontSize: 12, letterSpacing: 3, textTransform: "uppercase", opacity: 0.7, margin: "6px 0 0", fontWeight: 700 }}>Electronic Press Kit</p>
-        {page.description && <p style={{ fontSize: "1.1rem", opacity: 0.85, margin: "12px auto 0", maxWidth: 640 }}>{page.description}</p>}
-        {(epk.genre || epk.location) && (
-          <p style={{ margin: "10px 0 0", opacity: 0.8, fontSize: 15 }}>
-            {epk.genre}
-            {epk.genre && epk.location && " · "}
-            {epk.location && <><FontAwesomeIcon icon={faLocationDot} style={{ marginRight: 5 }} />{epk.location}</>}
-          </p>
-        )}
-        {(bookingHref || epk.pressKitUrl) && (
-          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 18 }}>
-            {bookingHref && <a href={bookingHref} style={button}><FontAwesomeIcon icon={faEnvelope} />Booking</a>}
-            {epk.pressKitUrl && <a href={epk.pressKitUrl} target="_blank" rel="noopener noreferrer" style={outlineButton}><FontAwesomeIcon icon={faFileArrowDown} />Press Kit</a>}
-          </div>
-        )}
-      </div>
-
       <div className="epk-cols">
-        {/* Left: bio, videos */}
+        {/* Left: profile (photo, name, bio, genre/location, booking), videos */}
         <div className="epk-col">
-          {epk.bio && (
-            <section>
-              <h2 style={h2}>Bio</h2>
-              <div style={{ ...card, whiteSpace: "pre-line", lineHeight: 1.7, fontSize: 16 }}>{epk.bio}</div>
-            </section>
-          )}
+          {/* Profile: photo, name, bio, then genre/location + booking */}
+          <section data-reveal style={{ ...card, padding: "1.25rem 1.4rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={page.image || fallbackImage}
+                onError={(e) => (e.currentTarget.src = fallbackImage)}
+                alt={page.name}
+                style={{ width: 88, height: 88, flexShrink: 0, objectFit: "cover", borderRadius: "50%", boxShadow: "0 6px 20px rgba(0,0,0,0.25)" }}
+              />
+              <div style={{ minWidth: 0 }}>
+                <h1 style={{ fontSize: "clamp(1.6rem, 4vw, 2.3rem)", fontWeight: 900, lineHeight: 1.1, margin: 0, fontFamily: font, color: textColor, overflowWrap: "anywhere" }}>{page.name}</h1>
+                <p style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", opacity: 0.7, margin: "6px 0 0", fontWeight: 700 }}>Electronic Press Kit</p>
+              </div>
+            </div>
+            {epk.bio && <div style={{ whiteSpace: "pre-line", lineHeight: 1.7, fontSize: 16, marginTop: 16 }}>{epk.bio}</div>}
+            {(epk.genre || epk.location) && (
+              <p style={{ margin: "14px 0 0", opacity: 0.85, fontSize: 15, fontWeight: 600 }}>
+                {epk.genre}
+                {epk.genre && epk.location && " · "}
+                {epk.location && <><FontAwesomeIcon icon={faLocationDot} style={{ marginRight: 5 }} />{epk.location}</>}
+              </p>
+            )}
+            {(bookingHref || epk.pressKitUrl) && (
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+                {bookingHref && <a href={bookingHref} className="hover-lift" style={button}><FontAwesomeIcon icon={faEnvelope} />Booking</a>}
+                {epk.pressKitUrl && <a href={epk.pressKitUrl} target="_blank" rel="noopener noreferrer" className="hover-lift" style={outlineButton}><FontAwesomeIcon icon={faFileArrowDown} />Press Kit</a>}
+              </div>
+            )}
+          </section>
 
           {videos.length > 0 && (
-            <section>
+            <section data-reveal style={{ "--reveal-delay": "80ms" } as CSSProperties}>
               <h2 style={h2}>Videos</h2>
               <div className={`epk-videos${videos.length > 1 ? " multi" : ""}`}>
                 {videos.map((src) => (
@@ -140,7 +157,7 @@ export default function EpkTemplate({
         {/* Right: highlights, venues, booking, press */}
         <div className="epk-col">
           {epk.highlights.length > 0 && (
-            <section>
+            <section data-reveal="right">
               <h2 style={h2}>Highlights</h2>
               <ul style={{ ...card, listStyle: "none", margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
                 {epk.highlights.map((h, i) => (
@@ -153,11 +170,11 @@ export default function EpkTemplate({
           )}
 
           {epk.venues.length > 0 && (
-            <section>
+            <section data-reveal="right" style={{ "--reveal-delay": "80ms" } as CSSProperties}>
               <h2 style={h2}>Live Performances</h2>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: 10 }}>
                 {epk.venues.map((v, i) => (
-                  <div key={i} style={card}>
+                  <div key={i} className="hover-lift" style={card}>
                     <p style={{ margin: 0, fontWeight: 700 }}>{v.name}</p>
                     {(v.city || v.date) && <p style={{ margin: "2px 0 0", fontSize: 14, opacity: 0.75 }}>{[v.city, v.date].filter(Boolean).join(" · ")}</p>}
                   </div>
@@ -166,7 +183,7 @@ export default function EpkTemplate({
             </section>
           )}
 
-          <section style={{ ...card, textAlign: "center" }}>
+          <section data-reveal="right" style={{ ...card, textAlign: "center", "--reveal-delay": "120ms" } as CSSProperties}>
             <p style={{ margin: "0 0 12px", fontWeight: 800, fontSize: 18 }}>Booking & Inquiries</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {bookingHref && <a href={bookingHref} style={{ ...button, width: "100%", boxSizing: "border-box", overflowWrap: "anywhere" }}><FontAwesomeIcon icon={faEnvelope} />{epk.bookingEmail}</a>}
@@ -179,7 +196,7 @@ export default function EpkTemplate({
           </section>
 
           {epk.pressQuotes.length > 0 && (
-            <section>
+            <section data-reveal="right" style={{ "--reveal-delay": "160ms" } as CSSProperties}>
               <h2 style={h2}>Press</h2>
               <div style={{ display: "grid", gap: 12 }}>
                 {epk.pressQuotes.map((q, i) => (
@@ -201,7 +218,7 @@ export default function EpkTemplate({
 
       {/* Releases: full width, above the gallery */}
       {releases.length > 0 && (
-        <section style={{ marginTop: 36 }}>
+        <section data-reveal style={{ marginTop: 36 }}>
           <h2 style={h2}>Releases</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 16 }}>
             {releases.map((r, i) => (
@@ -209,7 +226,9 @@ export default function EpkTemplate({
                 key={`${r.url}-${i}`}
                 href={r.url}
                 {...(r.internal ? {} : { target: "_blank", rel: "noopener noreferrer" })}
-                style={{ color: "inherit", textDecoration: "none", display: "block" }}
+                data-reveal="zoom"
+                className="hover-zoom"
+                style={{ color: "inherit", textDecoration: "none", display: "block", borderRadius: 10, "--reveal-delay": `${Math.min(i, 8) * 60}ms` } as CSSProperties}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -228,11 +247,11 @@ export default function EpkTemplate({
 
       {/* Gallery: full width */}
       {epk.gallery.length > 0 && (
-        <section style={{ marginTop: 36 }}>
+        <section data-reveal style={{ marginTop: 36 }}>
           <h2 style={h2}>Gallery</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>
             {epk.gallery.map((src, i) => (
-              <button key={src} type="button" onClick={() => setLightbox(i)} style={{ padding: 0, border: 0, background: "none", cursor: "zoom-in" }} aria-label={`Open photo ${i + 1}`}>
+              <button key={src} type="button" onClick={() => setLightbox(i)} data-reveal="zoom" className="hover-zoom" style={{ padding: 0, border: 0, background: "none", cursor: "zoom-in", borderRadius: 10, "--reveal-delay": `${Math.min(i, 8) * 60}ms` } as CSSProperties} aria-label={`Open photo ${i + 1}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={src} alt={`${page.name} photo ${i + 1}`} loading="lazy" style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: 10, display: "block" }} />
               </button>

@@ -1018,6 +1018,7 @@ const removeCustomLink = (index: number) => {
                     )}
                   </div>
                 </div>
+                {!isEpk && (
                 <div className="mb-4">
                   <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Tagline" : "Description"}</label>
                   <textarea
@@ -1028,6 +1029,7 @@ const removeCustomLink = (index: number) => {
                     style={{ fontFamily: font || 'inherit' }}
                   />
                 </div>
+                )}
                 <div className="mb-4">
                   <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Featured Video (YouTube or Vimeo)" : "Video Link (YouTube or Vimeo)"}</label>
                   <input
@@ -1376,6 +1378,7 @@ const removeCustomLink = (index: number) => {
                     style={{ fontFamily: font || 'inherit' }}
                   />
                 </div>
+                {!isEpk && (
                 <div className="mb-4">
                   <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Tagline" : "Description"}</label>
                   <textarea
@@ -1386,6 +1389,7 @@ const removeCustomLink = (index: number) => {
                     style={{ fontFamily: font || 'inherit' }}
                   />
                 </div>
+                )}
                 <div className="mb-4">
                   <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Artist Photo" : "Image"}</label>
                   {editingPage?.image ? (

@@ -9,6 +9,7 @@ import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "react-hot-toast";
 import { Tooltip } from "react-tooltip";
 import config from "@/config";
+import RevealObserver from "@/components/RevealObserver";
 import posthog from "posthog-js";
 
 // Crisp customer chat support:
@@ -71,6 +72,9 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
 
         {/* Content inside app/page.js files  */}
         {children}
+
+        {/* Scroll reveal animations for any [data-reveal] element */}
+        <RevealObserver />
 
         {/* Show Success/Error messages anywhere from the app with toast() */}
         <Toaster
