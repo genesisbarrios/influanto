@@ -12,7 +12,7 @@ import NewsletterSignup from "@/components/NewsletterSignup";
 import EpkTemplate from "@/components/EpkTemplate";
 import { loadFont } from "@/libs/fonts";
 import { getVideoEmbedUrl } from "@/libs/videoEmbed";
-import { epkMusicLinks } from "@/libs/streamingLinks";
+import { epkMusicLinks, PREDEFINED_LINK_NAMES } from "@/libs/streamingLinks";
 import { normalizeUrl } from "@/libs/urls";
 
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
@@ -641,7 +641,7 @@ const renderMerchSection = () => {
             cardColor={bgColor || "rgba(255, 255, 255, 0.1)"}
             font={font}
             musicLinks={musicLinks}
-            listenLinks={renderLinkRows(musicLinks)}
+            customLinks={(releasePage.links || []).filter((l: any) => l?.url && !PREDEFINED_LINK_NAMES.includes(l.name))}
             fallbackImage={fallbackImageUrl}
           />
         ) : (

@@ -1,12 +1,12 @@
 "use client";
-import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faFileArrowDown, faFilePdf, faLocationDot, faChevronLeft, faChevronRight, faXmark, faQuoteLeft } from "@fortawesome/free-solid-svg-icons";
 import { withEpkDefaults } from "@/libs/epk";
 import { getVideoEmbedUrl } from "@/libs/videoEmbed";
 
 // Public electronic press kit layout for release pages with page_type "epk".
-// Desktop: 90% width, two columns — bio, videos, and music on the left; booking,
+// Desktop: 90% width, two columns — bio and videos on the left; booking,
 // booking, venues, and press on the right — with the gallery full width below.
 // Phones stack everything in one column.
 
@@ -19,7 +19,7 @@ export default function EpkTemplate({
   cardColor,
   font,
   musicLinks,
-  listenLinks,
+  customLinks,
   fallbackImage,
 }: {
   page: any;
@@ -27,8 +27,8 @@ export default function EpkTemplate({
   linksColor: string;
   cardColor: string;
   font: string;
-  musicLinks: EpkMusicLink[];
-  listenLinks: ReactNode;
+  musicLinks: EpkMusicLink[]; // profile streaming + custom links (used in the PDF)
+  customLinks: EpkMusicLink[]; // non-platform links, shown as hero buttons
   fallbackImage: string;
 }) {
   const epk = withEpkDefaults(page.epk);
@@ -99,16 +99,20 @@ export default function EpkTemplate({
             {epk.location && <><FontAwesomeIcon icon={faLocationDot} style={{ marginRight: 5 }} />{epk.location}</>}
           </p>
         )}
-        {(bookingHref || epk.pressKitUrl) && (
+        {(bookingHref || epk.pressKitUrl || customLinks.length > 0) && (
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 18 }}>
             {bookingHref && <a href={bookingHref} style={button}><FontAwesomeIcon icon={faEnvelope} />Booking</a>}
             {epk.pressKitUrl && <a href={epk.pressKitUrl} target="_blank" rel="noopener noreferrer" style={outlineButton}><FontAwesomeIcon icon={faFileArrowDown} />Press Kit</a>}
+            {/* Streaming links already show as icons at the bottom; custom links go here */}
+            {customLinks.map((l) => (
+              <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" style={outlineButton}>{l.name}</a>
+            ))}
           </div>
         )}
       </div>
 
       <div className="epk-cols">
-        {/* Left: bio, videos, music */}
+        {/* Left: bio, videos */}
         <div className="epk-col">
           {epk.bio && (
             <section>
@@ -136,12 +140,6 @@ export default function EpkTemplate({
             </section>
           )}
 
-          {musicLinks.length > 0 && (
-            <section>
-              <h2 style={h2}>Listen</h2>
-              {listenLinks}
-            </section>
-          )}
         </div>
 
         {/* Right: highlights, booking, venues, press */}
