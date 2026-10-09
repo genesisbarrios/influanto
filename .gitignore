@@ -39,3 +39,10 @@ public/robots.txt
 public/sitemap.xml
 public/sitemap-0.xml
 .env.local
+
+# macOS metadata
+._*
+.DS_Store
+
+# Original 17 MB metronome model (the site uses the compressed public/models/metronome.glb)
+public/models/vintage_metronome.glb
