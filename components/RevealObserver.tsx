@@ -28,7 +28,8 @@ export default function RevealObserver() {
           }
         }
       },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.08 }
+      // threshold 0 (any visible pixel): a ratio would never be met by elements taller than the screen
+      { rootMargin: "0px 0px -6% 0px", threshold: 0 }
     );
 
     const observeAll = () =>

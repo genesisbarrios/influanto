@@ -554,7 +554,8 @@ const renderMerchSection = () => {
               : "Stream";
 
             return (
-              <div key={index} style={{
+              <div key={index} data-reveal className="hover-lift" style={{
+                ["--reveal-delay" as any]: `${Math.min(index, 8) * 60}ms`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",

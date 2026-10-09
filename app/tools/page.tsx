@@ -149,7 +149,7 @@ export default function Tools() {
           }}
           className={`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 ${showSidebar ? "" : "tools-grid-loggedin"}`}
         >
-          {tools.map((tool) => (
+          {tools.map((tool, i) => (
             <Link
               key={tool.href}
               href={tool.href}
@@ -166,8 +166,10 @@ export default function Tools() {
                 alignItems: "center",
                 justifyContent: "center",
                 minHeight: "220px",
-                transition: "box-shadow 0.2s",
+                transition: "box-shadow 0.2s, opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)",
+                ["--reveal-delay" as any]: `${Math.min(i, 8) * 50}ms`,
               }}
+              data-reveal="zoom"
               className="tool-card"
             >
               <span style={{ fontSize: "2.5rem", marginBottom: "1rem", color: tool.color }}><FontAwesomeIcon icon={tool.icon} /></span>

@@ -129,11 +129,12 @@ export default function BlogIndex() {
         {/* Posts */}
         <div style={{ maxWidth: 860, margin: "0 auto", padding: "3rem 1.5rem" }}>
           <div style={{ display: "grid", gap: "2rem" }}>
-            {posts.map((post) => (
+            {posts.map((post, i) => (
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
-                style={{ textDecoration: "none", display: "block" }}
+                data-reveal
+                style={{ textDecoration: "none", display: "block", ["--reveal-delay" as any]: `${Math.min(i, 6) * 70}ms` }}
               >
                 <article style={{
                   background: "#fff",

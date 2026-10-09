@@ -1,3 +1,4 @@
+import type React from "react";
 import Link from "next/link";
 import TestimonialsAvatars from "./TestimonialsAvatars";
 import config from "@/config";
@@ -7,7 +8,7 @@ import MarketingWorkflowAnimation from "./MarketingWorkflowAnimation";
 const Hero = () => {
   return (
     <section className="max-w-12xl mx-auto bg-base-100 flex flex-col lg:flex-row items-center justify-center gap-16 lg:gap-20 px-8 py-8 lg:py-20">
-      <div className="flex flex-col gap-10 lg:gap-14 items-center justify-center text-center lg:text-left lg:items-start">
+      <div data-reveal="left" className="flex flex-col gap-10 lg:gap-14 items-center justify-center text-center lg:text-left lg:items-start">
 
         <h1 className="font-extrabold text-4xl lg:text-6xl tracking-tight md:-mb-4">
          The all in one marketing platform for artists and musicians.
@@ -27,7 +28,7 @@ const Hero = () => {
 
         <TestimonialsAvatars priority={true} />
       </div>
-      <div className="medium:w-full w-full max-w-xl">
+      <div data-reveal="right" className="medium:w-full w-full max-w-xl" style={{ "--reveal-delay": "150ms" } as React.CSSProperties}>
         <MarketingWorkflowAnimation />
       </div>
     </section>

@@ -258,6 +258,7 @@ const FeaturesAccordion = () => {
 
   return (
     <section
+      data-reveal
       className="py-24 md:py-32 space-y-24 md:space-y-32 max-w-12xl mx-auto bg-base-100 "
       id="features"
     >

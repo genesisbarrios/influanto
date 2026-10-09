@@ -64,7 +64,7 @@ export default function PostLinkInBio() {
         </div>
 
         {/* Article */}
-        <article style={{ maxWidth: 1100, margin: "0 auto", padding: "3rem 2rem" }}>
+        <article data-reveal style={{ maxWidth: 1100, margin: "0 auto", padding: "3rem 2rem" }}>
           <div style={{ background: "#fff", borderRadius: 16, padding: "2.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", lineHeight: 1.8, color: "#374151", fontSize: "1.05rem" }}>
 
             <p style={{ fontSize: "1.1rem", color: "#1f2937", fontWeight: 500, marginBottom: "1.5rem" }}>
