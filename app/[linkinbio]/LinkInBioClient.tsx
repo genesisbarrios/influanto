@@ -7,6 +7,7 @@ import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import AutoplayPlayer from "@/components/AutoplayPlayer";
+import { loadFont } from "@/libs/fonts";
 import ViewOnMobileQR from "@/components/ViewOnMobileQR";
 import * as HeroPatterns from 'hero-patterns';
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
@@ -39,6 +40,7 @@ const LinkInBioPage =  () => {
   // Premium styling states
   const [cardBgColor, setCardBgColor] = useState("");
   const [font, setFont] = useState("");
+  useEffect(() => { loadFont(font); }, [font]);
   const [bgImage, setBgImage] = useState("");
   
   // Add missing states for merch functionality

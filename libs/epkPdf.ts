@@ -1,4 +1,5 @@
-import { getYouTubeId, withEpkDefaults } from "@/libs/epk";
+import { withEpkDefaults } from "@/libs/epk";
+import { isEmbeddableVideo } from "@/libs/videoEmbed";
 import { sanitizeFilename } from "@/libs/urls";
 
 // Builds a downloadable PDF of an EPK page in the browser (jsPDF is loaded on
@@ -128,10 +129,10 @@ export async function downloadEpkPdf(page: any, pageUrl: string, accentColor?: s
     for (const l of music) link(`${l.name || "Listen"}:`, l.url);
   }
 
-  const videos = [page.video, ...epk.videos].filter((v) => v && getYouTubeId(v)) as string[];
+  const videos = Array.from(new Set([page.video, ...epk.videos].filter((v) => isEmbeddableVideo(v)))) as string[];
   if (videos.length) {
     heading("Videos");
-    videos.forEach((v, i) => link(`Video ${i + 1}:`, `https://www.youtube.com/watch?v=${getYouTubeId(v)}`));
+    videos.forEach((v, i) => link(`${/[?&]list=|showcase|album/i.test(v) ? "Playlist" : "Video"} ${i + 1}:`, v));
   }
 
   if (epk.venues.length) {

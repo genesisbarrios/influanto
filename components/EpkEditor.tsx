@@ -4,7 +4,8 @@ import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
 import ImagePicker from "@/components/ImagePicker";
-import { EPK_LIMITS, getYouTubeId, withEpkDefaults, type Epk } from "@/libs/epk";
+import { EPK_LIMITS, withEpkDefaults, type Epk } from "@/libs/epk";
+import { isEmbeddableVideo } from "@/libs/videoEmbed";
 
 // EPK-only fields in the release page editor (create + edit). The page's
 // name/image/description/video/links fields above it become the artist name,
@@ -99,16 +100,16 @@ export default function EpkEditor({
 
       {/* Videos */}
       <div>
-        <label className={label}>More videos</label>
-        <p className="text-xs text-gray-500 mb-2">YouTube links to live sets, music videos, or interviews. Your featured video above shows first.</p>
+        <label className={label}>More videos & playlists</label>
+        <p className="text-xs text-gray-500 mb-2">YouTube or Vimeo links to live sets, music videos, or interviews. Playlist links embed the whole playlist. Your featured video above shows first.</p>
         <div className="space-y-2">
           {epk.videos.map((v, i) => (
             <div key={i}>
               <div className="flex gap-2">
-                <input className="input w-full" placeholder="https://youtube.com/watch?v=..." value={v} onChange={(e) => setAt("videos", i, e.target.value)} />
+                <input className="input w-full" placeholder="YouTube or Vimeo video / playlist link" value={v} onChange={(e) => setAt("videos", i, e.target.value)} />
                 <button type="button" className="btn btn-sm btn-alert" onClick={() => removeAt("videos", i)} aria-label="Remove video"><FontAwesomeIcon icon={faTrash} /></button>
               </div>
-              {v.trim() && !getYouTubeId(v) && <p className="text-xs text-red-500 mt-1">That doesn't look like a YouTube link — it won't be shown.</p>}
+              {v.trim() && !isEmbeddableVideo(v) && <p className="text-xs text-red-500 mt-1">That doesn't look like a YouTube or Vimeo link — it won't be shown.</p>}
             </div>
           ))}
         </div>
@@ -123,11 +124,11 @@ export default function EpkEditor({
         <p className="text-xs text-gray-500 mb-2">Venues, festivals, and events you've played.</p>
         <div className="space-y-2">
           {epk.venues.map((v, i) => (
-            <div key={i} className="grid grid-cols-1 sm:grid-cols-[2fr_1.5fr_1fr_auto] gap-2">
-              <input className="input w-full" placeholder="Venue or festival" value={v.name} onChange={(e) => set({ venues: epk.venues.map((x, idx) => (idx === i ? { ...x, name: e.target.value } : x)) })} />
-              <input className="input w-full" placeholder="City" value={v.city} onChange={(e) => set({ venues: epk.venues.map((x, idx) => (idx === i ? { ...x, city: e.target.value } : x)) })} />
-              <input className="input w-full" placeholder="Year / date" value={v.date} onChange={(e) => set({ venues: epk.venues.map((x, idx) => (idx === i ? { ...x, date: e.target.value } : x)) })} />
-              <button type="button" className="btn btn-sm btn-alert" onClick={() => removeAt("venues", i)} aria-label="Remove venue"><FontAwesomeIcon icon={faTrash} /></button>
+            <div key={i} className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)_minmax(0,0.8fr)_auto] gap-1.5 sm:gap-2 items-center">
+              <input className="input input-sm sm:input-md w-full min-w-0 px-2 sm:px-4 text-sm" placeholder="Venue" aria-label="Venue or festival" value={v.name} onChange={(e) => set({ venues: epk.venues.map((x, idx) => (idx === i ? { ...x, name: e.target.value } : x)) })} />
+              <input className="input input-sm sm:input-md w-full min-w-0 px-2 sm:px-4 text-sm" placeholder="City" aria-label="City" value={v.city} onChange={(e) => set({ venues: epk.venues.map((x, idx) => (idx === i ? { ...x, city: e.target.value } : x)) })} />
+              <input className="input input-sm sm:input-md w-full min-w-0 px-2 sm:px-4 text-sm" placeholder="Year" aria-label="Year or date" value={v.date} onChange={(e) => set({ venues: epk.venues.map((x, idx) => (idx === i ? { ...x, date: e.target.value } : x)) })} />
+              <button type="button" className="btn btn-xs sm:btn-sm btn-alert" onClick={() => removeAt("venues", i)} aria-label="Remove venue"><FontAwesomeIcon icon={faTrash} /></button>
             </div>
           ))}
         </div>
