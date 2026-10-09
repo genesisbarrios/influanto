@@ -7,7 +7,7 @@ import { getVideoEmbedUrl } from "@/libs/videoEmbed";
 
 // Public electronic press kit layout for release pages with page_type "epk".
 // Desktop: 90% width, two columns — bio, videos, and music on the left; booking,
-// highlights, venues, and press on the right — with the gallery full width below.
+// booking, venues, and press on the right — with the gallery full width below.
 // Phones stack everything in one column.
 
 export interface EpkMusicLink { name: string; url: string }
@@ -144,20 +144,8 @@ export default function EpkTemplate({
           )}
         </div>
 
-        {/* Right: booking, highlights, venues, press */}
+        {/* Right: highlights, booking, venues, press */}
         <div className="epk-col">
-          <section style={{ ...card, textAlign: "center" }}>
-            <p style={{ margin: "0 0 12px", fontWeight: 800, fontSize: 18 }}>Booking & Inquiries</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {bookingHref && <a href={bookingHref} style={{ ...button, width: "100%", boxSizing: "border-box", overflowWrap: "anywhere" }}><FontAwesomeIcon icon={faEnvelope} />{epk.bookingEmail}</a>}
-              <button type="button" onClick={downloadPdf} disabled={pdfState === "working"} style={{ ...button, width: "100%", cursor: pdfState === "working" ? "wait" : "pointer", opacity: pdfState === "working" ? 0.7 : 1 }}>
-                <FontAwesomeIcon icon={faFilePdf} />{pdfState === "working" ? "Building EPK…" : "Download EPK"}
-              </button>
-              {epk.pressKitUrl && <a href={epk.pressKitUrl} target="_blank" rel="noopener noreferrer" style={{ ...outlineButton, width: "100%", boxSizing: "border-box" }}><FontAwesomeIcon icon={faFileArrowDown} />Press Kit / Rider</a>}
-            </div>
-            {pdfState === "error" && <p style={{ fontSize: 13, marginTop: 8, opacity: 0.8 }}>Couldn&apos;t build the EPK — please try again.</p>}
-          </section>
-
           {epk.highlights.length > 0 && (
             <section>
               <h2 style={h2}>Highlights</h2>
@@ -170,6 +158,18 @@ export default function EpkTemplate({
               </ul>
             </section>
           )}
+
+          <section style={{ ...card, textAlign: "center" }}>
+            <p style={{ margin: "0 0 12px", fontWeight: 800, fontSize: 18 }}>Booking & Inquiries</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {bookingHref && <a href={bookingHref} style={{ ...button, width: "100%", boxSizing: "border-box", overflowWrap: "anywhere" }}><FontAwesomeIcon icon={faEnvelope} />{epk.bookingEmail}</a>}
+              <button type="button" onClick={downloadPdf} disabled={pdfState === "working"} style={{ ...button, width: "100%", cursor: pdfState === "working" ? "wait" : "pointer", opacity: pdfState === "working" ? 0.7 : 1 }}>
+                <FontAwesomeIcon icon={faFilePdf} />{pdfState === "working" ? "Building EPK…" : "Download EPK"}
+              </button>
+              {epk.pressKitUrl && <a href={epk.pressKitUrl} target="_blank" rel="noopener noreferrer" style={{ ...outlineButton, width: "100%", boxSizing: "border-box" }}><FontAwesomeIcon icon={faFileArrowDown} />Press Kit / Rider</a>}
+            </div>
+            {pdfState === "error" && <p style={{ fontSize: 13, marginTop: 8, opacity: 0.8 }}>Couldn&apos;t build the EPK — please try again.</p>}
+          </section>
 
           {epk.venues.length > 0 && (
             <section>
