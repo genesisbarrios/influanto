@@ -8,6 +8,7 @@ import posthog from "posthog-js";
 import { parseColorValue, combineColor } from "@/libs/color";
 import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
 import ImagePicker from "@/components/ImagePicker";
+import EpkEditor from "@/components/EpkEditor";
 import { fetchAllPrintifyProducts } from "@/libs/printify-products";
 import * as HeroPatterns from 'hero-patterns';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -65,7 +66,9 @@ function HeroPatternPicker({ page, setPage }: { page: any; setPage: (p: any) => 
   );
 }
 
-const ReleasePages = () => {
+// mode "epk" powers the separate EPK dashboard tab: same editor and storage
+// (release_pages rows with page_type "epk"), filtered to that type.
+const ReleasePages = ({ mode = "release" }: { mode?: "release" | "epk" }) => {
   const { data, status } = useSession();
   const [releasePages, setReleasePages] = useState<any[]>([]);
   const [alert, setAlert] = useState("");
@@ -203,7 +206,7 @@ const ReleasePages = () => {
         params: { userId: userId },
       });
       if(data != null ){
-        setReleasePages(data);
+        setReleasePages(data.filter((p: any) => (p.pageType === "epk" ? "epk" : "release") === mode));
       }
     } catch (e: any) {
       console.log(e?.message);
@@ -257,7 +260,9 @@ const ReleasePages = () => {
       selectedProducts: [],
       customMerchLinks: [],
       newsletterEnabled: false,
-      newsletterFields: ["name", "email"]
+      newsletterFields: ["name", "email"],
+      pageType: mode,
+      epk: {},
     });
     setCreatePage(true);
     setSelectedProductIds([]);
@@ -330,7 +335,7 @@ const ReleasePages = () => {
 
   const handleShare = async (page: any) => {
     const pageId = page.id || page._id;
-    const url = `${window.location.origin}/release/${page.slug}`;
+    const url = `${window.location.origin}/${page.pageType === "epk" ? "epk" : "release"}/${page.slug}`;
     if (typeof navigator !== "undefined" && (navigator as any).share) {
       try {
         await (navigator as any).share({ title: page.name, url });
@@ -921,11 +926,13 @@ const removeCustomLink = (index: number) => {
     );
   };
 
+  const isEpk = mode === "epk";
+
   return (
     <>
       <div className="p-4 bg-white shadow rounded-md text-black" style={{ fontFamily: font || 'inherit' }}>
         <div className="w-full flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold" style={{ fontFamily: font || 'inherit' }}>Release Pages</h2>
+          <h2 className="text-2xl font-bold" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Electronic Press Kit (EPK)" : "Release Pages"}</h2>
           {Array.isArray(releasePages) && releasePages.length < getMaxPages() && !createPage && (
             <button
               className="btn btn-primary btn-sm"
@@ -937,6 +944,11 @@ const removeCustomLink = (index: number) => {
           )}
         </div> 
         
+        {isEpk && (
+          <p className="mb-3 text-sm text-gray-600" style={{ fontFamily: font || 'inherit' }}>
+            Your electronic press kit: bio, music, videos, venues, photos, press quotes, and booking contact on one shareable page, with a downloadable PDF for bookers and press.
+          </p>
+        )}
         <div className="mb-4 text-sm text-gray-600" style={{ fontFamily: font || 'inherit' }}>
           {releasePages.length} of {getMaxPages()} pages used
           {!userData?.hasAccess && (
@@ -950,7 +962,7 @@ const removeCustomLink = (index: number) => {
           <div className="p-4 bg-gray-100 rounded-md" style={{
               fontFamily: font || 'inherit'  // Apply font to entire create form
             }}> 
-            <h3 className="text-xl font-bold mb-4" style={{ fontFamily: font || 'inherit' }}>Create Release Page</h3>
+            <h3 className="text-xl font-bold mb-4" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Create EPK" : "Create Release Page"}</h3>
             <div className="md:flex md:gap-6">
               {/* Left: Name, Image, Description, Video */}
               <div className="md:w-1/2">
@@ -960,14 +972,14 @@ const removeCustomLink = (index: number) => {
                     <input
                       type="text"
                       className="input w-full"
-                      placeholder="Enter song or release name"
+                      placeholder={isEpk ? "Artist or band name" : "Enter song or release name"}
                       value={editingPage?.name || ""}
                       onChange={handleNameChange}
                       style={{ fontFamily: font || 'inherit' }}
                     />
                   </div>
                   <div className="sm:w-40 flex-shrink-0">
-                    <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Album Cover</label>
+                    <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Artist Photo" : "Album Cover"}</label>
                     {editingPage?.image ? (
                       <div style={{ position: "relative", display: "inline-block", width: "100%" }}>
                         <img
@@ -992,17 +1004,17 @@ const removeCustomLink = (index: number) => {
                   </div>
                 </div>
                 <div className="mb-4">
-                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Description</label>
+                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Tagline" : "Description"}</label>
                   <textarea
                     className="input w-full"
-                    placeholder="Enter release page description"
+                    placeholder={isEpk ? "One line about you, e.g. Miami-born Latin house producer" : "Enter release page description"}
                     value={editingPage?.description || ""}
                     onChange={handleDescriptionChange}
                     style={{ fontFamily: font || 'inherit' }}
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>YouTube Video Link</label>
+                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Featured Video (YouTube)" : "YouTube Video Link"}</label>
                   <input
                     type="text"
                     className="input w-full"
@@ -1026,7 +1038,7 @@ const removeCustomLink = (index: number) => {
               {/* Right: Streaming Links, Custom Links */}
               <div className="md:w-1/2">
                 <div className="mb-4">
-                  <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Streaming Links</h4>
+                  <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Music & Streaming Links" : "Streaming Links"}</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                     {predefinedLinks.map((link, index) => (
                       <div key={index}>
@@ -1114,6 +1126,16 @@ const removeCustomLink = (index: number) => {
                 </select>
               </div>
             </div>
+
+            {isEpk && (
+              <EpkEditor
+                value={editingPage?.epk}
+                onChange={(epk) => setEditingPage((prev: any) => ({ ...prev, epk }))}
+                galleryImages={galleryImages}
+                userId={data?.user?.id}
+                font={font}
+              />
+            )}
 
             {/* ── Page Background ── */}
             <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">
@@ -1264,6 +1286,9 @@ const removeCustomLink = (index: number) => {
                     }}
                   >
                     <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white">
+                      {page.pageType === "epk" && (
+                        <span className="text-[10px] font-bold uppercase tracking-widest bg-blue-600 text-white rounded-full px-2 py-0.5 mb-1">EPK</span>
+                      )}
                       <h3 className="text-lg font-bold" style={{ fontFamily: page.font || 'inherit' }}>{page.name}</h3>
                       <p className="text-sm" style={{ fontFamily: page.font || 'inherit' }}>{page.description}</p>
                       <div className="flex space-x-2 mt-2 flex-wrap justify-center gap-y-1">
@@ -1276,7 +1301,7 @@ const removeCustomLink = (index: number) => {
                         </button>
                         <button
                           className="btn btn-secondary btn-sm"
-                          onClick={() => window.location.href = `/release/${page.slug}`}
+                          onClick={() => window.location.href = `/${page.pageType === "epk" ? "epk" : "release"}/${page.slug}`}
                           style={{ fontFamily: page.font || 'inherit' }}
                         >
                           Visit
@@ -1318,7 +1343,7 @@ const removeCustomLink = (index: number) => {
           </div>
         ) : (
           <div className="p-4 bg-gray-100 rounded-md" style={{ fontFamily: font || 'inherit' }}>
-            <h3 className="text-xl font-bold mb-4" style={{ fontFamily: font || 'inherit' }}>Edit Release Page</h3>
+            <h3 className="text-xl font-bold mb-4" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Edit EPK" : "Edit Release Page"}</h3>
             <div className="md:flex md:gap-6">
               {/* Left: Name, Description, Image, Video */}
               <div className="md:w-1/2">
@@ -1327,7 +1352,7 @@ const removeCustomLink = (index: number) => {
                   <input
                     type="text"
                     className="input w-full"
-                    placeholder="Enter song or release name"
+                    placeholder={isEpk ? "Artist or band name" : "Enter song or release name"}
                     value={editingPage?.name || ""}
                     onChange={(e) => {
                       setEditingPage({ ...editingPage, name: e.target.value });
@@ -1336,17 +1361,17 @@ const removeCustomLink = (index: number) => {
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Description</label>
+                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Tagline" : "Description"}</label>
                   <textarea
                     className="input w-full"
-                    placeholder="Enter release page description"
+                    placeholder={isEpk ? "One line about you, e.g. Miami-born Latin house producer" : "Enter release page description"}
                     value={editingPage?.description || ""}
                     onChange={handleDescriptionChange}
                     style={{ fontFamily: font || 'inherit' }}
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Image</label>
+                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Artist Photo" : "Image"}</label>
                   {editingPage?.image ? (
                     <div style={{ position: "relative", display: "inline-block", marginBottom: 8 }}>
                       <img
@@ -1370,7 +1395,7 @@ const removeCustomLink = (index: number) => {
                   )}
                 </div>
                 <div className="mb-4">
-                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>YouTube Video Link</label>
+                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Featured Video (YouTube)" : "YouTube Video Link"}</label>
                   <input
                     type="text"
                     className="input w-full"
@@ -1480,6 +1505,16 @@ const removeCustomLink = (index: number) => {
                 </select>
               </div>
             </div>
+
+            {isEpk && (
+              <EpkEditor
+                value={editingPage?.epk}
+                onChange={(epk) => setEditingPage((prev: any) => ({ ...prev, epk }))}
+                galleryImages={galleryImages}
+                userId={data?.user?.id}
+                font={font}
+              />
+            )}
 
             {/* ── Page Background ── */}
             <div className="mt-4 mb-6 p-4 bg-purple-50 rounded-md border border-purple-200">

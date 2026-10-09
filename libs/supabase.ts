@@ -157,6 +157,8 @@ export function mapReleasePage(row: any) {
     patternBg: row.pattern_bg,
     patternOpacity: row.pattern_opacity,
     pageBgColor: row.page_bg_color,
+    pageType: row.page_type === "epk" ? "epk" : "release",
+    epk: row.epk ?? {},
   };
 }
 
