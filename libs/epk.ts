@@ -26,6 +26,9 @@ export const EMPTY_EPK: Epk = {
   highlights: [], videos: [], venues: [], gallery: [], pressQuotes: [], pressKitUrl: "",
 };
 
+// How many EPK versions an account can have
+export const EPK_PAGE_LIMITS = { free: 5, pro: 50 };
+
 export const EPK_LIMITS = { bio: 5000, highlights: 12, videos: 8, venues: 60, gallery: 24, pressQuotes: 12 };
 
 const str = (v: unknown, max = 300) => String(v ?? "").trim().slice(0, max);
