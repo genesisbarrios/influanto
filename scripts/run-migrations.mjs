@@ -124,6 +124,9 @@ const migrations = [
   // EPK content (bio, venues, gallery, press quotes, ...) in one JSON column
   `ALTER TABLE release_pages ADD COLUMN IF NOT EXISTS page_type TEXT DEFAULT 'release'`,
   `ALTER TABLE release_pages ADD COLUMN IF NOT EXISTS epk JSONB DEFAULT '{}'::jsonb`,
+
+  // link-in-bio autoplay song (SoundCloud track or direct audio file URL)
+  `ALTER TABLE link_in_bio ADD COLUMN IF NOT EXISTS autoplay_url TEXT`,
 ];
 
 async function run() {

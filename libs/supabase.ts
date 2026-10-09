@@ -126,6 +126,7 @@ export function mapLinkInBio(row: any) {
     brandLogoUrl: row.brand_logo_url ?? null,
     newsletterEnabled: row.newsletter_enabled ?? false,
     newsletterFields: row.newsletter_fields ?? ["name", "email"],
+    autoplayUrl: row.autoplay_url ?? "",
   };
 }
 
