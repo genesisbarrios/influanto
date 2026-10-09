@@ -9,6 +9,7 @@ import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin
 import { faGlobe } from "@fortawesome/free-solid-svg-icons";
 import { usePathname } from 'next/navigation'
 import NewsletterSignup from "@/components/NewsletterSignup";
+import EpkTemplate from "@/components/EpkTemplate";
 import { normalizeUrl } from "@/libs/urls";
 
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
@@ -505,56 +506,8 @@ const renderMerchSection = () => {
 
   const font = releasePage?.font || 'inherit';
 
-  return (
-    <div
-      style={{
-        textAlign: "center",
-        minHeight: "100vh",
-        padding: "5% 0",
-        color: textColor || "white",
-        backgroundColor: "transparent",
-        fontFamily: font,
-      }}
-    >
-      {user?.metaPixelId && (
-        <MetaPixel
-          pixelId={user.metaPixelId}
-          contentName={releasePage.name || "Release"}
-          contentType="release_page"
-        />
-      )}
-      <div>
-        {/* Image */}
-        <img
-          src={releasePage.image || fallbackImageUrl}
-          onError={(e) => (e.currentTarget.src = fallbackImageUrl)}
-          style={{
-            borderRadius: "15px",
-            width: "200px",
-            height: "auto",
-            display: "inline",
-            marginBottom: "10px",
-          }}
-          alt="Release Cover"
-        />
-
-        {/* Name and Description */}
-        <p style={{ margin: "8px 0 4px", fontFamily: font, color: textColor || "white" }}>{releasePage.name}</p>
-        <p style={{ margin: "0 0 8px", fontFamily: font, color: textColor || "white" }}>{releasePage.description}</p>
-
-        {/* Links */}
-        <div
-          className="responsive-container"
-          style={{
-            margin: "0 auto",
-            textAlign: "center",
-            marginTop: "8px",
-            fontFamily: font,
-          }}
-        >
-       
-          {/* Display releasePage.video at the top if it exists */}
-          {releasePage.video && (
+  // Shared by the release layout and the EPK template
+  const featuredVideoEl = releasePage.video ? (
             <div style={{ marginBottom: "30px" }}>
               <div 
                 className="video-responsive"
@@ -584,10 +537,9 @@ const renderMerchSection = () => {
                 />
               </div>
             </div>
-          )}
+          ) : null;
 
-          {/* Render ALL links (including YouTube) as regular links */}
-          {releasePage.links?.map((link: { url: string; name: string }, index: number) => {
+  const linkRowsEl = releasePage.links?.map((link: { url: string; name: string }, index: number) => {
             if (!link.url) return null;
             
             const platformName = getPlatformName(link.url);
@@ -650,9 +602,78 @@ const renderMerchSection = () => {
                 </a>
               </div>
             );
-          })}
+          });
+
+  const isEpk = releasePage.pageType === "epk";
+
+  return (
+    <div
+      style={{
+        textAlign: "center",
+        minHeight: "100vh",
+        padding: "5% 0",
+        color: textColor || "white",
+        backgroundColor: "transparent",
+        fontFamily: font,
+      }}
+    >
+      {user?.metaPixelId && (
+        <MetaPixel
+          pixelId={user.metaPixelId}
+          contentName={(isEpk ? `${releasePage.name} EPK` : releasePage.name) || "Release"}
+          contentType="release_page"
+        />
+      )}
+      <div>
+        {isEpk ? (
+          <EpkTemplate
+            page={releasePage}
+            textColor={textColor || "white"}
+            linksColor={releasePage.linksColor || linksColor || "#2563eb"}
+            cardColor={bgColor || "rgba(255, 255, 255, 0.1)"}
+            font={font}
+            featuredVideo={featuredVideoEl}
+            listenLinks={linkRowsEl}
+            fallbackImage={fallbackImageUrl}
+          />
+        ) : (
+        <>
+        {/* Image */}
+        <img
+          src={releasePage.image || fallbackImageUrl}
+          onError={(e) => (e.currentTarget.src = fallbackImageUrl)}
+          style={{
+            borderRadius: "15px",
+            width: "200px",
+            height: "auto",
+            display: "inline",
+            marginBottom: "10px",
+          }}
+          alt="Release Cover"
+        />
+
+        {/* Name and Description */}
+        <p style={{ margin: "8px 0 4px", fontFamily: font, color: textColor || "white" }}>{releasePage.name}</p>
+        <p style={{ margin: "0 0 8px", fontFamily: font, color: textColor || "white" }}>{releasePage.description}</p>
+
+        {/* Links */}
+        <div
+          className="responsive-container"
+          style={{
+            margin: "0 auto",
+            textAlign: "center",
+            marginTop: "8px",
+            fontFamily: font,
+          }}
+        >
+       
+          {featuredVideoEl}
+
+          {linkRowsEl}
         </div>
-        
+        </>
+        )}
+
         {/* Merch Section */}
         {renderMerchSection()}
 

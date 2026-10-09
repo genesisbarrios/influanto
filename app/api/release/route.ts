@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase, { mapReleasePage, findReleasePageBySlug } from "@/libs/supabase";
 import { normalizeUrl, slugify } from "@/libs/urls";
+import { sanitizeEpk } from "@/libs/epk";
 
 function normalizeLinks(links: any): any {
   return Array.isArray(links) ? links.map((l: any) => ({ ...l, url: normalizeUrl(l.url) })) : links;
@@ -34,7 +35,8 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   try {
-    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, customMerchLinks, font, newsletterEnabled, newsletterFields, brandLogoUrl, bgMode, patternId, patternFg, patternBg, patternOpacity, bgImage, bgImageCustom, pageBgColor } = body;
+    const { id, bgColor, textColor, linksColor, links, name, description, video, image, selectedProducts, customMerchLinks, font, newsletterEnabled, newsletterFields, brandLogoUrl, bgMode, patternId, patternFg, patternBg, patternOpacity, bgImage, bgImageCustom, pageBgColor, pageType, epk } = body;
+    const cleanPageType = pageType === "epk" ? "epk" : "release";
 
     if (id) {
       const updates: Record<string, any> = { user_id: userId };
@@ -60,6 +62,8 @@ export async function POST(req: NextRequest) {
       if (bgImage !== undefined) updates.bg_image = bgImage;
       if (bgImageCustom !== undefined) updates.bg_image_custom = bgImageCustom;
       if (pageBgColor !== undefined) updates.page_bg_color = pageBgColor;
+      if (pageType !== undefined) updates.page_type = cleanPageType;
+      if (epk !== undefined) updates.epk = sanitizeEpk(epk);
 
       const { data, error } = await supabase
         .from("release_pages")
@@ -102,6 +106,8 @@ export async function POST(req: NextRequest) {
         bg_image: bgImage,
         bg_image_custom: bgImageCustom,
         page_bg_color: pageBgColor,
+        page_type: cleanPageType,
+        epk: cleanPageType === "epk" ? sanitizeEpk(epk) : {},
       })
       .select()
       .single();

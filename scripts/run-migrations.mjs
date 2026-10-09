@@ -119,6 +119,11 @@ const migrations = [
   // picking a saved contact on a new sheet also fills their publishing row
   `ALTER TABLE collaborator_contacts ADD COLUMN IF NOT EXISTS publisher TEXT DEFAULT ''`,
   `ALTER TABLE collaborator_contacts ADD COLUMN IF NOT EXISTS publishing_percent TEXT DEFAULT ''`,
+
+  // release pages can be an electronic press kit (page_type 'epk') with its
+  // EPK content (bio, venues, gallery, press quotes, ...) in one JSON column
+  `ALTER TABLE release_pages ADD COLUMN IF NOT EXISTS page_type TEXT DEFAULT 'release'`,
+  `ALTER TABLE release_pages ADD COLUMN IF NOT EXISTS epk JSONB DEFAULT '{}'::jsonb`,
 ];
 
 async function run() {
