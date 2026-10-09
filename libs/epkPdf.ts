@@ -129,6 +129,12 @@ export async function downloadEpkPdf(page: any, pageUrl: string, accentColor?: s
     for (const l of music) link(`${l.name || "Listen"}:`, l.url);
   }
 
+  const releases = Array.isArray(page.epkReleases) ? page.epkReleases : [];
+  if (releases.length) {
+    heading("Releases");
+    for (const r of releases) link(`${r.title}:`, r.internal ? `https://www.influanto.com${r.url}` : r.url);
+  }
+
   const videos = Array.from(new Set([page.video, ...epk.videos].filter((v) => isEmbeddableVideo(v)))) as string[];
   if (videos.length) {
     heading("Videos");
@@ -136,7 +142,7 @@ export async function downloadEpkPdf(page: any, pageUrl: string, accentColor?: s
   }
 
   if (epk.venues.length) {
-    heading("Venues & Shows");
+    heading("Live Performances");
     const colW = (W - 2 * M) / 2;
     epk.venues.forEach((v, i) => {
       const col = i % 2;

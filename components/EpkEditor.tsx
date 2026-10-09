@@ -1,10 +1,11 @@
 "use client";
 /* eslint-disable react/no-unescaped-entities */
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import apiClient from "@/libs/api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faPlus, faCheck, faImage } from "@fortawesome/free-solid-svg-icons";
 import ImagePicker from "@/components/ImagePicker";
-import { EPK_LIMITS, withEpkDefaults, type Epk } from "@/libs/epk";
+import { EPK_LIMITS, withEpkDefaults, type Epk, type EpkRelease } from "@/libs/epk";
 import { isEmbeddableVideo } from "@/libs/videoEmbed";
 
 // EPK-only fields in the release page editor (create + edit). The page's
@@ -29,12 +30,33 @@ export default function EpkEditor({
 }) {
   const epk = withEpkDefaults(value);
   const set = (patch: Partial<Epk>) => onChange({ ...epk, ...patch });
-  const [pickerOpen, setPickerOpen] = useState(false);
+  // Which image the picker is filling: the gallery, or a custom release's cover (by index)
+  const [picker, setPicker] = useState<null | "gallery" | number>(null);
+  const [myReleases, setMyReleases] = useState<{ id: string; name: string; image: string }[]>([]);
+
+  useEffect(() => {
+    apiClient.get("/get-release-pages").then((res: any) => {
+      const pages = Array.isArray(res?.data) ? res.data : [];
+      setMyReleases(pages.filter((p: any) => p.pageType !== "epk").map((p: any) => ({ id: p.id, name: p.name, image: p.image })));
+    }).catch(() => {});
+  }, []);
+
+  const selectedIds = epk.releases.flatMap((r) => (r.kind === "page" ? [r.id] : []));
+  const customReleases = epk.releases.map((r, i) => ({ r, i })).filter((x) => x.r.kind === "custom") as { r: Extract<EpkRelease, { kind: "custom" }>; i: number }[];
+  const togglePage = (id: string) =>
+    set({ releases: selectedIds.includes(id) ? epk.releases.filter((r) => !(r.kind === "page" && r.id === id)) : [...epk.releases, { kind: "page", id }] });
+  const setCustom = (i: number, patch: Partial<Extract<EpkRelease, { kind: "custom" }>>) =>
+    set({ releases: epk.releases.map((r, idx) => (idx === i && r.kind === "custom" ? { ...r, ...patch } : r)) });
 
   const setAt = <K extends "highlights" | "videos" | "gallery">(key: K, i: number, v: string) =>
     set({ [key]: epk[key].map((x, idx) => (idx === i ? v : x)) } as Partial<Epk>);
   const removeAt = (key: keyof Epk, i: number) =>
     set({ [key]: (epk[key] as any[]).filter((_, idx) => idx !== i) } as Partial<Epk>);
+
+  const pickImage = (url: string) => {
+    if (picker === "gallery") addGalleryImage(url);
+    else if (typeof picker === "number" && url) setCustom(picker, { image: url });
+  };
 
   const addGalleryImage = (url: string) => {
     if (url && !epk.gallery.includes(url) && epk.gallery.length < EPK_LIMITS.gallery) set({ gallery: [...epk.gallery, url] });
@@ -120,8 +142,8 @@ export default function EpkEditor({
 
       {/* Venues */}
       <div>
-        <label className={label}>Venues & shows</label>
-        <p className="text-xs text-gray-500 mb-2">Venues, festivals, and events you've played.</p>
+        <label className={label}>Live performances</label>
+        <p className="text-xs text-gray-500 mb-2">Venues, festivals, and events you've performed at.</p>
         <div className="space-y-2">
           {epk.venues.map((v, i) => (
             <div key={i} className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)_minmax(0,0.8fr)_auto] gap-1.5 sm:gap-2 items-center">
@@ -134,6 +156,52 @@ export default function EpkEditor({
         </div>
         {epk.venues.length < EPK_LIMITS.venues && (
           <button type="button" className={`${addBtn} mt-2`} onClick={() => set({ venues: [...epk.venues, { name: "", city: "", date: "" }] })}>+ Add venue</button>
+        )}
+      </div>
+
+      {/* Releases */}
+      <div>
+        <label className={label}>Releases</label>
+        <p className="text-xs text-gray-500 mb-2">Pick your Influanto release pages to show their cover and title (they link to the release page), or add a custom release.</p>
+        {myReleases.length > 0 ? (
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 mb-3">
+            {myReleases.map((p) => {
+              const pos = selectedIds.indexOf(p.id);
+              return (
+                <button key={p.id} type="button" onClick={() => togglePage(p.id)} aria-pressed={pos >= 0}
+                  className={`relative text-left rounded-md overflow-hidden border-2 transition-colors ${pos >= 0 ? "border-blue-500" : "border-transparent hover:border-gray-300"}`}>
+                  {p.image
+                    ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={p.image} alt={p.name} className="w-full aspect-square object-cover" />
+                    : <div className="w-full aspect-square bg-gray-200 flex items-center justify-center text-gray-400"><FontAwesomeIcon icon={faImage} /></div>}
+                  <span className="block text-xs font-medium px-1 py-1 truncate">{p.name}</span>
+                  {pos >= 0 && (
+                    <span className="absolute top-1 right-1 w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center" title={`Shown #${pos + 1}`}>
+                      {pos + 1}
+                    </span>
+                  )}
+                  {pos < 0 && <span className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/80 text-gray-400 text-xs flex items-center justify-center"><FontAwesomeIcon icon={faCheck} /></span>}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-xs text-gray-400 mb-3">No release pages yet — create one in the Releases tab, or add a custom release below.</p>
+        )}
+        <div className="space-y-2">
+          {customReleases.map(({ r, i }) => (
+            <div key={i} className="flex gap-2 items-center">
+              <button type="button" onClick={() => setPicker(i)} aria-label="Choose cover image"
+                className="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-gray-400 hover:border-blue-400">
+                {r.image ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={r.image} alt="" className="w-full h-full object-cover" /> : <FontAwesomeIcon icon={faImage} />}
+              </button>
+              <input className="input input-sm sm:input-md w-full min-w-0" placeholder="Title" value={r.title} onChange={(e) => setCustom(i, { title: e.target.value })} />
+              <input className="input input-sm sm:input-md w-full min-w-0" placeholder="Link (Spotify, Bandcamp…)" value={r.url} onChange={(e) => setCustom(i, { url: e.target.value })} />
+              <button type="button" className="btn btn-xs sm:btn-sm btn-alert" onClick={() => removeAt("releases", i)} aria-label="Remove release"><FontAwesomeIcon icon={faTrash} /></button>
+            </div>
+          ))}
+        </div>
+        {epk.releases.length < EPK_LIMITS.releases && (
+          <button type="button" className={`${addBtn} mt-2`} onClick={() => set({ releases: [...epk.releases, { kind: "custom", title: "", image: "", url: "" }] })}>+ Add custom release</button>
         )}
       </div>
 
@@ -158,7 +226,7 @@ export default function EpkEditor({
             </div>
           ))}
           {epk.gallery.length < EPK_LIMITS.gallery && (
-            <button type="button" onClick={() => setPickerOpen(true)} className="aspect-square rounded-md border-2 border-dashed border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-600 flex flex-col items-center justify-center text-xs gap-1">
+            <button type="button" onClick={() => setPicker("gallery")} className="aspect-square rounded-md border-2 border-dashed border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-600 flex flex-col items-center justify-center text-xs gap-1">
               <FontAwesomeIcon icon={faPlus} />
               Add photo
             </button>
@@ -187,15 +255,15 @@ export default function EpkEditor({
         )}
       </div>
 
-      {pickerOpen && (
+      {picker !== null && (
         <ImagePicker
-          title="Add a gallery photo"
+          title={picker === "gallery" ? "Add a gallery photo" : "Choose a cover image"}
           images={galleryImages}
           uploadPreset="ReleasePageImages"
-          uploadOptions={{ publicId: `user_${userId}_epkGallery_${Date.now()}` }}
-          onUploaded={(result: any) => addGalleryImage(result?.info?.secure_url || "")}
-          onSelect={(url: string) => addGalleryImage(url)}
-          onClose={() => setPickerOpen(false)}
+          uploadOptions={{ publicId: `user_${userId}_${picker === "gallery" ? "epkGallery" : "epkRelease"}_${Date.now()}` }}
+          onUploaded={(result: any) => pickImage(result?.info?.secure_url || "")}
+          onSelect={(url: string) => pickImage(url)}
+          onClose={() => setPicker(null)}
         />
       )}
     </div>

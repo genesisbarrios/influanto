@@ -2,12 +2,12 @@
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faFileArrowDown, faFilePdf, faLocationDot, faChevronLeft, faChevronRight, faXmark, faQuoteLeft } from "@fortawesome/free-solid-svg-icons";
-import { withEpkDefaults } from "@/libs/epk";
+import { withEpkDefaults, type EpkReleaseCard } from "@/libs/epk";
 import { getVideoEmbedUrl } from "@/libs/videoEmbed";
 
 // Public electronic press kit layout for release pages with page_type "epk".
 // Desktop: 90% width, two columns — bio and videos on the left; booking,
-// booking, venues, and press on the right — with the gallery full width below.
+// venues, booking, and press on the right — with releases and the gallery full width below.
 // Phones stack everything in one column.
 
 export interface EpkMusicLink { name: string; url: string }
@@ -19,7 +19,6 @@ export default function EpkTemplate({
   cardColor,
   font,
   musicLinks,
-  customLinks,
   fallbackImage,
 }: {
   page: any;
@@ -28,7 +27,6 @@ export default function EpkTemplate({
   cardColor: string;
   font: string;
   musicLinks: EpkMusicLink[]; // profile streaming + custom links (used in the PDF)
-  customLinks: EpkMusicLink[]; // non-platform links, shown as hero buttons
   fallbackImage: string;
 }) {
   const epk = withEpkDefaults(page.epk);
@@ -40,6 +38,7 @@ export default function EpkTemplate({
   const button: CSSProperties = { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 18px", borderRadius: 8, fontWeight: 700, textDecoration: "none", fontSize: 15, color: "#fff", background: linksColor, border: 0, cursor: "pointer" };
   const outlineButton: CSSProperties = { ...button, background: "transparent", color: textColor, border: `2px solid ${linksColor}` };
   const bookingHref = epk.bookingEmail ? `mailto:${epk.bookingEmail}?subject=${encodeURIComponent(`Booking inquiry: ${page.name}`)}` : "";
+  const releases: EpkReleaseCard[] = Array.isArray(page.epkReleases) ? page.epkReleases : [];
   const videos = Array.from(new Set([page.video, ...epk.videos].map(getVideoEmbedUrl).filter(Boolean) as string[]));
 
   const downloadPdf = async () => {
@@ -99,14 +98,10 @@ export default function EpkTemplate({
             {epk.location && <><FontAwesomeIcon icon={faLocationDot} style={{ marginRight: 5 }} />{epk.location}</>}
           </p>
         )}
-        {(bookingHref || epk.pressKitUrl || customLinks.length > 0) && (
+        {(bookingHref || epk.pressKitUrl) && (
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 18 }}>
             {bookingHref && <a href={bookingHref} style={button}><FontAwesomeIcon icon={faEnvelope} />Booking</a>}
             {epk.pressKitUrl && <a href={epk.pressKitUrl} target="_blank" rel="noopener noreferrer" style={outlineButton}><FontAwesomeIcon icon={faFileArrowDown} />Press Kit</a>}
-            {/* Streaming links already show as icons at the bottom; custom links go here */}
-            {customLinks.map((l) => (
-              <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" style={outlineButton}>{l.name}</a>
-            ))}
           </div>
         )}
       </div>
@@ -142,7 +137,7 @@ export default function EpkTemplate({
 
         </div>
 
-        {/* Right: highlights, booking, venues, press */}
+        {/* Right: highlights, venues, booking, press */}
         <div className="epk-col">
           {epk.highlights.length > 0 && (
             <section>
@@ -157,6 +152,20 @@ export default function EpkTemplate({
             </section>
           )}
 
+          {epk.venues.length > 0 && (
+            <section>
+              <h2 style={h2}>Live Performances</h2>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: 10 }}>
+                {epk.venues.map((v, i) => (
+                  <div key={i} style={card}>
+                    <p style={{ margin: 0, fontWeight: 700 }}>{v.name}</p>
+                    {(v.city || v.date) && <p style={{ margin: "2px 0 0", fontSize: 14, opacity: 0.75 }}>{[v.city, v.date].filter(Boolean).join(" · ")}</p>}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           <section style={{ ...card, textAlign: "center" }}>
             <p style={{ margin: "0 0 12px", fontWeight: 800, fontSize: 18 }}>Booking & Inquiries</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -168,20 +177,6 @@ export default function EpkTemplate({
             </div>
             {pdfState === "error" && <p style={{ fontSize: 13, marginTop: 8, opacity: 0.8 }}>Couldn&apos;t build the EPK — please try again.</p>}
           </section>
-
-          {epk.venues.length > 0 && (
-            <section>
-              <h2 style={h2}>Venues & Shows</h2>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: 10 }}>
-                {epk.venues.map((v, i) => (
-                  <div key={i} style={card}>
-                    <p style={{ margin: 0, fontWeight: 700 }}>{v.name}</p>
-                    {(v.city || v.date) && <p style={{ margin: "2px 0 0", fontSize: 14, opacity: 0.75 }}>{[v.city, v.date].filter(Boolean).join(" · ")}</p>}
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
 
           {epk.pressQuotes.length > 0 && (
             <section>
@@ -203,6 +198,33 @@ export default function EpkTemplate({
           )}
         </div>
       </div>
+
+      {/* Releases: full width, above the gallery */}
+      {releases.length > 0 && (
+        <section style={{ marginTop: 36 }}>
+          <h2 style={h2}>Releases</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 16 }}>
+            {releases.map((r, i) => (
+              <a
+                key={`${r.url}-${i}`}
+                href={r.url}
+                {...(r.internal ? {} : { target: "_blank", rel: "noopener noreferrer" })}
+                style={{ color: "inherit", textDecoration: "none", display: "block" }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={r.image || fallbackImage}
+                  onError={(e) => (e.currentTarget.src = fallbackImage)}
+                  alt={r.title}
+                  loading="lazy"
+                  style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: 10, display: "block", boxShadow: "0 4px 14px rgba(0,0,0,0.2)" }}
+                />
+                <p style={{ margin: "8px 0 0", fontWeight: 700, fontSize: 15, lineHeight: 1.3, textAlign: "center" }}>{r.title}</p>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Gallery: full width */}
       {epk.gallery.length > 0 && (
