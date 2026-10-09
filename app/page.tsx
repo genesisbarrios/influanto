@@ -13,7 +13,7 @@ import { getSEOTags } from "@/libs/seo";
 export const metadata = getSEOTags({
   title: "Influanto — Link in Bio, Newsletter & Split Sheets for Indie Artists",
   description:
-    "The all-in-one marketing platform for independent artists: link in bio, release pages, newsletter and mailing list, split sheet generator, QR codes, and a playlist curator contact tool. Free to start.",
+    "The all-in-one marketing platform for independent artists: link in bio, release pages, electronic press kits (EPK), newsletter and mailing list, split sheet generator, QR codes, and a playlist curator contact tool. Free to start.",
   keywords: [
     "music marketing platform",
     "indie artist tools",
@@ -23,6 +23,8 @@ export const metadata = getSEOTags({
     "playlist curator tool",
     "qr code generator",
     "release pages",
+    "electronic press kit",
+    "epk for musicians",
   ],
   canonicalUrlRelative: "/",
 });

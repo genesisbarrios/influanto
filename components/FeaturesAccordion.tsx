@@ -33,8 +33,8 @@ interface Feature {
 // - alt: The alt text of the image (if type is 'image')
 const features = [
   {
-    title: "Link in Bio / Release Pages with Analytics",
-    description: "Create a Link in Bio Page and Promotional Pages for your Releases",
+    title: "Link in Bio, Release Pages & EPK with Analytics",
+    description: "Create a Link in Bio Page, Promotional Pages for your Releases, and an Electronic Press Kit (EPK) with a downloadable PDF for bookers and press.",
     type: "image",
     path: link,
     alt: "computer picture",

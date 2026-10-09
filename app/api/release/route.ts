@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase, { mapReleasePage, findReleasePageBySlug } from "@/libs/supabase";
 import { normalizeUrl, slugify } from "@/libs/urls";
-import { sanitizeEpk } from "@/libs/epk";
+import { sanitizeEpk, EPK_PAGE_LIMITS } from "@/libs/epk";
 
 function normalizeLinks(links: any): any {
   return Array.isArray(links) ? links.map((l: any) => ({ ...l, url: normalizeUrl(l.url) })) : links;
@@ -75,6 +75,18 @@ export async function POST(req: NextRequest) {
 
       if (error) throw error;
       return NextResponse.json({ data: mapReleasePage(data) }, { status: 200 });
+    }
+
+    // EPK versions are capped per plan (5 free, 50 Pro)
+    if (cleanPageType === "epk") {
+      const [{ count }, { data: account }] = await Promise.all([
+        supabase.from("release_pages").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("page_type", "epk"),
+        supabase.from("users").select("has_access").eq("id", userId).single(),
+      ]);
+      const limit = account?.has_access ? EPK_PAGE_LIMITS.pro : EPK_PAGE_LIMITS.free;
+      if ((count ?? 0) >= limit) {
+        return NextResponse.json({ error: `You can create up to ${limit} EPKs on your plan.` }, { status: 400 });
+      }
     }
 
     const slug = await generateUniqueSlug(name);

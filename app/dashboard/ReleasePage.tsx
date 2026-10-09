@@ -9,6 +9,7 @@ import { parseColorValue, combineColor } from "@/libs/color";
 import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
 import ImagePicker from "@/components/ImagePicker";
 import EpkEditor from "@/components/EpkEditor";
+import { EPK_PAGE_LIMITS } from "@/libs/epk";
 import { fetchAllPrintifyProducts } from "@/libs/printify-products";
 import * as HeroPatterns from 'hero-patterns';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -186,6 +187,7 @@ const ReleasePages = ({ mode = "release" }: { mode?: "release" | "epk" }) => {
 
   // Get the maximum allowed pages based on user status
   const getMaxPages = () => {
+    if (mode === "epk") return userData?.hasAccess ? EPK_PAGE_LIMITS.pro : EPK_PAGE_LIMITS.free;
     return userData?.hasAccess ? 50 : 10;
   };
   
@@ -718,7 +720,7 @@ const removeCustomLink = (index: number) => {
       // Check if we're creating a new page and already have the maximum allowed
       if (!editingPage?._id && releasePages.length >= maxPages) {
         const userType = userData?.hasAccess ? "premium" : "free";
-        setAlert(`You can only create up to ${maxPages} release pages on the ${userType} plan.`);
+        setAlert(`You can only create up to ${maxPages} ${mode === "epk" ? "EPKs" : "release pages"} on the ${userType} plan.`);
         return;
       }
 
@@ -950,10 +952,10 @@ const removeCustomLink = (index: number) => {
           </p>
         )}
         <div className="mb-4 text-sm text-gray-600" style={{ fontFamily: font || 'inherit' }}>
-          {releasePages.length} of {getMaxPages()} pages used
+          {releasePages.length} of {getMaxPages()} {isEpk ? "EPKs" : "pages"} used
           {!userData?.hasAccess && (
             <span className="ml-2 text-blue-600">
-              (Upgrade to Premium for up to 50 pages)
+              (Upgrade to Premium for up to {isEpk ? `${EPK_PAGE_LIMITS.pro} EPKs` : "50 pages"})
             </span>
           )}
         </div>
