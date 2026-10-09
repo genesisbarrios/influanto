@@ -10,6 +10,9 @@ import { faGlobe } from "@fortawesome/free-solid-svg-icons";
 import { usePathname } from 'next/navigation'
 import NewsletterSignup from "@/components/NewsletterSignup";
 import EpkTemplate from "@/components/EpkTemplate";
+import { loadFont } from "@/libs/fonts";
+import { getVideoEmbedUrl } from "@/libs/videoEmbed";
+import { epkMusicLinks } from "@/libs/streamingLinks";
 import { normalizeUrl } from "@/libs/urls";
 
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
@@ -472,6 +475,8 @@ const renderMerchSection = () => {
   );
 };
 
+  useEffect(() => { loadFont(releasePage?.font); }, [releasePage?.font]);
+
   // Loading state
   if (isLoading || !slug) {
     return (
@@ -529,7 +534,7 @@ const renderMerchSection = () => {
                     height: "100%",
                     border: "none"
                   }}
-                  src={getYouTubeEmbedUrl(releasePage.video)}
+                  src={getVideoEmbedUrl(releasePage.video) || getYouTubeEmbedUrl(releasePage.video)}
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -539,7 +544,7 @@ const renderMerchSection = () => {
             </div>
           ) : null;
 
-  const linkRowsEl = releasePage.links?.map((link: { url: string; name: string }, index: number) => {
+  const renderLinkRows = (rowLinks: { url: string; name: string }[] = []) => rowLinks.map((link: { url: string; name: string }, index: number) => {
             if (!link.url) return null;
             
             const platformName = getPlatformName(link.url);
@@ -605,6 +610,9 @@ const renderMerchSection = () => {
           });
 
   const isEpk = releasePage.pageType === "epk";
+  const linkRowsEl = renderLinkRows(releasePage.links || []);
+  // EPK music comes from the artist profile (like the Link in Bio) plus custom links
+  const musicLinks = isEpk ? epkMusicLinks(user, releasePage.links || []) : [];
 
   return (
     <div
@@ -632,8 +640,8 @@ const renderMerchSection = () => {
             linksColor={releasePage.linksColor || linksColor || "#2563eb"}
             cardColor={bgColor || "rgba(255, 255, 255, 0.1)"}
             font={font}
-            featuredVideo={featuredVideoEl}
-            listenLinks={linkRowsEl}
+            musicLinks={musicLinks}
+            listenLinks={renderLinkRows(musicLinks)}
             fallbackImage={fallbackImageUrl}
           />
         ) : (

@@ -9,7 +9,9 @@ import { parseColorValue, combineColor } from "@/libs/color";
 import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
 import ImagePicker from "@/components/ImagePicker";
 import EpkEditor from "@/components/EpkEditor";
+import FontSelect from "@/components/FontSelect";
 import { EPK_PAGE_LIMITS } from "@/libs/epk";
+import { isEmbeddableVideo } from "@/libs/videoEmbed";
 import { fetchAllPrintifyProducts } from "@/libs/printify-products";
 import * as HeroPatterns from 'hero-patterns';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -426,6 +428,17 @@ const ReleasePages = ({ mode = "release" }: { mode?: "release" | "epk" }) => {
     return true;
   };
 
+  // Featured video: any YouTube or Vimeo video or playlist
+  const validateVideoURL = (value: string) => {
+    if (!value) return true;
+    if (!isEmbeddableVideo(value)) {
+      setAlert("Please enter a valid YouTube or Vimeo video or playlist link.");
+      return false;
+    }
+    setAlert("");
+    return true;
+  };
+
   const validateYouTubeURL = (value: string) => {
     if (!value) return true; // Empty is allowed
     
@@ -543,7 +556,7 @@ const ReleasePages = ({ mode = "release" }: { mode?: "release" | "epk" }) => {
     setEditingPage({ ...editingPage, video: value });
     
     // Validate but don't prevent typing
-    if (value && !validateYouTubeURL(value)) {
+    if (value && !validateVideoURL(value)) {
       // Error already set in validateYouTubeURL function
     } else {
       setAlert("");
@@ -661,7 +674,7 @@ const removeCustomLink = (index: number) => {
         return; // Error already set in validation function
       }
       
-      if (editingPage?.video && !validateYouTubeURL(editingPage.video)) {
+      if (editingPage?.video && !validateVideoURL(editingPage.video)) {
         return; // Error already set in validation function
       }
       
@@ -1016,7 +1029,7 @@ const removeCustomLink = (index: number) => {
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Featured Video (YouTube)" : "YouTube Video Link"}</label>
+                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Featured Video (YouTube or Vimeo)" : "Video Link (YouTube or Vimeo)"}</label>
                   <input
                     type="text"
                     className="input w-full"
@@ -1039,8 +1052,14 @@ const removeCustomLink = (index: number) => {
               </div>
               {/* Right: Streaming Links, Custom Links */}
               <div className="md:w-1/2">
+                {isEpk ? (
+                <div className="mb-4 p-3 rounded-md bg-blue-50 border border-blue-100 text-sm text-blue-800" style={{ fontFamily: font || 'inherit' }}>
+                  <p className="font-bold mb-1">Music & Streaming Links</p>
+                  <p>Your Spotify, Apple Music, and other streaming links come from your <a href="/dashboard?tab=profile" className="underline font-semibold">Profile</a> automatically — the same ones your Link in Bio shows. Add anything else as a custom link below.</p>
+                </div>
+              ) : (
                 <div className="mb-4">
-                  <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Music & Streaming Links" : "Streaming Links"}</h4>
+                  <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Streaming Links</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                     {predefinedLinks.map((link, index) => (
                       <div key={index}>
@@ -1059,6 +1078,7 @@ const removeCustomLink = (index: number) => {
                     ))}
                   </div>
                 </div>
+                )}
                 <div className="mb-4">
                   <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Custom Links</h4>
                   {(editingPage?.links || [])
@@ -1119,13 +1139,7 @@ const removeCustomLink = (index: number) => {
                 <span className="text-sm font-medium" style={{ fontFamily: font || 'inherit' }}>Links</span>
                 <input type="color" value={linksColor} onChange={(e) => setLinksColor(e.target.value)} className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer" />
                 <span className="text-sm font-medium" style={{ fontFamily: font || 'inherit' }}>Font</span>
-                <select value={font || "sans-serif"} onChange={e => setFont(e.target.value)} className="input input-sm w-32" style={{ fontFamily: font || 'inherit' }}>
-                  <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
-                  <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
-                  <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
-                  <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
-                  <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
-                </select>
+                <FontSelect value={font} onChange={setFont} className="input input-sm w-36" />
               </div>
             </div>
 
@@ -1397,7 +1411,7 @@ const removeCustomLink = (index: number) => {
                   )}
                 </div>
                 <div className="mb-4">
-                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Featured Video (YouTube)" : "YouTube Video Link"}</label>
+                  <label className="block font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Featured Video (YouTube or Vimeo)" : "Video Link (YouTube or Vimeo)"}</label>
                   <input
                     type="text"
                     className="input w-full"
@@ -1420,6 +1434,12 @@ const removeCustomLink = (index: number) => {
               </div>
               {/* Right: Streaming Links, Custom Links */}
               <div className="md:w-1/2">
+                {isEpk ? (
+                <div className="mb-4 p-3 rounded-md bg-blue-50 border border-blue-100 text-sm text-blue-800" style={{ fontFamily: font || 'inherit' }}>
+                  <p className="font-bold mb-1">Music & Streaming Links</p>
+                  <p>Your Spotify, Apple Music, and other streaming links come from your <a href="/dashboard?tab=profile" className="underline font-semibold">Profile</a> automatically — the same ones your Link in Bio shows. Add anything else as a custom link below.</p>
+                </div>
+              ) : (
                 <div className="mb-4">
                   <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Predefined Links</h4>
                   {predefinedLinks.map((link, index) => (
@@ -1438,6 +1458,7 @@ const removeCustomLink = (index: number) => {
                     </div>
                   ))}
                 </div>
+                )}
                 <div className="mb-4">
                   <h4 className="font-bold mb-2" style={{ fontFamily: font || 'inherit' }}>Custom Links</h4>
                   {(editingPage?.links || [])
@@ -1498,13 +1519,7 @@ const removeCustomLink = (index: number) => {
                 <span className="text-sm font-medium" style={{ fontFamily: font || 'inherit' }}>Links</span>
                 <input type="color" value={linksColor} onChange={(e) => setLinksColor(e.target.value)} className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer" />
                 <span className="text-sm font-medium" style={{ fontFamily: font || 'inherit' }}>Font</span>
-                <select value={font || "sans-serif"} onChange={e => setFont(e.target.value)} className="input input-sm w-32" style={{ fontFamily: font || 'inherit' }}>
-                  <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
-                  <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
-                  <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
-                  <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
-                  <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
-                </select>
+                <FontSelect value={font} onChange={setFont} className="input input-sm w-36" />
               </div>
             </div>
 

@@ -1,4 +1,5 @@
 import { normalizeUrl } from "@/libs/urls";
+import { isEmbeddableVideo } from "@/libs/videoEmbed";
 
 // Electronic press kit content, stored on a release page (release_pages.epk)
 // when its page_type is "epk". The page's own name/image/description/video/
@@ -46,7 +47,7 @@ export function sanitizeEpk(input: any): Epk {
     bookingEmail: /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) ? email : "",
     bio: str(e.bio, EPK_LIMITS.bio),
     highlights: list(e.highlights, EPK_LIMITS.highlights, (h) => str(h, 200), (h) => !!h),
-    videos: list(e.videos, EPK_LIMITS.videos, url, (v) => !!getYouTubeId(v)),
+    videos: list(e.videos, EPK_LIMITS.videos, url, (v) => isEmbeddableVideo(v)), // YouTube/Vimeo videos + playlists
     venues: list(e.venues, EPK_LIMITS.venues, (v) => ({ name: str(v?.name, 120), city: str(v?.city, 100), date: str(v?.date, 40) }), (v) => !!v.name),
     gallery: list(e.gallery, EPK_LIMITS.gallery, url, (g) => /^https:\/\//.test(g)),
     pressQuotes: list(e.pressQuotes, EPK_LIMITS.pressQuotes, (q) => ({ quote: str(q?.quote, 600), source: str(q?.source, 120), url: url(q?.url) }), (q) => !!q.quote),

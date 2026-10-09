@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
 import { getAutoplaySource } from "@/libs/autoplay";
+import FontSelect from "@/components/FontSelect";
 import { useSession, signOut } from "next-auth/react";
 import posthog from "posthog-js";
 import ButtonSupport from "@/components/ButtonSupport";
@@ -939,18 +940,11 @@ const LinkInBio = () => {
                 <div className="flex justify-center mb-4">
                   <div className="flex items-center gap-2">
                     <label className="text-sm" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Font:</label>
-                    <select
-                      value={linkInBio?.font || "sans-serif"}
-                      onChange={e => setLinkInBio({ ...linkInBio, font: e.target.value })}
-                      className="input w-40"
-                      style={{ fontFamily: linkInBio?.font || 'inherit' }}
-                    >
-                      <option value="sans-serif" style={{ fontFamily: 'sans-serif' }}>Sans Serif</option>
-                      <option value="serif" style={{ fontFamily: 'serif' }}>Serif</option>
-                      <option value="monospace" style={{ fontFamily: 'monospace' }}>Monospace</option>
-                      <option value="cursive" style={{ fontFamily: 'cursive' }}>Cursive</option>
-                      <option value="fantasy" style={{ fontFamily: 'fantasy' }}>Fantasy</option>
-                    </select>
+                    <FontSelect
+                      value={linkInBio?.font}
+                      onChange={(f) => setLinkInBio({ ...linkInBio, font: f })}
+                      className="input w-44"
+                    />
                   </div>
                 </div>
 
