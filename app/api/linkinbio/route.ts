@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase, { mapLinkInBio } from "@/libs/supabase";
 import { normalizeUrl } from "@/libs/urls";
+import { getAutoplaySource } from "@/libs/autoplay";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -37,6 +38,8 @@ export async function POST(req: NextRequest) {
           brand_logo_url: body.brandLogoUrl ?? null,
           newsletter_enabled: body.newsletterEnabled ?? false,
           newsletter_fields: body.newsletterFields ?? ["name", "email"],
+          // Only SoundCloud tracks and direct audio files can autoplay
+          autoplay_url: getAutoplaySource(body.autoplayUrl) ? String(body.autoplayUrl).trim() : null,
         },
         { onConflict: "user_id" }
       )

@@ -2,6 +2,7 @@
 /* eslint-disable */
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
+import { getAutoplaySource } from "@/libs/autoplay";
 import { useSession, signOut } from "next-auth/react";
 import posthog from "posthog-js";
 import ButtonSupport from "@/components/ButtonSupport";
@@ -24,6 +25,7 @@ import {
   faStore,
   faBullhorn,
   faPen,
+  faMusic,
 } from "@fortawesome/free-solid-svg-icons";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import Head from 'next/head';
@@ -208,6 +210,7 @@ const LinkInBio = () => {
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
+  const [autoplayUrl, setAutoplayUrl] = useState("");
   const [newsletterFields, setNewsletterFields] = useState<string[]>(["name", "email"]);
   const [cardBgOpacity, setCardBgOpacity] = useState(100);
   const [picker, setPicker] = useState<{ type: 'link'; index: number } | { type: 'brand' } | null>(null);
@@ -364,6 +367,7 @@ const LinkInBio = () => {
       setBrandLogoUrl(data.brandLogoUrl || "");
       setCardBgOpacity(parseColorValue(data.cardBgColor, "#ffffff").opacity);
       setNewsletterEnabled(!!data.newsletterEnabled);
+      setAutoplayUrl(data.autoplayUrl || "");
       setNewsletterFields(Array.isArray(data.newsletterFields) ? data.newsletterFields : ["name", "email"]);
     } catch (e) {
       setAlertt(e?.message);
@@ -536,6 +540,7 @@ const LinkInBio = () => {
         brandLogoUrl: brandLogoUrl || null,
         newsletterEnabled: newsletterEnabled,
         newsletterFields: newsletterFields.includes("email") ? newsletterFields : [...newsletterFields, "email"],
+        autoplayUrl: autoplayUrl.trim(),
       });
       posthog.capture("link_in_bio_saved", { links_count: links.length });
       setAlertt("Link In Bio updated successfully");
@@ -1406,6 +1411,22 @@ const LinkInBio = () => {
                   ))}
                 </div>
               </div>
+            )}
+          </div>
+
+          {/* ── Autoplay song ── */}
+          <div className="mb-4 p-4 bg-sky-50 rounded-md border border-sky-100">
+            <label className="font-bold text-sky-800 block mb-1"><FontAwesomeIcon icon={faMusic} className="mr-1.5" /> Autoplay a song</label>
+            <p className="text-sky-700 text-sm mb-2">Paste a SoundCloud track link or a direct MP3 link. It plays in a small player on your page and pauses when a visitor plays a video. Browsers only allow sound after a visitor taps the page, so if it can't start right away it starts on their first tap.</p>
+            <input
+              type="url"
+              className="input input-sm w-full"
+              placeholder="https://soundcloud.com/you/your-song"
+              value={autoplayUrl}
+              onChange={(e) => setAutoplayUrl(e.target.value)}
+            />
+            {autoplayUrl.trim() && !getAutoplaySource(autoplayUrl) && (
+              <p className="text-xs text-red-500 mt-1">Use a SoundCloud track link (soundcloud.com/artist/song) or a direct audio file link ending in .mp3, .m4a, or .wav.</p>
             )}
           </div>
 

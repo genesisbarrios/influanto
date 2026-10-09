@@ -6,6 +6,7 @@ import MetaPixel, { trackLinkClick, trackStreamingClick, trackMerchClick } from 
 import ButtonSupport from "@/components/ButtonSupport";
 import ButtonEdit from "@/components/ButtonEdit";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import AutoplayPlayer from "@/components/AutoplayPlayer";
 import ViewOnMobileQR from "@/components/ViewOnMobileQR";
 import * as HeroPatterns from 'hero-patterns';
 import { faInstagram, faFacebook, faTelegram, faTiktok, faSoundcloud, faLinkedin, faApple, faAmazon, faEtsy, faYoutube, faPatreon, faGithub, faWebAwesome, faWebflow, faTwitter, faSpotify, faBandcamp, faDeezer, faYoutubeSquare, faSquareYoutube } from "@fortawesome/free-brands-svg-icons";
@@ -30,6 +31,7 @@ const LinkInBioPage =  () => {
   const [bgColor, setBgColor] = useState("");
   const [textColor, setTextColor]  = useState("");
   const [linksColor, setLinksColor] = useState("");
+  const [autoplayUrl, setAutoplayUrl] = useState("");
   const [links, setLinks] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlertt] = useState("");
@@ -122,6 +124,7 @@ useEffect(() => {
         setBgColor(data.linkInBio?.backgroundColor);
         setTextColor(data.linkInBio?.textColor);
         setLinksColor(data.linkInBio?.linksColor);
+        setAutoplayUrl(data.linkInBio?.autoplayUrl || "");
         setLinks(data.linkInBio?.links);
         
         // Set premium styling options
@@ -266,6 +269,7 @@ useEffect(() => {
 
 return (
  <>
+  {autoplayUrl && <AutoplayPlayer url={autoplayUrl} accentColor={linksColor || undefined} />}
   {user?.metaPixelId && (
     <MetaPixel
       pixelId={user.metaPixelId}
@@ -428,7 +432,7 @@ return (
                     width="100%"
                     height="315"
                     style={{ maxWidth: '100%', borderRadius: '12px' }}
-                    src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}`}
+                    src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}?enablejsapi=1`}
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
