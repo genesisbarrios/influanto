@@ -166,7 +166,7 @@ export default function PostReleasePages() {
 
             {/* GIF preview */}
             <div style={{ margin: "2.5rem 0 0", borderRadius: 12, overflow: "hidden", border: "1px solid #e5e7eb", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
-              <img src="/solymar_releasepage.gif" alt="Example of an Influanto release page for an indie artist" style={{ width: "100%", display: "block" }} />
+              <img src="/solymar_releasepage.webp" alt="Example of an Influanto release page for an indie artist" style={{ width: "100%", display: "block" }} />
             </div>
 
             {/* CTA */}
