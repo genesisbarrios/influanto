@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import supabase, { mapPublicUser, mapReleasePage, findReleasePageBySlug } from "@/libs/supabase";
 import { isNewsletterFull } from "@/libs/newsletter-limit";
+import { resolveEpkReleases } from "@/libs/epkReleases";
 
 // Always serve fresh data — never cache this public lookup.
 export const dynamic = "force-dynamic";
@@ -31,8 +32,11 @@ export async function GET(_req: NextRequest, { params }: { params: { slug: strin
 
     const newsletterFull = await isNewsletterFull(user.id);
 
+    const page: any = mapReleasePage(releasePage);
+    if (page.pageType === "epk") page.epkReleases = await resolveEpkReleases(releasePage.user_id, releasePage.epk);
+
     return NextResponse.json(
-      { data: { releasePage: mapReleasePage(releasePage), user: { ...mapPublicUser(user), newsletterFull } } },
+      { data: { releasePage: page, user: { ...mapPublicUser(user), newsletterFull } } },
       { status: 200 }
     );
   } catch (e) {
