@@ -65,8 +65,10 @@ export default function Dashboard() {
   const components: any = {
     'profile': <Profile />,
     'link-in-bio': <LinkInBio />,
-    'release-page': <ReleasePage />,
-    'epk': <ReleasePage mode="epk" />,
+    // Distinct keys so switching between these two tabs remounts the editor
+    // (otherwise React reuses it and keeps the other tab's list)
+    'release-page': <ReleasePage key="release" />,
+    'epk': <ReleasePage key="epk" mode="epk" />,
     'qr-code-generator': <QRCodeGenerator />,
     'split-sheets': <SplitSheets />,
     'outreach': <Outreach />,
