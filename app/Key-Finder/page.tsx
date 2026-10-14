@@ -7,6 +7,7 @@ import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMicrophone, faMusic, faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
 
+import AdSlot from "@/components/AdSlot";
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 // Krumhansl–Schmuckler key profiles
@@ -301,6 +302,7 @@ export default function KeyFinder() {
         #key-bg { background: #638bcf !important; }
         @media (min-width: 640px) { #key-bg { flex-direction: row !important; } }
       `}</style>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <Footer />
     </>
   );

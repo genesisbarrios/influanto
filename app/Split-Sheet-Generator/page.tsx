@@ -10,6 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { sanitizeFilename } from "@/libs/urls";
 
+import AdSlot from "@/components/AdSlot";
 export default function SplitSheetTemplate() {
   const showSidebar = useShowJoinSidebar();
 
@@ -658,6 +659,7 @@ const handleDownloadPDF = () => {
           }
         }
       `}</style>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <SplitSheetSeo variant="generator" />
       <Footer />
     </>

@@ -38,6 +38,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         
         <head>
           <PlausibleProvider domain={config.domainName} />
+          {/* Google AdSense site verification (no ads load from this; ads only run on the free tool pages) */}
+          <meta name="google-adsense-account" content="ca-pub-2067357688991301" />
           <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y8YZX4PWTB" />
           <script
 

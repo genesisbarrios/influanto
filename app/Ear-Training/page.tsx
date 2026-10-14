@@ -16,6 +16,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
+import AdSlot from "@/components/AdSlot";
 // ── Pitch detection (autocorrelation, same as Tuner) ─────────────────────────
 
 function autoCorrelate(buf: Float32Array, sampleRate: number): number {
@@ -709,6 +710,7 @@ export default function EarTraining() {
 
         </div>
       </div>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <Footer />
     </>
   );

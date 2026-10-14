@@ -10,6 +10,7 @@ import { readWavTags, writeWavTags } from "@/libs/wav-tags";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMusic, faCircleCheck, faDownload } from "@fortawesome/free-solid-svg-icons";
 
+import AdSlot from "@/components/AdSlot";
 interface Tags {
   title: string; artist: string; album: string; composer: string;
   year: string; genre: string; copyright: string; url: string; comment: string;
@@ -188,6 +189,7 @@ export default function MetadataEditor() {
         <ToolJoinSidebar show={showSidebar} />
       </div>
       <style>{`#meta-bg{background:#638bcf !important;} @media (min-width:640px){#meta-bg{flex-direction:row !important;}}`}</style>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <Footer />
     </>
   );

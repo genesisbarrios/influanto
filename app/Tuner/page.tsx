@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 
+import AdSlot from "@/components/AdSlot";
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 // ── Pitch detection (autocorrelation, ACF2+) ──────────────────────────────────
@@ -189,6 +190,7 @@ export default function Tuner() {
           #tuner-bg { flex-direction: row !important; }
         }
       `}</style>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <Footer />
     </>
   );
