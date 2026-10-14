@@ -73,7 +73,7 @@ export default function AdSlot({
   if (!show || !slot) return null;
   return (
     <div className={className} style={{ textAlign: "center", ...style }}>
-      <p style={{ fontSize: 10, letterSpacing: 1, textTransform: "uppercase", opacity: 0.5, margin: "0 0 4px" }}>Advertisement</p>
+      <p style={{ fontSize: 10, letterSpacing: 1, textTransform: "uppercase", color: "#9ca3af", margin: "0 0 4px" }}>Advertisement</p>
       <ins
         className="adsbygoogle"
         style={{ display: "block" }}
@@ -82,7 +82,7 @@ export default function AdSlot({
         data-ad-format="auto"
         data-full-width-responsive="true"
       />
-      <a href="/#pricing" style={{ display: "inline-block", fontSize: 11, opacity: 0.6, marginTop: 4, color: "inherit" }}>Go ad-free with Influanto Pro</a>
+      <a href="/#pricing" style={{ display: "inline-block", fontSize: 11, marginTop: 4, color: "#6b7280" }}>Go ad-free with Influanto Pro</a>
     </div>
   );
 }

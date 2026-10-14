@@ -184,7 +184,9 @@ export default function Tools() {
       </div>
       {/* Right: Sign up and info */}
       {showSidebar && (
-        <div style={{ background: "#fff" }} className="w-full sm:w-1/4">
+        <div style={{ background: "#fff" }} className="w-full sm:w-1/4 flex flex-col">
+          {/* Own wrapper so the sticky Join box stops above the ad instead of sliding over it */}
+          <div className="flex-1">
           <div
             style={{
               position: "sticky",
@@ -220,6 +222,9 @@ export default function Tools() {
               </p>
             </div>
           </div>
+          </div>
+          {/* Ad at the very bottom of the sidebar: only seen after scrolling all the way down */}
+          <AdSlot className="w-full px-4 pb-8 mt-auto" />
         </div>
       )}
     </div>
@@ -239,7 +244,8 @@ export default function Tools() {
         }
       }
     `}</style>
-    <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
+    {/* Signed-in free accounts have no sidebar, so their ad goes at the bottom of the page */}
+    {!showSidebar && <AdSlot className="max-w-4xl mx-auto px-4 py-6" />}
     <Footer></Footer>
     </>
   );
