@@ -83,6 +83,7 @@ const Footer = () => {
               <div className="flex flex-col justify-center items-center md:items-start gap-2 mb-10 text-sm">
                 <Link href="/link-in-bio" className="link link-hover">Link in Bio</Link>
                 <Link href="/newsletter" className="link link-hover">Newsletter &amp; Mailing List</Link>
+                <Link href="/split-sheets" className="link link-hover">Split Sheets</Link>
                 <Link href="/Split-Sheet-Generator" className="link link-hover">Split Sheet Generator</Link>
                 <Link href="/Split-Sheet-Template" className="link link-hover">Split Sheet Template</Link>
                 <Link href="/qr-code-generator" className="link link-hover">QR Code Generator</Link>

@@ -15,13 +15,14 @@ const Hero = () => {
         </h1>
         <p className="text-lg opacity-80 leading-relaxed">
           <Link href="/link-in-bio" className="link link-hover">Link In Bio</Link>, Release Pages, Electronic Press Kits (EPK),{" "}
-          <Link href="/Split-Sheet-Generator" className="link link-hover">Split Sheet Generator</Link>,{" "}
-          <Link href="/newsletter" className="link link-hover">Newsletter and Contact Management</Link>,{" "}
+          <Link href="/split-sheets" className="link link-hover">Split Sheets</Link>,{" "}
+          <Link href="/newsletter" className="link link-hover">Newsletter & Mailing List</Link>,{" "}
           <Link href="/qr-code-generator" className="link link-hover">QR Code Generator</Link>, and{" "}
           <Link href="/playlist-curator-tool" className="link link-hover">Playlist Curator Contact Tool</Link>.
         </p>
         <p className="text-lg opacity-80 leading-relaxed">
-          <Link href="/tools" className="link link-hover">Free Musician Tools</Link>: Delay / Reverb & BPM Calculator, Key Finder,{" "}
+          <Link href="/tools" className="link link-hover">Free Musician Tools</Link>: Reverb & BPM Calculator,{" "}
+          <Link href="/Split-Sheet-Generator" className="link link-hover">Split Sheet Generator</Link>, Key Finder,{" "}
           <Link href="/Metronome" className="link link-hover">Online Metronome</Link>, Online Synth + more.
         </p>
         <ButtonGetInfluanto />
