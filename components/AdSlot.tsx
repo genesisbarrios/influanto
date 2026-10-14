@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 // slot renders; without a slot ID (NEXT_PUBLIC_ADSENSE_TOOLS_SLOT) it loads the
 // script alone so AdSense Auto ads can place ads.
 
-import { ADSENSE_CLIENT } from "@/libs/ads";
+import { ADSENSE_CLIENT, ADSENSE_TOOLS_SLOT } from "@/libs/ads";
 
 declare global {
   interface Window { adsbygoogle?: unknown[] }
@@ -48,7 +48,7 @@ function loadAdsense() {
 }
 
 export default function AdSlot({
-  slot = process.env.NEXT_PUBLIC_ADSENSE_TOOLS_SLOT || "",
+  slot = ADSENSE_TOOLS_SLOT,
   className = "",
   style,
 }: {
