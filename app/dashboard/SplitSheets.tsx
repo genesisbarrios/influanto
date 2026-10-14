@@ -8,8 +8,9 @@ import posthog from "posthog-js";
 import ImportContactsModal, { ImportField } from "@/components/ImportContactsModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFileArrowUp, faXmark, faFileLines } from "@fortawesome/free-solid-svg-icons";
-import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from "recharts";
+import OwnershipPie from "@/components/OwnershipPie";
 import { sanitizeFilename } from "@/libs/urls";
+import { drawOwnershipPie } from "@/libs/splitSheetPie";
 
 const FREE_SPLIT_SHEET_LIMIT = 5;
 
@@ -47,65 +48,6 @@ const BLANK_SHEET = (): Partial<SplitSheet> => ({
   title: "", date: new Date().toLocaleDateString("en-US"), artists: "",
   stateCountry: "", contributors: [{ ...BLANK_CONTRIBUTOR }], publishing: [], status: "draft",
 });
-
-// ─── Ownership pie chart ────────────────────────────────────────────────────────
-
-const PIE_PALETTE = [
-  "#2563eb", "#7c3aed", "#0ea5e9", "#10b981", "#f59e0b",
-  "#ef4444", "#ec4899", "#14b8a6", "#8b5cf6", "#84cc16",
-];
-
-function getOwnershipData(contributors: Contributor[]): { name: string; value: number }[] {
-  return (contributors ?? [])
-    .filter(c => c.name)
-    .map(c => ({ name: c.name, value: parseFloat(String(c.ownership).replace("%", "")) || 0 }))
-    .filter(c => c.value > 0);
-}
-
-function OwnershipPie({ contributors, size = "large" }: { contributors: Contributor[]; size?: "large" | "small" }) {
-  const data = getOwnershipData(contributors);
-
-  if (data.length === 0) {
-    return size === "small" ? null : (
-      <p className="text-xs text-gray-400 text-center py-8">Add ownership % to see the split</p>
-    );
-  }
-
-  if (size === "small") {
-    return (
-      <ResponsiveContainer width={56} height={56}>
-        <PieChart>
-          <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={26}>
-            {data.map((_, i) => <Cell key={i} fill={PIE_PALETTE[i % PIE_PALETTE.length]} />)}
-          </Pie>
-          <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #e5e7eb" }} formatter={(v: any) => `${v}%`} />
-        </PieChart>
-      </ResponsiveContainer>
-    );
-  }
-
-  return (
-    <ResponsiveContainer width="100%" height={220}>
-      <PieChart>
-        <Pie
-          data={data}
-          dataKey="value"
-          nameKey="name"
-          cx="50%"
-          cy="50%"
-          outerRadius={70}
-          innerRadius={32}
-          label={({ name, value }: any) => `${name} ${value}%`}
-          labelLine={false}
-        >
-          {data.map((_, i) => <Cell key={i} fill={PIE_PALETTE[i % PIE_PALETTE.length]} />)}
-        </Pie>
-        <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e5e7eb" }} formatter={(v: any) => `${v}%`} />
-      </PieChart>
-    </ResponsiveContainer>
-  );
-}
 
 // ─── PDF export (mirrors the public split sheet generator) ────────────────────
 
@@ -202,6 +144,9 @@ function downloadSheetPDF(sheet: Partial<SplitSheet>) {
     y += 6;
   });
   doc.setTextColor(0);
+
+  // Ownership pie chart under the terms
+  y = drawOwnershipPie(doc, contributors, y);
 
   const filenameParts = [sanitizeFilename(sheet.title || "") || "split-sheet", "splitsheet", "influanto"];
   if (sheet.date) filenameParts.push(sanitizeFilename(sheet.date));
@@ -600,7 +545,7 @@ export default function SplitSheets() {
           <button className="btn btn-sm" onClick={() => { setView("list"); setEditingSheet(null); setAlert(""); }}>← Back</button>
         </div>
 
-        <div className="space-y-4 max-w-2xl">
+        <div className="space-y-4 w-[95%] mx-auto">
           {/* Basic info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>

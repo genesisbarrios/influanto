@@ -9,6 +9,8 @@ import jsPDF from "jspdf";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { sanitizeFilename } from "@/libs/urls";
+import { drawOwnershipPie } from "@/libs/splitSheetPie";
+import OwnershipPie from "@/components/OwnershipPie";
 
 import AdSlot from "@/components/AdSlot";
 export default function SplitSheetTemplate() {
@@ -275,6 +277,9 @@ const handleDownloadPDF = () => {
   });
   doc.setTextColor(0);
 
+  // Ownership pie chart under the terms
+  y = drawOwnershipPie(doc, contributors, y);
+
   // Signatures
   y += 8;
   if (y + 20 > pageHeight - 20) { doc.addPage(); y = 20; }
@@ -527,6 +532,11 @@ const handleDownloadPDF = () => {
                 <b>Dispute Resolution:</b> Any disputes that arise concerning the ownership or distribution of royalties will be resolved through mediation or arbitration under the laws of [{(form as any).stateCountry || "State/Country"}].<br />
                 <b>Signatures:</b> By signing below, all parties agree to the terms outlined in this Split Sheet and acknowledge that their contributions to the song are accurately reflected.
               </div>
+            </div>
+
+            <div style={{ marginBottom: 16, background: "#f3f4f6", borderRadius: 8, padding: "1rem" }}>
+              <div style={{ fontSize: "1.2em", color: "#444" }}><b>Ownership Split:</b></div>
+              <OwnershipPie contributors={contributors} />
             </div>
 
              <h2 className="text-xl font-bold mb-4">Signatures:</h2>
