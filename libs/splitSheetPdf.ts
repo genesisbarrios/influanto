@@ -4,6 +4,7 @@
 // format) work identically in the browser and in Node.
 import jsPDF from "jspdf";
 import { sanitizeFilename } from "@/libs/urls";
+import { drawOwnershipPie } from "@/libs/splitSheetPie";
 
 export interface SplitSheetPdfContributor {
   name: string;
@@ -115,6 +116,9 @@ export function buildSplitSheetPdf(
     doc.text(line, 10, y); y += 6;
   });
   doc.setTextColor(0);
+
+  // Ownership pie chart under the terms
+  drawOwnershipPie(doc, contributors, y);
 
   return doc;
 }

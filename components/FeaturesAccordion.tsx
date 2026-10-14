@@ -241,7 +241,7 @@ const Media = ({ feature }: { feature: Feature }) => {
       <Image
         src={path || "/fallback-image.png"}
         alt={alt || "Default alt text"}
-        className="rounded-2xl w-full sm:w-[26rem] h-auto"
+        className="rounded-2xl w-full sm:w-[26rem] lg:w-full lg:max-w-[38rem] h-auto"
         width={isStatic ? (path as any).width : (featureWidth ?? size.width)}
         height={isStatic ? (path as any).height : (featureHeight ?? size.height)}
       />
