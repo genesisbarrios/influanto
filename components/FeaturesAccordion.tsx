@@ -96,7 +96,7 @@ const features = [
   },
   {
     title: "QR Code Generator",
-    description: "Create FREE Static QR Codes!",
+    description: "Create up to 10 static QR codes with a free account. Upgrade for dynamic QR codes you can edit after printing, with scan analytics and advanced styling.",
     type: "image",
     path: image,
     alt: "influanto qr code",
