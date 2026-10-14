@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import type { JSX } from "react";
 
+import config from "@/config";
 // <FAQ> component is a lsit of <Item> component
 // Just import the FAQ & add your FAQ content to the const faqList arrayy below.
 
@@ -20,8 +21,11 @@ const faqList: FAQItemProps[] = [
     question: "Can I get a refund?",
     answer: (
       <p>
-        Yes! You can request a refund within 7 days of your purchase. Reach out
-        by email.
+        Yes! You can request a refund within 7 days of your purchase. Reach out{" "}
+        <a href={`mailto:${config.mailgun.supportEmail}?subject=${encodeURIComponent("Refund request")}`} className="link link-primary">
+          by email
+        </a>
+        .
       </p>
     ),
   },
