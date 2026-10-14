@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SplitSheetSeo from "@/components/SplitSheetSeo";
 
+import AdSlot from "@/components/AdSlot";
 export default function SplitSheetTemplate() {
   return (
     <div className="min-h-screen bg-base-100">
@@ -65,6 +66,7 @@ export default function SplitSheetTemplate() {
           </div>
         </div>
       </main>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <SplitSheetSeo variant="template" />
       <Footer />
     </div>

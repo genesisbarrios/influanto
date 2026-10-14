@@ -20,6 +20,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
+import AdSlot from "@/components/AdSlot";
 const calcDelayMs = (bpm: number, note: number) => {
   if (!bpm || !note) return "";
   return ((60000 / bpm) * note).toFixed(2);
@@ -238,6 +239,7 @@ export default function Tools() {
         }
       }
     `}</style>
+    <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
     <Footer></Footer>
     </>
   );

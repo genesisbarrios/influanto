@@ -10,6 +10,7 @@ import piexif from "piexifjs";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation, faCircleCheck, faBroom, faDownload } from "@fortawesome/free-solid-svg-icons";
 
+import AdSlot from "@/components/AdSlot";
 function dataUrlToBlob(dataUrl: string): Blob {
   const [head, b64] = dataUrl.split(",");
   const mime = head.match(/:(.*?);/)?.[1] || "image/jpeg";
@@ -188,6 +189,7 @@ export default function ImagePrivacy() {
         <ToolJoinSidebar show={showSidebar} />
       </div>
       <style>{`#img-bg{background:#638bcf !important;} @media (min-width:640px){#img-bg{flex-direction:row !important;}}`}</style>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <Footer />
     </>
   );

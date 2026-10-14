@@ -12,6 +12,7 @@ import { useSession } from "next-auth/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 
+import AdSlot from "@/components/AdSlot";
 type BlobPart = any; 
 
 const SYNTH_TYPES = [
@@ -1726,6 +1727,7 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
 </div>
 
       </div>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <Footer />
       <style>{`
         .pad:active {
