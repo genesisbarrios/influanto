@@ -6,7 +6,6 @@ import Image from "next/image";
 import image from "@/app/qrcode.png";
 import playlist from "@/app/Playlist.png";
 import link from "@/app/linkInBio.png";
-import outreach from "@/app/outreach_horizontal.png";
 
 interface Feature {
   title: string;
@@ -37,7 +36,7 @@ const features = [
     description: "Create a Link in Bio Page, Promotional Pages for your Releases, and an Electronic Press Kit (EPK) with a downloadable PDF for bookers and press.",
     type: "image",
     path: link,
-    alt: "computer picture",
+    alt: "Influanto Link in Bio on a laptop and phone",
     svg: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -57,8 +56,10 @@ const features = [
     title: "Newsletter & Mailing List",
     description: "Grow your mailing list from your Link in Bio and Release Pages, manage your contacts, send newsletters to your fans, and track analytics.",
     type: "image",
-    path: outreach,
-    alt: "A computer",
+    path: "/newsletter_feature.png",
+    width: 960,
+    height: 1260,
+    alt: "Influanto newsletter email announcing a new single",
     svg: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 15.553Z" />
@@ -71,7 +72,7 @@ const features = [
     description: "Use our Curator Search Tool to find the right contacts for your music, and reach out to them directly from the platform.",
     type: "image",
     path: playlist,
-    alt: "A computer",
+    alt: "Influanto Spotify playlist curator search",
     svg: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 15.553Z" />
@@ -83,10 +84,10 @@ const features = [
     title: "Split Sheets",
     description: "Create split sheets to document every collaboration. Add each contributor's role and ownership %, send it to your collaborators to sign online, and download a signed PDF with an ownership chart.",
     type: "image",
-    path: "/split sheet create.png",
-    width: 2520,
-    height: 1436,
-    alt: "influanto split sheet create screen",
+    path: "/splitsheet_feature.png",
+    width: 998,
+    height: 1448,
+    alt: "Influanto split sheet PDF with signatures and ownership chart",
     svg: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
@@ -99,7 +100,7 @@ const features = [
     description: "Create up to 10 static QR codes with a free account. Upgrade for dynamic QR codes you can edit after printing, with scan analytics and advanced styling.",
     type: "image",
     path: image,
-    alt: "influanto qr code",
+    alt: "Influanto QR code generator",
     svg: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
@@ -237,11 +238,17 @@ const Media = ({ feature }: { feature: Feature }) => {
     // Use each image's real dimensions so wide/horizontal art keeps its aspect
     // ratio instead of being cropped into a square.
     const isStatic = typeof path === "object" && path !== null;
+    const w = isStatic ? (path as any).width : (featureWidth ?? size.width);
+    const h = isStatic ? (path as any).height : (featureHeight ?? size.height);
+    // Tall screenshots (email, PDF) get a capped height so they don't swamp the section
+    const portrait = h > w;
     return (
       <Image
         src={path || "/fallback-image.png"}
         alt={alt || "Default alt text"}
-        className="rounded-2xl w-full sm:w-[26rem] lg:w-full lg:max-w-[38rem] h-auto"
+        className={portrait
+          ? "rounded-2xl h-auto w-auto max-h-[30rem] max-w-full mx-auto shadow-xl"
+          : "rounded-2xl w-full sm:w-[26rem] lg:w-full lg:max-w-[38rem] h-auto"}
         width={isStatic ? (path as any).width : (featureWidth ?? size.width)}
         height={isStatic ? (path as any).height : (featureHeight ?? size.height)}
       />
