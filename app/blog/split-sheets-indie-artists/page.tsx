@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLink, faMusic } from "@fortawesome/free-solid-svg-icons";
 
+import AdSlot from "@/components/AdSlot";
 export const metadata: Metadata = {
   title: "Why Split Sheets Are Non-Negotiable for Indie Music Collaborations | Influanto",
   description: "A verbal agreement doesn't protect your royalties. Learn why every independent artist, producer, and songwriter needs a split sheet before releasing any collaborative music — and what to include.",
@@ -224,6 +225,7 @@ export default function PostSplitSheets() {
           </div>
         </article>
       </main>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-8" />
       <Footer />
     </>
   );

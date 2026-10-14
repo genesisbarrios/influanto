@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFileLines, faMusic } from "@fortawesome/free-solid-svg-icons";
 
+import AdSlot from "@/components/AdSlot";
 export const metadata: Metadata = {
   title: "Struggling to Write Melodies? You Might Need Ear Training | Influanto",
   description: "Can't come up with melodies that stick? Ear training builds the skill that connects what you hear to what you play. Learn the exercises and basic music theory every artist and producer needs.",
@@ -187,6 +188,7 @@ export default function PostEarTraining() {
           </div>
         </article>
       </main>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-8" />
       <Footer />
     </>
   );

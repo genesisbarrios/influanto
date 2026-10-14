@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLink, faMusic } from "@fortawesome/free-solid-svg-icons";
 
+import AdSlot from "@/components/AdSlot";
 export const metadata: Metadata = {
   title: "Why Independent Artists Need a Newsletter | Influanto",
   description: "Social media followers aren't enough. Learn why every independent artist and music producer needs an email newsletter — and how to start building your list today.",
@@ -239,6 +240,7 @@ export default function PostNewsletter() {
           </div>
         </article>
       </main>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-8" />
       <Footer />
     </>
   );

@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFileLines, faMusic } from "@fortawesome/free-solid-svg-icons";
 
+import AdSlot from "@/components/AdSlot";
 export const metadata: Metadata = {
   title: "Why Every Independent Artist Needs a Link in Bio | Influanto",
   description: "One social media bio link isn't enough. Learn why independent artists and music producers need a link in bio page to consolidate their streaming profiles, merch, and fan outreach in one place.",
@@ -183,6 +184,7 @@ export default function PostLinkInBio() {
           </div>
         </article>
       </main>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-8" />
       <Footer />
     </>
   );

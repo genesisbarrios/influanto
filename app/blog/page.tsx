@@ -9,6 +9,7 @@ import { faQrcode, faEarListen, faFileLines, faEnvelope, faLink, faMusic } from 
 import { faSpotify, faMeta } from "@fortawesome/free-brands-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
+import AdSlot from "@/components/AdSlot";
 export const metadata: Metadata = {
   title: "Music Blog for Independent Artists & Producers | Influanto",
   description: "Tips, guides, and tools for independent musicians and music producers. Learn how to grow your music career, protect your royalties, and promote your releases online.",
@@ -172,6 +173,7 @@ export default function BlogIndex() {
       <style>{`
         .blog-card:hover { box-shadow: 0 8px 32px rgba(99,102,241,0.13) !important; transform: translateY(-2px); }
       `}</style>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-8" />
       <Footer />
     </>
   );
