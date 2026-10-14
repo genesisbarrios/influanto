@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLink, faMusic } from "@fortawesome/free-solid-svg-icons";
 
+import AdSlot from "@/components/AdSlot";
 export const metadata: Metadata = {
   title: "How to Set Up a Meta Pixel for Your Music (and Test It) | Influanto",
   description: "Step-by-step guide for independent artists: create a Meta (Facebook) Pixel for your website, connect it to your Influanto Link in Bio and Release Pages, and confirm it works with Test Events.",
@@ -216,6 +217,7 @@ export default function PostMetaPixel() {
           </div>
         </article>
       </main>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-8" />
       <Footer />
     </>
   );

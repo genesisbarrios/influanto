@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLink, faMusic } from "@fortawesome/free-solid-svg-icons";
 
+import AdSlot from "@/components/AdSlot";
 export const metadata: Metadata = {
   title: "Guerrilla Marketing for Indie Artists: Using QR Codes to Market in the Real World | Influanto",
   description: "No street team, no budget, no problem. Here's how independent artists use QR codes and low-cost guerrilla marketing tactics to turn flyers, stickers, and street art into streams.",
@@ -172,6 +173,7 @@ export default function PostGuerrillaMarketing() {
           </div>
         </article>
       </main>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-8" />
       <Footer />
     </>
   );

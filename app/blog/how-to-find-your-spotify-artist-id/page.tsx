@@ -10,6 +10,7 @@ import { faEarListen, faFileLines } from "@fortawesome/free-solid-svg-icons";
 import { faSpotify, faApple, faAmazon, faDeezer } from "@fortawesome/free-brands-svg-icons";
 import UrlAnatomy from "@/components/UrlAnatomy";
 
+import AdSlot from "@/components/AdSlot";
 export const metadata: Metadata = {
   title: "How to Find Your Spotify Artist ID (and Apple, Tidal, Amazon, Pandora, Deezer, Qobuz) | Influanto",
   description: "Step-by-step instructions for finding your artist ID on Spotify, Apple Music, Tidal, Amazon Music, Pandora, Deezer, and Qobuz — with the exact URL to look at for each platform.",
@@ -182,6 +183,7 @@ export default function PostSpotifyArtistId() {
           </div>
         </article>
       </main>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-8" />
       <Footer />
     </>
   );

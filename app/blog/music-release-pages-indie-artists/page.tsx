@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFileLines, faLink } from "@fortawesome/free-solid-svg-icons";
 
+import AdSlot from "@/components/AdSlot";
 export const metadata: Metadata = {
   title: "Why Indie Artists Should Use Release Pages Instead of Pasting Links | Influanto",
   description: "Stop dropping Spotify links in your Instagram Stories. Learn why dedicated music release pages help independent artists and producers get more streams, grow their fanbase, and look professional on every platform.",
@@ -202,6 +203,7 @@ export default function PostReleasePages() {
           </div>
         </article>
       </main>
+      <AdSlot className="max-w-4xl mx-auto px-4 py-8" />
       <Footer />
     </>
   );
