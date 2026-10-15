@@ -112,7 +112,6 @@ export default function LinkShortenerPage() {
         <ToolJoinSidebar show={showSidebar} />
       </div>
 
-      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <SeoContent
         sections={[
           {
@@ -134,6 +133,7 @@ export default function LinkShortenerPage() {
           { href: "/tools", label: "More free music tools" },
         ]}
       />
+      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
 
       <style>{`
         #shortener-bg { background: #638bcf !important; }

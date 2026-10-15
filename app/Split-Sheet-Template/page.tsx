@@ -66,8 +66,8 @@ export default function SplitSheetTemplate() {
           </div>
         </div>
       </main>
-      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <SplitSheetSeo variant="template" />
+      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <Footer />
     </div>
   );
