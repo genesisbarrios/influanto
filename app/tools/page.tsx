@@ -17,6 +17,7 @@ import {
   faTag,
   faShieldHalved,
   faScrewdriverWrench,
+  faLink,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
@@ -90,6 +91,13 @@ const tools: { title: string; description: string; href: string; icon: IconDefin
     href: "/Metronome",
     icon: faMetronome,
     color: "#0369a1",
+  },
+  {
+    title: "Link Shortener",
+    description: "Turn long streaming and merch links into short influanto.com links with click counts.",
+    href: "/Link-Shortener",
+    icon: faLink,
+    color: "#2563eb",
   },
   {
     title: "Music Metadata Editor",

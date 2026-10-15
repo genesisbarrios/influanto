@@ -140,6 +140,16 @@ const migrations = [
     reason TEXT DEFAULT '',
     created_at TIMESTAMPTZ DEFAULT NOW()
   )`,
+
+  // link shortener: influanto.com/s/<code>
+  `CREATE TABLE IF NOT EXISTS short_links (
+    code TEXT PRIMARY KEY,
+    url TEXT NOT NULL,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    clicks INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS short_links_user_idx ON short_links(user_id)`,
 ];
 
 async function run() {
