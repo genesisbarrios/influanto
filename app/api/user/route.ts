@@ -35,6 +35,28 @@ export async function POST(req: Request) {
       updates.image = imageUrl;
     }
 
+    // Date of birth (private, optional): YYYY-MM-DD; empty clears it. The Terms
+    // require users to be at least 13.
+    const birthVal = formData.get("birthDate") as string | null;
+    if (birthVal !== null) {
+      const v = birthVal.trim();
+      if (!v) {
+        updates.birth_date = null;
+      } else {
+        const d = new Date(`${v}T00:00:00Z`);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || isNaN(d.getTime()) || d > new Date() || d.getUTCFullYear() < 1900) {
+          return NextResponse.json({ error: "Please enter a valid date of birth." }, { status: 400 });
+        }
+        const now = new Date();
+        let age = now.getUTCFullYear() - d.getUTCFullYear();
+        if (now.getUTCMonth() < d.getUTCMonth() || (now.getUTCMonth() === d.getUTCMonth() && now.getUTCDate() < d.getUTCDate())) age--;
+        if (age < 13) {
+          return NextResponse.json({ error: "You must be at least 13 years old to use Influanto." }, { status: 400 });
+        }
+        updates.birth_date = v;
+      }
+    }
+
     // Meta Pixel ID: an empty value removes the pixel. Accepts the bare ID or a
     // pasted pixel snippet, and stores only the numeric ID.
     const pixelVal = formData.get("metaPixelId") as string | null;

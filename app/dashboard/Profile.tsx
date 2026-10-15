@@ -51,6 +51,7 @@ const Profile =  () => {
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [location, setLocation] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [instagram, setInstagram] = useState("");
   const [twitter, setTwitter] = useState("");
   const [discord, setDiscord] = useState("");
@@ -713,6 +714,7 @@ const handleYouTubeMusicChange = (e: any) => {
       setFormEmail(data.email);
       setDisplayEmail(data.displayEmail);
       setLocation(data.location);
+      setBirthDate(data.birthDate ? String(data.birthDate).slice(0, 10) : "");
       setWebsite(data.website);
       setBio(data.bio);
       setCategory(Array.isArray(data.category) ? data.category : []);
@@ -869,6 +871,7 @@ const handleYouTubeMusicChange = (e: any) => {
       if (formEmail !== undefined && formEmail !== null && formEmail !== "") formData.append("email", formEmail);
       if (displayEmail !== undefined && displayEmail !== null) formData.append("displayEmail", displayEmail.toString());
       if (location !== undefined && location !== null) formData.append("location", location);
+      formData.append("birthDate", birthDate || "");
       if (website !== undefined && website !== null) formData.append("website", website);
       if (bio !== undefined && bio !== null) formData.append("bio", bio);
       formData.append("category", JSON.stringify(category));
@@ -1443,6 +1446,15 @@ const handleYouTubeMusicChange = (e: any) => {
               onChange={(e) => handleLocationChange(e)}
             />
             <br />
+            <label style={{display:"block"}}>Date of Birth</label>
+            <input
+              type="date"
+              className="input mb-1 w-3/4"
+              value={birthDate}
+              max={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => setBirthDate(e.target.value)}
+            />
+            <p className="text-xs text-gray-500 mb-2 w-3/4">Private — never shown on your public pages. You must be at least 13 to use Influanto.</p>
             <label style={{display:"block"}}>Category</label>
             {!showCategoryPicker && (
               <button
