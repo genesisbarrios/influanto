@@ -669,8 +669,8 @@ const handleDownloadPDF = () => {
           }
         }
       `}</style>
-      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <SplitSheetSeo variant="generator" />
+      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <Footer />
     </>
   );

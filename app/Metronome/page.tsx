@@ -285,7 +285,6 @@ export default function MetronomePage() {
         <ToolJoinSidebar show={showSidebar} />
       </div>
 
-      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <SeoContent
           sections={[
             {
@@ -322,6 +321,7 @@ export default function MetronomePage() {
             { href: "/tools", label: "All free music tools" },
           ]}
       />
+      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
 
       <JsonLd
         data={{
