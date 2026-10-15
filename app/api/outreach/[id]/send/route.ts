@@ -4,6 +4,9 @@ import { authOptions } from "@/libs/next-auth";
 import supabase, { mapNewsletter, getNewsletterSenderInfo } from "@/libs/supabase";
 import { renderNewsletterHtml, injectEmailTracking } from "@/libs/newsletter-html";
 import { sendEmail } from "@/libs/resend";
+import { unsubscribePageUrl, listUnsubscribeHeaders } from "@/libs/unsubscribe";
+
+const UNSUB_PLACEHOLDER = "{{UNSUBSCRIBE_URL}}";
 import config from "@/config";
 
 const TRACK_BASE = `https://www.${config.domainName}`;
@@ -38,21 +41,24 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const { senderName, senderEmail, socials, artistImage } = await getNewsletterSenderInfo(session.user.id);
   const newsletter = mapNewsletter(row)!;
-  const baseHtml = renderNewsletterHtml(newsletter, { senderName, socials, artistImage });
+  // Placeholder isn't an http(s) URL, so click tracking leaves it alone; swapped per recipient below
+  const baseHtml = renderNewsletterHtml(newsletter, { senderName, socials, artistImage, unsubscribeUrl: UNSUB_PLACEHOLDER });
   const subject = newsletter.subject || newsletter.title || `News from ${senderName}`;
   const text = `${newsletter.title || ""}\n\n${newsletter.description || ""}`.trim();
 
   const errors: string[] = [];
   const sentEvents: any[] = [];
+  let skippedUnsubscribed = 0;
   for (const contact of contacts) {
     if (!contact.email) continue;
+    if (contact.unsubscribed_at) { skippedUnsubscribed++; continue; }
     try {
       // Per-recipient open pixel + click-wrapped links so we can attribute analytics.
       const html = injectEmailTracking(baseHtml, {
         base: TRACK_BASE,
         newsletterId: params.id,
         contactId: contact.id,
-      });
+      }).replace(UNSUB_PLACEHOLDER, unsubscribePageUrl("contact", contact.id));
       await sendEmail({
         to: contact.email,
         subject,
@@ -60,6 +66,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         html,
         replyTo: senderEmail || "noreply@influanto.com",
         fromName: senderName,
+        headers: listUnsubscribeHeaders("contact", contact.id),
       });
       sentEvents.push({
         newsletter_id: params.id,
@@ -93,5 +100,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (errors.length) {
     return NextResponse.json({ message: "Sent with some errors", errors }, { status: 207 });
   }
-  return NextResponse.json({ message: `Sent to ${contacts.length} contact(s)` });
+  const skippedNote = skippedUnsubscribed ? ` (${skippedUnsubscribed} unsubscribed contact(s) skipped)` : "";
+  return NextResponse.json({ message: `Sent to ${sentEvents.length} contact(s)${skippedNote}` });
 }

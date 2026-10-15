@@ -90,6 +90,7 @@ export async function POST(req: NextRequest) {
           instagram: sanitizeSocialHandle(instagram, "instagram.com") || null,
           tiktok: sanitizeSocialHandle(tiktok, "tiktok.com") || null,
           source: source === "release_page" ? "release_page" : "link_in_bio",
+          unsubscribed_at: null, // signing up again opts back in
         },
         { onConflict: "user_id,email" }
       );

@@ -1,6 +1,7 @@
 import supabase from "@/libs/supabase";
 import { sendEmail } from "@/libs/resend";
 import { renderNewsletterLimitEmailHtml } from "@/libs/newsletter-limit-email-html";
+import { unsubscribePageUrl, listUnsubscribeHeaders } from "@/libs/unsubscribe";
 import config from "@/config";
 
 // Free-plan cap on outreach_contacts (matches config.ts's documented
@@ -15,11 +16,11 @@ export const FREE_CONTACT_LIMIT = 50;
 export async function notifyIfNewsletterLimitReached(userId: string): Promise<void> {
   const { data: user } = await supabase
     .from("users")
-    .select("id, name, email, has_access, newsletter_limit_notified")
+    .select("id, name, email, has_access, newsletter_limit_notified, marketing_unsubscribed_at")
     .eq("id", userId)
     .single();
 
-  if (!user || user.has_access || user.newsletter_limit_notified) return;
+  if (!user || user.has_access || user.newsletter_limit_notified || user.marketing_unsubscribed_at) return;
 
   const { count } = await supabase
     .from("outreach_contacts")
@@ -37,8 +38,9 @@ export async function notifyIfNewsletterLimitReached(userId: string): Promise<vo
       to: user.email,
       subject: "Your newsletter subscriber list is full 🎉",
       text: `Your Influanto newsletter subscriber list just reached the ${FREE_CONTACT_LIMIT}-subscriber free plan limit, so new signups from your Link in Bio and Release Pages are paused. Upgrade to Influanto Pro for unlimited subscribers — start with a 14-day free trial: https://influanto.com/#pricing`,
-      html: renderNewsletterLimitEmailHtml({ name: user.name, limit: FREE_CONTACT_LIMIT }),
+      html: renderNewsletterLimitEmailHtml({ name: user.name, limit: FREE_CONTACT_LIMIT, unsubscribeUrl: unsubscribePageUrl("user", user.id) }),
       replyTo: config.mailgun.supportEmail || "info@influanto.com",
+      headers: listUnsubscribeHeaders("user", user.id),
     });
   } catch (e) {
     console.error("Failed to send newsletter-limit email:", e);

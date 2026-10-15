@@ -52,7 +52,7 @@ function featureSection(opts: {
     </div>`;
 }
 
-export function renderWelcomeEmailHtml(opts: { name?: string }): string {
+export function renderWelcomeEmailHtml(opts: { name?: string; unsubscribeUrl?: string }): string {
   const firstName = (opts.name || "").trim().split(" ")[0];
   const greeting = firstName ? `Hey ${escapeHtml(firstName)},` : "Hey there,";
   const dashboardUrl = "https://influanto.com/dashboard";
@@ -113,6 +113,9 @@ export function renderWelcomeEmailHtml(opts: { name?: string }): string {
       <p style="font-size:12px;color:${TEXT};opacity:.5;margin:12px 0 0;text-align:center;">
         Sent by <a href="https://influanto.com" style="color:${ACCENT};text-decoration:none;">Influanto</a>
       </p>
+      ${opts.unsubscribeUrl ? `<p style="font-size:11px;color:${TEXT};opacity:.45;margin:6px 0 0;text-align:center;">
+        Don't want these emails? <a href="${opts.unsubscribeUrl}" style="color:${TEXT};text-decoration:underline;">Unsubscribe</a>
+      </p>` : ""}
     </div>
   </div>`;
 }
