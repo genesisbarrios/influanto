@@ -81,6 +81,7 @@ export function mapUser(row: any) {
     printifyAccessToken: row.printify_access_token,
     printifyShopUrl: row.printify_shop_url,
     metaPixelId: row.meta_pixel_id,
+    birthDate: row.birth_date ?? null, // private: never on public pages
     hasMetaCapiToken: !!row.meta_capi_token, // never expose the token itself
     newsletterStyle: row.newsletter_style ?? {},
     businessCard: row.business_card ?? {},
@@ -96,7 +97,7 @@ export function mapPublicUser(row: any) {
   const user = mapUser(row);
   if (!user) return null;
   const {
-    customerId, priceId, printifyAccessToken, hasMetaCapiToken,
+    customerId, priceId, printifyAccessToken, hasMetaCapiToken, birthDate,
     onboardingSeen, newsletterLimitNotified, newsletterLimitBannerDismissed,
     businessCard, ...rest
   } = user;

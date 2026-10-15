@@ -127,6 +127,9 @@ const migrations = [
 
   // link-in-bio autoplay song (SoundCloud track or direct audio file URL)
   `ALTER TABLE link_in_bio ADD COLUMN IF NOT EXISTS autoplay_url TEXT`,
+
+  // private date of birth (profile), used to enforce the 13+ rule in the Terms
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS birth_date DATE`,
 ];
 
 async function run() {
