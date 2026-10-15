@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import supabase from "@/libs/supabase";
 import { sendEmail } from "@/libs/resend";
 import { renderWelcomeEmailHtml } from "@/libs/welcome-email-html";
+import { unsubscribePageUrl, listUnsubscribeHeaders } from "@/libs/unsubscribe";
 import config from "@/config";
 
 // Triggered daily by the Vercel Cron in vercel.json. Each run picks up anyone
@@ -29,6 +30,7 @@ export async function GET(req: NextRequest) {
     .from("users")
     .select("id, name, email")
     .is("welcome_email_sent_at", null)
+    .is("marketing_unsubscribed_at", null)
     .not("email", "is", null)
     .gte("created_at", windowStart)
     .lte("created_at", windowEnd)
@@ -49,8 +51,9 @@ export async function GET(req: NextRequest) {
         to: user.email,
         subject: "Welcome to Influanto \u{1F44B} — let's set up your page",
         text: `Welcome to Influanto! Finish your profile, customize your Link in Bio, and create your first Release Page: https://influanto.com/dashboard`,
-        html: renderWelcomeEmailHtml({ name: user.name }),
+        html: renderWelcomeEmailHtml({ name: user.name, unsubscribeUrl: unsubscribePageUrl("user", user.id) }),
         replyTo: config.mailgun.supportEmail || "info@influanto.com",
+        headers: listUnsubscribeHeaders("user", user.id),
       });
       await supabase
         .from("users")

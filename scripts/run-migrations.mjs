@@ -130,6 +130,16 @@ const migrations = [
 
   // private date of birth (profile), used to enforce the 13+ rule in the Terms
   `ALTER TABLE users ADD COLUMN IF NOT EXISTS birth_date DATE`,
+
+  // unsubscribe: fans from an artist's newsletter, users from product emails,
+  // and curators from artist pitches (suppression list keyed by email)
+  `ALTER TABLE outreach_contacts ADD COLUMN IF NOT EXISTS unsubscribed_at TIMESTAMPTZ`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS marketing_unsubscribed_at TIMESTAMPTZ`,
+  `CREATE TABLE IF NOT EXISTS email_suppressions (
+    email TEXT PRIMARY KEY,
+    reason TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
 ];
 
 async function run() {

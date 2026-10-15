@@ -89,7 +89,7 @@ const ICON_BASE = "https://www.influanto.com/social-icons/";
 
 export function renderNewsletterHtml(
   n: NewsletterContent,
-  opts: { senderName?: string; socials?: SocialLinks; artistImage?: string } = {}
+  opts: { senderName?: string; socials?: SocialLinks; artistImage?: string; unsubscribeUrl?: string } = {}
 ): string {
   const bg = n.bgColor || "#0f0f12";
   const text = n.textColor || "#ffffff";
@@ -218,6 +218,9 @@ export function renderNewsletterHtml(
       <p style="font-size:12px;color:${text};opacity:.55;margin:${footerTopMargin} 0 0;text-align:center;">
         Sent by ${escapeHtml(senderName)} via <a href="https://influanto.com" style="color:${accent};text-decoration:none;">Influanto</a>
       </p>
+      ${opts.unsubscribeUrl ? `<p style="font-size:11px;color:${text};opacity:.5;margin:6px 0 0;text-align:center;">
+        You're receiving this because you subscribed to ${escapeHtml(senderName)}'s updates. <a href="${opts.unsubscribeUrl}" style="color:${text};text-decoration:underline;">Unsubscribe</a>
+      </p>` : ""}
     </div>
   </div>`;
 }

@@ -544,6 +544,7 @@ export default function Outreach() {
         soundcloud: user?.soundcloud, youtubeMusic: user?.youtubeMusic, website: user?.website,
       },
       artistImage: user?.image,
+      unsubscribeUrl: "#", // preview only; real emails get a per-fan link
     });
 
     return (

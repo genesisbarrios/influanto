@@ -3,7 +3,7 @@ import config from '@/config';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export const sendEmail = async ({ to, subject, text, html, replyTo, fromName, attachments }: { to: string, subject: string, text: string, html: string, replyTo: string, fromName?: string, attachments?: { filename: string, content: Buffer }[] }) => {
+export const sendEmail = async ({ to, subject, text, html, replyTo, fromName, attachments, headers }: { to: string, subject: string, text: string, html: string, replyTo: string, fromName?: string, attachments?: { filename: string, content: Buffer }[], headers?: Record<string, string> }) => {
   // Outreach newsletters come from a specific artist, not the platform — show
   // their name in the "From" header while still sending through our verified
   // domain address.
@@ -16,5 +16,6 @@ export const sendEmail = async ({ to, subject, text, html, replyTo, fromName, at
     text: text,
     html: html,
     attachments,
+    headers,
   });
 };
