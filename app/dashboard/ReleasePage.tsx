@@ -950,7 +950,7 @@ const removeCustomLink = (index: number) => {
           <h2 className="text-2xl font-bold" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Electronic Press Kit (EPK)" : "Release Pages"}</h2>
           {Array.isArray(releasePages) && releasePages.length < getMaxPages() && !createPage && (
             <button
-              className="btn btn-primary btn-sm"
+              className="btn btn-primary btn-xs sm:btn-sm"
               onClick={handleCreate}
               style={{ fontFamily: font || 'inherit' }}
             >
@@ -1308,38 +1308,40 @@ const removeCustomLink = (index: number) => {
                         <span className="text-[10px] font-bold uppercase tracking-widest bg-blue-600 text-white rounded-full px-2 py-0.5 mb-1">EPK</span>
                       )}
                       <h3 className="text-lg font-bold" style={{ fontFamily: page.font || 'inherit' }}>{page.name}</h3>
-                      <p className="text-sm" style={{ fontFamily: page.font || 'inherit' }}>{page.description}</p>
-                      <div className="flex space-x-2 mt-2 flex-wrap justify-center gap-y-1">
+                      {page.pageType !== "epk" && (
+                        <p className="text-sm" style={{ fontFamily: page.font || 'inherit' }}>{page.description}</p>
+                      )}
+                      <div className="flex mt-2 flex-wrap justify-center gap-1 sm:gap-2 px-2">
                         <button
-                          className="btn btn-sm"
+                          className="btn btn-xs sm:btn-sm"
                           style={{ backgroundColor: "rgba(255,255,255,0.2)", color: "white", fontFamily: page.font || 'inherit' }}
                           onClick={() => handleShare(page)}
                         >
                           {copiedShareId === pageId ? "Copied!" : "Share"}
                         </button>
                         <button
-                          className="btn btn-secondary btn-sm"
+                          className="btn btn-secondary btn-xs sm:btn-sm"
                           onClick={() => window.location.href = `/${page.pageType === "epk" ? "epk" : "release"}/${page.slug}`}
                           style={{ fontFamily: page.font || 'inherit' }}
                         >
                           Visit
                         </button>
                         <button
-                          className="btn btn-sm"
+                          className="btn btn-xs sm:btn-sm"
                           style={{ backgroundColor: analyticsOpen ? "#4f46e5" : "rgba(255,255,255,0.2)", color: "white", fontFamily: page.font || 'inherit' }}
                           onClick={() => setExpandedAnalytics(analyticsOpen ? null : pageId)}
                         >
                           {analyticsOpen ? "Hide Analytics" : "Analytics"}
                         </button>
                         <button
-                          className="btn btn-primary btn-sm"
+                          className="btn btn-primary btn-xs sm:btn-sm"
                           onClick={() => handleEdit(page)}
                           style={{ fontFamily: page.font || 'inherit' }}
                         >
                           Edit
                         </button>
                         <button
-                          className="btn btn-alert btn-sm"
+                          className="btn btn-alert btn-xs sm:btn-sm"
                           onClick={() => handleDelete(pageId)}
                           style={{ fontFamily: page.font || 'inherit' }}
                         >
