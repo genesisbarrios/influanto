@@ -73,20 +73,20 @@ function downloadSheetPDF(sheet: Partial<SplitSheet>) {
 
   const addHeaders = () => {
     doc.setFillColor(243, 244, 246);
-    [[10,40],[50,50],[100,15],[115,75]].forEach(([x,w]) => doc.rect(x, y, w, 8, "F"));
+    [[10,40],[50,38],[88,27],[115,75]].forEach(([x,w]) => doc.rect(x, y, w, 8, "F"));
     doc.setTextColor(0);
-    doc.text("Name",12,y+6); doc.text("Role",52,y+6); doc.text("Own%",102,y+6); doc.text("Contact",117,y+6);
+    doc.text("Name",12,y+6); doc.text("Role",52,y+6); doc.text("Master %",90,y+6); doc.text("Contact",117,y+6);
     y += 8;
   };
   addHeaders();
 
   contributors.forEach((c) => {
-    const h = Math.max(Math.ceil((c.name||"").length/18), Math.ceil((c.role||"").length/25), Math.ceil((c.contact||"").length/32), 1) * 8;
+    const h = Math.max(Math.ceil((c.name||"").length/18), Math.ceil((c.role||"").length/19), Math.ceil((c.contact||"").length/32), 1) * 8;
     if (y + h > pageHeight - 20) { doc.addPage(); y = 20; addHeaders(); }
-    [[10,40],[50,50],[100,15],[115,75]].forEach(([x,w]) => doc.rect(x, y, w, h));
+    [[10,40],[50,38],[88,27],[115,75]].forEach(([x,w]) => doc.rect(x, y, w, h));
     doc.text(c.name||"",12,y+6,{maxWidth:38});
-    doc.text(c.role||"",52,y+6,{maxWidth:48});
-    doc.text(c.ownership ? `${c.ownership}%` : "",102,y+6);
+    doc.text(c.role||"",52,y+6,{maxWidth:36});
+    doc.text(c.ownership ? `${c.ownership}%` : "",90,y+6);
     doc.text(c.contact||"",117,y+6,{maxWidth:73});
     y += h;
   });
@@ -591,7 +591,7 @@ export default function SplitSheets() {
                   <div className="grid grid-cols-2 gap-2">
                     <input className="input input-sm" placeholder="Name" value={c.name} onChange={e => setContributor(i, { name: e.target.value })} />
                     <input className="input input-sm" placeholder="Role (Producer, Writer…)" value={c.role} onChange={e => setContributor(i, { role: e.target.value })} />
-                    <input className="input input-sm" placeholder="Ownership %" value={c.ownership} onChange={e => setContributor(i, { ownership: e.target.value })} />
+                    <input className="input input-sm" placeholder="Master Ownership %" value={c.ownership} onChange={e => setContributor(i, { ownership: e.target.value })} />
                     <input className="input input-sm" placeholder="Contact info / email" value={c.contact} onChange={e => setContributor(i, { contact: e.target.value })} />
                   </div>
                   {/* Signature row */}
