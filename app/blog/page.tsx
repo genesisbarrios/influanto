@@ -32,7 +32,7 @@ const posts = [
   {
     slug: "how-to-set-up-meta-pixel-for-musicians",
     title: "How to Set Up a Meta Pixel for Your Music (and Make Sure It Works)",
-    excerpt: "Create a Meta Pixel, connect it to your Link in Bio and Release Pages, and confirm it's firing with Test Events — so your next release ads reach fans who already clicked through to stream.",
+    excerpt: "Create a Meta Pixel, connect it to your Link in Bio, Release Pages, and EPKs, and confirm it's firing with Test Events — so your next release ads reach fans who already clicked through to stream.",
     date: "October 2026",
     readTime: "6 min read",
     tag: "Marketing",

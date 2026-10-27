@@ -62,7 +62,7 @@ export default function LinkInBioLanding() {
         { q: "Is the Influanto link in bio free?", a: "Yes. The free plan includes a link in bio page, release pages, a QR code generator, newsletter tools for up to 50 contacts, and split sheets. Influanto Pro adds unlimited contacts and newsletters, more release pages, and analytics." },
         { q: "Can I collect emails from my link in bio?", a: "Yes. Turn on the newsletter signup and visitors can subscribe right from your page. Subscribers are added to your Influanto contacts so you can email them newsletters and release announcements." },
         { q: "Is Influanto a Linktree alternative for musicians?", a: "Yes. Influanto covers the same one-link use case, but adds music-specific features like streaming platform links, release pages, merch, a mailing list, and Meta Pixel tracking in one place." },
-        { q: "Can I add a Meta (Facebook) Pixel to my link in bio?", a: "Yes. Add your Pixel ID in your profile settings and Influanto tracks page views, link clicks, and streaming clicks on your link in bio and release pages." },
+        { q: "Can I add a Meta (Facebook) Pixel to my link in bio?", a: "Yes. Add your Pixel ID in your profile settings and Influanto tracks page views, link clicks, and streaming clicks on your link in bio, release pages, and EPKs." },
       ]}
       related={[
         { href: "/newsletter", label: "Newsletter & mailing list for artists" },

@@ -11,7 +11,7 @@ import { faLink, faMusic } from "@fortawesome/free-solid-svg-icons";
 import AdSlot from "@/components/AdSlot";
 export const metadata: Metadata = {
   title: "How to Set Up a Meta Pixel for Your Music (and Test It) | Influanto",
-  description: "Step-by-step guide for independent artists: create a Meta (Facebook) Pixel for your website, connect it to your Influanto Link in Bio and Release Pages, and confirm it works with Test Events.",
+  description: "Step-by-step guide for independent artists: create a Meta (Facebook) Pixel for your website, connect it to your Influanto Link in Bio, Release Pages, and EPKs, and confirm it works with Test Events.",
   keywords: [
     "meta pixel for musicians",
     "facebook pixel for artists",
@@ -69,7 +69,7 @@ export default function PostMetaPixel() {
               How to Set Up a Meta Pixel for Your Music (and Make Sure It Works)
             </h1>
             <p style={{ color: "#dbeafe", fontSize: "1.1rem", lineHeight: 1.6, marginBottom: 20 }}>
-              A Meta Pixel lets you see who visits your Link in Bio and Release Pages — and run Instagram and Facebook ads to the fans who already clicked through to stream. Here's how to create one, connect it to Influanto, and test it in about ten minutes.
+              A Meta Pixel lets you see who visits your Link in Bio, Release Pages, and EPK — and run Instagram and Facebook ads to the fans who already clicked through to stream. Here's how to create one, connect it to Influanto, and test it in about ten minutes.
             </p>
             <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
               <span style={{ color: "#bfdbfe", fontSize: 13 }}>October 2026</span>
@@ -126,7 +126,7 @@ export default function PostMetaPixel() {
               <li>Paste your Pixel ID and click <strong>Save</strong></li>
             </ol>
             <p>
-              You'll see <strong>Pixel Connected</strong> with your ID. From now on the pixel loads on your Link in Bio (<span style={mono}>influanto.com/yourname</span>) and on every one of your Release Pages — nothing else to install.
+              You'll see <strong>Pixel Connected</strong> with your ID. From now on the pixel loads on your Link in Bio (<span style={mono}>influanto.com/yourname</span>), on every one of your Release Pages, and on your EPKs (<span style={mono}>influanto.com/epk/yourname</span>) — nothing else to install.
             </p>
 
             {/* Step 4 */}
@@ -188,7 +188,7 @@ export default function PostMetaPixel() {
             <div style={{ background: "linear-gradient(135deg, #eff6ff, #dbeafe)", borderRadius: 12, padding: "1.75rem", marginTop: "1.5rem", border: "1px solid #93c5fd" }}>
               <p style={{ fontWeight: 800, fontSize: "1.1rem", color: "#1e3a8a", marginBottom: 8 }}>Connect Your Pixel on Influanto</p>
               <p style={{ color: "#1d4ed8", fontSize: "0.95rem", marginBottom: 16 }}>
-                Paste your Pixel ID once and it's live on your Link in Bio and every Release Page.
+                Paste your Pixel ID once and it's live on your Link in Bio, every Release Page, and your EPKs.
               </p>
               <Link
                 href="/dashboard"
