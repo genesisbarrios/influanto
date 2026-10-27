@@ -45,7 +45,7 @@ export default function EpkTemplate({
     setPdfState("working");
     try {
       const { downloadEpkPdf } = await import("@/libs/epkPdf");
-      await downloadEpkPdf({ ...page, links: musicLinks }, `https://www.influanto.com/epk/${page.slug}`, linksColor);
+      await downloadEpkPdf({ ...page, links: musicLinks }, `https://www.influanto.com/epk/${page.slug}`, { textColor, linksColor, cardColor, font });
       setPdfState("idle");
     } catch (e) {
       console.error(e);
