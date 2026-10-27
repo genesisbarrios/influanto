@@ -10,6 +10,7 @@ import { PostHogWrapper } from "@/app/providers";
 import "./globals.css";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { config as fontawesomeConfig } from "@fortawesome/fontawesome-svg-core";
+import { ADSENSE_CLIENT } from "@/libs/ads";
 
 // Load the icon-sizing CSS as a normal stylesheet instead of letting the
 // library inject it client-side on mount — the injected version can lose
@@ -39,7 +40,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <head>
           <PlausibleProvider domain={config.domainName} />
           {/* Google AdSense site verification (no ads load from this; ads only run on the free tool pages) */}
-          <meta name="google-adsense-account" content="ca-pub-2067357688991301" />
+          <meta name="google-adsense-account" content={ADSENSE_CLIENT} />
           <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y8YZX4PWTB" />
           <script
 
