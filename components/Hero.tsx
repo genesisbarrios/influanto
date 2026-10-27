@@ -15,6 +15,7 @@ const Hero = () => {
         </h1>
         <p className="text-lg opacity-80 leading-relaxed">
           <Link href="/link-in-bio" className="link link-hover">Link In Bio</Link>, Release Pages, Electronic Press Kits (EPK),{" "}
+          <Link href="/blog/how-to-set-up-meta-pixel-for-musicians" className="link link-hover">Meta Pixel Tracking</Link>,{" "}
           <Link href="/split-sheets" className="link link-hover">Split Sheets</Link>,{" "}
           <Link href="/newsletter" className="link link-hover">Newsletter & Mailing List</Link>,{" "}
           <Link href="/qr-code-generator" className="link link-hover">QR Code Generator</Link>, and{" "}

@@ -33,7 +33,7 @@ interface Feature {
 const features = [
   {
     title: "Link in Bio, Release Pages & EPK with Analytics",
-    description: "Create a Link in Bio Page, Promotional Pages for your Releases, and an Electronic Press Kit (EPK) with a downloadable PDF for bookers and press.",
+    description: "Create a Link in Bio Page, Promotional Pages for your Releases, and an Electronic Press Kit (EPK) with a downloadable PDF for bookers and press. Connect your Meta Pixel once and it tracks visits and streaming clicks on all of them, so you can retarget those fans with Instagram and Facebook ads.",
     type: "image",
     path: link,
     alt: "Influanto Link in Bio on a laptop and phone",
