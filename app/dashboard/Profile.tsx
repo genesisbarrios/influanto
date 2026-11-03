@@ -1118,9 +1118,11 @@ const handleYouTubeMusicChange = (e: any) => {
                     >
                       {embedCopied ? <><FontAwesomeIcon icon={faCheck} className="mr-1" /> Copied</> : <><FontAwesomeIcon icon={faCopy} className="mr-1" /> Copy embed code</>}
                     </button>
-                    <button type="button" className="btn btn-sm btn-outline" onClick={() => setShowNewsletterStyle(s => !s)}>
-                      {showNewsletterStyle ? <><FontAwesomeIcon icon={faXmark} className="mr-1" /> Close style</> : <><FontAwesomeIcon icon={faPen} className="mr-1" /> Edit style</>}
-                    </button>
+                    {!showNewsletterStyle && (
+                      <button type="button" className="btn btn-sm btn-outline" onClick={() => setShowNewsletterStyle(true)}>
+                        <FontAwesomeIcon icon={faPen} className="mr-1" /> Edit style
+                      </button>
+                    )}
                     <a href={`/embed/newsletter/${user.username}`} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 underline">Preview</a>
                   </div>
                 </div>
@@ -1199,7 +1201,7 @@ const handleYouTubeMusicChange = (e: any) => {
                   setShowNewsletterStyle(false);
                 }}
               >
-                Cancel
+                Close style
               </button>
               <button
                 type="button"
