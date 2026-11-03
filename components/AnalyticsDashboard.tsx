@@ -78,7 +78,7 @@ export default function AnalyticsDashboard() {
   const hasContent = tab === "release" ? releasePages.length > 0 : tab === "qr" ? codes.length > 0 : true;
 
   return (
-    <div className="mt-6 w-full text-left">
+    <div className="mt-6 w-full text-left p-4 border border-gray-200 rounded-lg bg-white">
       <div className="flex items-center gap-2 mb-3">
         <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#4f46e5,#3b82f6)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faChartSimple} /></span>
         <h3 className="font-bold text-lg text-gray-800">Analytics</h3>
