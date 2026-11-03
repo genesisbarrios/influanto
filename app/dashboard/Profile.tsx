@@ -1189,9 +1189,21 @@ const handleYouTubeMusicChange = (e: any) => {
                 </div>
               </div>
 
+              <div className="flex gap-2 mt-3">
               <button
                 type="button"
-                className="btn btn-primary btn-sm mt-3"
+                className="btn btn-ghost btn-sm"
+                onClick={() => {
+                  // Discard unsaved edits
+                  setNewsletterStyle(user?.newsletterStyle && typeof user.newsletterStyle === "object" ? user.newsletterStyle : {});
+                  setShowNewsletterStyle(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
                 onClick={async () => {
                   try {
                     const fd = new FormData();
@@ -1199,11 +1211,13 @@ const handleYouTubeMusicChange = (e: any) => {
                     await apiClient.post("/user", fd, { headers: { "Content-Type": "multipart/form-data" } });
                     setUser((prev: any) => ({ ...prev, newsletterStyle }));
                     setAlertt("Newsletter style saved", true);
+                    setShowNewsletterStyle(false);
                   } catch { setAlertt("Could not save newsletter style"); }
                 }}
               >
                 Save newsletter style
               </button>
+              </div>
             </div>
             )}
 
