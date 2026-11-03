@@ -52,6 +52,8 @@ const Header = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [user, setUser] = useState<any>();
   const {data, status} = useSession();
+  // Dashboard is only useful once signed in.
+  const visibleLinks = links.filter((link) => link.href !== "/dashboard" || status === "authenticated");
 
   // setIsOpen(false) when the route changes (i.e: when the user clicks on a link on mobile)
   useEffect(() => {
@@ -108,7 +110,7 @@ const Header = () => {
 
         {/* Your links on large screens */}
         <div className="hidden lg:flex lg:justify-center lg:gap-12 lg:items-center">
-          {links.map((link) => (
+          {visibleLinks.map((link) => (
             <Link
               href={link.href}
               key={link.href}
@@ -174,7 +176,7 @@ const Header = () => {
           <div className="flow-root mt-6">
             <div className="py-4">
               <div className="flex flex-col gap-y-4 items-start">
-                {links.map((link) => (
+                {visibleLinks.map((link) => (
                   <Link
                     href={link.href}
                     key={link.href}

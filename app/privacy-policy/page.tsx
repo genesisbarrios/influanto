@@ -42,7 +42,7 @@ const PrivacyPolicy = () => {
         </div>
 
         <h1 className="text-3xl font-extrabold pb-2">Privacy Policy</h1>
-        <p className="text-sm text-gray-500 mb-8">Last updated: September 5, 2026</p>
+        <p className="text-sm text-gray-500 mb-8">Last updated: November 3, 2026</p>
 
         <p className="mb-8 leading-relaxed">
           Thank you for using influanto (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). This Privacy Policy explains how we collect,
@@ -148,6 +148,18 @@ const PrivacyPolicy = () => {
             We use cookies and similar technologies to keep you signed in, remember your preferences, and
             understand how the Service is used. You can control cookies through your browser settings; note
             that disabling cookies may affect how the Service functions.
+          </p>
+          <p>
+            <strong>Advertising.</strong> Some pages of influanto show ads served by Google AdSense to visitors
+            and free accounts (Pro accounts are ad-free). Third-party vendors, including Google, use cookies to
+            serve ads based on your prior visits to this website and other websites. Google&apos;s use of
+            advertising cookies enables it and its partners to serve ads based on your visits to influanto
+            and/or other sites on the Internet. You can opt out of personalized advertising in{" "}
+            <a href="https://adssettings.google.com" className="link" target="_blank" rel="noopener noreferrer">Google Ads Settings</a>,
+            and opt out of some third-party vendors&apos; use of cookies for personalized advertising at{" "}
+            <a href="https://www.aboutads.info/choices" className="link" target="_blank" rel="noopener noreferrer">aboutads.info</a>.
+            Learn more about{" "}
+            <a href="https://policies.google.com/technologies/partner-sites" className="link" target="_blank" rel="noopener noreferrer">how Google uses data from sites that use its services</a>.
           </p>
         </Section>
 

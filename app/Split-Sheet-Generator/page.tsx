@@ -12,7 +12,6 @@ import { sanitizeFilename } from "@/libs/urls";
 import { drawOwnershipPie } from "@/libs/splitSheetPie";
 import OwnershipPie from "@/components/OwnershipPie";
 
-import AdSlot from "@/components/AdSlot";
 export default function SplitSheetTemplate() {
   const showSidebar = useShowJoinSidebar();
 
@@ -670,7 +669,6 @@ const handleDownloadPDF = () => {
         }
       `}</style>
       <SplitSheetSeo variant="generator" />
-      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <Footer />
     </>
   );

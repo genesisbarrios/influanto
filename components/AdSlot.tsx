@@ -2,10 +2,12 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useSession } from "next-auth/react";
 
-// Google AdSense on the free music tool pages. Shown to signed-out visitors and
-// free accounts, never to Pro (hasAccess). The AdSense script only loads where a
-// slot renders; without a slot ID (NEXT_PUBLIC_ADSENSE_TOOLS_SLOT) it loads the
-// script alone so AdSense Auto ads can place ads.
+// Google AdSense on the free music tool pages and blog. Shown to signed-out
+// visitors and free accounts, never to Pro (hasAccess). Ads appear only where an
+// <AdSlot /> is placed, at a fixed banner size (728x90, 320x100 on phones). The
+// script loads only when a slot ID exists (NEXT_PUBLIC_ADSENSE_TOOLS_SLOT), so
+// pages never load AdSense just for Auto ads. Keep Auto ads OFF in the AdSense
+// account, or Google adds its own anchor/full-screen ads wherever the script runs.
 
 import { ADSENSE_CLIENT, ADSENSE_TOOLS_SLOT } from "@/libs/ads";
 
@@ -60,27 +62,27 @@ export default function AdSlot({
   const pushed = useRef(false);
 
   useEffect(() => {
-    if (!show || pushed.current) return;
+    if (!show || !slot || pushed.current) return;
     loadAdsense();
-    if (!slot) return;
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
       pushed.current = true;
     } catch { /* ad blocked or not ready — leave the space empty */ }
   }, [show, slot]);
 
-  // No ad unit yet: just load the script (lets AdSense "Auto ads" place ads)
   if (!show || !slot) return null;
   return (
     <div className={className} style={{ textAlign: "center", ...style }}>
       <p style={{ fontSize: 10, letterSpacing: 1, textTransform: "uppercase", color: "#9ca3af", margin: "0 0 4px" }}>Advertisement</p>
+      {/* Exact size per screen width (Google's documented CSS sizing for responsive units) */}
+      <style>{`
+        .influanto-ad { display: inline-block; width: 320px; height: 100px; }
+        @media (min-width: 768px) { .influanto-ad { width: 728px; height: 90px; } }
+      `}</style>
       <ins
-        className="adsbygoogle"
-        style={{ display: "block" }}
+        className="adsbygoogle influanto-ad"
         data-ad-client={ADSENSE_CLIENT}
-        {...(slot ? { "data-ad-slot": slot } : {})}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
+        data-ad-slot={slot}
       />
       <a href="/#pricing" style={{ display: "inline-block", fontSize: 11, marginTop: 4, color: "#6b7280" }}>Go ad-free with Influanto Pro</a>
     </div>

@@ -8,7 +8,6 @@ import SeoContent, { JsonLd } from "@/components/SeoContent";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay, faStop, faMinus, faPlus, faHandPointer } from "@fortawesome/free-solid-svg-icons";
 
-import AdSlot from "@/components/AdSlot";
 const Metronome3D = dynamic(() => import("@/components/Metronome3D"), { ssr: false });
 
 const MIN_BPM = 30;
@@ -321,7 +320,6 @@ export default function MetronomePage() {
             { href: "/tools", label: "All free music tools" },
           ]}
       />
-      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
 
       <JsonLd
         data={{

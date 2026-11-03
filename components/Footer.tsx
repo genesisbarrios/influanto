@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import config from "@/config";
 import logo from "@/app/icon.png";
+import AdSlot from "@/components/AdSlot";
 
 // Add the Footer to the bottom of your landing page and more.
 // The support link is connected to the config.js file. If there's no config.mailgun.supportEmail, the link won't be displayed.
@@ -9,6 +10,8 @@ import logo from "@/app/icon.png";
 const Footer = () => {
   return (
     <footer className="bg-base-200 border-t border-base-content/10">
+      {/* The only ad placement on the site for now */}
+      <AdSlot className="max-w-4xl mx-auto px-4 pt-8" />
       <div className="max-w-7xl mx-auto px-8 py-24">
         <div className=" flex lg:items-start md:flex-row md:flex-nowrap flex-wrap flex-col">
           <div className="w-64 flex-shrink-0 md:mx-0 mx-auto text-center md:text-left">

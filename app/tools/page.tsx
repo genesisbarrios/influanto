@@ -21,7 +21,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
-import AdSlot from "@/components/AdSlot";
 const calcDelayMs = (bpm: number, note: number) => {
   if (!bpm || !note) return "";
   return ((60000 / bpm) * note).toFixed(2);
@@ -231,8 +230,6 @@ export default function Tools() {
             </div>
           </div>
           </div>
-          {/* Ad at the very bottom of the sidebar: only seen after scrolling all the way down */}
-          <AdSlot className="w-full px-4 pb-8 mt-auto" />
         </div>
       )}
     </div>
@@ -252,8 +249,6 @@ export default function Tools() {
         }
       }
     `}</style>
-    {/* Signed-in free accounts have no sidebar, so their ad goes at the bottom of the page */}
-    {!showSidebar && <AdSlot className="max-w-4xl mx-auto px-4 py-6" />}
     <Footer></Footer>
     </>
   );

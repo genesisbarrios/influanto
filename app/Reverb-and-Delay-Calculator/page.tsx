@@ -5,7 +5,6 @@ import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 
-import AdSlot from "@/components/AdSlot";
 const noteOptions = [
   { label: "Whole (1/1)", value: 4 },
   { label: "Half (1/2)", value: 2 },
@@ -230,7 +229,6 @@ export default function ReverbandDelay() {
       }
     `}</style>
      
-    <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
     <Footer></Footer>
     </>
   );
