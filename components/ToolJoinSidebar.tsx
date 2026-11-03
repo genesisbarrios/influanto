@@ -1,6 +1,5 @@
 "use client";
 import { useSession } from "next-auth/react";
-import AdSlot from "@/components/AdSlot";
 
 // "Join Influanto" sidebar shown next to the free music tools. Signed-in users
 // never see it, and the tool takes the full width instead. It also stays hidden
@@ -35,7 +34,6 @@ export default function ToolJoinSidebar({ show }: { show: boolean }) {
       <p style={{ textAlign: "center" }}>
         Create your free Link in Bio, Create QR Codes, Search for Spotify Curators, and connect with other musicians.
       </p>
-      <AdSlot className="hidden sm:block w-full mt-8" />
     </div>
   );
 }
