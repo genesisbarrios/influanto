@@ -70,10 +70,12 @@ export default function NewsletterSignup({ username, source, fields = ["name", "
   const subtitle = style?.subtitle || "Get updates on new releases straight to your inbox.";
   const cardBg = style?.bgColor;
   // Optional fields (email is rendered separately and always required). The
-  // global style toggles can add fields on top of whatever the surface
-  // (Link in Bio / Release Page) already configured — never remove one.
+  // surface (Link in Bio / Release Page) supplies its configured fields; the
+  // global style toggles add phone/Instagram when on, and remove them when the
+  // creator explicitly turned them off (undefined = never set, keep the surface's).
+  const toggles: Record<string, boolean | undefined> = { phone: style?.showPhone, instagram: style?.showInstagram };
   const optionalFields = Array.from(new Set([
-    ...fields.filter(f => f !== "email"),
+    ...fields.filter(f => f !== "email" && toggles[f] !== false),
     ...(style?.showPhone ? ["phone"] : []),
     ...(style?.showInstagram ? ["instagram"] : []),
   ]));
