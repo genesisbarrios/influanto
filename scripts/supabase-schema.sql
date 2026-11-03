@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE,
   email_verified TIMESTAMPTZ,
   display_email BOOLEAN DEFAULT false,
+  epk_link JSONB DEFAULT '{}'::jsonb, -- { enabled, pageId | url } for the Link in Bio EPK link
   image TEXT,
   location TEXT,
   bio TEXT,

@@ -80,6 +80,8 @@ const Profile =  () => {
   const [youtubeMusic, setYouTubeMusic] = useState("");
   const [bandcamp, setBandcamp] = useState("");
   const [displayEmail, setDisplayEmail] = useState(Boolean);
+  const [epkLink, setEpkLink] = useState<{ enabled?: boolean; pageId?: string; url?: string }>({});
+  const [epkPages, setEpkPages] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [linkInBioHasLinks, setLinkInBioHasLinks] = useState<boolean | null>(null);
   const [welcomeDismissedLocally, setWelcomeDismissedLocally] = useState(false);
   const [metaPixelId, setMetaPixelId] = useState("");
@@ -713,6 +715,7 @@ const handleYouTubeMusicChange = (e: any) => {
       setFormUserName(data.username);
       setFormEmail(data.email);
       setDisplayEmail(data.displayEmail);
+      setEpkLink(data.epkLink && typeof data.epkLink === "object" ? data.epkLink : {});
       setLocation(data.location);
       setBirthDate(data.birthDate ? String(data.birthDate).slice(0, 10) : "");
       setWebsite(data.website);
@@ -758,6 +761,10 @@ const handleYouTubeMusicChange = (e: any) => {
       setAvatarImage(data?.user?.image ?? null);
     }
     loadGallery();
+    // Their EPKs, for the "Display EPK" picker
+    apiClient.get("/get-release-pages")
+      .then((r: any) => setEpkPages((r?.data ?? []).filter((p: any) => p.pageType === "epk")))
+      .catch(() => {});
   }, []);
 
   // Drives the "Setup Links Page" nudge on the Visit button below.
@@ -870,6 +877,7 @@ const handleYouTubeMusicChange = (e: any) => {
       if (formUserName != null && formUserName != "") formData.append("username", formUserName);
       if (formEmail !== undefined && formEmail !== null && formEmail !== "") formData.append("email", formEmail);
       if (displayEmail !== undefined && displayEmail !== null) formData.append("displayEmail", displayEmail.toString());
+      if (epkLink.enabled || Object.keys(user?.epkLink ?? {}).length) formData.append("epkLink", JSON.stringify(epkLink));
       if (location !== undefined && location !== null) formData.append("location", location);
       formData.append("birthDate", birthDate || "");
       if (website !== undefined && website !== null) formData.append("website", website);
@@ -1562,6 +1570,45 @@ const handleYouTubeMusicChange = (e: any) => {
               />
               Display Email
             </label>
+            <label style={{display:"block"}}>
+              <input
+                type="checkbox"
+                className="mr-2"
+                checked={!!epkLink.enabled}
+                onChange={(e) => setEpkLink(prev => ({
+                  ...prev,
+                  enabled: e.target.checked,
+                  // Default to their first EPK when turning it on
+                  ...(e.target.checked && !prev.pageId && !prev.url && epkPages[0] ? { pageId: String(epkPages[0].id) } : {}),
+                }))}
+              />
+              Display EPK
+            </label>
+            {epkLink.enabled && (
+              <div className="mt-1 mb-2">
+                {epkPages.length > 0 && (
+                  <select
+                    className="select select-bordered mb-2 w-3/4"
+                    value={epkLink.pageId || "custom"}
+                    onChange={(e) => setEpkLink(prev => e.target.value === "custom"
+                      ? { ...prev, pageId: "" }
+                      : { ...prev, pageId: e.target.value })}
+                  >
+                    {epkPages.map(p => <option key={p.id} value={String(p.id)}>{p.name || p.slug || "Untitled EPK"}</option>)}
+                    <option value="custom">Custom link</option>
+                  </select>
+                )}
+                {(!epkPages.length || !epkLink.pageId) && (
+                  <input
+                    type="text"
+                    className="input mb-2 w-3/4"
+                    placeholder="EPK link (https://…)"
+                    value={epkLink.url || ""}
+                    onChange={(e) => setEpkLink(prev => ({ ...prev, url: e.target.value, pageId: "" }))}
+                  />
+                )}
+              </div>
+            )}
           </div>
         </div>
 

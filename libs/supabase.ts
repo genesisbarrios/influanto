@@ -84,6 +84,7 @@ export function mapUser(row: any) {
     birthDate: row.birth_date ?? null, // private: never on public pages
     hasMetaCapiToken: !!row.meta_capi_token, // never expose the token itself
     newsletterStyle: row.newsletter_style ?? {},
+    epkLink: row.epk_link ?? {}, // { enabled, pageId (one of their EPKs) | url (custom) }
     businessCard: row.business_card ?? {},
     onboardingSeen: row.onboarding_seen ?? false,
     newsletterLimitNotified: row.newsletter_limit_notified ?? false,

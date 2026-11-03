@@ -31,8 +31,26 @@ export async function GET(_req: NextRequest, { params }: { params: { slug: strin
 
     const newsletterFull = await isNewsletterFull(user.id);
 
+    // EPK link: their chosen Influanto EPK (by id, so slug changes don't break it) or a custom URL
+    let epkUrl = "";
+    const epk = user.epk_link;
+    if (epk?.enabled) {
+      if (epk.pageId) {
+        const { data: page } = await supabase
+          .from("release_pages")
+          .select("slug")
+          .eq("id", epk.pageId)
+          .eq("user_id", user.id)
+          .eq("page_type", "epk")
+          .maybeSingle();
+        if (page?.slug) epkUrl = `/epk/${encodeURIComponent(page.slug)}`;
+      } else if (epk.url) {
+        epkUrl = epk.url;
+      }
+    }
+
     return NextResponse.json(
-      { data: { user: { ...mapPublicUser(user), newsletterFull }, linkInBio: linkInBio ? mapLinkInBio(linkInBio) : null } },
+      { data: { user: { ...mapPublicUser(user), newsletterFull, epkUrl }, linkInBio: linkInBio ? mapLinkInBio(linkInBio) : null } },
       { status: 200 }
     );
   } catch (e) {

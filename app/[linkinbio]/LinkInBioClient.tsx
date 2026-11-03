@@ -320,12 +320,20 @@ return (
         />
                 
         <p style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>{user.name}</p>
-        <p style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>
-          {user.location && <span ><FontAwesomeIcon icon={faLocation} color={linksColor} className='mr-2'/>{user.location}</span>}
-          {user.website && <a href={normalizeUrl(user.website)} target="_blank" style={{ color: textColor || "#333333" }} className='ml-2'><FontAwesomeIcon icon={faGlobe} color={linksColor} /> Website</a>}
-        </p>
-      
-        <p style={{marginBottom:"2%", fontFamily: font || 'inherit', color: textColor || "#333333"}}>{user.bio}</p>
+        {user.location && (
+          <p style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>
+            <span><FontAwesomeIcon icon={faLocation} color={linksColor} className='mr-2'/>{user.location}</span>
+          </p>
+        )}
+
+        <p className="text-sm sm:text-base" style={{ fontFamily: font || 'inherit', color: textColor || "#333333" }}>{user.bio}</p>
+
+        {(user.website || user.epkUrl) && (
+          <p className="flex flex-wrap items-center justify-center gap-x-4" style={{ marginBottom:"2%", fontFamily: font || 'inherit', color: textColor || "#333333" }}>
+            {user.website && <a href={normalizeUrl(user.website)} target="_blank" style={{ color: textColor || "#333333" }}><FontAwesomeIcon icon={faGlobe} color={linksColor} /> Website</a>}
+            {user.epkUrl && <a href={user.epkUrl} target="_blank" style={{ color: textColor || "#333333" }}>📄 EPK</a>}
+          </p>
+        )}
 
         {/* Social media links */}
         <div

@@ -130,6 +130,19 @@ export async function POST(req: Request) {
       try { updates.newsletter_style = JSON.parse(newsletterStyle); } catch { /* ignore bad json */ }
     }
 
+    // EPK link on the Link in Bio: one of the user's EPK pages, or a custom URL
+    const epkLink = formData.get("epkLink") as string | null;
+    if (epkLink) {
+      try {
+        const e = JSON.parse(epkLink);
+        updates.epk_link = {
+          enabled: !!e?.enabled,
+          pageId: String(e?.pageId ?? "").trim(),
+          url: e?.url ? normalizeUrl(String(e.url).trim()) : "",
+        };
+      } catch { /* ignore bad json */ }
+    }
+
     const businessCard = formData.get("businessCard") as string | null;
     if (businessCard) {
       try { updates.business_card = JSON.parse(businessCard); } catch { /* ignore bad json */ }
