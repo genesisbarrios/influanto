@@ -4,7 +4,6 @@ import { useSession, signIn } from "next-auth/react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
-import AdSlot from "@/components/AdSlot";
 import SeoContent from "@/components/SeoContent";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCopy, faCheck, faTrash, faLink } from "@fortawesome/free-solid-svg-icons";
@@ -133,7 +132,6 @@ export default function LinkShortenerPage() {
           { href: "/tools", label: "More free music tools" },
         ]}
       />
-      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
 
       <style>{`
         #shortener-bg { background: #638bcf !important; }

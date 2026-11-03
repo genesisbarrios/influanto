@@ -8,7 +8,6 @@ import { getSEOTags } from "@/libs/seo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
 
-import AdSlot from "@/components/AdSlot";
 // Estimate tempo from an audio buffer via an onset-energy autocorrelation.
 function detectBPM(data: Float32Array, sampleRate: number): number {
   const frame = 1024, hop = 512;
@@ -226,7 +225,6 @@ export default function BPMCalculator() {
           user-select: none;
         }
       `}</style>
-      <AdSlot className="max-w-4xl mx-auto px-4 py-6" />
       <Footer />
     </>
   );
