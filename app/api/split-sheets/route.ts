@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase, { resolveUserIdsByEmails } from "@/libs/supabase";
+import { syncCollaboratorContacts } from "@/libs/collaboratorContacts";
 
 export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -61,5 +62,15 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data }, { status: 201 });
+
+  // Keep collaborator contacts in step with the sheet (signed or not). The sheet
+  // is already saved, so a contact sync failure is reported but not fatal.
+  let contactsError: string | undefined;
+  try {
+    await syncCollaboratorContacts(session.user.id, body.contributors, body.publishing);
+  } catch (e: any) {
+    console.error("split sheet contact sync failed:", e?.message);
+    contactsError = "Sheet saved, but contacts could not be updated";
+  }
+  return NextResponse.json({ data, contactsError }, { status: 201 });
 }

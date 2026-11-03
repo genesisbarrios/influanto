@@ -315,75 +315,23 @@ export default function SplitSheets() {
         title: sheet.title, date: sheet.date, artists: sheet.artists,
         stateCountry: sheet.stateCountry, contributors: sheet.contributors, publishing: sheet.publishing,
       };
+      // The API also saves/updates collaborator contacts from the sheet
+      let r: any;
       if ((sheet as any).id) {
-        await apiClient.put(`/split-sheets/${(sheet as any).id}`, payload);
-        setAlert("Saved", true);
+        r = await apiClient.put(`/split-sheets/${(sheet as any).id}`, payload);
       } else {
-        await apiClient.post("/split-sheets", payload);
+        r = await apiClient.post("/split-sheets", payload);
         posthog.capture("split_sheet_created");
-        setAlert("Created", true);
       }
-      await syncContactsFromSheet();
-      await loadSheets();
+      if (r?.contactsError) setAlert(r.contactsError);
+      else setAlert((sheet as any).id ? "Saved" : "Created", true);
+      await Promise.all([loadSheets(), loadContacts()]);
       setView("list");
       setEditingSheet(null);
     } catch (e: any) {
       setAlert(e?.response?.data?.error || "Save failed");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // Save contributor + publishing details back onto collaborator contacts:
-  // contributors with an email become contacts (or update the existing one), and
-  // each publishing row updates the contact whose name matches it.
-  const syncContactsFromSheet = async () => {
-    const contribs = ((sheet.contributors ?? []) as Contributor[]).filter(c => c.name?.trim());
-    const pubs = ((sheet.publishing ?? []) as Publishing[]).filter(p => p.contributorName?.trim());
-    const pubFor = (name: string) => pubs.find(p => norm(p.contributorName) === norm(name));
-
-    const byEmail = new Map(contacts.map(c => [norm(c.email), c]));
-    const byName = new Map(contacts.map(c => [norm(c.name), c]));
-    const requests: Promise<unknown>[] = [];
-    const touched = new Set<string>();
-
-    const diff = (ct: Contact, fields: Partial<Contact>) => {
-      const patch: Partial<Contact> = {};
-      (Object.keys(fields) as (keyof Contact)[]).forEach(k => {
-        const v = (fields[k] ?? "").trim();
-        if (v && v !== (ct[k] ?? "")) (patch as any)[k] = v;
-      });
-      return patch;
-    };
-
-    for (const c of contribs) {
-      const email = c.contact?.trim();
-      const pub = pubFor(c.name);
-      const fields: Partial<Contact> = {
-        role: c.role, publisher: pub?.publisher, publishing_percent: pub?.percent,
-      };
-      const existing = (email?.includes("@") && byEmail.get(norm(email))) || byName.get(norm(c.name));
-      if (existing) {
-        touched.add(existing.id);
-        const patch = diff(existing, fields);
-        if (Object.keys(patch).length) requests.push(apiClient.put(`/collaborator-contacts/${existing.id}`, patch).catch(() => {}));
-      } else if (email?.includes("@")) {
-        requests.push(apiClient.post("/collaborator-contacts", { name: c.name.trim(), email, ...fields }).catch(() => {}));
-      }
-    }
-
-    // Publishing rows for people who aren't listed as contributors on this sheet
-    for (const p of pubs) {
-      const existing = byName.get(norm(p.contributorName));
-      if (!existing || touched.has(existing.id)) continue;
-      touched.add(existing.id);
-      const patch = diff(existing, { publisher: p.publisher, publishing_percent: p.percent });
-      if (Object.keys(patch).length) requests.push(apiClient.put(`/collaborator-contacts/${existing.id}`, patch).catch(() => {}));
-    }
-
-    if (requests.length) {
-      await Promise.all(requests);
-      await loadContacts();
     }
   };
 
