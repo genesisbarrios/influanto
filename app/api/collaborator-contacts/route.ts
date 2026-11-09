@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase from "@/libs/supabase";
+import { cleanIpi } from "@/libs/publishing";
 
 export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -36,6 +37,9 @@ export async function POST(req: NextRequest) {
       phone: body.phone?.trim() ?? "",
       publisher: body.publisher?.trim() ?? "",
       publishing_percent: String(body.publishing_percent ?? "").trim(),
+      ipi: cleanIpi(body.ipi),
+      pro: String(body.pro ?? "").trim(),
+      publisher_ipi: cleanIpi(body.publisher_ipi),
     })
     .select()
     .single();

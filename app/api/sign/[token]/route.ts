@@ -5,6 +5,8 @@ import supabase from "@/libs/supabase";
 import { sendEmail } from "@/libs/resend";
 import { buildSplitSheetPdf, splitSheetPdfFilename } from "@/libs/splitSheetPdf";
 import config from "@/config";
+import { normalizePublishingRow, hasPublishingData } from "@/libs/publishing";
+import { syncCollaboratorContacts } from "@/libs/collaboratorContacts";
 
 // ── GET — public, fetch split sheet + signer details by token ────────────────
 export async function GET(_req: NextRequest, { params }: { params: { token: string } }) {
@@ -124,12 +126,9 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
   );
   const myPublishing = Array.isArray(publishing)
     ? publishing
-        .filter((p: any) => (p?.publisher ?? "").trim() || (p?.percent ?? "").toString().trim())
-        .map((p: any) => ({
-          contributorName: finalContributorName,
-          publisher: String(p.publisher ?? "").trim(),
-          percent: String(p.percent ?? "").trim(),
-        }))
+        // The writer name is always this signer; keep rows with any other detail filled in
+        .filter((p: any) => hasPublishingData({ ...p, contributorName: "" }))
+        .map((p: any) => ({ ...normalizePublishingRow(p), contributorName: finalContributorName }))
     : existingPublishing.filter((p: any) => (p.contributorName ?? "").toLowerCase() === myOriginalName);
   const updatedPublishing = [...otherPublishing, ...myPublishing];
 
@@ -137,6 +136,16 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
     .from("split_sheets")
     .update({ contributors: updatedContributors, publishing: updatedPublishing })
     .eq("id", sheet.id);
+
+  // Keep the sheet owner's collaborator contacts up to date with what the signer
+  // entered (IPI, PRO, publisher…). Best-effort: never fail the signature over it.
+  if (sheet.user_id) {
+    try {
+      await syncCollaboratorContacts(sheet.user_id, updatedContributors, updatedPublishing);
+    } catch (e: any) {
+      console.error("sign: contact sync failed:", e?.message);
+    }
+  }
 
   // 3. Email the signer their own copy right away ("just in case" they never
   // click Download on the confirmation screen) — and, once every invited

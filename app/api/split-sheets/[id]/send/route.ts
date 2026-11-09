@@ -1,4 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
+import { escapeHtml, hasPublishingData } from "@/libs/publishing";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase from "@/libs/supabase";
@@ -57,12 +58,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       </tr>`)
     .join("");
 
-  const publishingRows = (sheet.publishing as any[])
+  const td = (v: unknown) => `<td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${escapeHtml(v) || "—"}</td>`;
+  const publishingRows = ((sheet.publishing as any[]) ?? [])
+    .filter(hasPublishingData)
     .map((p: any) => `
       <tr>
-        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${p.contributorName || "—"}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${p.publisher || "—"}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${p.percent || "—"}%</td>
+        ${td(p.contributorName)}${td(p.writerIpi)}${td(p.pro)}${td(p.publisher)}${td(p.publisherIpi)}${td(p.percent ? `${p.percent}%` : "")}
       </tr>`)
     .join("");
 
@@ -150,9 +151,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:14px;">
             <thead>
               <tr style="background:#f3f4f6;">
-                <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #e5e7eb;">Contributor</th>
-                <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #e5e7eb;">Publisher</th>
-                <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #e5e7eb;">%</th>
+                ${["Writer", "Writer IPI #", "PRO", "Publisher", "Publisher IPI #", "Pub %"].map((h) => `<th style="padding:8px 12px;text-align:left;border-bottom:2px solid #e5e7eb;">${h}</th>`).join("")}
               </tr>
             </thead>
             <tbody>${publishingRows}</tbody>

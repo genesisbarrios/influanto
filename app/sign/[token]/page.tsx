@@ -1,6 +1,8 @@
 "use client";
 /* eslint-disable */
 import React, { useEffect, useRef, useState } from "react";
+import PublishingRowFields from "@/components/PublishingRowFields";
+import { PublishingRow, BLANK_PUBLISHING_ROW } from "@/libs/publishing";
 import { useParams } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLinkSlash, faCircleCheck, faDownload, faRightToBracket, faXmark, faPen } from "@fortawesome/free-solid-svg-icons";
@@ -9,7 +11,7 @@ import { buildSplitSheetPdf, splitSheetPdfFilename } from "@/libs/splitSheetPdf"
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Contributor { name: string; role: string; ownership: string; contact: string; signature: string; signatureDate: string }
-interface Publishing   { contributorName: string; publisher: string; percent: string }
+type Publishing = PublishingRow;
 interface SheetData {
   id: string; title: string; date: string; artists: string; stateCountry: string;
   contributors: Contributor[]; publishing: Publishing[];
@@ -184,8 +186,8 @@ export default function SignPage() {
     ...myPublishing.map((p) => ({ ...p, contributorName: myContributor?.name || signer.name })),
   ];
 
-  const updateMyPublishing = (index: number, field: "publisher" | "percent", value: string) => {
-    setMyPublishing((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+  const updateMyPublishing = (index: number, patch: Partial<Publishing>) => {
+    setMyPublishing((prev) => prev.map((p, i) => (i === index ? { ...p, ...patch } : p)));
   };
 
   // Your own row is inline-editable directly in the tables below, without a
@@ -198,7 +200,7 @@ export default function SignPage() {
   const startEditing = () => {
     setEditing(true);
     setMyPublishing((prev) =>
-      prev.length > 0 ? prev : [{ contributorName: myContributor?.name || signer.name, publisher: "", percent: "" }]
+      prev.length > 0 ? prev : [{ ...BLANK_PUBLISHING_ROW, contributorName: myContributor?.name || signer.name }]
     );
   };
 
@@ -313,16 +315,19 @@ export default function SignPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="text-left p-3 text-xs text-gray-500 font-medium">Contributor</th>
-                  <th className="text-left p-3 text-xs text-gray-500 font-medium">Publisher</th>
-                  <th className="text-left p-3 text-xs text-gray-500 font-medium">%</th>
+                  {["Writer", "Writer IPI #", "PRO", "Publisher", "Publisher IPI #", "%"].map((h) => (
+                    <th key={h} className="text-left p-3 text-xs text-gray-500 font-medium whitespace-nowrap">{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {otherPublishing.map((p, i) => (
                   <tr key={`other-${i}`} className="border-t border-gray-50">
                     <td className="p-3">{p.contributorName}</td>
-                    <td className="p-3 text-gray-500">{p.publisher}</td>
+                    <td className="p-3 text-gray-500">{p.writerIpi || "—"}</td>
+                    <td className="p-3 text-gray-500">{p.pro || "—"}</td>
+                    <td className="p-3 text-gray-500">{p.publisher || "—"}</td>
+                    <td className="p-3 text-gray-500">{p.publisherIpi || "—"}</td>
                     <td className="p-3">{p.percent ? `${p.percent}%` : "—"}</td>
                   </tr>
                 ))}
@@ -330,25 +335,9 @@ export default function SignPage() {
                   myPublishing.map((p, i) =>
                     canEditMine ? (
                       <tr key={`mine-${i}`} className="border-t border-gray-50 bg-indigo-50">
-                        <td className="p-3">{myContributor?.name || signer.name}</td>
-                        <td className="p-2">
-                          <input
-                            type="text"
-                            className="input input-xs w-full"
-                            placeholder="Publisher"
-                            value={p.publisher}
-                            onChange={(e) => updateMyPublishing(i, "publisher", e.target.value)}
-                          />
-                        </td>
-                        <td className="p-2">
-                          <div className="flex items-center gap-1">
-                            <input
-                              type="text"
-                              className="input input-xs w-14"
-                              placeholder="%"
-                              value={p.percent}
-                              onChange={(e) => updateMyPublishing(i, "percent", e.target.value)}
-                            />
+                        <td className="p-3" colSpan={6}>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-semibold text-indigo-700">Your publishing{myPublishing.length > 1 ? ` (${i + 1})` : ""}</span>
                             <button
                               type="button"
                               onClick={() => setMyPublishing((prev) => prev.filter((_, idx) => idx !== i))}
@@ -358,13 +347,24 @@ export default function SignPage() {
                               <FontAwesomeIcon icon={faXmark} />
                             </button>
                           </div>
+                          <PublishingRowFields
+                            row={{ ...BLANK_PUBLISHING_ROW, ...p, contributorName: myContributor?.name || signer.name }}
+                            onChange={(patch) => updateMyPublishing(i, patch)}
+                            nameReadOnly
+                            idPrefix={`mypub-${i}`}
+                            inputClassName="input input-xs w-full"
+                            selectClassName="select select-xs select-bordered w-full"
+                          />
                         </td>
                       </tr>
                     ) : (
                       <tr key={`mine-${i}`} className="border-t border-gray-50 bg-indigo-50">
                         <td className="p-3">{p.contributorName}</td>
-                        <td className="p-3 text-gray-500">{p.publisher}</td>
-                        <td className="p-3">
+                        <td className="p-3 text-gray-500">{p.writerIpi || "—"}</td>
+                        <td className="p-3 text-gray-500">{p.pro || "—"}</td>
+                        <td className="p-3 text-gray-500">{p.publisher || "—"}</td>
+                        <td className="p-3 text-gray-500">{p.publisherIpi || "—"}</td>
+                        <td className="p-3 whitespace-nowrap">
                           {p.percent ? `${p.percent}%` : "—"}
                           <button
                             type="button"
@@ -381,8 +381,8 @@ export default function SignPage() {
                 ) : (
                   <tr className="border-t border-gray-50 bg-indigo-50">
                     <td className="p-3">{myContributor?.name || signer.name}</td>
-                    <td className="p-3 text-gray-400 italic" colSpan={2}>
-                      No publisher on file
+                    <td className="p-3 text-gray-400 italic" colSpan={5}>
+                      No publishing details on file
                       <button
                         type="button"
                         onClick={startEditing}
@@ -397,6 +397,15 @@ export default function SignPage() {
               </tbody>
             </table>
           </div>
+          {canEditMine && (
+            <button
+              type="button"
+              className="text-xs text-indigo-600 hover:text-indigo-800 -mt-2 mb-4"
+              onClick={() => setMyPublishing((prev) => [...prev, { ...BLANK_PUBLISHING_ROW, contributorName: myContributor?.name || signer.name }])}
+            >
+              + Add another publisher
+            </button>
+          )}
 
           {/* Agreement terms */}
           <div className="bg-gray-50 rounded-xl p-4 text-xs text-gray-600 leading-relaxed">

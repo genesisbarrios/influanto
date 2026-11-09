@@ -11,6 +11,8 @@ import { faFileArrowUp, faXmark, faFileLines } from "@fortawesome/free-solid-svg
 import OwnershipPie from "@/components/OwnershipPie";
 import { sanitizeFilename } from "@/libs/urls";
 import { drawOwnershipPie } from "@/libs/splitSheetPie";
+import PublishingRowFields from "@/components/PublishingRowFields";
+import { PublishingRow, BLANK_PUBLISHING_ROW, PRO_OPTIONS, drawPublishingTable, normalizePublishingRow, hasPublishingData } from "@/libs/publishing";
 
 const FREE_SPLIT_SHEET_LIMIT = 5;
 
@@ -21,6 +23,9 @@ const IMPORT_FIELDS: ImportField[] = [
   { key: "phone", label: "Phone", aliases: ["phone number", "tel", "mobile"] },
   { key: "publisher", label: "Publisher", aliases: ["publishing", "publishing company"] },
   { key: "publishing_percent", label: "Publishing %", aliases: ["publishing percent", "publishing share", "pub %"] },
+  { key: "ipi", label: "Writer IPI #", aliases: ["ipi", "ipi #", "ipi number", "cae", "writer ipi"] },
+  { key: "pro", label: "PRO", aliases: ["pro affiliation", "society", "performing rights organization"] },
+  { key: "publisher_ipi", label: "Publisher IPI #", aliases: ["publisher ipi", "publisher ipi #", "publisher cae"] },
 ];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -29,7 +34,7 @@ interface Contributor {
   name: string; role: string; ownership: string; contact: string;
   signature: string; signatureDate: string;
 }
-interface Publishing { contributorName: string; publisher: string; percent: string }
+type Publishing = PublishingRow;
 interface SplitSheet {
   id: string; title: string; date: string; artists: string; stateCountry: string;
   contributors: Contributor[]; publishing: Publishing[];
@@ -38,12 +43,19 @@ interface SplitSheet {
 interface Contact {
   id: string; name: string; email: string; role: string; phone: string;
   publisher?: string; publishing_percent?: string;
+  ipi?: string; pro?: string; publisher_ipi?: string;
 }
 
 const norm = (s?: string) => (s ?? "").trim().toLowerCase();
 
 const BLANK_CONTRIBUTOR: Contributor = { name: "", role: "", ownership: "", contact: "", signature: "", signatureDate: "" };
-const BLANK_PUBLISHING: Publishing = { contributorName: "", publisher: "", percent: "" };
+const BLANK_PUBLISHING: Publishing = { ...BLANK_PUBLISHING_ROW };
+// A contact's saved publishing details as a publishing row
+const publishingFromContact = (ct: Contact): Publishing => ({
+  contributorName: ct.name || "", writerIpi: ct.ipi || "", pro: ct.pro || "",
+  publisher: ct.publisher || "", publisherIpi: ct.publisher_ipi || "", percent: ct.publishing_percent || "",
+});
+const contactHasPublishing = (ct: Contact) => !!(ct.publisher || ct.publishing_percent || ct.ipi || ct.pro || ct.publisher_ipi);
 const BLANK_SHEET = (): Partial<SplitSheet> => ({
   title: "", date: new Date().toLocaleDateString("en-US"), artists: "",
   stateCountry: "", contributors: [{ ...BLANK_CONTRIBUTOR }], publishing: [], status: "draft",
@@ -91,24 +103,8 @@ function downloadSheetPDF(sheet: Partial<SplitSheet>) {
     y += h;
   });
 
-  if (publishing.length) {
-    y += 6;
-    if (y + 20 > pageHeight - 20) { doc.addPage(); y = 20; }
-    doc.text("Publishing Details:", 10, y); y += 5;
-    doc.setFillColor(243,244,246);
-    [[10,60],[70,60],[130,60]].forEach(([x,w]) => doc.rect(x, y, w, 8, "F"));
-    doc.text("Contributor",12,y+6); doc.text("Publisher",72,y+6); doc.text("%",132,y+6);
-    y += 8;
-    publishing.forEach((p) => {
-      const h = Math.max(Math.ceil((p.contributorName||"").length/30), Math.ceil((p.publisher||"").length/30), 1) * 8;
-      if (y + h > pageHeight - 20) { doc.addPage(); y = 20; }
-      [[10,60],[70,60],[130,60]].forEach(([x,w]) => doc.rect(x, y, w, h));
-      doc.text(p.contributorName||"",12,y+6,{maxWidth:58});
-      doc.text(p.publisher||"",72,y+6,{maxWidth:58});
-      doc.text(p.percent ? `${p.percent}%` : "",132,y+6);
-      y += h;
-    });
-  }
+  y = drawPublishingTable(doc, publishing, y, pageHeight);
+  doc.setFontSize(12);
 
   // Signatures section
   y += 8;
@@ -313,7 +309,8 @@ export default function SplitSheets() {
     try {
       const payload = {
         title: sheet.title, date: sheet.date, artists: sheet.artists,
-        stateCountry: sheet.stateCountry, contributors: sheet.contributors, publishing: sheet.publishing,
+        stateCountry: sheet.stateCountry, contributors: sheet.contributors,
+        publishing: ((sheet.publishing ?? []) as Publishing[]).filter(hasPublishingData).map(normalizePublishingRow),
       };
       // The API also saves/updates collaborator contacts from the sheet
       let r: any;
@@ -341,18 +338,28 @@ export default function SplitSheets() {
       idx === i ? { ...c, name: ct.name || "", role: ct.role || c.role, contact: ct.email || c.contact } : c
     );
     let publishing = [...((sheet.publishing ?? []) as Publishing[])];
-    if (ct.publisher || ct.publishing_percent) {
+    if (contactHasPublishing(ct)) {
       const prevName = norm((sheet.contributors as Contributor[])[i]?.name);
       const idx = publishing.findIndex(p => norm(p.contributorName) === norm(ct.name) || (prevName && norm(p.contributorName) === prevName));
-      const row = { contributorName: ct.name, publisher: ct.publisher || "", percent: ct.publishing_percent || "" };
+      const row = publishingFromContact(ct);
       if (idx >= 0) publishing[idx] = { ...publishing[idx], ...row };
       else publishing.push(row);
     }
     setSheet({ contributors, publishing });
   };
 
-  const fillPublishingFromContact = (i: number, ct: Contact) =>
-    setPublishing(i, { contributorName: ct.name, publisher: ct.publisher || "", percent: ct.publishing_percent || "" });
+  const fillPublishingFromContact = (i: number, ct: Contact) => setPublishing(i, publishingFromContact(ct));
+
+  // One publishing row per contributor who doesn't have one yet (pre-filled from their saved contact)
+  const addPublishingForContributors = () => {
+    const publishing = [...((sheet.publishing ?? []) as Publishing[])];
+    for (const c of (sheet.contributors ?? []) as Contributor[]) {
+      if (!c.name?.trim() || publishing.some(p => norm(p.contributorName) === norm(c.name))) continue;
+      const ct = contacts.find(x => (c.contact && norm(x.email) === norm(c.contact)) || norm(x.name) === norm(c.name));
+      publishing.push(ct ? { ...publishingFromContact(ct), contributorName: c.name } : { ...BLANK_PUBLISHING, contributorName: c.name });
+    }
+    setSheet({ publishing });
+  };
 
   // ── Delete ──────────────────────────────────────────────────────────────────
 
@@ -449,6 +456,19 @@ export default function SplitSheets() {
               <label className="block text-xs font-medium mb-1">Publishing %</label>
               <input className="input input-sm w-full" placeholder="e.g. 50" value={contactForm.publishing_percent ?? ""} onChange={e => setContactForm(p => ({ ...p, publishing_percent: e.target.value }))} />
             </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Writer IPI #</label>
+              <input className="input input-sm w-full" inputMode="numeric" placeholder="9–11 digits" value={contactForm.ipi ?? ""} onChange={e => setContactForm(p => ({ ...p, ipi: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">PRO</label>
+              <input className="input input-sm w-full" list="pro-options" placeholder="ASCAP, BMI…" value={contactForm.pro ?? ""} onChange={e => setContactForm(p => ({ ...p, pro: e.target.value }))} />
+              <datalist id="pro-options">{PRO_OPTIONS.map(o => <option key={o} value={o} />)}</datalist>
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Publisher IPI #</label>
+              <input className="input input-sm w-full" inputMode="numeric" placeholder="9–11 digits" value={contactForm.publisher_ipi ?? ""} onChange={e => setContactForm(p => ({ ...p, publisher_ipi: e.target.value }))} />
+            </div>
           </div>
           {alert && <p className="text-xs text-red-500 mt-2">{alert}</p>}
           <div className="flex gap-2 mt-3">
@@ -466,10 +486,10 @@ export default function SplitSheets() {
               <div key={c.id} className="flex items-center justify-between py-3">
                 <div>
                   <p className="font-medium text-sm">{c.name}</p>
-                  <p className="text-xs text-gray-400">{c.email}{c.role ? ` · ${c.role}` : ""}{c.phone ? ` · ${c.phone}` : ""}{c.publisher ? ` · ${c.publisher}${c.publishing_percent ? ` (${c.publishing_percent}%)` : ""}` : ""}</p>
+                  <p className="text-xs text-gray-400">{c.email}{c.role ? ` · ${c.role}` : ""}{c.phone ? ` · ${c.phone}` : ""}{c.pro ? ` · ${c.pro}` : ""}{c.ipi ? ` · IPI ${c.ipi}` : ""}{c.publisher ? ` · ${c.publisher}${c.publisher_ipi ? ` (IPI ${c.publisher_ipi})` : ""}${c.publishing_percent ? ` ${c.publishing_percent}%` : ""}` : ""}</p>
                 </div>
                 <div className="flex gap-2">
-                  <button className="btn btn-xs btn-outline" onClick={() => { setEditingContact(c.id); setContactForm({ name: c.name, email: c.email, role: c.role, phone: c.phone, publisher: c.publisher ?? "", publishing_percent: c.publishing_percent ?? "" }); setShowAddForm(true); }}>Edit</button>
+                  <button className="btn btn-xs btn-outline" onClick={() => { setEditingContact(c.id); setContactForm({ name: c.name, email: c.email, role: c.role, phone: c.phone, publisher: c.publisher ?? "", publishing_percent: c.publishing_percent ?? "", ipi: c.ipi ?? "", pro: c.pro ?? "", publisher_ipi: c.publisher_ipi ?? "" }); setShowAddForm(true); }}>Edit</button>
                   <button className="btn btn-xs btn-error" onClick={() => handleDeleteContact(c.id)}>Delete</button>
                 </div>
               </div>
@@ -558,34 +578,42 @@ export default function SplitSheets() {
 
           {/* Publishing */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
               <h3 className="font-semibold">Publishing Details</h3>
-              <button type="button" className="btn btn-xs btn-outline" onClick={() => setSheet({ publishing: [...publishing, { ...BLANK_PUBLISHING }] })}>+ Add</button>
-            </div>
-            <div className="space-y-2">
-              {publishing.map((p, i) => (
-                <div key={i} className="space-y-2">
-                {contacts.length > 0 && (
-                  <select
-                    className="select select-xs select-bordered w-full"
-                    value=""
-                    onChange={e => {
-                      const ct = contacts.find(x => x.id === e.target.value);
-                      if (ct) fillPublishingFromContact(i, ct);
-                    }}
-                  >
-                    <option value="">＋ Fill from saved contact…</option>
-                    {contacts.map(ct => <option key={ct.id} value={ct.id}>{ct.name || ct.email}{ct.publisher ? ` (${ct.publisher})` : ""}</option>)}
-                  </select>
+              <div className="flex gap-2">
+                {contributors.some(c => c.name?.trim() && !publishing.some(p => norm(p.contributorName) === norm(c.name))) && (
+                  <button type="button" className="btn btn-xs btn-outline" onClick={addPublishingForContributors}>+ Row for each contributor</button>
                 )}
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input className="input input-sm w-full sm:flex-1 min-w-0" placeholder="Contributor Name" value={p.contributorName} onChange={e => setPublishing(i, { contributorName: e.target.value })} />
-                  <input className="input input-sm w-full sm:flex-1 min-w-0" placeholder="Publisher" value={p.publisher} onChange={e => setPublishing(i, { publisher: e.target.value })} />
-                  <div className="flex gap-2">
-                    <input className="input input-sm flex-1 sm:w-20 sm:flex-none min-w-0" placeholder="%" value={p.percent} onChange={e => setPublishing(i, { percent: e.target.value })} />
-                    <button type="button" className="btn btn-xs btn-error shrink-0" onClick={() => setSheet({ publishing: publishing.filter((_,idx) => idx !== i) })}><FontAwesomeIcon icon={faXmark} /></button>
+                <button type="button" className="btn btn-xs btn-outline" onClick={() => setSheet({ publishing: [...publishing, { ...BLANK_PUBLISHING }] })}>+ Add</button>
+              </div>
+            </div>
+            {publishing.length === 0 && (
+              <p className="text-xs text-gray-400">Add each writer's IPI #, PRO and publisher. Saved details are remembered in your contacts.</p>
+            )}
+            <div className="space-y-3">
+              {publishing.map((p, i) => (
+                <div key={i} className="bg-gray-50 rounded-lg p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    {contacts.length > 0 && (
+                      <select
+                        className="select select-xs select-bordered flex-1 min-w-0"
+                        value=""
+                        onChange={e => {
+                          const ct = contacts.find(x => x.id === e.target.value);
+                          if (ct) fillPublishingFromContact(i, ct);
+                        }}
+                      >
+                        <option value="">＋ Fill from saved contact…</option>
+                        {contacts.map(ct => <option key={ct.id} value={ct.id}>{ct.name || ct.email}{ct.publisher ? ` (${ct.publisher})` : ""}</option>)}
+                      </select>
+                    )}
+                    <button type="button" className="btn btn-xs btn-error shrink-0 ml-auto" title="Remove" onClick={() => setSheet({ publishing: publishing.filter((_,idx) => idx !== i) })}><FontAwesomeIcon icon={faXmark} /></button>
                   </div>
-                </div>
+                  <PublishingRowFields
+                    row={{ ...BLANK_PUBLISHING, ...p }}
+                    idPrefix={`pub-${i}`}
+                    onChange={(patch) => setPublishing(i, patch)}
+                  />
                 </div>
               ))}
             </div>

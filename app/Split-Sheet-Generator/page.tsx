@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import PublishingRowFields from "@/components/PublishingRowFields";
+import { PublishingRow, BLANK_PUBLISHING_ROW, drawPublishingTable } from "@/libs/publishing";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
@@ -35,9 +37,7 @@ export default function SplitSheetTemplate() {
     signature: "",
     signatureDate: ""
   }]);
-  const [publishing, setPublishing] = useState([
-    { contributorName: "", publisher: "", percent: "" }
-  ]);
+  const [publishing, setPublishing] = useState<PublishingRow[]>([{ ...BLANK_PUBLISHING_ROW }]);
   const [signatureEditor, setSignatureEditor] = useState<{ active: boolean; index: number | null }>({ active: false, index: null });
   const [isDrawing, setIsDrawing] = useState(false);
   const signatureCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -56,19 +56,14 @@ export default function SplitSheetTemplate() {
     });
   };
 
-  type PublishingField = "contributorName" | "publisher" | "percent";
-  const handlePublishingChange = (idx: number, field: PublishingField, value: string) => {
-    setPublishing(prev => {
-      const arr = [...prev];
-      arr[idx][field] = value;
-      return arr;
-    });
+  const handlePublishingChange = (idx: number, patch: Partial<PublishingRow>) => {
+    setPublishing(prev => prev.map((p, i) => (i === idx ? { ...p, ...patch } : p)));
   };
 
   const addContributor = () => setContributors([...contributors, { name: "", role: "", ownership: "", contact: "", signature: "", signatureDate: "" }]);
   const removeContributor = (idx: number) => setContributors(contributors.filter((_, i) => i !== idx));
 
-  const addPublishing = () => setPublishing([...publishing, { contributorName: "", publisher: "", percent: "" }]);
+  const addPublishing = () => setPublishing([...publishing, { ...BLANK_PUBLISHING_ROW }]);
   const removePublishing = (idx: number) => setPublishing(publishing.filter((_, i) => i !== idx));
 
   const openSignatureEditor = (idx: number) => {
@@ -236,24 +231,8 @@ const handleDownloadPDF = () => {
   });
 
   // Publishing details
-  if (publishing.some(p => p.contributorName || p.publisher || p.percent)) {
-    y += 6;
-    if (y + 20 > pageHeight - 20) { doc.addPage(); y = 20; }
-    doc.text("Publishing Details:", 10, y); y += 5;
-    doc.setFillColor(243,244,246);
-    [[10,60],[70,60],[130,60]].forEach(([x,w]) => doc.rect(x, y, w, 8, "F"));
-    doc.text("Contributor Name", 12, y+6); doc.text("Publisher", 72, y+6); doc.text("Publishing %", 132, y+6);
-    y += 8;
-    publishing.forEach((p) => {
-      const h = Math.max(Math.ceil((p.contributorName||"").length/30), Math.ceil((p.publisher||"").length/30), 1) * 8;
-      if (y + h > pageHeight - 20) { doc.addPage(); y = 20; }
-      [[10,60],[70,60],[130,60]].forEach(([x,w]) => doc.rect(x, y, w, h));
-      doc.text(p.contributorName||"", 12, y+6, {maxWidth:58});
-      doc.text(p.publisher||"", 72, y+6, {maxWidth:58});
-      doc.text(p.percent ? `${p.percent}%` : "", 132, y+6);
-      y += h;
-    });
-  }
+  y = drawPublishingTable(doc, publishing, y, pageHeight);
+  doc.setFontSize(12);
 
   // Agreement terms — accurate line-by-line Y tracking via splitTextToSize
   y += 10;
@@ -464,51 +443,21 @@ const handleDownloadPDF = () => {
             <h2 className="text-xl font-bold mb-4">Publishing Details:</h2>
 
             {publishing.map((p, idx) => (
-              <div key={idx} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }} className="publishing-row">
-                <input
-                  placeholder="Contributor Name"
-                  value={p.contributorName}
-                  onChange={e => handlePublishingChange(idx, "contributorName", e.target.value)}
-                  style={{
-                    borderRadius: 8,
-                    border: "1px solid #cbd5e1",
-                    padding: "0.5rem", color:"white"
-                  }}
-                  className="w-full sm:flex-2"
-                />
-                <input
-                  placeholder="Publisher"
-                  value={p.publisher}
-                  onChange={e => handlePublishingChange(idx, "publisher", e.target.value)}
-                  style={{
-                    borderRadius: 8,
-                    border: "1px solid #cbd5e1",
-                    padding: "0.5rem", color:"white"
-                  }}
-                  className="w-full sm:flex-2"
-                />
-                <input
-                  placeholder="Publishing %"
-                  value={p.percent}
-                  onChange={e => handlePublishingChange(idx, "percent", e.target.value)}
-                  style={{
-                    borderRadius: 8,
-                    border: "1px solid #cbd5e1",
-                    padding: "0.5rem", color:"white"
-                  }}
-                  className="w-full sm:flex-1"
+              <div key={idx} style={{ marginBottom: 12, padding: "0.75rem", borderRadius: 8, border: "1px solid #cbd5e1" }}>
+                <PublishingRowFields
+                  row={p}
+                  idPrefix={`gen-pub-${idx}`}
+                  onChange={(patch) => handlePublishingChange(idx, patch)}
+                  inputClassName="w-full"
+                  selectClassName="w-full"
+                  inputStyle={{ borderRadius: 8, border: "1px solid #cbd5e1", padding: "0.5rem", color: "white", background: "transparent" }}
                 />
                 <button
                   type="button"
                   onClick={() => removePublishing(idx)}
-                  style={{
-                    color: "red",
-                    borderRadius: 8,
-                    border: "1px solid #cbd5e1",
-                    padding: "0.5rem"
-                  }}
-                  className="w-full sm:w-auto"
-                ><FontAwesomeIcon icon={faXmark} /></button>
+                  style={{ color: "red", borderRadius: 8, border: "1px solid #cbd5e1", padding: "0.25rem 0.75rem", marginTop: 8 }}
+                  aria-label="Remove publishing row"
+                ><FontAwesomeIcon icon={faXmark} /> Remove</button>
               </div>
             ))}
             <button

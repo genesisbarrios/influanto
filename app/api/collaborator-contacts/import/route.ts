@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase from "@/libs/supabase";
+import { cleanIpi } from "@/libs/publishing";
 
 const isEmail = (s: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
 
@@ -24,6 +25,9 @@ export async function POST(req: NextRequest) {
       phone: String(c.phone ?? "").trim(),
       publisher: String(c.publisher ?? "").trim(),
       publishing_percent: String(c.publishing_percent ?? "").trim(),
+      ipi: cleanIpi(c.ipi),
+      pro: String(c.pro ?? "").trim(),
+      publisher_ipi: cleanIpi(c.publisher_ipi),
     }))
     .filter(c => isEmail(c.email))
     .filter(c => (seen.has(c.email) ? false : (seen.add(c.email), true)));

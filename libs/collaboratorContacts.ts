@@ -1,22 +1,23 @@
 import supabase from "@/libs/supabase";
+import { cleanIpi } from "@/libs/publishing";
 
 const norm = (s?: unknown) => String(s ?? "").trim().toLowerCase();
 const isEmail = (s: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
 const isPhone = (s: string) => !s.includes("@") && s.replace(/\D/g, "").length >= 7;
 
-const FIELDS = ["name", "email", "phone", "role", "publisher", "publishing_percent"] as const;
+const FIELDS = ["name", "email", "phone", "role", "publisher", "publishing_percent", "ipi", "pro", "publisher_ipi"] as const;
 type Fields = Partial<Record<(typeof FIELDS)[number], string>>;
 
 // Save a split sheet's people into the owner's collaborator contacts, whether or
 // not the sheet has been signed. Contributors are matched to an existing contact
 // by email first, then by name; any changed detail (name, email, phone, role,
-// publisher, publishing %) is written back. New contributors with an email
+// writer IPI, PRO, publisher, publisher IPI, publishing %) is written back. New contributors with an email
 // become contacts. Publishing rows for people not listed as contributors only
 // update an existing contact with that name.
 export async function syncCollaboratorContacts(userId: string, contributors: any[] = [], publishing: any[] = []) {
   const { data: existing, error } = await supabase
     .from("collaborator_contacts")
-    .select("id, name, email, phone, role, publisher, publishing_percent")
+    .select("id, name, email, phone, role, publisher, publishing_percent, ipi, pro, publisher_ipi")
     .eq("user_id", userId);
   if (error) throw new Error(error.message);
 
@@ -25,6 +26,10 @@ export async function syncCollaboratorContacts(userId: string, contributors: any
   const byName = new Map(contacts.map((c: any) => [norm(c.name), c]));
   const pubs = (publishing ?? []).filter((p: any) => String(p?.contributorName ?? "").trim());
   const pubFor = (name: string) => pubs.find((p: any) => norm(p.contributorName) === norm(name));
+  const pubFields = (p: any): Fields => p ? ({
+    publisher: p.publisher, publishing_percent: p.percent,
+    ipi: cleanIpi(p.writerIpi), pro: p.pro, publisher_ipi: cleanIpi(p.publisherIpi),
+  }) : {};
 
   const updates = new Map<string, Fields>();
   const inserts = new Map<string, Fields>();
@@ -50,7 +55,7 @@ export async function syncCollaboratorContacts(userId: string, contributors: any
     const email = isEmail(contact) ? contact.toLowerCase() : "";
     const phone = isPhone(contact) ? contact : "";
     const pub = pubFor(name);
-    const fields: Fields = { name, email, phone, role: c?.role, publisher: pub?.publisher, publishing_percent: pub?.percent };
+    const fields: Fields = { name, email, phone, role: c?.role, ...pubFields(pub) };
 
     const match = (email && byEmail.get(email)) || byName.get(norm(name));
     if (match) {
@@ -65,7 +70,7 @@ export async function syncCollaboratorContacts(userId: string, contributors: any
     const match = byName.get(norm(p.contributorName));
     if (!match || touched.has(match.id)) continue;
     touched.add(match.id);
-    queueUpdate(match, { publisher: p.publisher, publishing_percent: p.percent });
+    queueUpdate(match, pubFields(p));
   }
 
   const ops: PromiseLike<{ error: any }>[] = [];
@@ -82,6 +87,9 @@ export async function syncCollaboratorContacts(userId: string, contributors: any
         role: String(f.role ?? "").trim(),
         publisher: String(f.publisher ?? "").trim(),
         publishing_percent: String(f.publishing_percent ?? "").trim(),
+        ipi: String(f.ipi ?? "").trim(),
+        pro: String(f.pro ?? "").trim(),
+        publisher_ipi: String(f.publisher_ipi ?? "").trim(),
       }))
     ));
   }

@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase from "@/libs/supabase";
+import { cleanIpi } from "@/libs/publishing";
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
@@ -13,8 +14,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const update: Record<string, string> = {};
   if (body.name !== undefined) update.name = String(body.name).trim();
   if (body.email !== undefined) update.email = String(body.email).trim().toLowerCase();
-  for (const key of ["role", "phone", "publisher", "publishing_percent"]) {
+  for (const key of ["role", "phone", "publisher", "publishing_percent", "pro"]) {
     if (body[key] !== undefined) update[key] = String(body[key] ?? "").trim();
+  }
+  for (const key of ["ipi", "publisher_ipi"]) {
+    if (body[key] !== undefined) update[key] = cleanIpi(body[key]);
   }
 
   const { data, error } = await supabase

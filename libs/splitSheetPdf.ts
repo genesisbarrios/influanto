@@ -5,6 +5,7 @@
 import jsPDF from "jspdf";
 import { sanitizeFilename } from "@/libs/urls";
 import { drawOwnershipPie } from "@/libs/splitSheetPie";
+import { drawPublishingTable, PublishingRow } from "@/libs/publishing";
 
 export interface SplitSheetPdfContributor {
   name: string;
@@ -14,11 +15,7 @@ export interface SplitSheetPdfContributor {
   signature: string;
   signatureDate: string;
 }
-export interface SplitSheetPdfPublishing {
-  contributorName: string;
-  publisher: string;
-  percent: string;
-}
+export type SplitSheetPdfPublishing = Partial<PublishingRow> & { contributorName: string; publisher: string; percent: string };
 export interface SplitSheetPdfData {
   title: string;
   date: string;
@@ -67,20 +64,8 @@ export function buildSplitSheetPdf(
     y += h;
   });
 
-  if (publishing.length) {
-    y += 6; if (y+20 > ph-20) { doc.addPage(); y=20; }
-    doc.text("Publishing Details:", 10, y); y += 5;
-    doc.setFillColor(243,244,246);
-    [[10,60],[70,60],[130,60]].forEach(([x,w]) => doc.rect(x, y, w, 8, "F"));
-    doc.text("Contributor",12,y+6); doc.text("Publisher",72,y+6); doc.text("%",132,y+6); y += 8;
-    publishing.forEach(p => {
-      const h = Math.max(Math.ceil((p.contributorName||"").length/30), Math.ceil((p.publisher||"").length/30), 1) * 8;
-      if (y+h > ph-20) { doc.addPage(); y=20; }
-      [[10,60],[70,60],[130,60]].forEach(([x,w]) => doc.rect(x, y, w, h));
-      doc.text(p.contributorName||"",12,y+6,{maxWidth:58}); doc.text(p.publisher||"",72,y+6,{maxWidth:58});
-      doc.text(p.percent ? `${p.percent}%`:"",132,y+6); y += h;
-    });
-  }
+  y = drawPublishingTable(doc, publishing, y, ph);
+  doc.setFontSize(12);
 
   // Signatures
   y += 8; if (y+20 > ph-20) { doc.addPage(); y=20; }
