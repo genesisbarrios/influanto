@@ -348,7 +348,7 @@ const ReleasePageView = () => {
 const renderMerchSection = () => {
   const customMerchItems = (releasePage?.customMerchLinks || [])
     .filter((l: any) => l?.url)
-    .map((l: any, i: number) => ({ id: `custom-${i}`, title: l.name || 'Merch', url: l.url, images: [], isCustom: true }));
+    .map((l: any, i: number) => ({ id: `custom-${i}`, title: l.name || 'Merch', url: l.url, images: l.image ? [l.image] : [], isCustom: true }));
 
   const hasSelectedProducts = releasePage?.selectedProducts && releasePage.selectedProducts.length > 0;
   if (!hasSelectedProducts && customMerchItems.length === 0) {
@@ -433,6 +433,7 @@ const renderMerchSection = () => {
               {product.images && product.images[0] && (
                 <img
                   src={product.images[0]}
+                  referrerPolicy="no-referrer"
                   alt={product.title}
                   style={{
                     width: "100%",

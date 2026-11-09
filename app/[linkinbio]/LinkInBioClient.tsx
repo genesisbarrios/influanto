@@ -266,7 +266,7 @@ useEffect(() => {
     .filter(Boolean);
   const customMerchItems = (linkInBio?.customMerchLinks || [])
     .filter((l: any) => l?.url)
-    .map((l: any, i: number) => ({ key: `custom-${i}`, url: l.url, title: l.name || 'Merch', images: [], variants: [], isCustom: true }));
+    .map((l: any, i: number) => ({ key: `custom-${i}`, url: l.url, title: l.name || 'Merch', images: l.image ? [l.image] : [], variants: [], isCustom: true }));
   const merchItems = [...printifyMerchItems, ...customMerchItems];
 
 return (
@@ -542,6 +542,7 @@ return (
                           <img
                             src={product.images[0]}
                             alt={product.title}
+                            referrerPolicy="no-referrer"
                             style={{
                               width: "100%",
                               height: "100%",

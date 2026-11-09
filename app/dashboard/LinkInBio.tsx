@@ -12,6 +12,7 @@ import LinkInBioAnalytics from "@/components/LinkInBioAnalytics";
 import { parseColorValue, combineColor } from "@/libs/color";
 import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
 import ImagePicker from "@/components/ImagePicker";
+import CustomMerchLinksEditor from "@/components/CustomMerchLinksEditor";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBoxOpen,
@@ -387,19 +388,8 @@ const LinkInBio = () => {
     setLinks([...links, { url: "", name: "" }]);
   };
 
-  const addCustomMerchLink = () => {
-    setCustomMerchLinks([...customMerchLinks, { name: "", url: "" }]);
-  };
 
-  const updateCustomMerchLink = (index: number, field: "name" | "url", value: string) => {
-    const updated = [...customMerchLinks];
-    updated[index] = { ...updated[index], [field]: value };
-    setCustomMerchLinks(updated);
-  };
 
-  const removeCustomMerchLink = (index: number) => {
-    setCustomMerchLinks(customMerchLinks.filter((_: any, i: number) => i !== index));
-  };
 
   const moveLink = (fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= links.length) return;
@@ -577,7 +567,7 @@ const LinkInBio = () => {
           }}
         >
           <div className="w-full flex justify-between items-center">
-            <h2 className="text-2xl font-bold mb-2" style={{ color: textColor, fontFamily: linkInBio?.font || 'inherit' }}>Link In Bio</h2>
+            <h2 className="text-base sm:text-2xl font-bold mb-2 leading-tight min-w-0 truncate" style={{ color: textColor, fontFamily: linkInBio?.font || 'inherit' }}>Link In Bio</h2>
             <div className="flex items-center gap-2">
               <button
                 className="btn btn-sm btn-narrow"
@@ -758,7 +748,7 @@ const LinkInBio = () => {
           className="mx-auto mt-4 shadow rounded-md text-black"
           style={{ width: "calc(100% - 16px)", padding: "0.75rem 1rem", boxSizing: "border-box", backgroundColor: linkInBio?.cardBgColor || 'white', fontFamily: linkInBio?.font || 'inherit' }}
         >
-          <h2 className="text-xl font-bold mb-1" style={{ color: textColor, fontFamily: linkInBio?.font || 'inherit' }}>Analytics</h2>
+          <h2 className="text-base sm:text-xl font-bold mb-1 leading-tight" style={{ color: textColor, fontFamily: linkInBio?.font || 'inherit' }}>Analytics</h2>
           <LinkInBioAnalytics />
         </div>
       </>
@@ -780,7 +770,7 @@ const LinkInBio = () => {
       }}
     >
       <div className="w-full flex flex-wrap">
-        <h2 className="text-xl sm:text-2xl font-bold mb-2 inline" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
+        <h2 className="text-base sm:text-2xl font-bold mb-2 inline leading-tight" style={{ fontFamily: linkInBio?.font || 'inherit' }}>
           Link In Bio
         </h2>
         <br />
@@ -1340,43 +1330,15 @@ const LinkInBio = () => {
           )}
 
           {showCustomMerchLinks && (
-            <div className="mt-4 border-t border-purple-200 pt-4">
-              <p className="text-purple-600 text-sm mb-2">
-                Add links to your own merch — a store, an Etsy shop, anything not on Printify.
-              </p>
-              {customMerchLinks.map((link: any, index: number) => (
-                <div key={index} className="flex items-center gap-2 mb-2 flex-wrap">
-                  <input
-                    type="text"
-                    className="input input-sm flex-1 min-w-[120px]"
-                    placeholder="Name (e.g. T-Shirt)"
-                    value={link.name || ""}
-                    onChange={(e) => updateCustomMerchLink(index, "name", e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    className="input input-sm flex-1 min-w-[160px]"
-                    placeholder="https://your-store.com/product"
-                    value={link.url || ""}
-                    onChange={(e) => updateCustomMerchLink(index, "url", e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-alert"
-                    onClick={() => removeCustomMerchLink(index)}
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                className="text-xs text-purple-600 hover:text-purple-800 font-medium px-2 py-0.5 rounded border border-purple-400 hover:border-purple-600 transition-colors"
-                onClick={addCustomMerchLink}
-              >
-                + Add merch link
-              </button>
-            </div>
+            <CustomMerchLinksEditor
+              links={customMerchLinks}
+              onChange={setCustomMerchLinks}
+              galleryImages={galleryImages}
+              uploadPreset="LinkInBioThumbnail"
+              uploadOptions={(i) => ({ folder: `user_${user?.id}_links`, publicId: `merch_${i}_${Date.now()}` })}
+              onGalleryChange={loadGallery}
+              font={linkInBio?.font}
+            />
           )}
             </>
             )}
