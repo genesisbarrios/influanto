@@ -1,8 +1,22 @@
 import pg from 'pg';
+import fs from 'fs';
 const { Client } = pg;
 
+// Connection string comes from the environment (DATABASE_URL), loaded from
+// .env.local if present. Never hard-code credentials here; this repo is public.
+if (!process.env.DATABASE_URL && fs.existsSync('.env.local')) {
+  for (const line of fs.readFileSync('.env.local', 'utf8').split('\n')) {
+    const m = line.match(/^\s*DATABASE_URL\s*=\s*(.+?)\s*$/);
+    if (m) process.env.DATABASE_URL = m[1].replace(/^["']|["']$/g, '');
+  }
+}
+if (!process.env.DATABASE_URL) {
+  console.error('Set DATABASE_URL (Supabase → Settings → Database → Connection string) in .env.local');
+  process.exit(1);
+}
+
 const client = new Client({
-  connectionString: 'postgresql://postgres:***REMOVED***@db.dayeptxjepptzhmjhvjg.supabase.co:5432/postgres',
+  connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
@@ -119,6 +133,10 @@ const migrations = [
   // picking a saved contact on a new sheet also fills their publishing row
   `ALTER TABLE collaborator_contacts ADD COLUMN IF NOT EXISTS publisher TEXT DEFAULT ''`,
   `ALTER TABLE collaborator_contacts ADD COLUMN IF NOT EXISTS publishing_percent TEXT DEFAULT ''`,
+  // writer IPI, PRO and publisher IPI per collaborator (split sheet publishing details)
+  `ALTER TABLE collaborator_contacts ADD COLUMN IF NOT EXISTS ipi TEXT DEFAULT ''`,
+  `ALTER TABLE collaborator_contacts ADD COLUMN IF NOT EXISTS pro TEXT DEFAULT ''`,
+  `ALTER TABLE collaborator_contacts ADD COLUMN IF NOT EXISTS publisher_ipi TEXT DEFAULT ''`,
 
   // release pages can be an electronic press kit (page_type 'epk') with its
   // EPK content (bio, venues, gallery, press quotes, ...) in one JSON column
