@@ -159,6 +159,25 @@ const migrations = [
     created_at TIMESTAMPTZ DEFAULT NOW()
   )`,
 
+  // split sheet delivery tracking: when it was last sent, and per signer when
+  // the email was opened / link clicked / page viewed / details edited (signed_at
+  // already exists). split_sheet_events keeps the full history for analytics;
+  // signer_id NULL means the sheet owner (e.g. edited after sending).
+  `ALTER TABLE split_sheets ADD COLUMN IF NOT EXISTS last_sent_at TIMESTAMPTZ`,
+  `ALTER TABLE split_sheet_signers ADD COLUMN IF NOT EXISTS last_sent_at TIMESTAMPTZ`,
+  `ALTER TABLE split_sheet_signers ADD COLUMN IF NOT EXISTS opened_at TIMESTAMPTZ`,
+  `ALTER TABLE split_sheet_signers ADD COLUMN IF NOT EXISTS clicked_at TIMESTAMPTZ`,
+  `ALTER TABLE split_sheet_signers ADD COLUMN IF NOT EXISTS viewed_at TIMESTAMPTZ`,
+  `ALTER TABLE split_sheet_signers ADD COLUMN IF NOT EXISTS edited_at TIMESTAMPTZ`,
+  `CREATE TABLE IF NOT EXISTS split_sheet_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    split_sheet_id UUID NOT NULL REFERENCES split_sheets(id) ON DELETE CASCADE,
+    signer_id UUID REFERENCES split_sheet_signers(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS split_sheet_events_sheet_idx ON split_sheet_events(split_sheet_id, created_at DESC)`,
+
   // link shortener: influanto.com/s/<code>
   `CREATE TABLE IF NOT EXISTS short_links (
     code TEXT PRIMARY KEY,

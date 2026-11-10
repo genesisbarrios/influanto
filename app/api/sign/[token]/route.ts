@@ -7,9 +7,10 @@ import { buildSplitSheetPdf, splitSheetPdfFilename } from "@/libs/splitSheetPdf"
 import config from "@/config";
 import { normalizePublishingRow, hasPublishingData } from "@/libs/publishing";
 import { syncCollaboratorContacts } from "@/libs/collaboratorContacts";
+import { isBotUserAgent, recordSplitSheetEvent } from "@/libs/splitSheetEvents";
 
 // ── GET — public, fetch split sheet + signer details by token ────────────────
-export async function GET(_req: NextRequest, { params }: { params: { token: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { token: string } }) {
   const { data: signer, error } = await supabase
     .from("split_sheet_signers")
     .select("*, split_sheets(*)")
@@ -21,6 +22,14 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
   }
 
   const sheet = signer.split_sheets as any;
+
+  // Track that the recipient opened the signing page (not the owner previewing it)
+  if (!isBotUserAgent(req.headers.get("user-agent") || "")) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || session.user.id !== sheet.user_id) {
+      await recordSplitSheetEvent(sheet.id, signer.id, "viewed");
+    }
+  }
 
   return NextResponse.json({
     signer: {
@@ -136,6 +145,16 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
     .from("split_sheets")
     .update({ contributors: updatedContributors, publishing: updatedPublishing })
     .eq("id", sheet.id);
+
+  // Analytics: did the signer change any of their details? Then the signature.
+  const detailKey = (c: any) => c ? [c.name, c.role, c.ownership, c.contact].map((v) => String(v ?? "").trim()).join("|") : "";
+  const pubKey = (rows: any[]) => JSON.stringify(rows.map((p) => { const n = normalizePublishingRow(p); return [n.writerIpi, n.pro, n.publisher, n.publisherIpi, n.percent]; }));
+  const beforeRow = contributors.find(isMe);
+  const afterRow = updatedContributors.find((c: any) => c.signature === signatureData && (c.name ?? "") === finalContributorName);
+  const myPublishingBefore = existingPublishing.filter((p: any) => (p.contributorName ?? "").toLowerCase() === myOriginalName);
+  const edited = (beforeRow && afterRow && detailKey(beforeRow) !== detailKey(afterRow)) || pubKey(myPublishingBefore) !== pubKey(myPublishing);
+  if (edited) await recordSplitSheetEvent(sheet.id, signer.id, "edited", signedAt);
+  await recordSplitSheetEvent(sheet.id, signer.id, "signed", signedAt);
 
   // Keep the sheet owner's collaborator contacts up to date with what the signer
   // entered (IPI, PRO, publisher…). Best-effort: never fail the signature over it.

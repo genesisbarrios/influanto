@@ -12,6 +12,8 @@ import OwnershipPie from "@/components/OwnershipPie";
 import { sanitizeFilename } from "@/libs/urls";
 import { drawOwnershipPie } from "@/libs/splitSheetPie";
 import PublishingRowFields from "@/components/PublishingRowFields";
+import PdfPreviewModal from "@/components/PdfPreviewModal";
+import SplitSheetAnalytics, { SignerTracking, trackingSummary } from "@/components/SplitSheetAnalytics";
 import { PublishingRow, BLANK_PUBLISHING_ROW, PRO_OPTIONS, drawPublishingTable, normalizePublishingRow, hasPublishingData } from "@/libs/publishing";
 
 const FREE_SPLIT_SHEET_LIMIT = 5;
@@ -39,6 +41,7 @@ interface SplitSheet {
   id: string; title: string; date: string; artists: string; stateCountry: string;
   contributors: Contributor[]; publishing: Publishing[];
   status: "draft" | "sent" | "completed"; created_at: string;
+  last_sent_at?: string | null; signers?: SignerTracking[];
 }
 interface Contact {
   id: string; name: string; email: string; role: string; phone: string;
@@ -63,7 +66,7 @@ const BLANK_SHEET = (): Partial<SplitSheet> => ({
 
 // ─── PDF export (mirrors the public split sheet generator) ────────────────────
 
-function downloadSheetPDF(sheet: Partial<SplitSheet>) {
+function buildSheetPDF(sheet: Partial<SplitSheet>) {
   const doc = new jsPDF();
   const contributors: Contributor[] = (sheet.contributors as any) ?? [];
   const publishing: Publishing[] = (sheet.publishing as any) ?? [];
@@ -146,7 +149,12 @@ function downloadSheetPDF(sheet: Partial<SplitSheet>) {
 
   const filenameParts = [sanitizeFilename(sheet.title || "") || "split-sheet", "splitsheet", "influanto"];
   if (sheet.date) filenameParts.push(sanitizeFilename(sheet.date));
-  doc.save(`${filenameParts.join("_")}.pdf`);
+  return { doc, filename: `${filenameParts.join("_")}.pdf` };
+}
+
+function downloadSheetPDF(sheet: Partial<SplitSheet>) {
+  const { doc, filename } = buildSheetPDF(sheet);
+  doc.save(filename);
 }
 
 // ─── Signature canvas modal ───────────────────────────────────────────────────
@@ -263,6 +271,8 @@ export default function SplitSheets() {
   const [editingSheet, setEditingSheet] = useState<Partial<SplitSheet> | null>(null);
   const [sigModal, setSigModal] = useState<number | null>(null); // contributor index
   const [sendDialog, setSendDialog] = useState<string | null>(null); // sheet id
+  const [pdfPreview, setPdfPreview] = useState<Partial<SplitSheet> | null>(null);
+  const [analyticsFor, setAnalyticsFor] = useState<SplitSheet | null>(null);
   const [contactForm, setContactForm] = useState<Partial<Contact>>({});
   const [editingContact, setEditingContact] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
@@ -635,11 +645,15 @@ export default function SplitSheets() {
 
           <div className="flex gap-3 flex-wrap">
             <button className="btn btn-primary" disabled={isLoading} onClick={handleSave}>{isLoading ? "Saving…" : "Save"}</button>
+            <button className="btn btn-outline" onClick={() => setPdfPreview(sheet)}>Preview PDF</button>
             <button className="btn btn-outline" onClick={() => downloadSheetPDF(sheet)}>Download PDF</button>
             <button className="btn" onClick={() => { setView("list"); setEditingSheet(null); setAlert(""); }}>Cancel</button>
           </div>
         </div>
 
+        {pdfPreview && (
+          <PdfPreviewModal title={`${pdfPreview.title || "Untitled"} · split sheet`} build={() => buildSheetPDF(pdfPreview)} onClose={() => setPdfPreview(null)} />
+        )}
         {sigModal !== null && (
           <SignatureModal
             existing={(sheet.contributors as Contributor[])[sigModal]?.signature}
@@ -709,11 +723,15 @@ export default function SplitSheets() {
                       {s.artists && <span>{s.artists} · </span>}
                       {((s.contributors as any[]) ?? []).filter(c => c.name).length} contributor{((s.contributors as any[]) ?? []).filter(c => c.name).length !== 1 ? "s" : ""}
                     </p>
+                    {trackingSummary(s.signers ?? [], s.last_sent_at) && (
+                      <p className="text-xs text-indigo-700 mt-0.5">{trackingSummary(s.signers ?? [], s.last_sent_at)}</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <button className="btn btn-xs btn-outline" onClick={() => { setEditingSheet({ ...s, stateCountry: (s as any).state_country ?? "" }); setView("form"); setAlert(""); }}>Edit</button>
-                  <button className="btn btn-xs btn-outline" onClick={() => downloadSheetPDF({ ...s, stateCountry: (s as any).state_country ?? "" })}>PDF</button>
+                  <button className="btn btn-xs btn-outline" onClick={() => setPdfPreview({ ...s, stateCountry: (s as any).state_country ?? "" })}>PDF</button>
+                  <button className="btn btn-xs btn-outline" onClick={() => setAnalyticsFor(s)}>Analytics</button>
                   <button className="btn btn-xs btn-info text-white" onClick={() => { setSendDialog(s.id); setAlert(""); }}>Send</button>
                   <button className="btn btn-xs btn-error" onClick={() => handleDeleteSheet(s.id)}>Delete</button>
                 </div>
@@ -723,6 +741,12 @@ export default function SplitSheets() {
         </div>
       )}
 
+      {pdfPreview && (
+        <PdfPreviewModal title={`${pdfPreview.title || "Untitled"} · split sheet`} build={() => buildSheetPDF(pdfPreview)} onClose={() => setPdfPreview(null)} />
+      )}
+      {analyticsFor && (
+        <SplitSheetAnalytics sheetId={analyticsFor.id} title={analyticsFor.title} onClose={() => setAnalyticsFor(null)} />
+      )}
       {sendDialog && (
         <SendDialog
           sheetId={sendDialog}

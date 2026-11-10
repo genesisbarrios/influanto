@@ -5,6 +5,7 @@ import { authOptions } from "@/libs/next-auth";
 import supabase from "@/libs/supabase";
 import { sendEmail } from "@/libs/resend";
 import config from "@/config";
+import { recordSplitSheetEvent } from "@/libs/splitSheetEvents";
 
 // Build emailed links from the canonical domain — NEXTAUTH_URL can be localhost
 // in some environments, which would break the sign/login links in the email.
@@ -68,20 +69,23 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .join("");
 
   const errors: string[] = [];
+  let sentCount = 0;
 
   for (const contact of contacts) {
     try {
     // Get or create a unique signing token for this contact + sheet
     let token: string;
+    let signerId: string;
     const { data: existingSigner } = await supabase
       .from("split_sheet_signers")
-      .select("token")
+      .select("id, token")
       .eq("split_sheet_id", sheet.id)
       .eq("contributor_email", contact.email.toLowerCase())
       .maybeSingle();
 
     if (existingSigner?.token) {
       token = existingSigner.token;
+      signerId = existingSigner.id;
     } else {
       const { data: newSigner, error: signerErr } = await supabase
         .from("split_sheet_signers")
@@ -90,7 +94,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           contributor_name: contact.name,
           contributor_email: contact.email.toLowerCase(),
         })
-        .select("token")
+        .select("id, token")
         .single();
 
       if (signerErr || !newSigner) {
@@ -98,12 +102,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         continue;
       }
       token = newSigner.token;
+      signerId = newSigner.id;
     }
 
-    const signUrl = `${APP_URL}/sign/${token}`;
-    // Login also returns to the signing page — once authenticated, signing saves
-    // a copy of the sheet under the signer's account.
-    const loginUrl = `${APP_URL}/api/auth/signin?callbackUrl=${encodeURIComponent(`/sign/${token}`)}`;
+    // Links go through the click tracker, which redirects to the signing page
+    // (or to login, which also returns to the signing page; once authenticated,
+    // signing saves a copy of the sheet under the signer's account).
+    const signUrl = `${APP_URL}/api/sign/${token}/click?to=sign`;
+    const loginUrl = `${APP_URL}/api/sign/${token}/click?to=login`;
+    const openPixel = `<img src="${APP_URL}/api/sign/${token}/open" width="1" height="1" alt="" style="display:none;width:1px;height:1px;" />`;
 
     const html = `
       <div style="font-family:sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#111;">
@@ -177,6 +184,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           This email was sent by ${senderName} via <a href="https://influanto.com" style="color:#4f46e5;">Influanto</a>.
           Your unique signing link: <a href="${signUrl}" style="color:#4f46e5;">view split sheet</a>
         </p>
+        ${openPixel}
       </div>
     `;
 
@@ -188,6 +196,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         html,
         replyTo: sender?.email || "noreply@influanto.com",
       });
+      await recordSplitSheetEvent(sheet.id, signerId, "sent");
+      sentCount++;
     } catch (e: any) {
       errors.push(`${contact.email}: ${e.message}`);
     }
@@ -197,12 +207,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
   }
 
-  // Mark sheet as sent
-  await supabase
+  // Mark sheet as sent (a completed sheet stays completed) and stamp the send time
+  const statusPatch = sheet.status === "completed" ? {} : { status: "sent" };
+  const markSent = (patch: Record<string, unknown>) => supabase
     .from("split_sheets")
-    .update({ status: "sent" })
+    .update(patch)
     .eq("id", params.id)
     .eq("user_id", session.user.id);
+  const { error: markErr } = await markSent({
+    ...statusPatch,
+    ...(sentCount ? { last_sent_at: new Date().toISOString() } : {}),
+  });
+  // Before the tracking migration has run, last_sent_at doesn't exist yet
+  if (markErr && Object.keys(statusPatch).length) await markSent(statusPatch);
 
   if (errors.length) {
     return NextResponse.json({ message: "Sent with some errors", errors }, { status: 207 });

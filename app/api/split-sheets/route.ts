@@ -10,14 +10,23 @@ export async function GET(_req: NextRequest) {
 
   const uid = session.user.id;
   // Sheets the user owns OR is a listed contributor on (shared_user_ids).
-  const { data, error } = await supabase
+  // Delivery tracking per recipient comes along for the list's status line
+  // (never the signing tokens), and only on sheets the user owns.
+  const list = (columns: string) => supabase
     .from("split_sheets")
-    .select()
+    .select(columns)
     .or(`user_id.eq.${uid},shared_user_ids.cs.{${uid}}`)
     .order("created_at", { ascending: false });
+  let { data, error } = await list("*, split_sheet_signers(id, contributor_name, contributor_email, last_sent_at, opened_at, clicked_at, viewed_at, edited_at, signed_at)");
+  // Before the tracking migration has run, the extra columns don't exist yet
+  if (error) ({ data, error } = await list("*"));
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data: data ?? [] });
+  const rows = (data ?? []).map(({ split_sheet_signers, ...sheet }: any) => ({
+    ...sheet,
+    signers: sheet.user_id === uid ? split_sheet_signers ?? [] : [],
+  }));
+  return NextResponse.json({ data: rows });
 }
 
 const FREE_SPLIT_SHEET_LIMIT = 5;
