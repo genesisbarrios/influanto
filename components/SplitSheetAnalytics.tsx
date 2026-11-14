@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import apiClient from "@/libs/api";
+import { signatureProgress } from "@/libs/splitSheetSplits";
 
 export interface SignerTracking {
   id: string;
@@ -15,6 +16,16 @@ export interface SignerTracking {
   signed_at: string | null;
 }
 interface SheetEvent { id: string; signer_id: string | null; type: string; created_at: string }
+interface ContributorSignature { name: string; signed: boolean; signatureDate: string | null; isOwner: boolean }
+interface AnalyticsData {
+  sheet: any;
+  signers: SignerTracking[];
+  events: SheetEvent[];
+  contributors: ContributorSignature[];
+  signatures: { signed: number; total: number };
+  fullySigned: boolean;
+  finalRecipients: string[];
+}
 
 const STEPS: { key: keyof SignerTracking; label: string }[] = [
   { key: "last_sent_at", label: "Sent" },
@@ -49,8 +60,14 @@ export function signerStage(s: SignerTracking): { label: string; at: string | nu
   return { label: "Not sent", at: null };
 }
 
-/** One-line summary for a sheet: last sent date + how far recipients got. */
-export function trackingSummary(signers: SignerTracking[], lastSentAt?: string | null) {
+/** One-line summary for a sheet: last sent date + how far recipients got.
+ *  "Signed" counts every contributor on the sheet (the owner included), not
+ *  just the people it was emailed to. */
+export function trackingSummary(
+  signers: SignerTracking[],
+  lastSentAt?: string | null,
+  contributors?: { name?: string; signature?: string }[]
+) {
   if (!signers.length && !lastSentAt) return "";
   const n = signers.length;
   const count = (k: keyof SignerTracking) => signers.filter((s) => s[k]).length;
@@ -60,20 +77,44 @@ export function trackingSummary(signers: SignerTracking[], lastSentAt?: string |
     const clicked = signers.filter((s) => s.clicked_at || s.viewed_at).length;
     parts.push(`${clicked}/${n} clicked`);
     if (count("edited_at")) parts.push(`${count("edited_at")} edited`);
+  }
+  if (contributors?.length) {
+    const { signed, total } = signatureProgress(contributors);
+    if (total) parts.push(`${signed}/${total} signed`);
+  } else if (n) {
     parts.push(`${count("signed_at")}/${n} signed`);
   }
   return parts.join(" · ");
 }
 
 export default function SplitSheetAnalytics({ sheetId, title, onClose }: { sheetId: string; title?: string; onClose: () => void }) {
-  const [data, setData] = useState<{ sheet: any; signers: SignerTracking[]; events: SheetEvent[] } | null>(null);
+  const [data, setData] = useState<AnalyticsData | null>(null);
   const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState("");
 
-  useEffect(() => {
+  const load = React.useCallback(() => {
     apiClient.get(`/split-sheets/${sheetId}/analytics`)
       .then((r: any) => setData(r))
       .catch((e: any) => setError(e?.response?.data?.error || e?.message || "Could not load analytics"));
   }, [sheetId]);
+  useEffect(() => { load(); }, [load]);
+
+  const sendFinal = async () => {
+    if (!data) return;
+    const list = data.finalRecipients.join("\n");
+    if (!window.confirm(`Email the fully signed PDF to:\n\n${list}`)) return;
+    setSending(true);
+    setSendResult("");
+    try {
+      const r: any = await apiClient.post(`/split-sheets/${sheetId}/finalize`);
+      setSendResult(`Sent to ${r.emailed.length} ${r.emailed.length === 1 ? "person" : "people"}.`);
+      load();
+    } catch (e: any) {
+      setSendResult(e?.response?.data?.error || "Couldn't send the final copy.");
+    }
+    setSending(false);
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -88,9 +129,9 @@ export default function SplitSheetAnalytics({ sheetId, title, onClose }: { sheet
     return s?.contributor_name || s?.contributor_email || "A recipient";
   };
   const total = signers.length;
-  const stat = (label: string, value: number) => (
+  const stat = (label: string, value: number, outOf = total) => (
     <div className="rounded-lg border border-gray-200 p-3 text-center">
-      <p className="text-2xl font-bold">{value}{total ? <span className="text-sm font-normal text-gray-400">/{total}</span> : null}</p>
+      <p className="text-2xl font-bold">{value}{outOf ? <span className="text-sm font-normal text-gray-400">/{outOf}</span> : null}</p>
       <p className="text-xs text-gray-500">{label}</p>
     </div>
   );
@@ -118,8 +159,39 @@ export default function SplitSheetAnalytics({ sheetId, title, onClose }: { sheet
                 {stat("Opened", signers.filter((s) => s.opened_at).length)}
                 {stat("Clicked", signers.filter((s) => s.clicked_at || s.viewed_at).length)}
                 {stat("Edited", signers.filter((s) => s.edited_at).length)}
-                {stat("Signed", signers.filter((s) => s.signed_at).length)}
+                {/* Every contributor's signature counts, the owner's included */}
+                {stat("Signed", data.signatures?.signed ?? 0, data.signatures?.total ?? 0)}
               </div>
+
+              {data.contributors?.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Signatures · {data.signatures.signed}/{data.signatures.total}</h4>
+                  <ul className="text-sm divide-y divide-gray-100 border border-gray-200 rounded-lg">
+                    {data.contributors.map((c, i) => (
+                      <li key={i} className="px-3 py-2 flex items-center justify-between gap-3">
+                        <span className="truncate">{c.name}{c.isOwner && <span className="text-gray-400"> (you)</span>}</span>
+                        <span className={`badge badge-sm shrink-0 ${c.signed ? "badge-success" : "badge-ghost"}`}>
+                          {c.signed ? `Signed${c.signatureDate ? ` ${c.signatureDate}` : ""}` : "Not signed"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {data.fullySigned && (
+                    <div className="mt-3 rounded-lg bg-green-50 border border-green-200 p-3 flex items-center justify-between gap-3 flex-wrap">
+                      <p className="text-sm text-green-800">
+                        Everyone has signed.{" "}
+                        {data.sheet?.final_sent_at
+                          ? <>Final copy emailed {fmtDateTime(data.sheet.final_sent_at)}.</>
+                          : <>The final copy hasn&apos;t been emailed yet.</>}
+                      </p>
+                      <button className="btn btn-sm btn-success text-white" disabled={sending || !data.finalRecipients.length} onClick={sendFinal}>
+                        {sending ? "Sending…" : `${data.sheet?.final_sent_at ? "Resend" : "Email"} final PDF to everyone (${data.finalRecipients.length})`}
+                      </button>
+                      {sendResult && <p className="text-xs text-green-900 w-full">{sendResult}</p>}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div>
                 <h4 className="font-semibold text-sm mb-2">Recipients</h4>

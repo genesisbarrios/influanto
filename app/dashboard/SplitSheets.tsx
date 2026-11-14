@@ -10,7 +10,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFileArrowUp, faXmark, faFileLines } from "@fortawesome/free-solid-svg-icons";
 import OwnershipPie from "@/components/OwnershipPie";
 import { sanitizeFilename } from "@/libs/urls";
-import { drawOwnershipPie } from "@/libs/splitSheetPie";
+import { drawOwnershipCharts } from "@/libs/splitSheetPie";
+import { splitsDiffer } from "@/libs/splitSheetSplits";
 import PublishingRowFields from "@/components/PublishingRowFields";
 import PdfPreviewModal from "@/components/PdfPreviewModal";
 import SplitSheetAnalytics, { SignerTracking, trackingSummary } from "@/components/SplitSheetAnalytics";
@@ -144,8 +145,9 @@ function buildSheetPDF(sheet: Partial<SplitSheet>) {
   });
   doc.setTextColor(0);
 
-  // Ownership pie chart under the terms
-  y = drawOwnershipPie(doc, contributors, y);
+  // Ownership chart(s) under the terms: a second, publishing donut only when
+  // the publishing %s differ from the master %s
+  y = drawOwnershipCharts(doc, contributors, publishing, y);
 
   const filenameParts = [sanitizeFilename(sheet.title || "") || "split-sheet", "splitsheet", "influanto"];
   if (sheet.date) filenameParts.push(sanitizeFilename(sheet.date));
@@ -636,8 +638,8 @@ export default function SplitSheets() {
               <p className="mt-1">Each contributor agrees to the ownership percentages specified above. All royalties will be distributed accordingly. Dispute resolution under the laws of <em>{sheet.stateCountry || "[State/Country]"}</em>. By signing, all parties acknowledge their contributions are accurately reflected.</p>
             </div>
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <strong className="text-sm text-gray-800">Ownership Split:</strong>
-              <OwnershipPie contributors={contributors} />
+              <strong className="text-sm text-gray-800">{splitsDiffer(contributors, publishing) ? "Ownership Splits:" : "Ownership Split:"}</strong>
+              <OwnershipPie contributors={contributors} publishing={publishing} />
             </div>
           </div>
 
@@ -723,8 +725,8 @@ export default function SplitSheets() {
                       {s.artists && <span>{s.artists} · </span>}
                       {((s.contributors as any[]) ?? []).filter(c => c.name).length} contributor{((s.contributors as any[]) ?? []).filter(c => c.name).length !== 1 ? "s" : ""}
                     </p>
-                    {trackingSummary(s.signers ?? [], s.last_sent_at) && (
-                      <p className="text-xs text-indigo-700 mt-0.5">{trackingSummary(s.signers ?? [], s.last_sent_at)}</p>
+                    {trackingSummary(s.signers ?? [], s.last_sent_at, s.contributors as Contributor[]) && (
+                      <p className="text-xs text-indigo-700 mt-0.5">{trackingSummary(s.signers ?? [], s.last_sent_at, s.contributors as Contributor[])}</p>
                     )}
                   </div>
                 </div>

@@ -178,6 +178,10 @@ const migrations = [
   )`,
   `CREATE INDEX IF NOT EXISTS split_sheet_events_sheet_idx ON split_sheet_events(split_sheet_id, created_at DESC)`,
 
+  // when the fully-signed PDF was emailed to everyone, so it goes out once
+  // (the owner can still resend it from Analytics)
+  `ALTER TABLE split_sheets ADD COLUMN IF NOT EXISTS final_sent_at TIMESTAMPTZ`,
+
   // link shortener: influanto.com/s/<code>
   `CREATE TABLE IF NOT EXISTS short_links (
     code TEXT PRIMARY KEY,

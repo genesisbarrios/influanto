@@ -11,7 +11,7 @@ import jsPDF from "jspdf";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { sanitizeFilename } from "@/libs/urls";
-import { drawOwnershipPie } from "@/libs/splitSheetPie";
+import { drawOwnershipCharts } from "@/libs/splitSheetPie";
 import OwnershipPie from "@/components/OwnershipPie";
 
 export default function SplitSheetTemplate() {
@@ -256,7 +256,7 @@ const handleDownloadPDF = () => {
   doc.setTextColor(0);
 
   // Ownership pie chart under the terms
-  y = drawOwnershipPie(doc, contributors, y);
+  y = drawOwnershipCharts(doc, contributors, publishing, y);
 
   // Signatures
   y += 8;
@@ -484,7 +484,7 @@ const handleDownloadPDF = () => {
 
             <div style={{ marginBottom: 16, background: "#f3f4f6", borderRadius: 8, padding: "1rem" }}>
               <div style={{ fontSize: "1.2em", color: "#444" }}><b>Ownership Split:</b></div>
-              <OwnershipPie contributors={contributors} />
+              <OwnershipPie contributors={contributors} publishing={publishing} />
             </div>
 
              <h2 className="text-xl font-bold mb-4">Signatures:</h2>

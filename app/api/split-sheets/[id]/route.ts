@@ -4,6 +4,8 @@ import { authOptions } from "@/libs/next-auth";
 import supabase, { resolveUserIdsByEmails } from "@/libs/supabase";
 import { syncCollaboratorContacts } from "@/libs/collaboratorContacts";
 import { recordSplitSheetEvent } from "@/libs/splitSheetEvents";
+import { isFullySigned } from "@/libs/splitSheetSplits";
+import { finalizeSplitSheet } from "@/libs/splitSheetFinalize";
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
@@ -51,6 +53,18 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   // Analytics: edits the owner makes after the sheet went out (signer_id NULL = owner)
   if (data?.last_sent_at) await recordSplitSheetEvent(data.id, null, "edited");
 
+  // The owner often signs last, in the editor. Once a sheet that went out has
+  // every signature, email the final copy to everyone (sent only once).
+  let finalized: { emailed: number } | undefined;
+  if (data?.last_sent_at && isFullySigned(data.contributors ?? [])) {
+    try {
+      const r = await finalizeSplitSheet(data.id);
+      if (r.emailed.length) finalized = { emailed: r.emailed.length };
+    } catch (e: any) {
+      console.error("split sheet finalize failed:", e?.message);
+    }
+  }
+
   // Keep collaborator contacts in step with the sheet (signed or not). The sheet
   // is already saved, so a contact sync failure is reported but not fatal.
   let contactsError: string | undefined;
@@ -60,7 +74,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     console.error("split sheet contact sync failed:", e?.message);
     contactsError = "Sheet saved, but contacts could not be updated";
   }
-  return NextResponse.json({ data, contactsError });
+  return NextResponse.json({ data, contactsError, finalized });
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {

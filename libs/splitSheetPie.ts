@@ -1,24 +1,20 @@
 import type { jsPDF } from "jspdf";
+import { masterSlices, publishingSlices, splitsDiffer, type Slice } from "@/libs/splitSheetSplits";
 
-// Ownership donut chart + legend for split sheet PDFs. Pure jsPDF vector shapes
-// (no canvas), so it works in the browser and on the server (emailed PDFs).
-// Colors match the on-screen chart in the dashboard.
+// Ownership donut charts + legends for split sheet PDFs. Pure jsPDF vector
+// shapes (no canvas), so they work in the browser and on the server (emailed
+// PDFs). Colors match the on-screen charts in the dashboard.
 
 const PALETTE = ["#2563eb", "#7c3aed", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#14b8a6", "#8b5cf6", "#84cc16"];
 
-export function ownershipSlices(contributors: { name?: string; ownership?: string | number }[] = []) {
-  return contributors
-    .filter((c) => c?.name)
-    .map((c) => ({ name: String(c.name), value: parseFloat(String(c.ownership ?? "").replace("%", "")) || 0 }))
-    .filter((c) => c.value > 0);
-}
+/** @deprecated use masterSlices from libs/splitSheetSplits */
+export const ownershipSlices = masterSlices;
 
-// Draws "Ownership Split:" + the chart starting at y; returns the y below it.
+// Draws `title` + one donut starting at y; returns the y below it.
 // Laid out like the on-screen chart: a centered donut, each slice labelled
 // "Name 50%" beside it in its color, and a legend underneath where a colored
 // dot shows which slice each name is.
-export function drawOwnershipPie(doc: jsPDF, contributors: { name?: string; ownership?: string | number }[], y: number): number {
-  const slices = ownershipSlices(contributors);
+function drawSplitPie(doc: jsPDF, slices: Slice[], title: string, kind: string, y: number): number {
   if (!slices.length) return y;
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -43,7 +39,7 @@ export function drawOwnershipPie(doc: jsPDF, contributors: { name?: string; owne
   if (y + needed > pageHeight - 20) { doc.addPage(); y = 20; }
 
   doc.setFontSize(12); doc.setTextColor(0);
-  doc.text("Ownership Split:", 10, y);
+  doc.text(title, 10, y);
   y += 6;
 
   const cx = pageWidth / 2, cy = y + r + labelGap + 6;
@@ -121,10 +117,31 @@ export function drawOwnershipPie(doc: jsPDF, contributors: { name?: string; owne
 
   if (Math.round(total) !== 100) {
     doc.setFontSize(8.5); doc.setTextColor(180, 40, 40);
-    const note = `Note: ownership adds up to ${total}%, not 100%.`;
+    const note = `Note: ${kind} adds up to ${total}%, not 100%.`;
     doc.text(note, (pageWidth - doc.getTextWidth(note)) / 2, ly);
     ly += 5;
   }
   doc.setTextColor(0);
   return ly + 2;
+}
+
+/** The master ownership donut alone (kept for callers without publishing data). */
+export function drawOwnershipPie(doc: jsPDF, contributors: { name?: string; ownership?: string | number }[], y: number): number {
+  return drawSplitPie(doc, masterSlices(contributors), "Ownership Split:", "ownership", y);
+}
+
+/**
+ * One "Ownership Split" donut when the publishing %s match the master %s (or
+ * aren't filled in). When they differ, two donuts: "Master Split" from the
+ * contributors and "Publishing Split" from the publishing rows.
+ */
+export function drawOwnershipCharts(
+  doc: jsPDF,
+  contributors: { name?: string; ownership?: string | number }[],
+  publishing: { contributorName?: string; percent?: string | number }[],
+  y: number
+): number {
+  if (!splitsDiffer(contributors, publishing)) return drawOwnershipPie(doc, contributors, y);
+  y = drawSplitPie(doc, masterSlices(contributors), "Master Split:", "master ownership", y);
+  return drawSplitPie(doc, publishingSlices(publishing), "Publishing Split:", "publishing", y);
 }

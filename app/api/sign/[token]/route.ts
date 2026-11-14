@@ -5,7 +5,9 @@ import supabase from "@/libs/supabase";
 import { sendEmail } from "@/libs/resend";
 import { buildSplitSheetPdf, splitSheetPdfFilename } from "@/libs/splitSheetPdf";
 import config from "@/config";
-import { normalizePublishingRow, hasPublishingData } from "@/libs/publishing";
+import { normalizePublishingRow, hasPublishingData, escapeHtml } from "@/libs/publishing";
+import { isFullySigned, signatureProgress } from "@/libs/splitSheetSplits";
+import { finalizeSplitSheet } from "@/libs/splitSheetFinalize";
 import { syncCollaboratorContacts } from "@/libs/collaboratorContacts";
 import { isBotUserAgent, recordSplitSheetEvent } from "@/libs/splitSheetEvents";
 
@@ -166,58 +168,35 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
     }
   }
 
-  // 3. Email the signer their own copy right away ("just in case" they never
-  // click Download on the confirmation screen) — and, once every invited
-  // signer has now signed, email the final fully-executed PDF to everyone
-  // else too. Never let an email hiccup fail the signing request itself.
+  // 3. Emails. "Fully signed" means every contributor on the sheet has signed,
+  // the owner included (they sign in the editor and have no signer row).
+  //  - Fully signed now: the final PDF goes to everyone, this signer included
+  //    (finalizeSplitSheet sends it once and marks the sheet completed).
+  //  - Not yet: the signer gets their own copy right away, in case they never
+  //    click Download on the confirmation screen.
+  // Never let an email hiccup fail the signing request itself.
   try {
-    const pdfSheet = {
-      title: sheet.title ?? "",
-      date: sheet.date ?? "",
-      artists: sheet.artists ?? "",
-      stateCountry: sheet.state_country ?? "",
-      contributors: updatedContributors,
-      publishing: updatedPublishing,
-    };
-    const pdfBuffer = Buffer.from(buildSplitSheetPdf(pdfSheet).output("arraybuffer"));
-    const filename = splitSheetPdfFilename(pdfSheet);
-
-    const { data: allSigners } = await supabase
-      .from("split_sheet_signers")
-      .select("contributor_email, signed_at")
-      .eq("split_sheet_id", sheet.id);
-
-    const fullySigned = !!allSigners?.length && allSigners.every((s) => !!s.signed_at);
-
-    if (signer.contributor_email) {
+    if (isFullySigned(updatedContributors)) {
+      await finalizeSplitSheet(sheet.id);
+    } else if (signer.contributor_email) {
+      const pdfSheet = {
+        title: sheet.title ?? "",
+        date: sheet.date ?? "",
+        artists: sheet.artists ?? "",
+        stateCountry: sheet.state_country ?? "",
+        contributors: updatedContributors,
+        publishing: updatedPublishing,
+      };
+      const pdfBuffer = Buffer.from(buildSplitSheetPdf(pdfSheet).output("arraybuffer"));
+      const { signed, total } = signatureProgress(updatedContributors);
       await sendEmail({
         to: signer.contributor_email,
         subject: `✍️ Your signed copy: "${sheet.title}"`,
-        text: `Attached is your copy of the split sheet for "${sheet.title}".`,
-        html: `<p>Hi ${finalContributorName || signer.contributor_name || ""},</p><p>Attached is your copy of the split sheet for "<strong>${sheet.title}</strong>". Keep it for your records${fullySigned ? "" : " — once every contributor has signed, everyone will get the final version too"}.</p><p style="color:#9ca3af;font-size:12px;">Powered by <a href="https://influanto.com">Influanto</a></p>`,
+        text: `Attached is your copy of the split sheet for "${sheet.title}". ${signed} of ${total} contributors have signed; everyone gets the final version once all have.`,
+        html: `<p>Hi ${escapeHtml(finalContributorName || signer.contributor_name || "")},</p><p>Attached is your copy of the split sheet for "<strong>${escapeHtml(sheet.title)}</strong>". ${signed} of ${total} contributors have signed so far. Once everyone has, you'll get the final version too.</p><p style="color:#9ca3af;font-size:12px;">Powered by <a href="https://influanto.com">Influanto</a></p>`,
         replyTo: config.mailgun.supportEmail || "noreply@influanto.com",
-        attachments: [{ filename, content: pdfBuffer }],
+        attachments: [{ filename: splitSheetPdfFilename(pdfSheet), content: pdfBuffer }],
       });
-    }
-
-    if (fullySigned) {
-      const others = (allSigners ?? []).filter(
-        (s) => (s.contributor_email ?? "").toLowerCase() !== signerEmail
-      );
-      await Promise.all(
-        others
-          .filter((s) => s.contributor_email)
-          .map((s) =>
-            sendEmail({
-              to: s.contributor_email as string,
-              subject: `🎉 Fully signed: "${sheet.title}"`,
-              text: `Everyone has now signed the split sheet for "${sheet.title}". Attached is the final signed copy.`,
-              html: `<p>Great news — everyone has now signed the split sheet for "<strong>${sheet.title}</strong>". Attached is the final, fully-executed copy for your records.</p><p style="color:#9ca3af;font-size:12px;">Powered by <a href="https://influanto.com">Influanto</a></p>`,
-              replyTo: config.mailgun.supportEmail || "noreply@influanto.com",
-              attachments: [{ filename, content: pdfBuffer }],
-            })
-          )
-      );
     }
   } catch (e) {
     console.error("Failed to email split sheet PDF:", e);
