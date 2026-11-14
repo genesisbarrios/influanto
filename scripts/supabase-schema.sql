@@ -166,3 +166,14 @@ CREATE TRIGGER update_accounts_updated_at BEFORE UPDATE ON accounts FOR EACH ROW
 CREATE TRIGGER update_release_pages_updated_at BEFORE UPDATE ON release_pages FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_link_in_bio_updated_at BEFORE UPDATE ON link_in_bio FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_qr_codes_updated_at BEFORE UPDATE ON qr_codes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Custom domains (Pro): one per user, attached to the Vercel project via its API.
+-- RLS on with no policies, so only the service role (our API) can read/write it.
+CREATE TABLE IF NOT EXISTS custom_domains (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  domain TEXT NOT NULL UNIQUE,
+  verified BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE custom_domains ENABLE ROW LEVEL SECURITY;

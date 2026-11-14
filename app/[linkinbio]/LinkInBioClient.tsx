@@ -24,7 +24,8 @@ import { usePathname, useSearchParams } from 'next/navigation'
 // Background patterns are rendered via the shared hero-patterns library (see
 // HeroPatterns import) so the saved patternId matches the dashboard picker.
 
-const LinkInBioPage =  () => {
+// `username` comes from the server route; on a custom domain the browser path is just "/"
+const LinkInBioPage =  ({ username }: { username?: string }) => {
   const router = useRouter();
   const [user, setUser] = useState<any>();
   const [userName, setUserName] = useState("");
@@ -80,9 +81,9 @@ useEffect(() => {
   useEffect(() => {
     const url = `${pathname}`
     //console.log(url);
-    setUserName(url.split("/")[1]);
+    setUserName(username || url.split("/")[1]);
     //console.log(userName);
-  }, [pathname, searchParams, userName])
+  }, [pathname, searchParams, userName, username])
 
   // Add function to fetch products
   const fetchAvailableProducts = async () => {

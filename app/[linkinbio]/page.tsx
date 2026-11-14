@@ -42,6 +42,6 @@ export async function generateMetadata({
   });
 }
 
-export default function Page() {
-  return <LinkInBioClient />;
+export default function Page({ params }: { params: { linkinbio: string } }) {
+  return <LinkInBioClient username={params.linkinbio} />;
 }
