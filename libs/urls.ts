@@ -3,6 +3,15 @@
 // useless in an <a href> — the browser treats it as a relative path
 // against the current page. This prepends https:// whenever no
 // scheme is present, and blocks dangerous schemes like javascript:.
+// On a custom domain, an influanto.com release page / EPK link becomes a
+// path on that domain (e.g. https://influanto.com/release/up → /release/up),
+// so visitors stay on the artist's domain. Off a custom domain, unchanged.
+export function keepOnCustomDomain(url: string, onCustomDomain: boolean): string {
+  if (!onCustomDomain) return url;
+  const m = String(url).match(/^https?:\/\/(?:www\.)?influanto\.com(\/(?:release|epk)\/[^\s]*)$/i);
+  return m ? m[1] : url;
+}
+
 export function normalizeUrl(url: string): string {
   const u = String(url ?? "").trim();
   if (!u) return "";

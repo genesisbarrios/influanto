@@ -16,10 +16,11 @@ import { faGlobe, faLocation, faEnvelope, faBoxOpen } from "@fortawesome/free-so
 
 import config from "@/config";
 import { getSEOTags } from "@/libs/seo";
-import { normalizeUrl } from "@/libs/urls";
+import { normalizeUrl, keepOnCustomDomain } from "@/libs/urls";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import { useRouter } from 'next/navigation'; 
 import { usePathname, useSearchParams } from 'next/navigation'
+import { isAppHost } from '@/libs/customDomains'
 
 // Background patterns are rendered via the shared hero-patterns library (see
 // HeroPatterns import) so the saved patternId matches the dashboard picker.
@@ -29,6 +30,10 @@ const LinkInBioPage =  ({ username }: { username?: string }) => {
   const router = useRouter();
   const [user, setUser] = useState<any>();
   const [userName, setUserName] = useState("");
+  // Served on the artist's own domain? (Set after mount so server and client
+  // render the same links first.)
+  const [onCustomDomain, setOnCustomDomain] = useState(false);
+  useEffect(() => { setOnCustomDomain(!isAppHost(window.location.hostname.toLowerCase())); }, []);
   const [displayEmail, setDisplayEmail] = useState<Boolean>();
   const [bgColor, setBgColor] = useState("");
   const [textColor, setTextColor]  = useState("");
@@ -454,7 +459,7 @@ return (
               <>
                 {link.image && <img src={link.image} alt="Link Image" style={{borderRadius: '50%', width: '30px', height: '30px', marginRight: '10px'}} />}
                 <a
-                  href={normalizeUrl(link.url)}
+                  href={keepOnCustomDomain(normalizeUrl(link.url), onCustomDomain)}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => trackLinkClick(link.name, link.url)}

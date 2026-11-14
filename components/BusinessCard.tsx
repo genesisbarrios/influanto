@@ -275,31 +275,33 @@ export default function BusinessCard({ user, setUser }: Props) {
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <label className="block text-xs font-medium">Background color</label>
-          <input
-            type="color"
-            value={bgColor}
-            onChange={e => setBgColor(e.target.value)}
-            className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer"
-          />
-        </div>
-
-        <div className="flex items-center gap-3">
-          <label className="block text-xs font-medium">Text color</label>
-          <input
-            type="color"
-            value={textColor}
-            onChange={e => setTextColor(e.target.value)}
-            className="w-10 h-10 border border-gray-300 rounded-lg cursor-pointer"
-          />
+        {/* Background and text color on one line, phones included */}
+        <div className="flex items-center gap-3 sm:gap-5 whitespace-nowrap">
+          <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+            <span><span className="sm:hidden">Background</span><span className="hidden sm:inline">Background color</span></span>
+            <input
+              type="color"
+              value={bgColor}
+              onChange={e => setBgColor(e.target.value)}
+              className="w-8 h-8 sm:w-10 sm:h-10 border border-gray-300 rounded-lg cursor-pointer shrink-0"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+            <span><span className="sm:hidden">Text</span><span className="hidden sm:inline">Text color</span></span>
+            <input
+              type="color"
+              value={textColor}
+              onChange={e => setTextColor(e.target.value)}
+              className="w-8 h-8 sm:w-10 sm:h-10 border border-gray-300 rounded-lg cursor-pointer shrink-0"
+            />
+          </label>
           {textColorTouched && (
             <button
               type="button"
               className="text-xs text-indigo-600 hover:underline"
               onClick={() => { setTextColorTouched(false); setTextColorRaw(pickTextColor(bgColor)); }}
             >
-              Reset to auto
+              <span className="sm:hidden">Auto</span><span className="hidden sm:inline">Reset to auto</span>
             </button>
           )}
         </div>

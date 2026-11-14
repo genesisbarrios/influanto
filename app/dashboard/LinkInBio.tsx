@@ -744,21 +744,21 @@ const LinkInBio = () => {
           {alert && <div className="alert mt-5 w-full">{alert}</div>}
         </div>
 
-        {/* Analytics — separate card under the Link in Bio card */}
+        {/* Custom domain (Pro), right under the Link in Bio card */}
+        <div
+          className="mx-auto mt-4 shadow rounded-md text-black"
+          style={{ width: "calc(100% - 16px)", padding: "0.75rem 1rem", boxSizing: "border-box", backgroundColor: linkInBio?.cardBgColor || 'white', fontFamily: linkInBio?.font || 'inherit' }}
+        >
+          <CustomDomainCard hasAccess={!!user?.hasAccess} textColor={textColor} font={linkInBio?.font} />
+        </div>
+
+        {/* Analytics, under the custom domain card */}
         <div
           className="mx-auto mt-4 shadow rounded-md text-black"
           style={{ width: "calc(100% - 16px)", padding: "0.75rem 1rem", boxSizing: "border-box", backgroundColor: linkInBio?.cardBgColor || 'white', fontFamily: linkInBio?.font || 'inherit' }}
         >
           <h2 className="text-base sm:text-xl font-bold mb-1 leading-tight" style={{ color: textColor, fontFamily: linkInBio?.font || 'inherit' }}>Analytics</h2>
           <LinkInBioAnalytics />
-        </div>
-
-        {/* Custom domain (Pro) */}
-        <div
-          className="mx-auto mt-4 shadow rounded-md text-black"
-          style={{ width: "calc(100% - 16px)", padding: "0.75rem 1rem", boxSizing: "border-box", backgroundColor: linkInBio?.cardBgColor || 'white', fontFamily: linkInBio?.font || 'inherit' }}
-        >
-          <CustomDomainCard hasAccess={!!user?.hasAccess} textColor={textColor} font={linkInBio?.font} />
         </div>
       </>
     );

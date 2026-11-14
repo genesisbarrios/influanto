@@ -1118,7 +1118,8 @@ const handleYouTubeMusicChange = (e: any) => {
                     rows={3}
                     className="w-full text-xs font-mono p-2 border border-gray-200 rounded bg-gray-50 text-gray-700"
                   />
-                  <div className="flex items-center gap-3 mt-2">
+                  {/* Wraps on phones instead of running off the card */}
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
                     <button
                       type="button"
                       className="btn btn-sm btn-primary"
@@ -1131,7 +1132,7 @@ const handleYouTubeMusicChange = (e: any) => {
                         <FontAwesomeIcon icon={faPen} className="mr-1" /> Edit style
                       </button>
                     )}
-                    <a href={`/embed/newsletter/${user.username}`} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 underline">Preview</a>
+                    <a href={`/embed/newsletter/${user.username}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-ghost text-indigo-600">Preview</a>
                   </div>
                 </div>
               );
