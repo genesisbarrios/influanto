@@ -38,7 +38,7 @@ export default function PostGuerrillaMarketing() {
   return (
     <>
       <Suspense><Header /></Suspense>
-      <main style={{ background: "#f9fafb", minHeight: "80vh" }}>
+      <main className="page-bg blog-page" style={{ minHeight: "80vh" }}>
         {/* Hero */}
         <div style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4f46e5 100%)", padding: "3.5rem 1.5rem 3rem" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>

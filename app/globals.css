@@ -47,8 +47,22 @@ progress::-webkit-progress-value {
   .reveal-ready [data-reveal], .hover-lift, .hover-zoom img { transition: none !important; transform: none !important; opacity: 1 !important; }
 }
 
-/* Music tools (/tools and every tool page): light greyish blue instead of white.
-   !important beats the panes' older inline backgrounds. */
-.tool-pane {
+/* Page backgrounds (music tools, blog, signing screens): light greyish blue
+   instead of white; cards on top stay white. !important beats older inline backgrounds. */
+.tool-pane,
+.page-bg {
   background-color: #e6ecf3 !important;
+}
+
+/* Blog: keep tall (portrait) images from filling the screen on desktop */
+@media (min-width: 768px) {
+  .blog-page article img {
+    width: auto !important;
+    max-width: 100% !important;
+    max-height: 560px;
+    height: auto !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    display: block;
+  }
 }

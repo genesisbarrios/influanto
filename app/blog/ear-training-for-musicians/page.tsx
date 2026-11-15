@@ -42,7 +42,7 @@ export default function PostEarTraining() {
   return (
     <>
       <Suspense><Header /></Suspense>
-      <main style={{ background: "#f9fafb", minHeight: "80vh" }}>
+      <main className="page-bg blog-page" style={{ minHeight: "80vh" }}>
         {/* Hero */}
         <div style={{ background: "linear-gradient(135deg, rgba(76,29,149,0.92) 0%, rgba(109,40,217,0.90) 50%, rgba(139,92,246,0.88) 100%), url('https://dt7v1i9vyp3mf.cloudfront.net/styles/news_large/s3/imagelibrary/2/2001-07-eartraining-1-_w6jPs0TQpOdBr0mQfflz.EXRFEyiV4q.jpg')", backgroundSize: "cover", backgroundPosition: "center", padding: "3.5rem 1.5rem 3rem" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>

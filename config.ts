@@ -70,6 +70,7 @@ const config = {
           { name: "Create Unlimited Split Sheets" },
           { name: "Analytics" },
           { name: "Dynamic QR Codes (up to 50) with Analytics & Advanced Styling" },
+          { name: "Custom domain for your Link in Bio, Release Pages & EPKs (e.g. links.yourname.com)" },
         ],
       },
       {
@@ -95,6 +96,7 @@ const config = {
           { name: "Create Unlimited Split Sheets" },
           { name: "Analytics" },
           { name: "Dynamic QR Codes (up to 50) with Analytics & Advanced Styling" },
+          { name: "Custom domain for your Link in Bio, Release Pages & EPKs (e.g. links.yourname.com)" },
         ],
       },
     ],

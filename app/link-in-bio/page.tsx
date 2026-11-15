@@ -59,7 +59,8 @@ export default function LinkInBioLanding() {
         },
       ]}
       faqs={[
-        { q: "Is the Influanto link in bio free?", a: "Yes. The free plan includes a link in bio page, release pages, a QR code generator, newsletter tools for up to 50 contacts, and split sheets. Influanto Pro adds unlimited contacts and newsletters, more release pages, and analytics." },
+        { q: "Is the Influanto link in bio free?", a: "Yes. The free plan includes a link in bio page, release pages, a QR code generator, newsletter tools for up to 50 contacts, and split sheets. Influanto Pro adds unlimited contacts and newsletters, more release pages, analytics, and your own custom domain." },
+        { q: "Can I use my own domain for my link in bio?", a: "Yes, with Influanto Pro. Connect a domain you own (like links.yourname.com) and your link in bio shows up there, with your release pages and EPKs under the same domain. You add one DNS record and we set up HTTPS automatically." },
         { q: "Can I collect emails from my link in bio?", a: "Yes. Turn on the newsletter signup and visitors can subscribe right from your page. Subscribers are added to your Influanto contacts so you can email them newsletters and release announcements." },
         { q: "Is Influanto a Linktree alternative for musicians?", a: "Yes. Influanto covers the same one-link use case, but adds music-specific features like streaming platform links, release pages, merch, a mailing list, and Meta Pixel tracking in one place." },
         { q: "Can I add a Meta (Facebook) Pixel to my link in bio?", a: "Yes. Add your Pixel ID in your profile settings and Influanto tracks page views, link clicks, and streaming clicks on your link in bio, release pages, and EPKs." },

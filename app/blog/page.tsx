@@ -114,7 +114,7 @@ export default function BlogIndex() {
   return (
     <>
       <Suspense><Header /></Suspense>
-      <main style={{ background: "#f9fafb", minHeight: "80vh" }}>
+      <main className="page-bg blog-page" style={{ minHeight: "80vh" }}>
         {/* Hero */}
         <div style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4f46e5 100%)", padding: "4rem 1.5rem 3rem", textAlign: "center" }}>
           <p style={{ color: "#a5b4fc", fontSize: 13, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", marginBottom: 12 }}>Influanto Blog</p>

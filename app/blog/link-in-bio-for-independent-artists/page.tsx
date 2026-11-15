@@ -40,7 +40,7 @@ export default function PostLinkInBio() {
   return (
     <>
       <Suspense><Header /></Suspense>
-      <main style={{ background: "#f9fafb", minHeight: "80vh" }}>
+      <main className="page-bg blog-page" style={{ minHeight: "80vh" }}>
         {/* Hero */}
         <div style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4f46e5 100%)", padding: "3.5rem 1.5rem 3rem" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -114,7 +114,7 @@ export default function PostLinkInBio() {
               <li><strong>Newsletter signup</strong> — your email list is the one thing you own. Social platforms come and go.</li>
               <li><strong>Social media profiles</strong> — Instagram, TikTok, Twitter/X, Facebook</li>
               <li><strong>Brand logo</strong> — consistent visual identity builds recognition over time</li>
-              <li><strong>Custom domain or branded URL</strong> — looks cleaner than a long redirect link</li>
+              <li><strong>Custom domain or branded URL</strong> — looks cleaner than a long redirect link (Influanto Pro lets you use your own domain, like links.yourname.com)</li>
             </ul>
 
             <h2 style={{ color: "#111827", fontWeight: 800, fontSize: "1.4rem", margin: "2rem 0 1rem" }}>Link in Bio vs. a Full Website</h2>

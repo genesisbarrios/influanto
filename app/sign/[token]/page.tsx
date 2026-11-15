@@ -150,7 +150,7 @@ export default function SignPage() {
   // ── Loading ──
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen page-bg flex items-center justify-center">
         <div className="text-gray-500 text-lg">Loading split sheet…</div>
       </div>
     );
@@ -159,7 +159,7 @@ export default function SignPage() {
   // ── Error ──
   if (error || !sheet || !signer) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+      <div className="min-h-screen page-bg flex items-center justify-center p-6">
         <div className="bg-white rounded-2xl shadow-lg p-10 max-w-md text-center">
           <div className="text-5xl mb-4 text-gray-300"><FontAwesomeIcon icon={faLinkSlash} /></div>
           <h1 className="text-xl font-bold text-gray-800 mb-2">Invalid or Expired Link</h1>

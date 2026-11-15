@@ -15,7 +15,7 @@ interface FAQItemProps {
 const faqList: FAQItemProps[] = [
   {
     question: "What do I get exactly?",
-    answer: <div className="space-y-2 leading-relaxed">With influanto, you can create custom links pages, a link in bio with your merch and music, create split sheets and QR Codes, and manage and update your newsletter. Connect your Meta Pixel once and it tracks visits and clicks on your Link in Bio, Release Pages, and EPKs. </div>,
+    answer: <div className="space-y-2 leading-relaxed">With influanto, you can create custom links pages, a link in bio with your merch and music, create split sheets and QR Codes, and manage and update your newsletter. Connect your Meta Pixel once and it tracks visits and clicks on your Link in Bio, Release Pages, and EPKs. With Influanto Pro you can also put them on your own custom domain (like links.yourname.com). </div>,
   },
   {
     question: "Can I get a refund?",
