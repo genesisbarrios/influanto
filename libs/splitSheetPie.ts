@@ -18,7 +18,7 @@ function drawSplitPie(doc: jsPDF, slices: Slice[], title: string, kind: string, 
   if (!slices.length) return y;
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const r = 24;
+  const r = 21;
   const labelGap = 5; // label distance outside the donut
   const color = (i: number) => PALETTE[i % PALETTE.length];
 
@@ -34,9 +34,10 @@ function drawSplitPie(doc: jsPDF, slices: Slice[], title: string, kind: string, 
   });
   const legendHeight = rows.length * 6;
 
-  const needed = 6 + 2 * (r + labelGap + 6) + legendHeight + 6;
-  y += 10;
-  if (y + needed > pageHeight - 20) { doc.addPage(); y = 20; }
+  // Title + donut with its labels + legend: what's actually drawn
+  const needed = 6 + 2 * (r + labelGap + 6) + legendHeight;
+  y += 6;
+  if (y + needed > pageHeight - 10) { doc.addPage(); y = 20; }
 
   doc.setFontSize(12); doc.setTextColor(0);
   doc.text(title, 10, y);

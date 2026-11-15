@@ -41,11 +41,12 @@ export function buildSplitSheetPdf(
   doc.setFontSize(16); doc.setTextColor(0);
   doc.text("SPLIT SHEET AGREEMENT", 10, 15);
   doc.setFontSize(12);
-  doc.text(`Song Title: ${sheet.title}`, 10, 30);
-  doc.text(`Date: ${sheet.date}`, 10, 40);
-  doc.text(`Artist(s): ${sheet.artists}`, 10, 50);
-  doc.text("Primary Contributors:", 10, 60);
-  y = 65;
+  // Tighter lines up top, so a two-person sheet keeps its pie chart on page 1
+  doc.text(`Song Title: ${sheet.title}`, 10, 26);
+  doc.text(`Date: ${sheet.date}`, 10, 33);
+  doc.text(`Artist(s): ${sheet.artists}`, 10, 40);
+  doc.text("Primary Contributors:", 10, 48);
+  y = 52;
 
   const headers = () => {
     doc.setFillColor(243, 244, 246);
@@ -68,8 +69,9 @@ export function buildSplitSheetPdf(
   doc.setFontSize(12);
 
   // Signatures
-  y += 8; if (y+20 > ph-20) { doc.addPage(); y=20; }
+  y += 6; if (y+20 > ph-20) { doc.addPage(); y=20; }
   doc.text("Signatures:", 10, y); y += 5;
+  doc.setFillColor(243, 244, 246); // light grey header (the fill was left black by the table above)
   [[10,60],[70,60],[130,60]].forEach(([x,w]) => doc.rect(x, y, w, 8, "F"));
   doc.text("Name",12,y+6); doc.text("Signature",72,y+6); doc.text("Date",132,y+6); y += 8;
 
@@ -88,7 +90,7 @@ export function buildSplitSheetPdf(
   });
 
   // Agreement terms (matches the on-screen terms)
-  y += 10; if (y+30 > ph-20) { doc.addPage(); y=20; }
+  y += 7; if (y+30 > ph-20) { doc.addPage(); y=20; }
   doc.setFontSize(12); doc.setTextColor(0);
   doc.text("Agreement Terms:", 10, y); y += 6;
   doc.setFontSize(10); doc.setTextColor(60);
