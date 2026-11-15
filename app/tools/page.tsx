@@ -19,6 +19,8 @@ import {
   faScrewdriverWrench,
   faLink,
   faWaveSquare,
+  faFileAudio,
+  faFileVideo,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
@@ -98,6 +100,20 @@ const tools: { title: string; description: string; href: string; icon: IconDefin
     href: "/LUFS-Meter",
     icon: faWaveSquare,
     color: "#0369a1",
+  },
+  {
+    title: "WAV to MP3 Converter",
+    description: "Convert WAVs to MP3 up to 320 kbps, several at once. Nothing is uploaded.",
+    href: "/WAV-to-MP3",
+    icon: faFileAudio,
+    color: "#2563eb",
+  },
+  {
+    title: "MP4 to MOV Converter",
+    description: "Turn MP4s into QuickTime MOVs for Final Cut & iMovie with zero quality loss.",
+    href: "/MP4-to-MOV",
+    icon: faFileVideo,
+    color: "#60a5fa",
   },
   {
     title: "Link Shortener",
