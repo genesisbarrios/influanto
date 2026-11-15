@@ -1,13 +1,14 @@
-// 3D icons from 3dicons.co (CC0), served from /public/icons3d. They're on a
-// white background; multiply blending lets that disappear on tinted cards too.
+// 3D icons from 3dicons.co (CC0) and, for the drum, Microsoft Fluent Emoji 3D
+// (MIT), served from /public/icons3d. The 3dicons ones are on a white background;
+// multiply blending lets that disappear on tinted cards too.
 export type Icon3DName =
-  | "bell" | "clock" | "computer" | "file-text" | "flag" | "folder" | "headphone" | "link" | "mic" | "mobile"
+  | "bell" | "clock" | "computer" | "drum" | "file-text" | "flag" | "folder" | "headphone" | "link" | "mic" | "mobile"
   | "notebook" | "pencil" | "picture" | "puzzle" | "rocket" | "shield" | "star" | "target" | "thumb-up" | "tools" | "zoom";
 
 export default function Icon3D({ name, size = 64, className = "" }: { name: Icon3DName; size?: number; className?: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={`/icons3d/${name}.webp`} alt="" width={size} height={size} loading="lazy" className={className}
+    <img src={`/icons3d/${name}.${name === "drum" ? "png" : "webp"}`} alt="" width={size} height={size} loading="lazy" className={className}
       style={{ width: size, height: size, mixBlendMode: "multiply", objectFit: "contain" }} />
   );
 }

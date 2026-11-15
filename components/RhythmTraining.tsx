@@ -9,7 +9,7 @@ import {
   faCodeCompare, faHandPointer, faWaveSquare, faArrowsLeftRight, faTableCells, faBolt, faPlay,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
-import { audioOut } from "@/components/EarVisualizer";
+import EarVisualizer, { audioOut } from "@/components/EarVisualizer";
 import Icon3D, { type Icon3DName } from "@/components/Icon3D";
 
 const accColor = (pct: number) => (pct >= 80 ? "#16a34a" : pct >= 50 ? "#d97706" : "#dc2626");
@@ -917,6 +917,8 @@ export default function RhythmTraining({ onBack }: { onBack: () => void }) {
       <button type="button" onClick={game ? exit : onBack} className="mb-6 text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1">
         ← {game ? "Back to rhythm games" : "Back to Melodic / Rhythmic"}
       </button>
+      {/* Waveform of whatever the game is playing (only once a game is open) */}
+      {game && <EarVisualizer />}
       {!game && SECTIONS.map((sec) => (
         <div key={sec.title} className="mb-8">
           <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">{sec.title}</h2>

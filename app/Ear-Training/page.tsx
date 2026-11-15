@@ -454,7 +454,7 @@ export default function EarTraining() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {([
                 { id: "melodic" as const, icon3d: "headphone" as const, title: "Melodic Training", desc: "Pitch matching, intervals and chords" },
-                { id: "rhythmic" as const, icon3d: "target" as const, title: "Rhythmic Training", desc: "Rhythm dictation, grooves, tempo, tapping, polyrhythms and beat building" },
+                { id: "rhythmic" as const, icon3d: "drum" as const, title: "Rhythmic Training", desc: "Rhythm dictation, grooves, tempo, tapping, polyrhythms and beat building" },
               ]).map(t => (
                 <button key={t.id} onClick={() => setTrack(t.id)}
                   className="p-8 bg-white rounded-2xl border-2 border-gray-200 hover:border-blue-500 hover:shadow-md transition-all text-left cursor-pointer">
@@ -466,8 +466,6 @@ export default function EarTraining() {
             </div>
           )}
 
-          {/* Waveform of whatever the games are playing */}
-          {track && <EarVisualizer />}
 
           {track === "rhythmic" && <RhythmTraining onBack={() => setTrack(null)} />}
 
@@ -514,6 +512,9 @@ export default function EarTraining() {
               ))}
             </div>
           )}
+
+          {/* Waveform of whatever the game is playing (only once a game is open) */}
+          {mode && <EarVisualizer />}
 
           {mode && !sessionDone && (
             <button onClick={resetMode} className="mb-6 text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1">
