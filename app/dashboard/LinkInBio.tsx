@@ -14,6 +14,7 @@ import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
 import ImagePicker from "@/components/ImagePicker";
 import CustomMerchLinksEditor from "@/components/CustomMerchLinksEditor";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLink as faLinkTitle } from "@fortawesome/free-solid-svg-icons";
 import {
   faBoxOpen,
   faTrash,
@@ -555,12 +556,12 @@ const LinkInBio = () => {
 
   if (!isEditing) {
     return (
-      <>
+      // Desktop: the Link in Bio card on the left, custom domain and analytics on the right
+      <div className="lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-6 lg:items-start">
         <div
-          className="mx-auto bg-white shadow rounded-md text-black"
+          className="mx-auto bg-white dash-card text-black"
           style={{
             width: "calc(100% - 16px)",
-            padding: "0.5rem 1rem",
             fontFamily: linkInBio?.font || 'inherit',
             backgroundColor: linkInBio?.cardBgColor || 'white',
             boxSizing: "border-box",
@@ -568,11 +569,15 @@ const LinkInBio = () => {
           }}
         >
           <div className="w-full flex justify-between items-center">
-            <h2 className="text-base sm:text-2xl font-bold mb-2 leading-tight min-w-0 truncate" style={{ color: textColor, fontFamily: linkInBio?.font || 'inherit' }}>Link In Bio</h2>
+            <h2 className="dash-title mb-2 min-w-0 truncate" style={{ color: textColor, fontFamily: linkInBio?.font || 'inherit' }}>
+              <span className="dash-title__icon"><FontAwesomeIcon icon={faLinkTitle} /></span>
+              Link in Bio
+            </h2>
             <div className="flex items-center gap-2">
               <button
-                className="btn btn-sm btn-narrow"
-                style={{ margin: "0 2%", fontFamily: linkInBio?.font || 'inherit', backgroundColor: '#6b7280', borderColor: '#6b7280', color: '#fff' }}
+                type="button"
+                className="dash-btn dash-btn--soft"
+                style={{ fontFamily: linkInBio?.font || 'inherit' }}
                 onClick={() => setEditing(true)}
               >
                 Edit
@@ -582,8 +587,8 @@ const LinkInBio = () => {
                   href={`https://influanto.com/${user.username}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn btn-sm btn-narrow"
-                  style={{ fontFamily: linkInBio?.font || 'inherit', backgroundColor: '#2563eb', borderColor: '#2563eb', color: '#fff' }}
+                  className="dash-btn dash-btn--primary"
+                  style={{ fontFamily: linkInBio?.font || 'inherit' }}
                 >
                   Visit
                 </a>
@@ -591,8 +596,8 @@ const LinkInBio = () => {
               {user?.username && (
                 <button
                   type="button"
-                  className="btn btn-sm btn-narrow"
-                  style={{ fontFamily: linkInBio?.font || 'inherit', backgroundColor: '#6b7280', borderColor: '#6b7280', color: '#fff' }}
+                  className="dash-btn dash-btn--soft"
+                  style={{ fontFamily: linkInBio?.font || 'inherit' }}
                   onClick={handleShare}
                 >
                   {shareCopied ? "Copied!" : "Share"}
@@ -723,16 +728,16 @@ const LinkInBio = () => {
                 <br />
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
                   <a
-                    className="btn btn-primary btn-block btn-lg btn-narrow"
-                    style={{ width: "auto", display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: linkInBio?.font || 'inherit' }}
+                    className="dash-btn dash-btn--primary dash-btn--lg"
+                    style={{ fontFamily: linkInBio?.font || 'inherit' }}
                     href={`https://influanto.com/${user.username}`}
                   >
                     Visit
                   </a>
                   <button
                     type="button"
-                    className="btn btn-lg btn-narrow"
-                    style={{ width: "auto", display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: linkInBio?.font || 'inherit', backgroundColor: '#6b7280', borderColor: '#6b7280', color: '#fff' }}
+                    className="dash-btn dash-btn--soft dash-btn--lg"
+                    style={{ fontFamily: linkInBio?.font || 'inherit' }}
                     onClick={handleShare}
                   >
                     {shareCopied ? "Copied!" : "Share"}
@@ -744,23 +749,25 @@ const LinkInBio = () => {
           {alert && <div className="alert mt-5 w-full">{alert}</div>}
         </div>
 
+        <div className="min-w-0 space-y-4 mt-4 lg:mt-0">
         {/* Custom domain (Pro), right under the Link in Bio card */}
         <div
-          className="mx-auto mt-4 shadow rounded-md text-black"
-          style={{ width: "calc(100% - 16px)", padding: "0.75rem 1rem", boxSizing: "border-box", backgroundColor: linkInBio?.cardBgColor || 'white', fontFamily: linkInBio?.font || 'inherit' }}
+          className="mx-auto dash-card text-black"
+          style={{ width: "calc(100% - 16px)", boxSizing: "border-box", backgroundColor: linkInBio?.cardBgColor || 'white', fontFamily: linkInBio?.font || 'inherit' }}
         >
           <CustomDomainCard hasAccess={!!user?.hasAccess} textColor={textColor} font={linkInBio?.font} />
         </div>
 
         {/* Analytics, under the custom domain card */}
         <div
-          className="mx-auto mt-4 shadow rounded-md text-black"
-          style={{ width: "calc(100% - 16px)", padding: "0.75rem 1rem", boxSizing: "border-box", backgroundColor: linkInBio?.cardBgColor || 'white', fontFamily: linkInBio?.font || 'inherit' }}
+          className="mx-auto dash-card text-black"
+          style={{ width: "calc(100% - 16px)", boxSizing: "border-box", backgroundColor: linkInBio?.cardBgColor || 'white', fontFamily: linkInBio?.font || 'inherit' }}
         >
           <h2 className="text-base sm:text-xl font-bold mb-1 leading-tight" style={{ color: textColor, fontFamily: linkInBio?.font || 'inherit' }}>Analytics</h2>
           <LinkInBioAnalytics />
         </div>
-      </>
+        </div>
+      </div>
     );
   }
 

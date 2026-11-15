@@ -24,6 +24,7 @@ import {
   faRotate,
   faHand,
   faCopy,
+  faUser,
 } from "@fortawesome/free-solid-svg-icons";
 
 import ButtonCheckout from "@/components/ButtonCheckout";
@@ -992,7 +993,7 @@ const handleYouTubeMusicChange = (e: any) => {
           </div>
         </div>
       )}
-      <div className="p-4 bg-white shadow rounded-md text-black" style={containerStyle}>
+      <div className="bg-white dash-card text-black" style={containerStyle}>
         {user.newsletterLimitNotified && !user.newsletterLimitBannerDismissed && (
           <div className="relative mb-4 p-4 pr-10 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
             <button
@@ -1013,7 +1014,10 @@ const handleYouTubeMusicChange = (e: any) => {
           </div>
         )}
          <div className="w-full flex justify-between items-center">
-            <h2 className="text-xl sm:text-2xl font-bold mb-2">Profile</h2>
+            <h2 className="dash-title mb-2">
+              <span className="dash-title__icon"><FontAwesomeIcon icon={faUser} /></span>
+              Profile
+            </h2>
            
 
             {/* settings */}
@@ -1021,8 +1025,8 @@ const handleYouTubeMusicChange = (e: any) => {
               <SettingsDropdown />
 
               <button
-              className="btn btn-sm btn-narrow"
-              style={{margin:"0", backgroundColor: "#6b7280", borderColor: "#6b7280", color: "#fff"}}
+              type="button"
+              className="dash-btn dash-btn--soft"
               onClick={() => setEditing(true)}>
               Edit
             </button>
@@ -1031,8 +1035,7 @@ const handleYouTubeMusicChange = (e: any) => {
                 linkInBioHasLinks === false ? (
                   <button
                     type="button"
-                    className="btn btn-sm btn-narrow"
-                    style={{ backgroundColor: "#dc2626", borderColor: "#dc2626", color: "#fff" }}
+                    className="dash-btn dash-btn--danger"
                     onClick={() => { window.location.href = "/dashboard?tab=link-in-bio"; }}
                   >
                     Setup Links Page
@@ -1042,8 +1045,7 @@ const handleYouTubeMusicChange = (e: any) => {
                     href={`https://influanto.com/${user.username}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn btn-sm btn-narrow"
-                    style={{ backgroundColor: "#2563eb", borderColor: "#2563eb", color: "#fff" }}
+                    className="dash-btn dash-btn--primary"
                   >
                     Visit
                   </a>
@@ -1053,7 +1055,9 @@ const handleYouTubeMusicChange = (e: any) => {
           </div>
           <br></br>
 
-          <div style={{margin:"0 auto",  textAlign:"center" }}>
+          {/* Desktop: profile summary on the left (stays in view), everything else on the right */}
+          <div className="lg:grid lg:grid-cols-[minmax(260px,1fr)_2.2fr] lg:gap-8 lg:items-start">
+          <div className="lg:sticky lg:top-6 lg:p-5 lg:rounded-2xl lg:border lg:border-gray-100 lg:bg-gray-50" style={{margin:"0 auto",  textAlign:"center" }}>
             <img src={avatarImage || fallbackImageUrl} style={{ borderRadius: '50%', width:"75px", height:"75px", display:"inline"}} alt="Avatar" />
             <p>{user.name}</p>
             <p>{user.username}</p>
@@ -1099,13 +1103,16 @@ const handleYouTubeMusicChange = (e: any) => {
             
             <br></br>
 
+          </div>
+          {/* Right column on desktop: analytics, newsletter, cards, integrations */}
+          <div className="min-w-0">
             <AnalyticsDashboard />
 
             {/* ── Newsletter Embed ── */}
             {user?.username && (() => {
               const embedCode = `<iframe src="https://influanto.com/embed/newsletter/${user.username}" width="100%" height="440" style="border:none;max-width:480px;" title="Newsletter signup"></iframe>`;
               return (
-                <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">
+                <div className="mt-4 p-5 border border-gray-200 rounded-2xl bg-white text-left">
                   <div className="flex items-center gap-2 mb-1">
                     <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#4f46e5,#3b82f6)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faEnvelope} /></span>
                     <h3 className="font-bold text-base text-gray-800">Embed your newsletter</h3>
@@ -1140,7 +1147,7 @@ const handleYouTubeMusicChange = (e: any) => {
 
             {/* ── Newsletter Style ── */}
             {showNewsletterStyle && (
-            <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-white text-left">
+            <div className="mt-4 p-5 border border-gray-200 rounded-2xl bg-white text-left">
               <div className="flex items-center gap-2 mb-1">
                 <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#4f46e5,#3b82f6)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faPalette} /></span>
                 <h3 className="font-bold text-base text-gray-800">Newsletter Style</h3>
@@ -1233,7 +1240,7 @@ const handleYouTubeMusicChange = (e: any) => {
             )}
 
             {/* ── Business Cards ── */}
-            <div className="mt-5 p-4 border border-gray-200 rounded-lg bg-white text-left">
+            <div className="mt-5 p-5 border border-gray-200 rounded-2xl bg-white text-left">
               <div className="flex items-center gap-2 mb-1">
                 <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#4f46e5,#3b82f6)', color: '#fff', fontSize: 15 }}><FontAwesomeIcon icon={faCreditCard} /></span>
                 <span className="font-semibold text-sm text-gray-800">Digital Business Card</span>
@@ -1247,7 +1254,7 @@ const handleYouTubeMusicChange = (e: any) => {
             </div>
 
             {/* ── Integrations ── */}
-            <div className="mt-5 p-4 border border-gray-200 rounded-lg bg-white text-left">
+            <div className="mt-5 p-5 border border-gray-200 rounded-2xl bg-white text-left">
               <div className="flex items-center gap-2 mb-4">
                 <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 7, background: 'linear-gradient(135deg,#4f46e5,#3b82f6)', color: '#fff', fontSize: 13 }}><FontAwesomeIcon icon={faPlug} /></span>
                 <h3 className="m-0 font-semibold text-base">Integrations</h3>
@@ -1432,12 +1439,13 @@ const handleYouTubeMusicChange = (e: any) => {
           </div>
           }
           </div>
+          </div>{/* /profile grid */}
         </div>
      </>
     );
   }else if (isEditing){
     return (
-      <div className="profile-edit p-4 bg-white shadow rounded-md " style={containerStyle}>
+      <div className="profile-edit bg-white dash-card" style={containerStyle}>
         <style>{`.profile-edit label, .profile-edit h1, .profile-edit h2, .profile-edit h3 { color:#000 !important; }`}</style>
         <div className="w-full flex flex-wrap">
         <h2 className="text-xl sm:text-2xl font-bold mb-2 inline">Profile</h2>

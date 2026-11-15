@@ -97,7 +97,8 @@ export default function Dashboard() {
 
       {/* Main content */}
       <main className="flex-1 w-full p-4 sm:p-8 pb-24 min-w-0">
-        <section className="max-w-5xl mx-auto space-y-8">
+        {/* Profile and Link in Bio use two columns on desktop, so they get more width */}
+        <section className={`${activeComponent === "profile" || activeComponent === "link-in-bio" ? "max-w-5xl lg:max-w-none lg:w-[90%]" : "max-w-5xl"} mx-auto space-y-8`}>
           {/* Render the active component */}
           {components[activeComponent]}
         </section>
