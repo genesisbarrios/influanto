@@ -1249,11 +1249,11 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
    <Suspense fallback={<div>Loading...</div>}>
       <Header />
      <div
+      className="tool-pane"
       style={{
         minHeight: "80vh",
         width: "100vw",
         maxWidth: "100%",
-        background: "#f9fafb",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center", // center vertically

@@ -169,7 +169,7 @@ export default function Tools() {
           padding: "2rem",
           background: "#f9fafb"
         }}
-        className={`w-full p-8 ${showSidebar ? "sm:w-3/4 sm:border-r sm:border-gray-300" : ""}`}
+        className={`tool-pane w-full p-8 ${showSidebar ? "sm:w-3/4 sm:border-r sm:border-gray-300" : ""}`}
       >
         <h1 className="text-2xl font-bold ml-8 mb-8 mt-4" style={{color: "#181b20"}}>Free Music Tools for Artists &amp; Producers</h1>
         <div

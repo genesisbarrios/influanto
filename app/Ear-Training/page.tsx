@@ -430,7 +430,7 @@ export default function EarTraining() {
   return (
     <>
       <Suspense><Header /></Suspense>
-      <div className="min-h-screen bg-gray-50">
+      <div className="tool-pane min-h-screen">
         <div className="max-w-2xl mx-auto px-4 py-10">
 
           <div className="text-center mb-6">

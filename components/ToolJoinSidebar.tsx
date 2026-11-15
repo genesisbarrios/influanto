@@ -9,9 +9,10 @@ export function useShowJoinSidebar() {
   return status === "unauthenticated";
 }
 
-// Classes for the tool's main pane: 3/4 width beside the sidebar, full width without it
+// Classes for the tool's main pane: 3/4 width beside the sidebar, full width without it.
+// `tool-pane` gives every tool the same light greyish blue background (globals.css).
 export function toolPaneClass(showSidebar: boolean, extra = "p-8") {
-  return `w-full ${extra} ${showSidebar ? "sm:w-3/4 sm:border-r sm:border-gray-300" : ""}`;
+  return `tool-pane w-full ${extra} ${showSidebar ? "sm:w-3/4 sm:border-r sm:border-gray-300" : ""}`;
 }
 
 export default function ToolJoinSidebar({ show }: { show: boolean }) {
