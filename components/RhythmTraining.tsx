@@ -9,6 +9,7 @@ import {
   faCodeCompare, faHandPointer, faWaveSquare, faArrowsLeftRight, faTableCells, faBolt, faPlay,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { audioOut } from "@/components/EarVisualizer";
 
 const accColor = (pct: number) => (pct >= 80 ? "#16a34a" : pct >= 50 ? "#d97706" : "#dc2626");
 const shuffle = <T,>(a: T[]) => [...a].sort(() => Math.random() - 0.5);
@@ -32,7 +33,7 @@ function env(ctx: AudioContext, t: number, vol: number, decay: number) {
   const g = ctx.createGain();
   g.gain.setValueAtTime(vol, t);
   g.gain.exponentialRampToValueAtTime(0.001, t + decay);
-  g.connect(ctx.destination);
+  g.connect(audioOut(ctx));
   return g;
 }
 function tone(ctx: AudioContext, t: number, type: "sine" | "square" | "triangle" | "sawtooth", f0: number, f1: number, vol: number, decay: number) {
@@ -913,7 +914,7 @@ export default function RhythmTraining({ onBack }: { onBack: () => void }) {
       {!game && SECTIONS.map((sec) => (
         <div key={sec.title} className="mb-8">
           <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">{sec.title}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {sec.games.map((g) => (
               <button key={g.id} type="button" onClick={() => { getCtx(); setGame(g.id); }}
                 className="p-5 bg-white rounded-2xl border-2 border-gray-200 hover:border-blue-500 hover:shadow-md transition-all text-left cursor-pointer">

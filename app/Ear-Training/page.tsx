@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import { PianoDiagram, SheetMusic } from "@/components/ChordDiagrams";
 import RhythmTraining from "@/components/RhythmTraining";
+import EarVisualizer, { audioOut } from "@/components/EarVisualizer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faHeadphones,
@@ -66,7 +67,7 @@ function playNote(ctx: AudioContext, freq: number, start: number, dur: number, v
   g.gain.setValueAtTime(vol, start);
   g.gain.exponentialRampToValueAtTime(0.001, start + dur - 0.04);
   osc.connect(g);
-  g.connect(ctx.destination);
+  g.connect(audioOut(ctx));
   osc.start(start);
   osc.stop(start + dur);
 }
@@ -435,11 +436,16 @@ export default function EarTraining() {
     <>
       <Suspense><Header /></Suspense>
       <div className="tool-pane min-h-screen">
-        <div className="max-w-2xl mx-auto px-4 py-10">
+        <div className="max-w-5xl mx-auto px-4 py-10">
 
           <div className="text-center mb-6">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2"><FontAwesomeIcon icon={faMusic} className="mr-2" /> Ear Training</h1>
-            <p className="text-gray-500">Train your ear for melody and rhythm.</p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              <FontAwesomeIcon icon={track === "rhythmic" ? faDrum : faMusic} className="mr-2" />
+              {track === "melodic" ? "Melody Training" : track === "rhythmic" ? "Rhythm Training" : "Ear Training"}
+            </h1>
+            <p className="text-gray-500">
+              {track === "melodic" ? "Match pitches and recognize intervals and chords." : track === "rhythmic" ? "Read, hear, tap and build rhythms." : "Train your ear for melody and rhythm."}
+            </p>
           </div>
 
           {/* Melodic or rhythmic */}
@@ -458,6 +464,9 @@ export default function EarTraining() {
               ))}
             </div>
           )}
+
+          {/* Waveform of whatever the games are playing */}
+          {track && <EarVisualizer />}
 
           {track === "rhythmic" && <RhythmTraining onBack={() => setTrack(null)} />}
 
