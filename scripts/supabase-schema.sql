@@ -177,3 +177,29 @@ CREATE TABLE IF NOT EXISTS custom_domains (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE custom_domains ENABLE ROW LEVEL SECURITY;
+
+-- Playlist curator cache: Spotify playlists whose descriptions have a way to
+-- reach the curator (email, Instagram/TikTok). Filled by /api/fetch-curators.
+CREATE TABLE IF NOT EXISTS curator_playlists (
+  id TEXT PRIMARY KEY,                -- Spotify playlist id
+  name TEXT NOT NULL,
+  description TEXT,
+  url TEXT,
+  external_url TEXT,                  -- Instagram / TikTok / other contact link
+  owner TEXT,
+  owner_profile_url TEXT,
+  cover_image TEXT,
+  email TEXT,
+  has_email BOOLEAN NOT NULL DEFAULT false,
+  genres TEXT[] NOT NULL DEFAULT '{}', -- every search it turned up in
+  fetched_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS curator_playlists_genres_idx ON curator_playlists USING GIN (genres);
+ALTER TABLE curator_playlists ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS curator_searches (
+  genre TEXT PRIMARY KEY,
+  fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  result_count INT NOT NULL DEFAULT 0
+);
+ALTER TABLE curator_searches ENABLE ROW LEVEL SECURITY;
