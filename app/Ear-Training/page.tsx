@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import { PianoDiagram, SheetMusic } from "@/components/ChordDiagrams";
+import RhythmTraining from "@/components/RhythmTraining";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faHeadphones,
@@ -13,6 +14,7 @@ import {
   faTrophy,
   faRotateRight,
   faCircleCheck,
+  faDrum,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
@@ -116,6 +118,8 @@ const VOICINGS: { id: Voicing; label: string; melodyBase: number; rootMin: numbe
 ];
 
 export default function EarTraining() {
+  // Start screen: melodic (pitch, intervals, chords) or rhythmic training
+  const [track, setTrack] = useState<"melodic" | "rhythmic" | null>(null);
   const [mode, setMode] = useState<Mode | null>(null);
   const [voicing, setVoicing] = useState<Voicing>("tenor");
 
@@ -435,9 +439,35 @@ export default function EarTraining() {
 
           <div className="text-center mb-6">
             <h1 className="text-4xl font-bold text-gray-900 mb-2"><FontAwesomeIcon icon={faMusic} className="mr-2" /> Ear Training</h1>
-            <p className="text-gray-500">Train your ear to match pitches and recognize intervals and chords.</p>
+            <p className="text-gray-500">Train your ear for melody and rhythm.</p>
           </div>
 
+          {/* Melodic or rhythmic */}
+          {!track && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {([
+                { id: "melodic" as const, icon: faMusic, title: "Melodic Training", desc: "Pitch matching, intervals and chords" },
+                { id: "rhythmic" as const, icon: faDrum, title: "Rhythmic Training", desc: "Rhythm dictation, grooves, tempo, tapping, polyrhythms and beat building" },
+              ]).map(t => (
+                <button key={t.id} onClick={() => setTrack(t.id)}
+                  className="p-8 bg-white rounded-2xl border-2 border-gray-200 hover:border-blue-500 hover:shadow-md transition-all text-left cursor-pointer">
+                  <div className="text-5xl mb-4 text-blue-600"><FontAwesomeIcon icon={t.icon} /></div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">{t.title}</h3>
+                  <p className="text-sm text-gray-500">{t.desc}</p>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {track === "rhythmic" && <RhythmTraining onBack={() => setTrack(null)} />}
+
+          {track === "melodic" && !mode && (
+            <button onClick={() => setTrack(null)} className="mb-6 text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1">
+              ← Back to Melodic / Rhythmic
+            </button>
+          )}
+
+          {track === "melodic" && <>
           {/* Voicing selector */}
           <div className="flex justify-center gap-2 mb-8 flex-wrap">
             {VOICINGS.map(v => (
@@ -706,6 +736,7 @@ export default function EarTraining() {
               )}
             </div>
           )}
+          </>}
 
         </div>
       </div>
