@@ -135,7 +135,7 @@ function SynthFader({
   displayValue,
   height = 70,
   width = 32,
-  color = "#6366f1"
+  color = "#09ecf3"
 }: {
   label: string;
   value: number;
@@ -222,7 +222,7 @@ function SynthFader({
           />
         </svg>
       </div>
-      <div style={{ fontWeight: 600, fontSize: 13, color: "#181b20", marginTop: 2 }}>{label}</div>
+      <div className="synth-label" style={{ fontWeight: 600, fontSize: 13, color: "#181b20", marginTop: 2 }}>{label}</div>
       <div style={{ fontSize: 12, color, marginTop: 1 }}>{displayValue ?? value}</div>
     </div>
   );
@@ -1142,7 +1142,7 @@ useEffect(() => {
       ctx.scale(dpr, dpr);
 
       ctx.clearRect(0, 0, width, height);
-      ctx.strokeStyle = "#6366f1";
+      ctx.strokeStyle = "#09ecf3";
       ctx.beginPath();
       for (let i = 0; i < data.length; i++) {
         const x = (i / data.length) * width;
@@ -1164,7 +1164,7 @@ useEffect(() => {
           maxWidth: "100%",
           display: "block",
           borderRadius: 8,
-          background: "#fff"
+          background: "transparent"
         }}
       />
     );
@@ -1227,9 +1227,9 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
       <div style={{
         width: 24,
         height,
-        background: "#e5e7eb",
+        background: "#0b1220",
         borderRadius: 8,
-        border: "1px solid #bbb",
+        border: "1px solid rgba(255,255,255,0.14)",
         display: "flex",
         alignItems: "flex-end",
         margin: "0 10px"
@@ -1247,11 +1247,11 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
 
   return (
    <Suspense fallback={<div>Loading...</div>}>
-      <Header />
+      <Header overlay />
      <div
-      className="tool-pane"
+      className="synth-room"
       style={{
-        minHeight: "80vh",
+        minHeight: "100vh",
         width: "100vw",
         maxWidth: "100%",
         display: "flex",
@@ -1262,7 +1262,7 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
       }}
     >
       <p
-        className="font-bold mt-8 mb-2 text-black"
+        className="synth-brand font-bold mt-8 mb-2"
         style={{
           textAlign: "right",
           width: isMobile ? "80%" : "90%",
@@ -1273,6 +1273,7 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
       >
         Synthfluanto
       </p>
+      <div className="synth-chassis">
         {/* Controls Row: Synth/osc/envelope/eq left, visualizer right */}
         <div
           style={{
@@ -1296,6 +1297,7 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
           >
             {/* Synth & Oscillator */}
             <div
+              className="synth-module"
               style={{
               minWidth: isMobile ? 110 : 180,
               maxWidth: isMobile ? 120 : 220,
@@ -1309,7 +1311,7 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
               boxSizing: "border-box"
               }}
             >
-              <div style={{ color: "#181b20", fontWeight: 600, marginBottom: 4, fontSize: isMobile ? 13 : 16 }}>Synth</div>
+              <div className="synth-label" style={{ color: "#181b20", fontWeight: 600, marginBottom: 4, fontSize: isMobile ? 13 : 16 }}>Synth</div>
               <select
               className="custom-select"
               value={synthType}
@@ -1325,7 +1327,7 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
                 <option key={s.value} value={s.value}>{s.label}</option>
               ))}
               </select>
-              <div style={{ color: "#181b20", fontWeight: 600, margin: isMobile ? "8px 0 2px 0" : "12px 0 4px 0", fontSize: isMobile ? 13 : 16 }}>Oscillator</div>
+              <div className="synth-label" style={{ color: "#181b20", fontWeight: 600, margin: isMobile ? "8px 0 2px 0" : "12px 0 4px 0", fontSize: isMobile ? 13 : 16 }}>Oscillator</div>
               <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 8 }}>
               <select
                 value={oscType}
@@ -1351,12 +1353,12 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
             </div>
           {/* Middle: Visualizer and Meter */}
        <div
+        className="synth-scope"
         style={{
           position: "relative",
           width: isMobile ? 200 : 340,
           height: isMobile ? 70 : 120,
           borderRadius: 8,
-          background: "#fff",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -1369,8 +1371,8 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
       <MeterBar level={meterLevel} />
           </div>
           {/* Envelope */}
-          <div>
-            <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Envelope</div>
+          <div className="synth-module">
+            <div className="synth-module__title" style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Envelope</div>
             <div
               style={{
                 display: "flex",
@@ -1386,8 +1388,8 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
             </div>
           </div>
           {/* Volume + EQ */}
-          <div>
-            <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Volume + EQ</div>
+          <div className="synth-module">
+            <div className="synth-module__title" style={{ fontWeight: 700, color: "#6366f1", marginBottom: 4, fontSize: 16, letterSpacing: 2, textAlign: "center" }}>Volume + EQ</div>
             <div
               style={{
                 display: "flex",
@@ -1407,7 +1409,7 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
                     displayValue={`${filterRolloff}dB/oct`}
                     height={70}
                     width={32}
-                    color="#6366f1"
+                    color="#09ecf3"
                   />
 
             </div>
@@ -1423,9 +1425,9 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
           justifyContent: "center"
         }}>
           {/* Left: Reverb + Delay */}
-          <div>
-            <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 8, fontSize: 18, letterSpacing: 2, textAlign: "center" }}>Reverb + Delay</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", justifyContent: "center" }}>
+          <div className="synth-module">
+            <div className="synth-module__title" style={{ fontWeight: 700, color: "#6366f1", marginBottom: 8, fontSize: 18, letterSpacing: 2, textAlign: "center" }}>Reverb + Delay</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "center" }}>
               <SvgKnob label="Reverb" min={0} max={1} step={0.01} value={reverb} onChange={setReverb} displayValue={reverb.toFixed(2)}  size={isMobile ? 36 : 56}/>
               <SvgKnob label="FB Delay" min={0.01} max={1} step={0.01} value={feedbackDelayTime} onChange={setFeedbackDelayTime} displayValue={feedbackDelayTime.toFixed(2)}  size={isMobile ? 36 : 56}/>
               <SvgKnob label="FB Delay Wet" min={0} max={1} step={0.01} value={feedbackDelay} onChange={setFeedbackDelay} displayValue={feedbackDelay.toFixed(2)}  size={isMobile ? 36 : 56}/>
@@ -1439,9 +1441,9 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
             </div>
           </div>
           {/* Right: Modulation */}
-          <div>
-            <div style={{ fontWeight: 700, color: "#6366f1", marginBottom: 8, fontSize: 18, letterSpacing: 2, textAlign: "center" }}>Modulation</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", justifyContent: "center" }}>
+          <div className="synth-module">
+            <div className="synth-module__title" style={{ fontWeight: 700, color: "#6366f1", marginBottom: 8, fontSize: 18, letterSpacing: 2, textAlign: "center" }}>Modulation</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "center" }}>
               <SvgKnob label="Distortion" min={0} max={1} step={0.01} value={distortion} onChange={setDistortion} displayValue={distortion.toFixed(2)}  size={isMobile ? 36 : 56}/>
               <SvgKnob label="Chorus Wet" min={0} max={1} step={0.01} value={chorusWet} onChange={setChorusWet} displayValue={chorusWet.toFixed(2)}  size={isMobile ? 36 : 56}/>
               <SvgKnob label="Chorus Freq" min={0.1} max={8} step={0.1} value={chorusFreq} onChange={setChorusFreq} displayValue={chorusFreq.toFixed(1) + "Hz"}  size={isMobile ? 36 : 56}/>
@@ -1452,7 +1454,7 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
           </div>
         </div>
         {/* Melody/Recording Controls - under FX, above piano */}
-        <div style={{
+        <div className="synth-module synth-transport" style={{
           display: "flex",
           alignItems: "flex-start",
           justifyContent: "center",
@@ -1649,7 +1651,7 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
         </div>
 
 {/* Piano */}
-<div style={{
+<div className="synth-keys" style={{
   display: "flex",
   justifyContent: "center",
   alignItems: "flex-end",
@@ -1725,6 +1727,7 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
   </div>
 </div>
 
+      </div>{/* /synth-chassis */}
       </div>
       <Footer />
       <style>{`
@@ -1751,7 +1754,7 @@ function SvgKnob({
   onChange,
   displayValue,
   size = 56,
-  color = "#6366f1"
+  color = "#09ecf3"
 }: {
   label: string;
   min: number;
@@ -1835,7 +1838,7 @@ function SvgKnob({
           <circle cx={center} cy={center} r={5} fill={color} />
         </svg>
       </div>
-      <div style={{ fontWeight: 600, fontSize: 14, color: "#181b20" }}>{label}</div>
+      <div className="synth-label" style={{ fontWeight: 600, fontSize: 14, color: "#181b20" }}>{label}</div>
       <div style={{ fontSize: 13, color }}>{displayValue ?? value}</div>
     </div>
   );

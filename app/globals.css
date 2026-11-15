@@ -119,3 +119,90 @@ progress::-webkit-progress-value {
 .dash-btn--danger { background: #dc2626; color: #fff; }
 .dash-btn--danger:hover { background: #b91c1c; }
 .dash-btn--lg { height: 2.75rem; padding: 0 1.6rem; font-size: 0.95rem; }
+
+/* ── Synthfluanto: a dark hardware-synth body with bordered modules ───────── */
+.synth-room {
+  background:
+    radial-gradient(1200px 500px at 50% -10%, rgba(9, 236, 243, 0.12), transparent 60%),
+    linear-gradient(180deg, #0d1426 0%, #111a33 55%, #0b1120 100%) !important;
+  padding-top: 72px !important; /* clear the transparent header */
+  padding-bottom: 32px !important;
+}
+.synth-room .synth-brand {
+  color: #e6f9ff;
+  font-family: ui-sans-serif, system-ui;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(9, 236, 243, 0.55);
+}
+.synth-chassis {
+  width: min(1320px, 96%);
+  margin: 0 auto;
+  padding: 18px 22px 22px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, #1b2440 0%, #141b31 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    0 30px 80px -30px rgba(0, 0, 0, 0.7);
+  position: relative;
+}
+/* wooden end cheeks, like a classic synth */
+.synth-chassis::before,
+.synth-chassis::after {
+  content: "";
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  width: 10px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #6b3f22, #3d2313);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.synth-chassis::before { left: -6px; }
+.synth-chassis::after { right: -6px; }
+.synth-module {
+  border: 1px solid rgba(9, 236, 243, 0.22);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 12px 14px 10px !important;
+}
+.synth-module__title {
+  color: #09ecf3 !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase;
+  margin-bottom: 10px !important;
+  text-shadow: 0 0 10px rgba(9, 236, 243, 0.45);
+}
+.synth-room .synth-label { color: #cbd5e1 !important; }
+.synth-scope {
+  background: #050a16 !important;
+  border: 1px solid rgba(9, 236, 243, 0.3);
+  box-shadow: inset 0 0 24px rgba(9, 236, 243, 0.12), 0 0 0 4px rgba(0, 0, 0, 0.25);
+}
+.synth-room select {
+  background: #0b1220 !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(9, 236, 243, 0.35) !important;
+}
+.synth-transport { width: auto !important; }
+.synth-keys {
+  padding: 12px 12px 10px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #0a0f1d, #121a30);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 8px 18px rgba(0, 0, 0, 0.55);
+  height: auto !important;
+}
+/* Synthfluanto on phones: tighter body, and module rows wrap instead of overflowing */
+@media (max-width: 640px) {
+  .synth-chassis { padding: 12px 10px 14px; width: 100%; }
+  .synth-module { padding: 10px 8px 8px !important; max-width: 100%; }
+  .synth-module > div { flex-wrap: wrap; row-gap: 10px; gap: 10px !important; }
+  .synth-module { min-width: 0; }
+}

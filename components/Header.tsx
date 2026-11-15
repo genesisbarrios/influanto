@@ -47,7 +47,9 @@ const ctaAuth: JSX.Element = <ButtonAccount />;
 
 // A header with a logo on the left, links in the center (like Pricing, etc...), and a CTA (like Get Started or Login) on the right.
 // The header is responsive, and on mobile, the links are hidden behind a burger button.
-const Header = () => {
+// `overlay`: transparent and on top of the page, with only the hamburger menu at
+// every screen size (full-screen tools like Synthfluanto)
+const Header = ({ overlay = false }: { overlay?: boolean }) => {
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [user, setUser] = useState<any>();
@@ -61,7 +63,7 @@ const Header = () => {
   }, [searchParams]);
 
   return (
-    <header className="bg-base-200">
+    <header className={overlay ? "absolute inset-x-0 top-0 z-30 bg-transparent" : "bg-base-200"}>
       <nav
         className="container flex items-center justify-between px-8 py-4 mx-auto"
         aria-label="Global"
@@ -84,7 +86,7 @@ const Header = () => {
           </Link>
         </div>
         {/* Burger button to open menu on mobile */}
-        <div className="flex lg:hidden">
+        <div className={overlay ? "flex" : "flex lg:hidden"}>
           <button
             type="button"
             className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5"
@@ -109,7 +111,7 @@ const Header = () => {
         </div>
 
         {/* Your links on large screens */}
-        <div className="hidden lg:flex lg:justify-center lg:gap-12 lg:items-center">
+        <div className={overlay ? "hidden" : "hidden lg:flex lg:justify-center lg:gap-12 lg:items-center"}>
           {visibleLinks.map((link) => (
             <Link
               href={link.href}
@@ -123,8 +125,8 @@ const Header = () => {
         </div>
 
         {/* CTA on large screens */}
-        {!data && <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div>}
-        {data && <div className="hidden lg:flex lg:justify-end lg:flex-1">{ctaAuth}</div>}
+        {!overlay && !data && <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div>}
+        {!overlay && data && <div className="hidden lg:flex lg:justify-end lg:flex-1">{ctaAuth}</div>}
         
       </nav>
 
