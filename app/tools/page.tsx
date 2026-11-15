@@ -18,6 +18,7 @@ import {
   faShieldHalved,
   faScrewdriverWrench,
   faLink,
+  faWaveSquare,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
@@ -33,7 +34,7 @@ const faMetronome = {
   icon: [512, 512, [], "", "M200 32H312L448 448H64Z M224 80L148 400H364L288 80Z M244 368L318 112L342 119L268 375Z M290 190L338 204L326 246L278 232Z M40 448H472V480H40Z"],
 } as unknown as IconDefinition;
 
-// Desktop shows 4 per row, so rows are: tools 1-4, 5-8 (synth, ear training, tuner, metronome), 9+
+// Desktop shows 4 per row, so rows are: tools 1-4, 5-8 (synth, ear training, tuner, metronome), 9+ (LUFS meter first)
 const tools: { title: string; description: string; href: string; icon: IconDefinition; color: string }[] = [
   {
     title: "Split Sheet Generator",
@@ -89,6 +90,13 @@ const tools: { title: string; description: string; href: string; icon: IconDefin
     description: "Free online metronome with tap tempo, time signatures, and subdivisions.",
     href: "/Metronome",
     icon: faMetronome,
+    color: "#0369a1",
+  },
+  {
+    title: "LUFS Meter",
+    description: "Drop in a song to check integrated, short-term & momentary loudness, LRA and true peak.",
+    href: "/LUFS-Meter",
+    icon: faWaveSquare,
     color: "#0369a1",
   },
   {
