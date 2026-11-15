@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { PianoDiagram, SheetMusic } from "@/components/ChordDiagrams";
 import RhythmTraining from "@/components/RhythmTraining";
 import EarVisualizer, { audioOut } from "@/components/EarVisualizer";
+import Icon3D from "@/components/Icon3D";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faHeadphones,
@@ -452,12 +453,12 @@ export default function EarTraining() {
           {!track && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {([
-                { id: "melodic" as const, icon: faMusic, title: "Melodic Training", desc: "Pitch matching, intervals and chords" },
-                { id: "rhythmic" as const, icon: faDrum, title: "Rhythmic Training", desc: "Rhythm dictation, grooves, tempo, tapping, polyrhythms and beat building" },
+                { id: "melodic" as const, icon3d: "headphone" as const, title: "Melodic Training", desc: "Pitch matching, intervals and chords" },
+                { id: "rhythmic" as const, icon3d: "target" as const, title: "Rhythmic Training", desc: "Rhythm dictation, grooves, tempo, tapping, polyrhythms and beat building" },
               ]).map(t => (
                 <button key={t.id} onClick={() => setTrack(t.id)}
                   className="p-8 bg-white rounded-2xl border-2 border-gray-200 hover:border-blue-500 hover:shadow-md transition-all text-left cursor-pointer">
-                  <div className="text-5xl mb-4 text-blue-600"><FontAwesomeIcon icon={t.icon} /></div>
+                  <div className="mb-3"><Icon3D name={t.icon3d} size={84} /></div>
                   <h3 className="text-xl font-bold text-gray-900 mb-1">{t.title}</h3>
                   <p className="text-sm text-gray-500">{t.desc}</p>
                 </button>
@@ -494,9 +495,9 @@ export default function EarTraining() {
           {!mode && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {([
-                { id: "pitch" as Mode, icon: faMicrophone, title: "Pitch Matching", desc: "Sing back a melody and score your accuracy" },
-                { id: "interval" as Mode, icon: faMusic, title: "Interval Recognition", desc: "Identify all intervals from minor 2nd to octave" },
-                { id: "chord" as Mode, icon: faKeyboard, title: "Chord Recognition", desc: "Identify major, minor, major 7, minor 7, and dominant 7 chords" },
+                { id: "pitch" as Mode, icon3d: "mic" as const, title: "Pitch Matching", desc: "Sing back a melody and score your accuracy" },
+                { id: "interval" as Mode, icon3d: "zoom" as const, title: "Interval Recognition", desc: "Identify all intervals from minor 2nd to octave" },
+                { id: "chord" as Mode, icon3d: "notebook" as const, title: "Chord Recognition", desc: "Identify major, minor, major 7, minor 7, and dominant 7 chords" },
               ] as const).map(m => (
                 <button key={m.id}
                   onClick={() => {
@@ -506,7 +507,7 @@ export default function EarTraining() {
                   }}
                   className="p-6 bg-white rounded-2xl border-2 border-gray-200 hover:border-blue-500 hover:shadow-md transition-all text-left cursor-pointer"
                 >
-                  <div className="text-4xl mb-3 text-blue-600"><FontAwesomeIcon icon={m.icon} /></div>
+                  <div className="mb-3"><Icon3D name={m.icon3d} size={64} /></div>
                   <h3 className="font-bold text-gray-900 mb-1">{m.title}</h3>
                   <p className="text-sm text-gray-500">{m.desc}</p>
                 </button>

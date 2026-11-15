@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import Icon3D, { TOOL_ICONS } from "@/components/Icon3D";
 import { useShowJoinSidebar } from "@/components/ToolJoinSidebar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -204,7 +205,9 @@ export default function Tools() {
               data-reveal="zoom"
               className="tool-card"
             >
-              <span style={{ fontSize: "2.5rem", marginBottom: "1rem", color: tool.color }}><FontAwesomeIcon icon={tool.icon} /></span>
+              <span style={{ marginBottom: "0.75rem", fontSize: "2.5rem", color: tool.color, lineHeight: 1 }}>
+                {TOOL_ICONS[tool.href] ? <Icon3D name={TOOL_ICONS[tool.href]} size={72} /> : <Icon3D name="star" size={72} />}
+              </span>
               <span style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.5rem" }}>
                 {tool.title}
               </span>

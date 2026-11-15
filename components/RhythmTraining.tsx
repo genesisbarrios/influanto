@@ -10,6 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { audioOut } from "@/components/EarVisualizer";
+import Icon3D, { type Icon3DName } from "@/components/Icon3D";
 
 const accColor = (pct: number) => (pct >= 80 ? "#16a34a" : pct >= 50 ? "#d97706" : "#dc2626");
 const shuffle = <T,>(a: T[]) => [...a].sort(() => Math.random() - 0.5);
@@ -901,6 +902,11 @@ const SECTIONS: { title: string; games: { id: GameId; icon: IconDefinition; titl
   ] },
 ];
 
+const GAME_ICONS: Record<GameId, Icon3DName> = {
+  dictation: "notebook", meter: "clock", groove: "headphone", tempo: "rocket", change: "zoom", rolls: "bell",
+  tap: "thumb-up", pulse: "target", offbeat: "flag", poly: "puzzle", rebuild: "tools",
+};
+
 export default function RhythmTraining({ onBack }: { onBack: () => void }) {
   const getCtx = useAudio();
   const [game, setGame] = useState<GameId | null>(null);
@@ -918,7 +924,7 @@ export default function RhythmTraining({ onBack }: { onBack: () => void }) {
             {sec.games.map((g) => (
               <button key={g.id} type="button" onClick={() => { getCtx(); setGame(g.id); }}
                 className="p-5 bg-white rounded-2xl border-2 border-gray-200 hover:border-blue-500 hover:shadow-md transition-all text-left cursor-pointer">
-                <div className="text-3xl mb-2 text-blue-600"><FontAwesomeIcon icon={g.icon} /></div>
+                <div className="mb-2"><Icon3D name={GAME_ICONS[g.id]} size={56} /></div>
                 <h3 className="font-bold text-gray-900 mb-1">{g.title}</h3>
                 <p className="text-sm text-gray-500">{g.desc}</p>
               </button>
