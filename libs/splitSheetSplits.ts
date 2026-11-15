@@ -32,16 +32,27 @@ export function publishingSlices(publishing: PublishingLike[] = []): Slice[] {
   return Array.from(byWriter.values());
 }
 
-/** True only when publishing %s are filled in and don't match the master %s. */
+/**
+ * True only when publishing %s are filled in and don't match the master %s
+ * (then the sheet shows a second, publishing pie). When every publishing
+ * writer matches a contributor by name, compare person by person; otherwise
+ * (a renamed or unnamed row) compare the percentages themselves, so identical
+ * splits always get a single pie. Values less than 0.1% apart count as equal (rounding).
+ */
 export function splitsDiffer(contributors: ContributorLike[] = [], publishing: PublishingLike[] = []): boolean {
   const pub = publishingSlices(publishing);
-  if (!pub.length) return false;
-  const master = new Map(masterSlices(contributors).map((s) => [key(s.name), s.value]));
-  if (master.size !== pub.length) return true;
-  return pub.some((s) => {
-    const m = master.get(key(s.name));
-    return m === undefined || Math.abs(m - s.value) > 0.001;
-  });
+  const unnamedPub = publishing.filter((p) => !String(p?.contributorName ?? "").trim() && pct(p?.percent) > 0).map((p) => pct(p.percent));
+  if (!pub.length && !unnamedPub.length) return false;
+  const masterList = masterSlices(contributors);
+  const master = new Map(masterList.map((s) => [key(s.name), s.value]));
+  const same = (a: number, b: number) => Math.abs(a - b) < 0.1;
+
+  if (!unnamedPub.length && pub.length === master.size && pub.every((s) => master.has(key(s.name)))) {
+    return pub.some((s) => !same(master.get(key(s.name))!, s.value));
+  }
+  const a = masterList.map((s) => s.value).sort((x, y) => x - y);
+  const b = [...pub.map((s) => s.value), ...unnamedPub].sort((x, y) => x - y);
+  return a.length !== b.length || a.some((v, i) => !same(v, b[i]));
 }
 
 /** Signatures across every contributor on the sheet, the owner included. */
