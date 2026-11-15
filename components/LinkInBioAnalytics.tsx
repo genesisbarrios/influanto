@@ -8,7 +8,7 @@ import {
 import apiClient from "@/libs/api";
 import { RANGE_OPTIONS } from "./AnalyticsRangeSelect";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChartSimple, faChartLine, faGlobe, faMobileScreenButton, faLink, faUsers } from "@fortawesome/free-solid-svg-icons";
+import { faChartSimple, faChartLine, faGlobe, faMobileScreenButton, faLink } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 interface AnalyticsData {
@@ -43,7 +43,7 @@ const COUNTRY_NAMES: Record<string, string> = {
   PY:"Paraguay",UY:"Uruguay",IL:"Israel",LB:"Lebanon",QA:"Qatar",KW:"Kuwait",
 };
 
-const TABS = ["Views", "Location", "Devices", "Sources", "Age"];
+const TABS = ["Views", "Location", "Devices", "Sources"];
 
 // ─── Shared empty state ───────────────────────────────────────────────────────
 
@@ -265,15 +265,6 @@ export default function LinkInBioAnalytics({ range = "30d", customStart, customE
               <HBar data={data!.visitsByReferrer} height={Math.max(180, data!.visitsByReferrer.length * 28)} />
             </>
           )
-        )}
-
-        {/* ── Age ── */}
-        {!loading && activeTab === 4 && (
-          <ComingSoon
-            icon={faUsers}
-            title="Age data coming soon"
-            subtitle="Age demographics require a third-party service integration and will be available in a future update."
-          />
         )}
 
       </div>
