@@ -67,6 +67,8 @@ const PitchToSpotify: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState('Latin');
   const [searchTerm, setSearchTerm] = useState('');
+  // The last thing typed and searched (shown in the "no results" message)
+  const [searchedTerm, setSearchedTerm] = useState('');
   const { data, status } = useSession();
   const [user, setUser] = useState<any>();
 
@@ -218,6 +220,7 @@ ${(data?.user?.name as string) || ''}`,
 
   // Auto-fetch when a normal (non-"Other") genre is selected
   useEffect(() => {
+    setSearchedTerm('');
     if (selectedGenre && selectedGenre !== "Other") {
       fetchPlaylists(selectedGenre);
     } else {
@@ -226,7 +229,7 @@ ${(data?.user?.name as string) || ''}`,
     }
   }, [selectedGenre]);
 
-  // Submit handler for the "Other" search — uses searchTerm AS the genre param
+  // Search bar (always shown) — uses searchTerm AS the genre param
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const q = searchTerm.trim();
@@ -235,18 +238,14 @@ ${(data?.user?.name as string) || ''}`,
       return;
     }
     // IMPORTANT: pass the search term as the "genre" query param
+    setSearchedTerm(q);
     fetchPlaylists(q);
   };
 
   // Determine what label to show in "no results" message
-  const queryLabel =
-    selectedGenre === "Other" && searchTerm.trim()
-      ? searchTerm.trim()
-      : selectedGenre;
+  const queryLabel = searchedTerm || selectedGenre;
 
-  const hasQuery =
-    (selectedGenre && selectedGenre !== "Other") ||
-    (selectedGenre === "Other" && searchTerm.trim());
+  const hasQuery = !!searchedTerm || (selectedGenre && selectedGenre !== "Other");
 
   return (
     <div className="p-6 bg-white shadow-lg rounded-lg text-black">
@@ -272,25 +271,23 @@ ${(data?.user?.name as string) || ''}`,
         </select>
       </div>
 
-      {/* Search Field (only if "Other" selected) */}
-      {selectedGenre === "Other" && (
-        <form onSubmit={handleSearch} className="mb-6 flex gap-2">
-          <input
-            type="text"
-            id="search"
-            placeholder="Type to search"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 mt-1 bg-white block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-          <button
-            type="submit"
-            className="mt-1 px-4 py-2 bg-indigo-600 text-white rounded-md shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          >
-            Search
-          </button>
-        </form>
-      )}
+      {/* Search Field (always visible) */}
+      <form onSubmit={handleSearch} className="mb-6 flex gap-2">
+        <input
+          type="text"
+          id="search"
+          placeholder="Type to search"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1 mt-1 bg-white block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        />
+        <button
+          type="submit"
+          className="mt-1 px-4 py-2 bg-indigo-600 text-white rounded-md shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        >
+          Search
+        </button>
+      </form>
 
       {/* Results */}
       {loading ? (
