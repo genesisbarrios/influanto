@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       .eq("user_id", userId);
     if ((count ?? 0) >= FREE_NEWSLETTER_LIMIT) {
       return NextResponse.json(
-        { error: `Free plan is limited to ${FREE_NEWSLETTER_LIMIT} newsletters. Upgrade to create more.` },
+        { error: `Free plan is limited to ${FREE_NEWSLETTER_LIMIT} newsletters. Upgrade to create more.`, upgrade: true, reason: "newsletters" },
         { status: 403 }
       );
     }

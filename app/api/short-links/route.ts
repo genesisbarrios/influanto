@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   ]);
   const limit = account?.has_access ? SHORT_LINK_LIMITS.pro : SHORT_LINK_LIMITS.free;
   if ((count ?? 0) >= limit) {
-    return NextResponse.json({ error: `Free accounts can have up to ${SHORT_LINK_LIMITS.free} short links. Delete one or upgrade to Pro for unlimited.` }, { status: 403 });
+    return NextResponse.json({ error: `Free accounts can have up to ${SHORT_LINK_LIMITS.free} short links. Delete one or upgrade to Pro for unlimited.`, ...(account?.has_access ? {} : { upgrade: true, reason: "short_links" }) }, { status: 403 });
   }
 
   const alias = String(body.alias || "").trim().toLowerCase();

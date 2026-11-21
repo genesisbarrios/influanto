@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       ]);
       const limit = account?.has_access ? EPK_PAGE_LIMITS.pro : EPK_PAGE_LIMITS.free;
       if ((count ?? 0) >= limit) {
-        return NextResponse.json({ error: `You can create up to ${limit} EPKs on your plan.` }, { status: 400 });
+        return NextResponse.json({ error: `You can create up to ${limit} EPKs on your plan.`, ...(account?.has_access ? {} : { upgrade: true, reason: "epks" }) }, { status: 400 });
       }
     }
 

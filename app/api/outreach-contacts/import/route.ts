@@ -64,5 +64,5 @@ export async function POST(req: NextRequest) {
   const message = capSkipped
     ? `Free plan is limited to ${FREE_CONTACT_LIMIT} contacts — ${capSkipped} contact${capSkipped !== 1 ? "s" : ""} skipped. Upgrade to import more.`
     : undefined;
-  return NextResponse.json({ added: toInsert.length, skipped: duplicates.length + capSkipped, capSkipped, total: cleaned.length, message });
+  return NextResponse.json({ added: toInsert.length, skipped: duplicates.length + capSkipped, capSkipped, total: cleaned.length, message, upgrade: capSkipped > 0 });
 }

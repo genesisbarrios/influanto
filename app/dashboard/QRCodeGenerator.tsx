@@ -5,6 +5,7 @@ import apiClient from "@/libs/api";
 import ButtonCheckout from "@/components/ButtonCheckout";
 import config from "@/config";
 import posthog from "posthog-js";
+import { openUpgrade } from "@/components/UpgradeModal";
 import QRCodeAnalytics from "@/components/QRCodeAnalytics";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -190,8 +191,8 @@ const addQRCode = async () => {
     const maxCodes = getMaxCodes();
     
     if (qrCodes.length >= maxCodes) {
-      const userType = user?.hasAccess ? "premium" : "free";
-      setAlert(`You can only create up to ${maxCodes} QR codes on the ${userType} plan.`);
+      if (!user?.hasAccess) { openUpgrade("qr_codes", `You've used all ${maxCodes} free QR codes. Pro gives you up to 50, with scan analytics.`); return; }
+      setAlert(`You can only create up to ${maxCodes} QR codes on the premium plan.`);
       return;
     }
 
@@ -534,9 +535,9 @@ useEffect(() => {
     <div className="p-4 bg-white shadow rounded-md text-black">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold mb-2">QR Codes</h2>
-        {!showCreateView && qrCodes.length < getMaxCodes() && (
+        {!showCreateView && (qrCodes.length < getMaxCodes() || !user?.hasAccess) && (
           <button
-            onClick={() => setShowCreateView(true)}
+            onClick={() => (qrCodes.length >= getMaxCodes() ? openUpgrade("qr_codes", `You've used all ${getMaxCodes()} free QR codes. Pro gives you up to 50, with scan analytics.`) : setShowCreateView(true))}
             className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             Create QR

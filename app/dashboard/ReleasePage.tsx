@@ -5,6 +5,7 @@ import apiClient from "@/libs/api";
 import { useSession } from "next-auth/react";
 import ReleasePageAnalytics from "@/components/ReleasePageAnalytics";
 import posthog from "posthog-js";
+import { openUpgrade } from "@/components/UpgradeModal";
 import { parseColorValue, combineColor } from "@/libs/color";
 import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
 import ImagePicker from "@/components/ImagePicker";
@@ -720,6 +721,7 @@ const removeCustomLink = (index: number) => {
       
       // Check if we're creating a new page and already have the maximum allowed
       if (!editingPage?._id && releasePages.length >= maxPages) {
+        if (!userData?.hasAccess) { openUpgrade(mode === "epk" ? "epks" : "release_pages", `You've used all ${maxPages} free ${mode === "epk" ? "EPKs" : "release pages"}. Pro gives you up to ${mode === "epk" ? EPK_PAGE_LIMITS.pro : 50}.`); return; }
         const userType = userData?.hasAccess ? "premium" : "free";
         setAlert(`You can only create up to ${maxPages} ${mode === "epk" ? "EPKs" : "release pages"} on the ${userType} plan.`);
         return;
@@ -905,10 +907,12 @@ const removeCustomLink = (index: number) => {
       <div className="p-4 bg-white shadow rounded-md text-black" style={{ fontFamily: font || 'inherit' }}>
         <div className="w-full flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold" style={{ fontFamily: font || 'inherit' }}>{isEpk ? "Electronic Press Kit (EPK)" : "Release Pages"}</h2>
-          {Array.isArray(releasePages) && releasePages.length < getMaxPages() && !createPage && (
+          {Array.isArray(releasePages) && (releasePages.length < getMaxPages() || !userData?.hasAccess) && !createPage && (
             <button
               className="btn btn-primary btn-xs sm:btn-sm"
-              onClick={handleCreate}
+              onClick={() => (releasePages.length >= getMaxPages()
+                ? openUpgrade(isEpk ? "epks" : "release_pages", `You've used all ${getMaxPages()} free ${isEpk ? "EPKs" : "release pages"}. Pro gives you up to ${isEpk ? EPK_PAGE_LIMITS.pro : 50}.`)
+                : handleCreate())}
               style={{ fontFamily: font || 'inherit' }}
             >
               Create

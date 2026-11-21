@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import apiClient from "@/libs/api";
+import { openUpgrade } from "@/components/UpgradeModal";
 
 interface DomainInfo {
   domain: string | null;
@@ -48,7 +49,7 @@ export default function CustomDomainCard({ hasAccess, textColor, font }: { hasAc
       {!hasAccess ? (
         <p className="text-sm text-gray-500">
           Use your own domain, like <b>links.yourname.com</b>, for your Link in Bio.{" "}
-          <a href="/#pricing" className="text-indigo-600 underline">Upgrade to Pro</a>
+          <button type="button" onClick={() => openUpgrade("custom_domain", "Custom domains are a Pro feature: put your Link in Bio, Release Pages and EPKs on your own domain.")} className="text-indigo-600 underline">Upgrade to Pro</button>
         </p>
       ) : !info ? (
         <p className="text-sm text-gray-400">Loading…</p>

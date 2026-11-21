@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       .eq("user_id", session.user.id);
     if ((count ?? 0) >= FREE_CONTACT_LIMIT) {
       return NextResponse.json(
-        { error: `Free plan is limited to ${FREE_CONTACT_LIMIT} contacts. Upgrade to add more.` },
+        { error: `Free plan is limited to ${FREE_CONTACT_LIMIT} contacts. Upgrade to add more.`, upgrade: true, reason: "contacts" },
         { status: 403 }
       );
     }

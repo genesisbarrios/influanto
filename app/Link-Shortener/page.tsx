@@ -1,6 +1,7 @@
 "use client";
 import React, { Suspense, useEffect, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
+import { openUpgrade } from "@/components/UpgradeModal";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
@@ -38,6 +39,7 @@ export default function LinkShortenerPage() {
     try {
       const res = await fetch("/api/short-links", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url, alias }) });
       const j = await res.json();
+      if (j.upgrade) openUpgrade(j.reason || "short_links", j.error);
       if (!res.ok) throw new Error(j.error || "Couldn't shorten that link");
       setLinks((prev) => [j.data, ...prev]);
       setUrl(""); setAlias("");

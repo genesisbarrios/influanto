@@ -2,6 +2,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { signIn } from "next-auth/react";
 import config from "@/config";
+import { openUpgrade } from "@/components/UpgradeModal";
 
 // use this to interact with our own API (/app/api folder) from the front-end side
 const apiClient = axios.create({
@@ -14,6 +15,13 @@ apiClient.interceptors.response.use(
   },
   function (error) {
     let message = "";
+
+    // A free plan limit: show the "Get Pro" popup instead of an error toast
+    if (error.response?.data?.upgrade) {
+      openUpgrade(error.response.data.reason || "limit", error.response.data.error);
+      error.message = error.response.data.error || "Upgrade to Pro to do this";
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401) {
       // User not auth, ask to re login

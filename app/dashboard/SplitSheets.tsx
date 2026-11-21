@@ -5,6 +5,7 @@ import apiClient from "@/libs/api";
 import { useSession } from "next-auth/react";
 import jsPDF from "jspdf";
 import posthog from "posthog-js";
+import { openUpgrade } from "@/components/UpgradeModal";
 import ImportContactsModal, { ImportField } from "@/components/ImportContactsModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFileArrowUp, faXmark, faFileLines } from "@fortawesome/free-solid-svg-icons";
@@ -316,7 +317,7 @@ export default function SplitSheets() {
   const handleSave = async () => {
     if (!sheet.title?.trim()) { setAlert("Song title is required"); return; }
     if (!(sheet as any).id && !user?.hasAccess && sheets.length >= FREE_SPLIT_SHEET_LIMIT) {
-      setAlert(`You can only create up to ${FREE_SPLIT_SHEET_LIMIT} split sheets on the free plan. Upgrade for unlimited.`);
+      openUpgrade("split_sheets", `You've used all ${FREE_SPLIT_SHEET_LIMIT} free split sheets. Pro gives you unlimited.`);
       return;
     }
     setIsLoading(true);
@@ -687,8 +688,11 @@ export default function SplitSheets() {
           <button className="btn btn-sm btn-outline" onClick={() => { setView("contacts"); setAlert(""); }}>
             Contacts ({contacts.length})
           </button>
-          {sheets.length < getMaxSheets() && (
-            <button className="btn btn-primary btn-sm" onClick={() => { setEditingSheet(BLANK_SHEET()); setView("form"); setAlert(""); }}>
+          {(sheets.length < getMaxSheets() || !user?.hasAccess) && (
+            <button className="btn btn-primary btn-sm" onClick={() => {
+              if (sheets.length >= getMaxSheets()) { openUpgrade("split_sheets", `You've used all ${FREE_SPLIT_SHEET_LIMIT} free split sheets. Pro gives you unlimited.`); return; }
+              setEditingSheet(BLANK_SHEET()); setView("form"); setAlert("");
+            }}>
               + New Sheet
             </button>
           )}

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import apiClient from "@/libs/api";
 import config from "@/config";
 import posthog from "posthog-js";
+import { openUpgrade } from "@/components/UpgradeModal";
 import { renderNewsletterHtml } from "@/libs/newsletter-html";
 import ImportContactsModal, { ImportField } from "@/components/ImportContactsModal";
 import * as XLSX from "xlsx";
@@ -434,6 +435,7 @@ export default function Outreach() {
             onImport={async (rows) => {
               const r = await apiClient.post("/outreach-contacts/import", { contacts: rows });
               posthog.capture("outreach_contacts_imported", { count: (r as any)?.added ?? rows.length });
+              if ((r as any)?.upgrade) openUpgrade("contacts", (r as any).message);
               await loadContacts();
               return r as any;
             }}
@@ -478,6 +480,7 @@ export default function Outreach() {
         ) : (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-sm text-amber-700">
             You've reached the free plan's {FREE_CONTACT_LIMIT}-contact limit. Upgrade to Influanto Pro for unlimited contacts.
+            <button className="btn btn-primary btn-sm mt-3 block" onClick={() => openUpgrade("contacts", `You've used all ${FREE_CONTACT_LIMIT} free contacts. Pro gives you unlimited.`)}>Upgrade to Pro</button>
           </div>
         )}
 
@@ -783,8 +786,11 @@ export default function Outreach() {
           <button className="btn btn-sm btn-outline" onClick={() => { setView("contacts"); setAlert(""); }}>
             Contacts ({contacts.length})
           </button>
-          {newsletters.length < getMaxNewsletters() && (
-            <button className="btn btn-primary btn-sm" onClick={() => { setView("pick"); setAlert(""); }}>
+          {(newsletters.length < getMaxNewsletters() || !user?.hasAccess) && (
+            <button className="btn btn-primary btn-sm" onClick={() => {
+              if (newsletters.length >= getMaxNewsletters()) { openUpgrade("newsletters", `You've used all ${FREE_NEWSLETTER_LIMIT} free newsletters. Pro gives you unlimited newsletters and contacts.`); return; }
+              setView("pick"); setAlert("");
+            }}>
               + New Newsletter
             </button>
           )}

@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       .eq("user_id", session.user.id);
     if ((count ?? 0) >= FREE_SPLIT_SHEET_LIMIT) {
       return NextResponse.json(
-        { error: `Free plan is limited to ${FREE_SPLIT_SHEET_LIMIT} split sheets. Upgrade to create more.` },
+        { error: `Free plan is limited to ${FREE_SPLIT_SHEET_LIMIT} split sheets. Upgrade to create more.`, upgrade: true, reason: "split_sheets" },
         { status: 403 }
       );
     }

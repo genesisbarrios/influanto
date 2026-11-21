@@ -10,6 +10,7 @@ import { Toaster } from "react-hot-toast";
 import { Tooltip } from "react-tooltip";
 import config from "@/config";
 import RevealObserver from "@/components/RevealObserver";
+import UpgradeModal from "@/components/UpgradeModal";
 import posthog from "posthog-js";
 
 // Crisp customer chat support:
@@ -88,6 +89,9 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
           id="tooltip"
           className="z-[60] !opacity-100 max-w-sm shadow-lg"
         />
+
+        {/* "Get Pro" popup when a free account hits a limit */}
+        <UpgradeModal />
 
         {/* Set Crisp customer chat support */}
         <CrispChat />

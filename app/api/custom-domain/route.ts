@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
   const { data: userRow } = await supabase.from("users").select("has_access").eq("id", userId).single();
   if (!userRow?.has_access) {
-    return NextResponse.json({ error: "Custom domains are a Pro feature." }, { status: 403 });
+    return NextResponse.json({ error: "Custom domains are a Pro feature.", upgrade: true, reason: "custom_domain" }, { status: 403 });
   }
 
   const { domain: input } = await req.json().catch(() => ({}));
