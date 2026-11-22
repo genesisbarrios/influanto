@@ -13,7 +13,7 @@ import CustomMerchLinksEditor from "@/components/CustomMerchLinksEditor";
 import EpkEditor from "@/components/EpkEditor";
 import FontSelect from "@/components/FontSelect";
 import { EPK_PAGE_LIMITS } from "@/libs/epk";
-import { isEmbeddableVideo } from "@/libs/videoEmbed";
+import { getVideoEmbedUrl, isEmbeddableVideo } from "@/libs/videoEmbed";
 import { fetchAllPrintifyProducts } from "@/libs/printify-products";
 import * as HeroPatterns from 'hero-patterns';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -1001,11 +1001,11 @@ const removeCustomLink = (index: number) => {
                     onChange={handleVideoChange}
                     style={{ fontFamily: font || 'inherit' }}
                   />
-                  {editingPage?.video && getYouTubeVideoId(editingPage.video).videoId && (
+                  {editingPage?.video && getVideoEmbedUrl(editingPage.video) && (
                     <iframe
                       width="100%"
                       height="315"
-                      src={`https://www.youtube.com/embed/${getYouTubeVideoId(editingPage.video).videoId}`}
+                      src={getVideoEmbedUrl(editingPage.video)!}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       className="mt-4"
@@ -1387,11 +1387,11 @@ const removeCustomLink = (index: number) => {
                     onChange={handleVideoChange}
                     style={{ fontFamily: font || 'inherit' }}
                   />
-                  {editingPage?.video && getYouTubeVideoId(editingPage.video).videoId && (
+                  {editingPage?.video && getVideoEmbedUrl(editingPage.video) && (
                     <iframe
                       width="100%"
                       height="315"
-                      src={`https://www.youtube.com/embed/${getYouTubeVideoId(editingPage.video).videoId}`}
+                      src={getVideoEmbedUrl(editingPage.video)!}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       className="mt-4"

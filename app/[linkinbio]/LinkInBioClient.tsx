@@ -1,5 +1,6 @@
 "use client"
 /* eslint-disable */
+import { getVideoEmbedUrl } from "@/libs/videoEmbed";
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
 import MetaPixel, { trackLinkClick, trackStreamingClick, trackMerchClick } from "@/components/MetaPixel";
@@ -445,12 +446,12 @@ return (
                 fontFamily: font || 'inherit'
               }}
             >
-              {isYouTubeLinkCheck(link.url) && link.displayVideo ? (
+              {isYouTubeLinkCheck(link.url) && link.displayVideo && getVideoEmbedUrl(link.url) ? (
                 <iframe
                     width="100%"
                     height="315"
                     style={{ maxWidth: '100%', borderRadius: '12px' }}
-                    src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}?enablejsapi=1`}
+                    src={`${getVideoEmbedUrl(link.url)}${getVideoEmbedUrl(link.url)!.includes("?") ? "&" : "?"}enablejsapi=1`}
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen

@@ -1,5 +1,6 @@
 "use client"
 /* eslint-disable */
+import { getVideoEmbedUrl } from "@/libs/videoEmbed";
 import React, { useEffect, useState } from 'react';
 import apiClient from "@/libs/api";
 import { getAutoplaySource } from "@/libs/autoplay";
@@ -626,12 +627,12 @@ const LinkInBio = () => {
                       backgroundColor: linkInBio?.cardBgColor || 'transparent',
                       fontFamily: linkInBio?.font || 'inherit'
                     }}>
-                      {isYouTubeLinkCheck(link.url) ? (
+                      {isYouTubeLinkCheck(link.url) && getVideoEmbedUrl(link.url) ? (
                         <iframe
                           width="100%"
                           height="200"
                           style={{ maxWidth: "100%" }}
-                          src={`https://www.youtube.com/embed/${getYouTubeVideoId(link.url)}`}
+                          src={getVideoEmbedUrl(link.url)!}
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
                         />
