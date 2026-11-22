@@ -275,7 +275,7 @@ const ReleasePageView = () => {
 
   // Utility functions
   function isYouTubeLinkCheck(url: string): boolean {
-    const youtubeRegex = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$/;
+    const youtubeRegex = /^(https?:\/\/)?((www|m|music)\.)?(youtube\.com|youtu\.be)\/.+$/i;
     return youtubeRegex.test(url);
   }
 
