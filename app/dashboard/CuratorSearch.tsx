@@ -1,11 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import posthog from "posthog-js";
 import apiClient from "@/libs/api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faXmark, faCheck, faCopy } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faEnvelopeOpen, faXmark, faCheck, faCopy } from "@fortawesome/free-solid-svg-icons";
 
 const LINK_PLACEHOLDER = '[ paste your track link here ]';
+
+type SentPitch = {
+  id: string;
+  curator_email: string;
+  curator_name: string;
+  playlist_name: string;
+  playlist_url: string;
+  track_link: string;
+  subject: string;
+  body: string;
+  created_at: string;
+};
+
+/** Where `token` appears in `text`, choosing the occurrence nearest `near` (-1 if absent). */
+function locate(text: string, token: string, near: number) {
+  if (!token) return -1;
+  let best = -1;
+  for (let i = text.indexOf(token); i !== -1; i = text.indexOf(token, i + 1)) {
+    if (best === -1 || Math.abs(i - near) < Math.abs(best - near)) best = i;
+  }
+  return best;
+}
 
 const PitchToSpotify: React.FC = () => {
   useEffect(() => {
@@ -94,13 +116,67 @@ const PitchToSpotify: React.FC = () => {
       .catch(() => setReleasePages([]));
   }, [data?.user?.id]);
 
+  // Where the link sits in the message. Tracked by position (not by searching
+  // for the old text) so a half-typed link like "h" can't match some other
+  // word earlier in the message.
+  const linkSpot = useRef({ text: LINK_PLACEHOLDER, at: -1 });
+
   const applyLink = (newLink: string) => {
-    setEmailForm((p) => ({
-      ...p,
-      body: p.body.replace(trackLink || LINK_PLACEHOLDER, newLink || LINK_PLACEHOLDER),
-    }));
+    const shown = newLink || LINK_PLACEHOLDER;
+    const body = emailForm.body;
+    const spot = linkSpot.current;
+    const at = locate(body, spot.text, spot.at);
+    let next: string, nextAt: number;
+    if (at !== -1) {
+      next = body.slice(0, at) + shown + body.slice(at + spot.text.length);
+      nextAt = at;
+    } else {
+      // the link was removed from the message: add it back at the end
+      const trimmed = body.replace(/\s+$/, '');
+      next = `${trimmed}${trimmed ? '\n\n' : ''}${shown}`;
+      nextAt = next.length - shown.length;
+    }
+    linkSpot.current = { text: shown, at: nextAt };
+    setEmailForm((p) => ({ ...p, body: next }));
     setTrackLink(newLink);
   };
+
+  const handleBodyChange = (value: string) => {
+    // follow the link as text is added or removed before it
+    const spot = linkSpot.current;
+    linkSpot.current = { ...spot, at: locate(value, spot.text, spot.at) };
+    setEmailForm((p) => ({ ...p, body: value }));
+  };
+
+  // ── Sent pitches (history + daily limit) ──
+  const [sent, setSent] = useState<SentPitch[]>([]);
+  const [sentLoaded, setSentLoaded] = useState(false);
+  const [usage, setUsage] = useState<{ sentToday: number; limit: number | null }>({ sentToday: 0, limit: null });
+  const [openSent, setOpenSent] = useState<string | null>(null);
+
+  // latest pitch per curator email, for the "Pitched" button in the results
+  const lastPitch = React.useMemo(() => {
+    const m = new Map<string, SentPitch>();
+    for (const p of sent) if (!m.has(p.curator_email)) m.set(p.curator_email, p);
+    return m;
+  }, [sent]);
+  const pitchFor = (email?: string) => (email ? lastPitch.get(email.trim().toLowerCase()) : undefined);
+  const showPitch = (p: SentPitch) => {
+    setOpenSent(p.id);
+    setTimeout(() => document.getElementById(`pitch-${p.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+  };
+
+  useEffect(() => {
+    if (!data?.user?.id) return;
+    fetch('/api/curator-email')
+      .then((r) => r.json())
+      .then((d) => {
+        setSent(Array.isArray(d?.data) ? d.data : []);
+        if (typeof d?.sentToday === 'number') setUsage({ sentToday: d.sentToday, limit: d.limit ?? null });
+      })
+      .catch(() => {})
+      .finally(() => setSentLoaded(true));
+  }, [data?.user?.id]);
 
   const handleSelectReleasePage = (pageSlug: string) => {
     setSelectedReleasePageName(pageSlug);
@@ -134,8 +210,10 @@ ${(data?.user?.name as string) || ''}`,
   };
 
   const openEmail = (pl: Playlist) => {
+    const tpl = buildTemplate(pl);
+    linkSpot.current = { text: LINK_PLACEHOLDER, at: tpl.body.indexOf(LINK_PLACEHOLDER) };
     setEmailModal(pl);
-    setEmailForm(buildTemplate(pl));
+    setEmailForm(tpl);
     setCopied(false);
     setEmailAlert('');
     setSelectedReleasePageName('');
@@ -161,10 +239,20 @@ ${(data?.user?.name as string) || ''}`,
       const res = await fetch('/api/curator-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: emailModal.email, subject: emailForm.subject, body: emailForm.body }),
+        body: JSON.stringify({
+          to: emailModal.email,
+          subject: emailForm.subject,
+          body: emailForm.body,
+          playlistName: emailModal.name,
+          playlistUrl: emailModal.url,
+          curatorName: emailModal.owner,
+          trackLink,
+        }),
       });
       const d = await res.json();
+      if (typeof d?.sentToday === 'number') setUsage({ sentToday: d.sentToday, limit: d.limit ?? null });
       if (!res.ok) throw new Error(d.error || 'Failed to send');
+      if (d.sent) setSent((list) => [d.sent, ...list]);
       posthog.capture('curator_email_sent', { playlist: emailModal.name });
       setEmailAlert('Email sent!', true);
       setTimeout(() => setEmailModal(null), 1200);
@@ -349,9 +437,63 @@ ${(data?.user?.name as string) || ''}`,
                     <FontAwesomeIcon icon={faEnvelope} className="mr-1.5" /> Email
                   </button>
                 )}
+                {(() => {
+                  const p = pitchFor(playlist.email);
+                  return p ? (
+                    <button
+                      onClick={() => showPitch(p)}
+                      title={`You emailed this curator on ${new Date(p.created_at).toLocaleDateString()}`}
+                      className="inline-block mt-2 px-4 py-2 text-green-700 bg-green-50 border border-green-300 rounded-lg text-sm hover:bg-green-100"
+                    >
+                      <FontAwesomeIcon icon={faEnvelopeOpen} className="mr-1.5" /> Pitched
+                    </button>
+                  ) : null;
+                })()}
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pitches you've sent */}
+      {data?.user?.id && (
+        <div className="mt-10 border-t pt-6">
+          <div className="flex items-baseline justify-between gap-2 flex-wrap mb-3">
+            <h3 className="text-lg font-semibold">Sent pitches</h3>
+            <p className="text-xs text-gray-500">
+              {sent.length} sent
+              {usage.limit !== null && <> · {usage.sentToday}/{usage.limit} today</>}
+            </p>
+          </div>
+          {!sentLoaded ? (
+            <p className="text-sm text-gray-500">Loading…</p>
+          ) : sent.length === 0 ? (
+            <p className="text-sm text-gray-500">Emails you send to curators show up here, with the track you pitched and a copy of the message.</p>
+          ) : (
+            <ul className="divide-y border rounded-lg">
+              {sent.map((p) => (
+                <li key={p.id} id={`pitch-${p.id}`} className="p-3 text-sm">
+                  <button className="w-full text-left flex items-start justify-between gap-3" onClick={() => setOpenSent(openSent === p.id ? null : p.id)}>
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{p.playlist_name || p.subject}</p>
+                      <p className="text-xs text-gray-500 truncate">{p.curator_name ? `${p.curator_name} · ` : ''}{p.curator_email}</p>
+                      {p.track_link && <p className="text-xs text-indigo-600 truncate">{p.track_link}</p>}
+                    </div>
+                    <span className="text-xs text-gray-400 whitespace-nowrap">{new Date(p.created_at).toLocaleDateString()}</span>
+                  </button>
+                  {openSent === p.id && (
+                    <div className="mt-2 rounded-md bg-gray-50 p-3">
+                      {p.playlist_url && (
+                        <a href={p.playlist_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline">Open playlist</a>
+                      )}
+                      <p className="text-xs font-semibold mt-1">{p.subject}</p>
+                      <pre className="mt-1 whitespace-pre-wrap font-sans text-xs text-gray-700">{p.body}</pre>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
@@ -403,10 +545,13 @@ ${(data?.user?.name as string) || ''}`,
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono bg-white text-black"
                   rows={11}
                   value={emailForm.body}
-                  onChange={(e) => setEmailForm((p) => ({ ...p, body: e.target.value }))}
+                  onChange={(e) => handleBodyChange(e.target.value)}
                 />
               </div>
               <p className="text-xs text-gray-400">Replies go straight to your account email. Edit the template before sending.</p>
+              {usage.limit !== null && (
+                <p className="text-xs text-gray-500">{Math.max(0, usage.limit - usage.sentToday)} of {usage.limit} free emails left today. Pro is unlimited.</p>
+              )}
               {emailAlert && <p className={`text-sm ${emailAlertOk ? 'text-green-600' : 'text-red-500'}`}>{emailAlert}</p>}
             </div>
 

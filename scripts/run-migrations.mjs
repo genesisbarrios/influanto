@@ -191,6 +191,23 @@ const migrations = [
     created_at TIMESTAMPTZ DEFAULT NOW()
   )`,
   `CREATE INDEX IF NOT EXISTS short_links_user_idx ON short_links(user_id)`,
+
+  // curator pitches sent through Influanto: who, which playlist, the track link
+  // and a copy of the message (shown under Curator Search; also used for the
+  // free plan's daily send limit)
+  `CREATE TABLE IF NOT EXISTS curator_emails (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    curator_email TEXT NOT NULL,
+    curator_name TEXT DEFAULT '',
+    playlist_name TEXT DEFAULT '',
+    playlist_url TEXT DEFAULT '',
+    track_link TEXT DEFAULT '',
+    subject TEXT NOT NULL,
+    body TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS curator_emails_user_idx ON curator_emails(user_id, created_at DESC)`,
 ];
 
 async function run() {
