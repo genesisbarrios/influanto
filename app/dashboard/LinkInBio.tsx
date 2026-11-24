@@ -15,7 +15,7 @@ import { deleteCloudinaryImage } from "@/libs/cloudinary-client";
 import ImagePicker from "@/components/ImagePicker";
 import CustomMerchLinksEditor from "@/components/CustomMerchLinksEditor";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLink as faLinkTitle } from "@fortawesome/free-solid-svg-icons";
+import { faLink as faLinkTitle, faGlobe, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import {
   faBoxOpen,
   faTrash,
@@ -574,34 +574,43 @@ const LinkInBio = () => {
               <span className="dash-title__icon"><FontAwesomeIcon icon={faLinkTitle} /></span>
               Link in Bio
             </h2>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
               <button
                 type="button"
-                className="dash-btn dash-btn--soft"
+                className="dash-btn dash-btn--soft dash-btn--icon-sm"
                 style={{ fontFamily: linkInBio?.font || 'inherit' }}
                 onClick={() => setEditing(true)}
+                aria-label="Edit"
+                title="Edit"
               >
-                Edit
+                <FontAwesomeIcon icon={faPen} className="sm:hidden" />
+                <span className="hidden sm:inline">Edit</span>
               </button>
               {user?.username && (
                 <a
                   href={`https://influanto.com/${user.username}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="dash-btn dash-btn--primary"
+                  className="dash-btn dash-btn--primary dash-btn--icon-sm"
                   style={{ fontFamily: linkInBio?.font || 'inherit' }}
+                  aria-label="Visit"
+                  title="Visit"
                 >
-                  Visit
+                  <FontAwesomeIcon icon={faGlobe} className="sm:hidden" />
+                  <span className="hidden sm:inline">Visit</span>
                 </a>
               )}
               {user?.username && (
                 <button
                   type="button"
-                  className="dash-btn dash-btn--soft"
+                  className="dash-btn dash-btn--soft dash-btn--icon-sm"
                   style={{ fontFamily: linkInBio?.font || 'inherit' }}
                   onClick={handleShare}
+                  aria-label={shareCopied ? "Copied!" : "Share"}
+                  title={shareCopied ? "Copied!" : "Share"}
                 >
-                  {shareCopied ? "Copied!" : "Share"}
+                  <FontAwesomeIcon icon={faEnvelope} className="sm:hidden" />
+                  <span className="hidden sm:inline">{shareCopied ? "Copied!" : "Share"}</span>
                 </button>
               )}
             </div>
