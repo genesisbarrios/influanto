@@ -48,10 +48,14 @@ async function spotifyToken(): Promise<string> {
 
 const MIGHT_HAVE_CONTACT = /\b(ig|insta|instagram|tiktok|contact|e-?mail|submit|submissions?)\b|@/i;
 
-export async function fetchFromSpotify(genre: string): Promise<Curator[]> {
+// Spotify search allows offset + limit up to 1000, i.e. pages 0–19 of 50
+const LAST_PAGE = 19;
+
+export async function fetchFromSpotify(genre: string, startPage = 0): Promise<Curator[]> {
   const token = await spotifyToken();
   const found = new Map<string, Curator>();
-  for (let page = 0; page < MAX_PAGES && found.size < TARGET; page++) {
+  const end = Math.min(LAST_PAGE + 1, startPage + MAX_PAGES);
+  for (let page = startPage; page < end && found.size < TARGET; page++) {
     const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(genre)}&type=playlist&limit=50&offset=${page * 50}`;
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
     if (!res.ok) break;
@@ -98,6 +102,12 @@ async function readCache(genre: string): Promise<{ curators: Curator[]; fresh: b
 }
 
 async function writeCache(genre: string, curators: Curator[]) {
+  await savePlaylists(genre, curators);
+  await supabase.from("curator_searches").upsert({ genre, fetched_at: new Date().toISOString(), result_count: curators.length });
+}
+
+/** Add playlists to the cache, tagged with `genre` (keeps the genres they already had). */
+async function savePlaylists(genre: string, curators: Curator[]) {
   if (curators.length) {
     // Keep the genres a playlist was already tagged with
     const { data: existing } = await supabase.from("curator_playlists").select("id, genres").in("id", curators.map((c) => c.id));
@@ -111,7 +121,6 @@ async function writeCache(genre: string, curators: Curator[]) {
       fetched_at: now,
     })));
   }
-  await supabase.from("curator_searches").upsert({ genre, fetched_at: new Date().toISOString(), result_count: curators.length });
 }
 
 /** Cached curators for a genre (email first), fetching from Spotify when the cache is empty or a week old. */
@@ -131,4 +140,67 @@ export async function curatorsFor(rawGenre: string): Promise<{ curators: Curator
     if (cached?.curators.length) return { curators: cached.curators.sort(byEmailFirst), source: "stale-cache" };
     throw e;
   }
+}
+
+// ── More curators (the refresh button) ─────────────────────────────────────────
+
+// Genres that are close enough that their curators would take the same songs.
+// When a genre runs out, "more" moves on to the others in its group, in order.
+export const ADJACENT_GENRES: string[][] = [
+  ["indie pop", "indie", "alternative", "synth pop", "dance pop", "dance"],
+  ["latin", "reggaeton", "latin pop"],
+  ["hip hop", "trap", "detroit rap", "drill"],
+  ["house", "melodic house", "tech house", "techno"],
+];
+
+export function adjacentGenres(rawGenre: string): string[] {
+  const g = normGenre(rawGenre);
+  const alias = g === "detroit" ? "detroit rap" : g;
+  const group = ADJACENT_GENRES.find((gr) => gr.includes(alias));
+  return group ? group.filter((x) => x !== alias) : [];
+}
+
+type Step = { genre: string; page: number }; // page -1: the genre's normal (cached) results
+
+function stepsFor(rawGenre: string): Step[] {
+  const genre = normGenre(rawGenre) || "reggaeton";
+  // deeper into Spotify's results for this genre, then the adjacent genres
+  const deeper: Step[] = [];
+  for (let page = MAX_PAGES; page <= LAST_PAGE; page += MAX_PAGES) deeper.push({ genre, page });
+  return [...deeper, ...adjacentGenres(genre).map((g) => ({ genre: g, page: -1 }))];
+}
+
+/**
+ * Curators not in `exclude`, found by searching deeper for the genre and then
+ * its adjacent genres. `cursor` is where the last call stopped; pass back the
+ * returned one to keep going. `done` means there's nowhere left to look.
+ */
+export async function moreCurators(rawGenre: string, exclude: Set<string>, cursor = 0) {
+  const steps = stepsFor(rawGenre);
+  const searched: string[] = [];
+  const found = new Map<string, Curator>();
+  let i = Math.max(0, cursor);
+  // a few steps per request at most, so it answers quickly; stop once something new turns up
+  for (let tries = 0; i < steps.length && tries < 3 && !found.size; i++, tries++) {
+    const { genre, page } = steps[i];
+    let list: Curator[] = [];
+    try {
+      if (page < 0) list = (await curatorsFor(genre)).curators;
+      else {
+        list = await fetchFromSpotify(genre, page);
+        await savePlaylists(genre, list).catch((e) => console.error("curator cache write failed:", e?.message));
+      }
+    } catch (e: any) {
+      console.error("more curators step failed:", genre, page, e?.message);
+    }
+    if (!searched.includes(genre)) searched.push(genre);
+    for (const c of list) if (!exclude.has(c.id)) found.set(c.id, c);
+  }
+  return {
+    curators: Array.from(found.values()).sort(byEmailFirst),
+    cursor: i,
+    done: i >= steps.length,
+    searched,
+    next: steps[i]?.genre ?? null,
+  };
 }

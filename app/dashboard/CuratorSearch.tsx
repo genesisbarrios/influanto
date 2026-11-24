@@ -3,7 +3,7 @@ import { useSession } from 'next-auth/react';
 import posthog from "posthog-js";
 import apiClient from "@/libs/api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faEnvelopeOpen, faXmark, faCheck, faCopy } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faEnvelopeOpen, faXmark, faCheck, faCopy, faArrowsRotate } from "@fortawesome/free-solid-svg-icons";
 
 const LINK_PLACEHOLDER = '[ paste your track link here ]';
 
@@ -75,6 +75,7 @@ const PitchToSpotify: React.FC = () => {
   }, []);
 
   interface Playlist {
+    id?: string;
     playlistCoverImage?: string;
     name: string;
     url: string;
@@ -276,6 +277,8 @@ ${(data?.user?.name as string) || ''}`,
    */
   const fetchPlaylists = async (genreValue: string) => {
     setLoading(true);
+    moreCursor.current = 0;
+    setMoreNote('');
 
     try {
       const trimmed = genreValue?.trim();
@@ -330,6 +333,45 @@ ${(data?.user?.name as string) || ''}`,
     fetchPlaylists(q);
   };
 
+  // ── Refresh: keep the curators with email, look for more (deeper, then adjacent genres) ──
+  const moreCursor = useRef(0);
+  const [findingMore, setFindingMore] = useState(false);
+  const [moreNote, setMoreNote] = useState('');
+
+  const findMore = async () => {
+    const genre = (searchedTerm || (selectedGenre !== 'Other' ? selectedGenre : '')).trim();
+    if (!genre || findingMore) return;
+    setFindingMore(true);
+    setMoreNote('');
+    const keep = playlists.filter((p) => p.email);
+    try {
+      const res = await fetch('/api/fetch-curators', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ genre, cursor: moreCursor.current, exclude: playlists.map((p) => p.id).filter(Boolean) }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || 'Failed to find more');
+      moreCursor.current = d.cursor ?? moreCursor.current;
+      const seen = new Set(keep.map((p) => p.id));
+      const added: Playlist[] = (d.playlists || []).filter((p: Playlist) => !seen.has(p.id));
+      setPlaylists([...keep, ...added]);
+      const from = (d.searched || []).filter((g: string) => g !== genre.toLowerCase());
+      if (added.length) {
+        setMoreNote(`Found ${added.length} more${from.length ? ` from ${from.join(', ')}` : ''}.`);
+      } else if (d.done) {
+        setMoreNote(`No more curators found for "${genre}"${from.length ? ` or ${from.join(', ')}` : ''}.`);
+      } else {
+        setMoreNote(`Nothing new yet. Tap refresh again to look in ${d.next || 'more results'}.`);
+      }
+      posthog.capture('curator_find_more', { genre, added: added.length, searched: d.searched });
+    } catch (e: any) {
+      setMoreNote(e?.message || 'Failed to find more');
+    } finally {
+      setFindingMore(false);
+    }
+  };
+
   // Determine what label to show in "no results" message
   const queryLabel = searchedTerm || selectedGenre;
 
@@ -375,7 +417,18 @@ ${(data?.user?.name as string) || ''}`,
         >
           Search
         </button>
+        <button
+          type="button"
+          onClick={findMore}
+          disabled={findingMore || loading || !(searchedTerm || (selectedGenre && selectedGenre !== 'Other'))}
+          aria-label="Find more curators"
+          title="Find more curators (keeps the ones with email)"
+          className="mt-1 px-3 py-2 border border-indigo-300 text-indigo-700 rounded-md hover:bg-indigo-50 disabled:opacity-40"
+        >
+          <FontAwesomeIcon icon={faArrowsRotate} spin={findingMore} />
+        </button>
       </form>
+      {moreNote && <p className="-mt-4 mb-4 text-xs text-gray-500">{moreNote}</p>}
 
       {/* Results */}
       {loading ? (
