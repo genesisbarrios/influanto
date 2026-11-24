@@ -17,7 +17,7 @@ import { faGlobe, faLocation, faEnvelope, faBoxOpen } from "@fortawesome/free-so
 
 import config from "@/config";
 import { getSEOTags } from "@/libs/seo";
-import { normalizeUrl, keepOnCustomDomain } from "@/libs/urls";
+import { normalizeUrl, keepOnCustomDomain, BEAT_STORES, BeatStore } from "@/libs/urls";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import { useRouter } from 'next/navigation'; 
 import { usePathname, useSearchParams } from 'next/navigation'
@@ -426,6 +426,12 @@ return (
           {user.deezer && <a href={"https://deezer.com/" + user.deezer } target="_blank" style={{color:"purple"}}><FontAwesomeIcon icon={faDeezer} /></a>}
           {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{color:"darkblue", display:"inline-flex", alignItems:"center"}}><img src="/pandora.png" style={{width:"1em", height:"1em", objectFit:"contain"}}/></a>}
           {user.bandcamp && <a href={normalizeUrl(user.bandcamp)} target="_blank" style={{color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
+          {(Object.keys(BEAT_STORES) as BeatStore[]).map((k) => user[k] ? (
+            <a key={k} href={normalizeUrl(user[k])} target="_blank" rel="noopener noreferrer" title={BEAT_STORES[k].name} style={{display:"inline-flex", alignItems:"center"}}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={BEAT_STORES[k].icon} alt={BEAT_STORES[k].name} style={{width:"1em", height:"1em", objectFit:"contain"}} />
+            </a>
+          ) : null)}
           {user.soundxyz && <a href={"https://sound.xyz/" + user.soundxyz } target="_blank" style={{display:"inline-flex", alignItems:"center"}}><img src="/soundxyz.png" style={{width:"1em", height:"1em", objectFit:"contain"}}/></a>}
         </div>
 

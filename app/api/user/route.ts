@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import supabase, { mapUser } from "@/libs/supabase";
-import { normalizeUrl, normalizeBandcampLink, normalizeLinkedInHandle } from "@/libs/urls";
+import { normalizeUrl, normalizeBandcampLink, normalizeLinkedInHandle, normalizeBeatStoreLink } from "@/libs/urls";
 
 // Fields stored as full URLs (as opposed to bare handles like "instagram")
 // that need a scheme so the profile page's href works when clicked.
@@ -100,6 +100,9 @@ export async function POST(req: Request) {
       ["pandora", "pandora"],
       ["youtubeMusic", "youtube_music"],
       ["bandcamp", "bandcamp"],
+      ["beatstars", "beatstars"],
+      ["airbit", "airbit"],
+      ["traktrain", "traktrain"],
     ];
 
     for (const [formKey, dbKey] of textFields) {
@@ -107,6 +110,7 @@ export async function POST(req: Request) {
       if (val !== null && val !== "") {
         updates[dbKey] =
           formKey === "bandcamp" ? normalizeBandcampLink(val)
+          : formKey === "beatstars" || formKey === "airbit" || formKey === "traktrain" ? normalizeBeatStoreLink(formKey, val)
           : formKey === "linkedin" ? normalizeLinkedInHandle(val)
           : FULL_URL_FIELDS.has(formKey) ? normalizeUrl(val)
           : val;

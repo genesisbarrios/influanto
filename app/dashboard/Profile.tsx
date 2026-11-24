@@ -36,7 +36,7 @@ import BusinessCard from "@/components/BusinessCard";
 import ImagePicker from "@/components/ImagePicker";
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 import SettingsDropdown from "@/components/SettingsDropdown";
-import { normalizeUrl } from "@/libs/urls";
+import { normalizeUrl, BEAT_STORES, BeatStore } from "@/libs/urls";
 import ArtistIdHelpModal from "@/components/ArtistIdHelpModal";
 import { MUSIC_CATEGORIES } from "@/libs/categories";
 
@@ -80,6 +80,8 @@ const Profile =  () => {
   const [pandora, setPandora] = useState("");
   const [youtubeMusic, setYouTubeMusic] = useState("");
   const [bandcamp, setBandcamp] = useState("");
+  // beat stores (shown to producers): BeatStars, Airbit, TrakTrain
+  const [beatStores, setBeatStores] = useState<Record<BeatStore, string>>({ beatstars: "", airbit: "", traktrain: "" });
   const [displayEmail, setDisplayEmail] = useState(Boolean);
   const [epkLink, setEpkLink] = useState<{ enabled?: boolean; pageId?: string; url?: string }>({});
   const [epkPages, setEpkPages] = useState<{ id: string; name: string; slug: string }[]>([]);
@@ -745,6 +747,7 @@ const handleYouTubeMusicChange = (e: any) => {
       setPandora(data.pandora);
       setYouTubeMusic(data.youtubeMusic);
       setBandcamp(data.bandcamp);
+      setBeatStores({ beatstars: data.beatstars || "", airbit: data.airbit || "", traktrain: data.traktrain || "" });
       setMetaPixelId(data.metaPixelId || "");
       setNewsletterStyle(data.newsletterStyle && typeof data.newsletterStyle === "object" ? data.newsletterStyle : {});
       setUser(data);
@@ -907,6 +910,7 @@ const handleYouTubeMusicChange = (e: any) => {
       if (pandora !== undefined && pandora !== null) formData.append("pandora", pandora);
       if (youtubeMusic !== undefined && youtubeMusic !== null) formData.append("youtubeMusic", youtubeMusic);
       if (bandcamp !== undefined && bandcamp !== null) formData.append("bandcamp", bandcamp);
+      (Object.keys(beatStores) as BeatStore[]).forEach((k) => { if (beatStores[k]) formData.append(k, beatStores[k]); });
 
       // Only append the image if one is set
       if (avatarImage) {
@@ -1097,6 +1101,12 @@ const handleYouTubeMusicChange = (e: any) => {
             {user.deezer && <a href={"https://deezer.com/" + user.deezer } target="_blank" style={{marginRight:"10px", color:"purple"}}><FontAwesomeIcon icon={faDeezer} /></a>}
             {user.pandora && <a href={"https://pandora.com/" + user.pandora } target="_blank" style={{marginRight:"10px", color:"darkblue", display:"inline-block"}}><img src="/pandora.png" width={16}/></a>}
             {user.bandcamp && <a href={normalizeUrl(user.bandcamp)} target="_blank" style={{marginRight:"10px", color:"lightblue"}}><FontAwesomeIcon icon={faBandcamp} /></a>}
+            {(Object.keys(BEAT_STORES) as BeatStore[]).map((k) => user[k] ? (
+              <a key={k} href={normalizeUrl(user[k])} target="_blank" title={BEAT_STORES[k].name} style={{marginRight:"10px", display:"inline-flex", alignItems:"center"}}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={BEAT_STORES[k].icon} alt={BEAT_STORES[k].name} style={{width:"1em", height:"1em", objectFit:"contain"}} />
+              </a>
+            ) : null)}
             
             <br></br>
             {alertMsg && <div className="alert mt-10 w-1/2 m-auto" style={alertOk ? { backgroundColor: "#16a34a", color: "#fff", border: "1px #16a34a solid" } : undefined}>{alertMsg}</div>}
@@ -1736,6 +1746,26 @@ const handleYouTubeMusicChange = (e: any) => {
                 <input type="text" className="input w-full" placeholder="Artist ID" value={deezer || ""} onChange={(e) => handleDeezerChange(e)} />
               </div>
             </div>
+            {/* Beat stores: for producers (or anyone who already added one) */}
+            {(category.some((c) => /producer|beatmaker/i.test(c)) || Object.values(beatStores).some(Boolean)) && (
+              <>
+                <h1 className="mt-4 mb-2">Beat stores</h1>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+                  {(Object.keys(BEAT_STORES) as BeatStore[]).map((k) => (
+                    <div className="mb-2" key={k}>
+                      <label style={{display:"block"}}>{BEAT_STORES[k].name}</label>
+                      <input
+                        type="text"
+                        className="input w-full"
+                        placeholder={`${BEAT_STORES[k].domain.replace(/^www\./, "")}/yourname or yourname`}
+                        value={beatStores[k]}
+                        onChange={(e) => setBeatStores((b) => ({ ...b, [k]: e.target.value.replace(/\s+/g, "") }))}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>{/* end Listen card */}
         </div>{/* end Socials + Listen grid */}
         {showArtistIdHelp && <ArtistIdHelpModal onClose={() => setShowArtistIdHelp(false)} />}

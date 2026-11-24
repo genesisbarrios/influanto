@@ -13,7 +13,7 @@ import EpkTemplate from "@/components/EpkTemplate";
 import { loadFont } from "@/libs/fonts";
 import { getVideoEmbedUrl } from "@/libs/videoEmbed";
 import { epkMusicLinks } from "@/libs/streamingLinks";
-import { normalizeUrl } from "@/libs/urls";
+import { normalizeUrl, BEAT_STORES, BeatStore } from "@/libs/urls";
 
 const fallbackImageUrl = "https://images.pexels.com/photos/399772/pexels-photo-399772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
 
@@ -798,6 +798,12 @@ const renderMerchSection = () => {
               <FontAwesomeIcon icon={faBandcamp} style={{ fontSize: "24px", color: linksColor || "white" }} />
             </a>
           )}  
+          {user && (Object.keys(BEAT_STORES) as BeatStore[]).map((k) => user[k] ? (
+            <a key={k} href={normalizeUrl(user[k])} target="_blank" rel="noopener noreferrer" title={BEAT_STORES[k].name} style={{ display: "inline-flex", alignItems: "center" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={BEAT_STORES[k].icon} alt={BEAT_STORES[k].name} style={{ width: 24, height: 24, objectFit: "contain" }} />
+            </a>
+          ) : null)}
           {soundxyz && (  
             <a href={`https://sound.xyz/${user.soundxyz}`} target="_blank" rel="noopener noreferrer">
               <FontAwesomeIcon icon={faWebAwesome} style={{ fontSize: "24px", color: linksColor || "white" }} />

@@ -229,6 +229,11 @@ const migrations = [
     updated_at TIMESTAMPTZ DEFAULT NOW()
   )`,
   `CREATE INDEX IF NOT EXISTS documents_user_idx ON documents(user_id, created_at DESC)`,
+  // beat stores for producers (Profile → Listen → Beat stores)
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS beatstars TEXT`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS airbit TEXT`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS traktrain TEXT`,
+
   `CREATE TABLE IF NOT EXISTS document_signers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,

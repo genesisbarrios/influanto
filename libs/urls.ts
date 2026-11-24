@@ -37,6 +37,24 @@ export function normalizeBandcampLink(value: string): string {
   return handle ? `https://${handle}.bandcamp.com` : "";
 }
 
+// Beat stores (producers): a profile is <store>/<handle>. Accepts a bare
+// handle or a full link; stored as a full https URL.
+export const BEAT_STORES = {
+  beatstars: { name: "BeatStars", domain: "www.beatstars.com", icon: "/beatstars.png" },
+  airbit: { name: "Airbit", domain: "airbit.com", icon: "/airbit.png" },
+  traktrain: { name: "TrakTrain", domain: "traktrain.com", icon: "/traktrain.png" },
+} as const;
+export type BeatStore = keyof typeof BEAT_STORES;
+
+export function normalizeBeatStoreLink(store: BeatStore, value: string): string {
+  let v = String(value ?? "").trim().replace(/\s+/g, "");
+  if (!v) return "";
+  v = v.replace(/^@/, "");
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(v) || v.includes(".")) return normalizeUrl(v);
+  const handle = v.split(/[?#]/)[0].replace(/^\/+|\/+$/g, "");
+  return handle ? `https://${BEAT_STORES[store].domain}/${handle}` : "";
+}
+
 // LinkedIn is stored as the path after linkedin.com/ (e.g. "in/janedoe" or
 // "company/influanto") so it can be a personal profile OR a company page —
 // unlike most platforms this field can't assume one fixed URL shape. Accepts
