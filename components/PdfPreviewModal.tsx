@@ -19,7 +19,7 @@ function loadPdfjs() {
 }
 
 /** Every page of the PDF as an image the width of its container. Calls onFail if it can't. */
-function PdfPages({ blob, onFail }: { blob: Blob; onFail: () => void }) {
+export function PdfPages({ blob, onFail }: { blob: Blob; onFail: () => void }) {
   const box = useRef<HTMLDivElement>(null);
   const [pages, setPages] = useState<string[]>([]);
 
@@ -68,8 +68,11 @@ function PdfPages({ blob, onFail }: { blob: Blob; onFail: () => void }) {
 
 // Shows a generated PDF in the page, with Download / Open in new tab, so it can
 // be checked without downloading it first.
-export default function PdfPreviewModal({ build, title, onClose }: {
-  build: () => { doc: jsPDF; filename: string };
+export default function PdfPreviewModal({ build, load, title, onClose }: {
+  /** a PDF made in the browser (split sheets) */
+  build?: () => { doc: jsPDF; filename: string };
+  /** or an existing file (documents) */
+  load?: () => Promise<{ blob: Blob; filename: string }>;
   title?: string;
   onClose: () => void;
 }) {
@@ -85,17 +88,25 @@ export default function PdfPreviewModal({ build, title, onClose }: {
 
   useEffect(() => {
     let objectUrl = "";
-    try {
-      const { doc, filename } = build();
-      const b = doc.output("blob");
+    let gone = false;
+    const show = (b: Blob, name: string) => {
+      if (gone) return;
       setBlob(b);
       objectUrl = URL.createObjectURL(b);
       setUrl(objectUrl);
-      setFilename(filename);
+      setFilename(name);
+    };
+    try {
+      if (build) {
+        const { doc, filename } = build();
+        show(doc.output("blob"), filename);
+      } else if (load) {
+        load().then((r) => show(r.blob, r.filename)).catch((e: any) => !gone && setError(e?.message || "Could not open the PDF"));
+      }
     } catch (e: any) {
       setError(e?.message || "Could not build the PDF");
     }
-    return () => { if (objectUrl) URL.revokeObjectURL(objectUrl); };
+    return () => { gone = true; if (objectUrl) URL.revokeObjectURL(objectUrl); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

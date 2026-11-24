@@ -23,7 +23,9 @@ import QRCodeGenerator from './QRCodeGenerator';
 import CuratorSearch from './CuratorSearch';
 import Community from './Community';
 import ReleasePage from './ReleasePage';
-import SplitSheets from './SplitSheets';
+import SplitSheetsAndDocuments from './SplitSheetsAndDocuments';
+import apiClient from '@/libs/api';
+import { usesSplitSheets } from '@/libs/categories';
 import Outreach from './Outreach';
 // import Crossposting from './Crossposting'; // hidden until TikTok API approval
 
@@ -40,7 +42,7 @@ const TABS: Tab[] = [
   { key: 'release-page', label: 'Releases', icon: faCompactDisc },
   { key: 'epk', label: 'EPK', icon: faAddressCard },
   { key: 'outreach', label: 'Newsletter', icon: faEnvelope },
-  { key: 'split-sheets', label: 'Split Sheets', icon: faFileSignature },
+  { key: 'split-sheets', label: 'Split Sheets & Documents', icon: faFileSignature },
   { key: 'curator-search', label: 'Playlisting', icon: faHeadphones },
   { key: 'qr-code-generator', label: 'QR Codes', icon: faQrcode },
   { key: 'community', label: 'Community', icon: faUsers },
@@ -48,6 +50,12 @@ const TABS: Tab[] = [
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
+  // non-music roles get Documents only, so the tab is named for that
+  const [musicRoles, setMusicRoles] = useState(true);
+  useEffect(() => {
+    apiClient.get('/get-user').then((r: any) => setMusicRoles(usesSplitSheets(r?.data?.category))).catch(() => {});
+  }, []);
+  const tabs = TABS.map((t) => (t.key === 'split-sheets' && !musicRoles ? { ...t, label: 'Documents' } : t));
 
   // Allow deep-linking to a tab, e.g. /dashboard?tab=split-sheets (used after signing)
   useEffect(() => {
@@ -70,7 +78,7 @@ export default function Dashboard() {
     'release-page': <ReleasePage key="release" />,
     'epk': <ReleasePage key="epk" mode="epk" />,
     'qr-code-generator': <QRCodeGenerator />,
-    'split-sheets': <SplitSheets />,
+    'split-sheets': <SplitSheetsAndDocuments />,
     'outreach': <Outreach />,
     'curator-search': <CuratorSearch />,
     // 'crossposting': <Crossposting />, // hidden until TikTok API approval
@@ -82,7 +90,7 @@ export default function Dashboard() {
       {/* Sidebar menu — desktop only, the mobile bottom bar takes over below sm */}
       <aside className="hidden sm:block sm:w-1/5 lg:w-[180px] p-0.5 sm:p-4 bg-base-100 shrink-0">
         <ul className="menu bg-base-100 w-full p-2 rounded-box text-xs sm:text-sm md:text-base">
-          {TABS.map(tab => (
+          {tabs.map(tab => (
             <li key={tab.key}>
               <button
                 className="block p-2 hover:bg-blue-100 w-full"
@@ -109,7 +117,7 @@ export default function Dashboard() {
         className="fixed inset-x-0 bottom-0 z-40 flex sm:hidden border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)]"
         aria-label="Dashboard navigation"
       >
-        {TABS.map(tab => {
+        {tabs.map(tab => {
           const isActive = activeComponent === tab.key;
           return (
             <button

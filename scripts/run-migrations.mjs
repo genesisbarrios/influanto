@@ -208,6 +208,43 @@ const migrations = [
     created_at TIMESTAMPTZ DEFAULT NOW()
   )`,
   `CREATE INDEX IF NOT EXISTS curator_emails_user_idx ON curator_emails(user_id, created_at DESC)`,
+
+  // documents: any PDF sent out for e-signature (Split Sheets & Documents tab).
+  // The file lives in the private "documents" storage bucket; file_hash is the
+  // SHA-256 of the original, printed on the signature certificate.
+  `CREATE TABLE IF NOT EXISTS documents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL DEFAULT '',
+    message TEXT DEFAULT '',
+    file_path TEXT NOT NULL,
+    file_hash TEXT NOT NULL,
+    file_size INTEGER DEFAULT 0,
+    page_count INTEGER DEFAULT 0,
+    signed_path TEXT,
+    status TEXT DEFAULT 'draft',
+    last_sent_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS documents_user_idx ON documents(user_id, created_at DESC)`,
+  `CREATE TABLE IF NOT EXISTS document_signers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    token UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL DEFAULT '',
+    email TEXT NOT NULL,
+    signature_data TEXT,
+    typed_name TEXT,
+    signed_at TIMESTAMPTZ,
+    signed_ip TEXT,
+    signed_user_agent TEXT,
+    viewed_at TIMESTAMPTZ,
+    last_sent_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(document_id, email)
+  )`,
 ];
 
 async function run() {
