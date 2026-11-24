@@ -39,6 +39,34 @@ const Footer = () => {
             <p className="mt-3 text-sm text-base-content/60">
               Copyright © {new Date().getFullYear()} - All rights reserved
             </p>
+            <span
+              className="mt-4"
+              style={{ display: "inline-block", textAlign: "center", fontFamily: "system-ui,sans-serif", lineHeight: 1 }}
+            >
+              <a
+                href="https://tools.launchllama.co/products/influanto"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "block", lineHeight: 0 }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://tools.launchllama.co/featured-badge.png?v=2"
+                  alt="Launch Llama Tools"
+                  width={200}
+                  height={52}
+                  style={{ display: "block", border: 0 }}
+                />
+              </a>
+              <a
+                href="https://mcpshelf.co/?utm_source=badge&utm_medium=referral"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "block", marginTop: -2, paddingTop: 0, fontSize: 7, fontWeight: 600, color: "#888", textDecoration: "none", lineHeight: 1, letterSpacing: "0.02em" }}
+              >
+                Launch your MCP
+              </a>
+            </span>
           </div>
           <div className="flex-grow flex flex-wrap justify-center -mb-10 md:mt-0 mt-10 text-center">
             <div className="lg:w-1/4 md:w-1/3 w-full px-4">
