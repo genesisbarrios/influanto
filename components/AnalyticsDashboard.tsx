@@ -86,12 +86,12 @@ export default function AnalyticsDashboard() {
 
       {/* Analytics type selection — real tabs sitting on top of the submenu below */}
       <div className="flex items-center justify-between flex-wrap gap-3 border-b border-gray-200 mb-3">
-        <div className="flex gap-6 flex-wrap">
+        <div className="flex gap-3 sm:gap-6 flex-nowrap sm:flex-wrap">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`pb-2 -mb-px px-1 text-sm font-medium border-b-2 transition-colors ${tab === t.key ? "border-indigo-600 text-indigo-700" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+              className={`pb-2 -mb-px px-0.5 sm:px-1 text-xs sm:text-sm whitespace-nowrap font-medium border-b-2 transition-colors ${tab === t.key ? "border-indigo-600 text-indigo-700" : "border-transparent text-gray-500 hover:text-gray-700"}`}
             >
               {t.label}
             </button>
