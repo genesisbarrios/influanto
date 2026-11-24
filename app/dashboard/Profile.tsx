@@ -1109,7 +1109,7 @@ const handleYouTubeMusicChange = (e: any) => {
             ) : null)}
             
             <br></br>
-            {alertMsg && <div className="alert mt-10 w-1/2 m-auto" style={alertOk ? { backgroundColor: "#16a34a", color: "#fff", border: "1px #16a34a solid" } : undefined}>{alertMsg}</div>}
+            {alertMsg && <div className="alert mt-10 w-full" style={alertOk ? { backgroundColor: "#16a34a", color: "#fff", border: "1px #16a34a solid" } : undefined}>{alertMsg}</div>}
             
             <br></br>
 
@@ -1780,7 +1780,7 @@ const handleYouTubeMusicChange = (e: any) => {
             title="Choose Profile Photo"
           />
         )}
-        {alertMsg && <div className="alert mt-5 w-100" style={alertOk ? {backgroundColor:"#16a34a", color: "#fff", border:"1px #16a34a solid"} : {backgroundColor:"darkred", border:"1px darkred solid"}}>{alertMsg}</div>}
+        {alertMsg && <div className="alert mt-5 w-full" style={alertOk ? {backgroundColor:"#16a34a", color: "#fff", border:"1px #16a34a solid"} : {backgroundColor:"darkred", border:"1px darkred solid"}}>{alertMsg}</div>}
         <button 
           className="btn btn-primary btn-block btn-sm btn-narrow"
           style={{width:"35%", display:"inline", margin:"8% 0 0"}}

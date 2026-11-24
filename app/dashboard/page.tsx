@@ -50,12 +50,17 @@ const TABS: Tab[] = [
 
 export default function Dashboard() {
   const [activeComponent, setActiveComponent] = useState('profile');
-  // non-music roles get Documents only, so the tab is named for that
+  // non-music roles: no split sheets (the tab is just Documents) and no playlisting
   const [musicRoles, setMusicRoles] = useState(true);
   useEffect(() => {
     apiClient.get('/get-user').then((r: any) => setMusicRoles(usesSplitSheets(r?.data?.category))).catch(() => {});
   }, []);
-  const tabs = TABS.map((t) => (t.key === 'split-sheets' && !musicRoles ? { ...t, label: 'Documents' } : t));
+  useEffect(() => {
+    if (!musicRoles && activeComponent === 'curator-search') setActiveComponent('profile');
+  }, [musicRoles, activeComponent]);
+  const tabs = TABS
+    .filter((t) => musicRoles || t.key !== 'curator-search')
+    .map((t) => (t.key === 'split-sheets' && !musicRoles ? { ...t, label: 'Documents' } : t));
 
   // Allow deep-linking to a tab, e.g. /dashboard?tab=split-sheets (used after signing)
   useEffect(() => {
