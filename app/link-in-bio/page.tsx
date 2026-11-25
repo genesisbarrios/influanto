@@ -6,7 +6,7 @@ import FeatureLanding from "@/components/FeatureLanding";
 export const metadata: Metadata = getSEOTags({
   title: "Link in Bio for Musicians & Indie Artists — Free | Influanto",
   description:
-    "Free link in bio for independent artists: streaming links, merch, a newsletter signup to grow your mailing list, Meta Pixel tracking, and click analytics — all on one page.",
+    "Free link in bio for independent artists: streaming links, YouTube video and playlist embeds, merch, a newsletter signup, Meta Pixel tracking, and click analytics — all on one page.",
   keywords: [
     "link in bio",
     "link in bio for musicians",
@@ -14,6 +14,8 @@ export const metadata: Metadata = getSEOTags({
     "link in bio for artists",
     "music link in bio",
     "link in bio with newsletter signup",
+    "link in bio with youtube embed",
+    "link in bio with merch",
     "linktree alternative for musicians",
     "free link in bio",
   ],
@@ -37,14 +39,15 @@ export default function LinkInBioLanding() {
       features={[
         { title: "All your streaming links", body: "Spotify, Apple Music, YouTube Music, Tidal, Amazon Music, SoundCloud, Bandcamp, Deezer, and more — fans tap straight to your profile on the app they already use." },
         { title: "Newsletter signup built in", body: "Collect emails right on your link in bio and they land in your Influanto mailing list, ready for your next release announcement." },
-        { title: "Sell your merch", body: "Show products from your Printify store or add your own merch links, with images, next to your music." },
+        { title: "Embed YouTube videos and playlists", body: "Paste a YouTube video or playlist link and it plays right on your page, so fans can watch your latest music video or binge a whole playlist without leaving your link in bio." },
+        { title: "Sell your merch", body: "Show products from your Printify store with their images and prices, or add your own merch links, right next to your music." },
         { title: "Meta Pixel tracking", body: "Paste your Pixel ID once to track visits and streaming clicks, then retarget those fans with Instagram and Facebook ads." },
         { title: "Make it look like you", body: "Choose your colors, fonts, background image, and button style so the page matches your brand and artwork." },
         { title: "Release pages included", body: "Pair your link in bio with a smart link page for every new song or album, so each release gets its own pre-save and streaming page." },
       ]}
       steps={[
         "Sign up free and pick your username — your page lives at influanto.com/yourname.",
-        "Add your streaming profiles, socials, merch, and turn on the newsletter signup.",
+        "Add your streaming profiles, socials, YouTube videos or playlists, merch, and turn on the newsletter signup.",
         "Customize the colors and fonts, then paste your link into your Instagram, TikTok, and YouTube bios.",
       ]}
       sections={[
@@ -63,6 +66,8 @@ export default function LinkInBioLanding() {
         { q: "Can I use my own domain for my link in bio?", a: "Yes, with Influanto Pro. Connect a domain you own (like links.yourname.com) and your link in bio shows up there, with your release pages and EPKs under the same domain. You add one DNS record and we set up HTTPS automatically." },
         { q: "Can I collect emails from my link in bio?", a: "Yes. Turn on the newsletter signup and visitors can subscribe right from your page. Subscribers are added to your Influanto contacts so you can email them newsletters and release announcements." },
         { q: "Is Influanto a Linktree alternative for musicians?", a: "Yes. Influanto covers the same one-link use case, but adds music-specific features like streaming platform links, release pages, merch, a mailing list, and Meta Pixel tracking in one place." },
+        { q: "Can I embed a YouTube video or playlist on my link in bio?", a: "Yes. Add a YouTube video or playlist link and it's embedded as a player on your page. You can switch any YouTube link back to a regular button if you prefer." },
+        { q: "Can I sell merch from my link in bio?", a: "Yes. Connect your Printify store to show your products with images, or add links to merch you sell anywhere else." },
         { q: "Can I add a Meta (Facebook) Pixel to my link in bio?", a: "Yes. Add your Pixel ID in your profile settings and Influanto tracks page views, link clicks, and streaming clicks on your link in bio, release pages, and EPKs." },
       ]}
       related={[
