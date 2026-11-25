@@ -807,10 +807,12 @@ const LinkInBio = () => {
             {/* ── LEFT column: Links ── */}
             <div className="p-3 border border-gray-100 rounded-xl">
               <h3 className="font-semibold mb-3 text-sm text-gray-600 uppercase tracking-wide" style={{ fontFamily: linkInBio?.font || 'inherit' }}>Links</h3>
+              {!links.some((l: any) => l?.url && isYouTubeLinkCheck(l.url) && getVideoEmbedUrl(l.url)) && (
               <p className="text-xs text-gray-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mb-3 flex items-start gap-2">
                 <FontAwesomeIcon icon={faYoutube} className="text-red-600 mt-0.5 shrink-0" />
                 <span>Tip: paste a YouTube video or playlist link and it plays right on your page. Uncheck &quot;Display Video&quot; to show it as a regular button.</span>
               </p>
+              )}
 
               {/* ── Links List ── */}
               {links.map((link: any, index: number) => (
