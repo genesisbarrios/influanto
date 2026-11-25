@@ -42,9 +42,14 @@ export default function CustomDomainCard({ hasAccess, textColor, font }: { hasAc
 
   return (
     <div>
-      <h2 className="text-base sm:text-xl font-bold mb-1 leading-tight" style={{ color: textColor, fontFamily: font || "inherit" }}>
-        Custom domain <span className="badge badge-sm badge-primary align-middle ml-1">Pro</span>
-      </h2>
+      <div className="flex items-start justify-between gap-2 mb-1">
+        <h2 className="text-base sm:text-xl font-bold leading-tight" style={{ color: textColor, fontFamily: font || "inherit" }}>
+          Custom domain <span className="badge badge-sm badge-primary align-middle ml-1">Pro</span>
+        </h2>
+        {hasAccess && info?.domain && (
+          <button type="button" className="btn btn-sm btn-ghost text-red-600 -mt-1 -mr-2 shrink-0" disabled={busy} onClick={remove}>Disconnect</button>
+        )}
+      </div>
 
       {!hasAccess ? (
         <p className="text-sm text-gray-500">
@@ -97,10 +102,11 @@ export default function CustomDomainCard({ hasAccess, textColor, font }: { hasAc
           )}
           {info.checkError && <p className="text-xs text-red-500 mb-2">{info.checkError}</p>}
 
-          <div className="flex gap-2">
-            {!info.verified && <button type="button" className="btn btn-sm" disabled={busy} onClick={recheck}>{busy ? "Checking…" : "Check again"}</button>}
-            <button type="button" className="btn btn-sm btn-ghost text-red-600" disabled={busy} onClick={remove}>Disconnect</button>
-          </div>
+          {!info.verified && (
+            <div className="flex gap-2">
+              <button type="button" className="btn btn-sm" disabled={busy} onClick={recheck}>{busy ? "Checking…" : "Check again"}</button>
+            </div>
+          )}
         </>
       )}
 
