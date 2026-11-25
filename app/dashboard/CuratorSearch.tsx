@@ -266,6 +266,7 @@ ${(data?.user?.name as string) || ''}`,
 
   const genres = [
     "Latin", "Latin Indie", "Reggaeton", "Latin Trap",
+    "Indie Pop", "Synth Pop", "Dance Pop",
     "Hip Hop", "RnB", "Trap", "Drill", "EDM", "House",
     "DnB", "Dubstep", "Techno", "Rock", "Post Punk", "Jazz",
   ];
