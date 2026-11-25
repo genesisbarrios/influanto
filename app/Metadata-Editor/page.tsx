@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import ToolSeo from "@/components/ToolSeo";
 import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 import { ID3Writer } from "browser-id3-writer";
 import { readWavTags, writeWavTags } from "@/libs/wav-tags";
@@ -188,6 +189,7 @@ export default function MetadataEditor() {
         <ToolJoinSidebar show={showSidebar} />
       </div>
       <style>{`#meta-bg{background:#638bcf !important;} @media (min-width:640px){#meta-bg{flex-direction:row !important;}}`}</style>
+      <ToolSeo slug="Metadata-Editor" />
       <Footer />
     </>
   );

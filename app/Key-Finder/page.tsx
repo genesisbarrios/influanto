@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import ToolSeo from "@/components/ToolSeo";
 import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMicrophone, faMusic, faArrowUpFromBracket } from "@fortawesome/free-solid-svg-icons";
@@ -301,6 +302,7 @@ export default function KeyFinder() {
         #key-bg { background: #638bcf !important; }
         @media (min-width: 640px) { #key-bg { flex-direction: row !important; } }
       `}</style>
+      <ToolSeo slug="Key-Finder" />
       <Footer />
     </>
   );

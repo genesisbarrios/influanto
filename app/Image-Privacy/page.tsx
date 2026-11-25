@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import ToolSeo from "@/components/ToolSeo";
 import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 // @ts-ignore
 import piexif from "piexifjs";
@@ -188,6 +189,7 @@ export default function ImagePrivacy() {
         <ToolJoinSidebar show={showSidebar} />
       </div>
       <style>{`#img-bg{background:#638bcf !important;} @media (min-width:640px){#img-bg{flex-direction:row !important;}}`}</style>
+      <ToolSeo slug="Image-Privacy" />
       <Footer />
     </>
   );

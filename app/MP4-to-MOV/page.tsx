@@ -2,6 +2,7 @@
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ToolSeo from "@/components/ToolSeo";
 import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUpFromBracket, faDownload } from "@fortawesome/free-solid-svg-icons";
@@ -133,6 +134,7 @@ export default function Mp4ToMov() {
         #mp4-mov-bg { background: #638bcf !important; }
         @media (min-width: 640px) { #mp4-mov-bg { flex-direction: row !important; } }
       `}</style>
+      <ToolSeo slug="MP4-to-MOV" />
       <Footer />
     </>
   );

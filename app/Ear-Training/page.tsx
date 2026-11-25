@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import ToolSeo from "@/components/ToolSeo";
 import { PianoDiagram, SheetMusic } from "@/components/ChordDiagrams";
 import RhythmTraining from "@/components/RhythmTraining";
 import MelodyGames from "@/components/MelodyGames";
@@ -718,6 +719,7 @@ export default function EarTraining() {
 
         </div>
       </div>
+      <ToolSeo slug="Ear-Training" />
       <Footer />
     </>
   );

@@ -2,6 +2,7 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ToolSeo from "@/components/ToolSeo";
 import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUpFromBracket, faPause, faPlay } from "@fortawesome/free-solid-svg-icons";
@@ -368,6 +369,7 @@ export default function LUFSMeter() {
         #lufs-bg { background: #638bcf !important; }
         @media (min-width: 640px) { #lufs-bg { flex-direction: row !important; } }
       `}</style>
+      <ToolSeo slug="LUFS-Meter" />
       <Footer />
     </>
   );

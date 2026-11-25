@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import ToolSeo from "@/components/ToolSeo";
 import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -189,6 +190,7 @@ export default function Tuner() {
           #tuner-bg { flex-direction: row !important; }
         }
       `}</style>
+      <ToolSeo slug="Tuner" />
       <Footer />
     </>
   );

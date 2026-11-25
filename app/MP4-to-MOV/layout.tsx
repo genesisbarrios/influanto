@@ -3,7 +3,7 @@ import { getSEOTags } from "@/libs/seo";
 
 // The page is a client component, so its title/description live here to be
 // server-rendered for search engines.
-const title = "Free MP4 to MOV Converter — No Quality Loss, No Upload | Influanto";
+const title = "Free MP4 to MOV Converter — No Quality Loss | Influanto";
 const description =
   "Convert MP4 to MOV for Final Cut Pro, iMovie and QuickTime free, with no re-encoding and zero quality loss. Huge files convert in seconds, right in your browser.";
 

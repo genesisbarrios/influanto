@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SeoContent from "@/components/SeoContent";
+import { ToolSchema } from "@/components/ToolSeo";
 
 // Explainer + FAQ shown under the public split sheet generator and template.
 
@@ -14,6 +15,7 @@ const FAQS = [
 
 export default function SplitSheetSeo({ variant }: { variant: "generator" | "template" }) {
   return (
+    <>
     <SeoContent
       className="bg-base-100"
       sections={[
@@ -59,5 +61,23 @@ export default function SplitSheetSeo({ variant }: { variant: "generator" | "tem
         { href: "/tools", label: "More free music tools" },
       ]}
     />
+    {variant === "generator" ? (
+      <ToolSchema
+        slug="Split-Sheet-Generator"
+        name="Split Sheet Generator"
+        appName="Influanto Split Sheet Generator"
+        description="Free music split sheet generator: enter the song, contributors, ownership percentages and publishing details, collect signatures and download the split sheet as a PDF."
+        category="BusinessApplication"
+      />
+    ) : (
+      <ToolSchema
+        slug="Split-Sheet-Template"
+        name="Split Sheet Template"
+        appName="Influanto Split Sheet Template"
+        description="Free music split sheet template to fill in online and download as a PDF, with contributors, ownership percentages, publishing details and signatures."
+        category="BusinessApplication"
+      />
+    )}
+    </>
   );
 }

@@ -4,6 +4,7 @@ import { useSession, signIn } from "next-auth/react";
 import { openUpgrade } from "@/components/UpgradeModal";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { ToolSchema } from "@/components/ToolSeo";
 import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 import SeoContent from "@/components/SeoContent";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -133,6 +134,13 @@ export default function LinkShortenerPage() {
           { href: "/link-in-bio", label: "Link in bio for musicians" },
           { href: "/tools", label: "More free music tools" },
         ]}
+      />
+      <ToolSchema
+        slug="Link-Shortener"
+        name="Link Shortener"
+        appName="Influanto Link Shortener"
+        description="Free link shortener for musicians and creators: turn long streaming, merch and pre-save links into influanto.com/s/ short links with custom aliases and click counts."
+        category="UtilitiesApplication"
       />
 
       <style>{`

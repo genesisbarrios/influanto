@@ -5,12 +5,12 @@ import { getSEOTags } from "@/libs/seo";
 // server-rendered for search engines.
 export const metadata = getSEOTags({
   title: "Image Privacy Cleaner \u2014 Remove EXIF & Location Data | Influanto",
-  description: "Free tool to remove EXIF metadata and GPS location from photos before you post them online.",
+  description: "Free EXIF remover: see, edit or remove GPS location and camera data from JPEG photos before you share them. Runs in your browser, no sign-up.",
   keywords: ["remove exif data", "remove location from photo", "exif remover", "image metadata remover"],
   canonicalUrlRelative: "/Image-Privacy",
   openGraph: {
     title: "Image Privacy Cleaner \u2014 Remove EXIF & Location Data | Influanto",
-    description: "Free tool to remove EXIF metadata and GPS location from photos before you post them online.",
+    description: "Free EXIF remover: see, edit or remove GPS location and camera data from JPEG photos before you share them. Runs in your browser, no sign-up.",
     url: "https://www.influanto.com/Image-Privacy",
   },
 });

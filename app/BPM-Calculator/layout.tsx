@@ -5,12 +5,12 @@ import { getSEOTags } from "@/libs/seo";
 // server-rendered for search engines.
 export const metadata = getSEOTags({
   title: "BPM Calculator \u2014 Tap Tempo Online | Influanto",
-  description: "Free online BPM calculator. Tap along to any song to find its tempo in beats per minute.",
+  description: "Free online BPM calculator. Tap along to any song, or upload the audio, to find its tempo in beats per minute. Works on desktop and phone, no sign-up.",
   keywords: ["bpm calculator", "tap tempo", "find bpm of a song", "tempo finder"],
   canonicalUrlRelative: "/BPM-Calculator",
   openGraph: {
     title: "BPM Calculator \u2014 Tap Tempo Online | Influanto",
-    description: "Free online BPM calculator. Tap along to any song to find its tempo in beats per minute.",
+    description: "Free online BPM calculator. Tap along to any song, or upload the audio, to find its tempo in beats per minute. Works on desktop and phone, no sign-up.",
     url: "https://www.influanto.com/BPM-Calculator",
   },
 });

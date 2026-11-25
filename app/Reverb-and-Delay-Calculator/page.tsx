@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import ToolSeo from "@/components/ToolSeo";
 import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 
 const noteOptions = [
@@ -228,6 +229,8 @@ export default function ReverbandDelay() {
         }
       }
     `}</style>
+     
+    <ToolSeo slug="Reverb-and-Delay-Calculator" />
      
     <Footer></Footer>
     </>

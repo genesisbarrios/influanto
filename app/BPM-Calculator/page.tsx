@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Header from "@/components/Header";
 import { Suspense } from "react";
 import Footer from "@/components/Footer";
+import ToolSeo from "@/components/ToolSeo";
 import ToolJoinSidebar, { useShowJoinSidebar, toolPaneClass } from "@/components/ToolJoinSidebar";
 import { getSEOTags } from "@/libs/seo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -225,6 +226,7 @@ export default function BPMCalculator() {
           user-select: none;
         }
       `}</style>
+      <ToolSeo slug="BPM-Calculator" />
       <Footer />
     </>
   );

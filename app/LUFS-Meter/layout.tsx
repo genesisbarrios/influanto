@@ -3,7 +3,7 @@ import { getSEOTags } from "@/libs/seo";
 
 // The page is a client component, so its title/description live here to be
 // server-rendered for search engines.
-const title = "Free LUFS Meter — Check Integrated, Short-term & Momentary Loudness | Influanto";
+const title = "LUFS Meter Online — Free Loudness & True Peak Checker | Influanto";
 const description =
   "Free online LUFS meter. Drop in a song to measure integrated, short-term and momentary loudness, loudness range (LRA) and true peak, and see how Spotify, Apple Music and YouTube will normalize it. Runs in your browser; nothing is uploaded.";
 

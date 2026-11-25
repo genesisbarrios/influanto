@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Footer from "@/components/Footer";
+import ToolSeo from "@/components/ToolSeo";
 import * as Tone from "tone";
 import nextDynamic from "next/dynamic";
 import Header from "@/components/Header";
@@ -1246,6 +1247,7 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
   }
 
   return (
+   <>
    <Suspense fallback={<div>Loading...</div>}>
       <Header overlay />
      <div
@@ -1729,7 +1731,6 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
 
       </div>{/* /synth-chassis */}
       </div>
-      <Footer />
       <style>{`
         .pad:active {
           background: #a5b4fc !important;
@@ -1741,6 +1742,10 @@ function FrequencyBarVisualizer({ data }: { data: number[] }) {
         }
       `}</style>
     </Suspense>
+    {/* outside Suspense so it is in the server-rendered HTML */}
+    <ToolSeo slug="Synthfluanto" />
+    <Footer />
+    </>
   );
 }
 
