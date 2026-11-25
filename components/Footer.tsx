@@ -51,7 +51,7 @@ const Footer = () => {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="https://tools.launchllama.co/featured-badge.png?v=2"
+                  src="https://tools.launchllama.co/featured-badge-white.jpg?v=5"
                   alt="Launch Llama Tools"
                   width={200}
                   height={52}
