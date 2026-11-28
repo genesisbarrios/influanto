@@ -22,6 +22,7 @@ import {
   faWaveSquare,
   faFileAudio,
   faFileVideo,
+  faDownload,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
@@ -115,6 +116,13 @@ const tools: { title: string; description: string; href: string; icon: IconDefin
     href: "/MP4-to-MOV",
     icon: faFileVideo,
     color: "#60a5fa",
+  },
+  {
+    title: "YouTube Downloader",
+    description: "Save YouTube videos as MP4/MOV or audio as MP3/WAV. Free up to 720p, 4K with Pro.",
+    href: "/YouTube-Downloader",
+    icon: faDownload,
+    color: "#dc2626",
   },
   {
     title: "Link Shortener",

@@ -26,6 +26,7 @@ export const TOOL_ICONS: Record<string, Icon3DName> = {
   "/LUFS-Meter": "mic",
   "/WAV-to-MP3": "folder",
   "/MP4-to-MOV": "mobile",
+  "/YouTube-Downloader": "thumb-up",
   "/Link-Shortener": "link",
   "/Metadata-Editor": "pencil",
   "/Image-Privacy": "shield",

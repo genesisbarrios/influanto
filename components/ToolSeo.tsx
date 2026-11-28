@@ -102,6 +102,34 @@ export const TOOL_SEO: Record<string, ToolEntry> = {
     ],
   },
 
+  "YouTube-Downloader": {
+    name: "YouTube Downloader",
+    appName: "Influanto YouTube Downloader",
+    description: "Download YouTube videos as MP4 or MOV, or the audio as MP3, WAV or M4A. Free up to 720p, full quality up to 4K with Influanto Pro, and you can download just part of a video.",
+    sections: [
+      {
+        heading: "How to Download a YouTube Video",
+        body: steps([
+          "Copy the video's link from YouTube and paste it into the downloader.",
+          "Choose Video (MP4 or MOV, and the quality) or Audio only (MP3, WAV or M4A). To grab one part, type a start and end time.",
+          "Click Download. The file downloads as soon as it's ready.",
+        ]),
+      },
+    ],
+    faqs: [
+      { q: "Is the YouTube downloader free?", a: "Yes. Free downloads go up to 720p, with no sign-up needed. Influanto Pro unlocks full quality, up to 4K when the video has it." },
+      { q: "Can I download just the audio from a YouTube video?", a: "Yes. Choose Audio only and pick MP3 (320 kbps), WAV or M4A." },
+      { q: "Can I download only part of a video?", a: "Yes. Type a start and end time, like 1:20 to 2:05, and only that section is downloaded." },
+      { q: "Can I download YouTube videos as MOV for Final Cut Pro?", a: "Yes. Choose MOV and the video is saved as H.264 so it opens in Final Cut Pro, iMovie and QuickTime." },
+      { q: "Which videos can I download?", a: "Only download videos you own or have permission to use, like your own uploads, your music, or Creative Commons content." },
+    ],
+    related: [
+      { href: "/MP4-to-MOV", label: "MP4 to MOV converter" },
+      { href: "/WAV-to-MP3", label: "WAV to MP3 converter" },
+      ALL_TOOLS,
+    ],
+  },
+
   "MP4-to-MOV": {
     name: "MP4 to MOV Converter",
     appName: "Influanto MP4 to MOV Converter",
