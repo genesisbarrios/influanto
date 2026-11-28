@@ -250,6 +250,11 @@ const migrations = [
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(document_id, email)
   )`,
+
+  // signature and text fields placed on a document's pages, and what each
+  // signer typed into their text fields
+  `ALTER TABLE documents ADD COLUMN IF NOT EXISTS fields JSONB DEFAULT '[]'::jsonb`,
+  `ALTER TABLE document_signers ADD COLUMN IF NOT EXISTS field_values JSONB`,
 ];
 
 async function run() {

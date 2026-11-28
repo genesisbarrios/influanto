@@ -7,7 +7,7 @@ import type jsPDF from "jspdf";
 // Loaded from the CDN on first use so it isn't in the main bundle.
 const PDFJS = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build";
 let pdfjsLib: Promise<any> | null = null;
-function loadPdfjs() {
+export function loadPdfjs() {
   if (!pdfjsLib) {
     pdfjsLib = import(/* webpackIgnore: true */ `${PDFJS}/pdf.min.mjs`).then((lib: any) => {
       lib.GlobalWorkerOptions.workerSrc = `${PDFJS}/pdf.worker.min.mjs`;

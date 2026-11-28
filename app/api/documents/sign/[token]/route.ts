@@ -6,6 +6,11 @@ import { sendEmail } from "@/libs/resend";
 import config from "@/config";
 import { isBotUserAgent } from "@/libs/splitSheetEvents";
 import { CONSENT_TEXT, clientIp, escapeHtml, finalizeDocument, signedFileUrl } from "@/libs/documents";
+import { MAX_FIELD_TEXT, type DocField } from "@/libs/documentFields";
+
+/** The fields this signer fills in (their signature boxes and text boxes). */
+const fieldsFor = (doc: any, email: string): DocField[] =>
+  (Array.isArray(doc.fields) ? doc.fields : []).filter((f: DocField) => f.assignee === String(email).toLowerCase());
 
 export const dynamic = "force-dynamic";
 const isUuid = (s: string) => /^[0-9a-f-]{36}$/i.test(s);
@@ -47,6 +52,7 @@ export async function GET(req: NextRequest, { params }: { params: { token: strin
       total: (all ?? []).length,
     },
     signer: { name: signer.name, email: signer.email, signedAt: signer.signed_at },
+    fields: completed ? [] : fieldsFor(doc, signer.email).map(({ value, ...f }) => f),
     consentText: CONSENT_TEXT,
   });
 }
@@ -58,13 +64,22 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
   if (signer.signed_at) return NextResponse.json({ error: "You've already signed this document." }, { status: 409 });
   const doc = signer.documents;
 
-  const { signatureData, typedName, consent } = await req.json().catch(() => ({}));
+  const { signatureData, typedName, consent, values } = await req.json().catch(() => ({}));
   if (consent !== true) return NextResponse.json({ error: "Please agree to sign electronically." }, { status: 400 });
   const name = String(typedName || "").trim().slice(0, 120);
   if (name.length < 2) return NextResponse.json({ error: "Type your full name." }, { status: 400 });
   const sig = String(signatureData || "");
   if (!sig.startsWith("data:image/png;base64,") || sig.length > 600_000) {
     return NextResponse.json({ error: "Draw your signature first." }, { status: 400 });
+  }
+
+  // their text fields: every one needs filling in
+  const mine = fieldsFor(doc, signer.email).filter((f) => f.type === "text");
+  const fieldValues: Record<string, string> = {};
+  for (const f of mine) {
+    const v = String(values?.[f.id] ?? "").trim().slice(0, MAX_FIELD_TEXT);
+    if (!v) return NextResponse.json({ error: `Fill in ${f.label ? `"${f.label}"` : "every text field"} on the document.` }, { status: 400 });
+    fieldValues[f.id] = v;
   }
 
   const signedAt = new Date().toISOString();
@@ -76,6 +91,7 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
       signed_at: signedAt,
       signed_ip: clientIp(req.headers).slice(0, 64),
       signed_user_agent: (req.headers.get("user-agent") || "").slice(0, 300),
+      ...(mine.length ? { field_values: fieldValues } : {}),
       ...(signer.name ? {} : { name }),
     })
     .eq("id", signer.id)

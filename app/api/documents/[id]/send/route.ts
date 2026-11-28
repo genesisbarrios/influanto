@@ -4,10 +4,11 @@ import { authOptions } from "@/libs/next-auth";
 import supabase from "@/libs/supabase";
 import { sendEmail } from "@/libs/resend";
 import { APP_URL, MAX_SIGNERS, escapeHtml, isEmail } from "@/libs/documents";
+import { cleanFields } from "@/libs/documentFields";
 
 export const dynamic = "force-dynamic";
 
-// POST { signers: [{ name, email }], message? }: add these signers (if new)
+// POST { signers: [{ name, email }], message?, fields? }: add these signers (if new)
 // and email each of them their signing link. Sending to someone again resends
 // the same link; people who already signed are skipped.
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
@@ -32,11 +33,24 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const total = new Set([...known.keys(), ...wanted.keys()]).size;
   if (total > MAX_SIGNERS) return NextResponse.json({ error: `A document can have up to ${MAX_SIGNERS} signers` }, { status: 400 });
 
+  // signature and text fields placed on the pages (only until someone signs)
+  let fields = null as ReturnType<typeof cleanFields> | null;
+  if (Array.isArray(body.fields)) {
+    if ((existing ?? []).some((s: any) => s.signed_at)) return NextResponse.json({ error: "Someone has already signed, so the fields can't be changed" }, { status: 400 });
+    fields = cleanFields(body.fields, doc.page_count || 1, Array.from(new Set([...known.keys(), ...wanted.keys()])));
+    if ("error" in fields) return NextResponse.json({ error: fields.error }, { status: 400 });
+  }
+
   const newRows = [...wanted].filter(([email]) => !known.has(email)).map(([email, name]) => ({ document_id: doc.id, email, name }));
   if (newRows.length) {
     const { data: added, error } = await supabase.from("document_signers").insert(newRows).select("id, email, name, token, signed_at");
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     (added ?? []).forEach((s: any) => known.set(s.email, s));
+  }
+
+  if (fields && "fields" in fields) {
+    const { error } = await supabase.from("documents").update({ fields: fields.fields }).eq("id", doc.id);
+    if (error) return NextResponse.json({ error: `Couldn't save the fields: ${error.message}` }, { status: 500 });
   }
 
   if (typeof body.message === "string") {

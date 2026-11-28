@@ -17,6 +17,8 @@ async function own(id: string) {
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const doc = await own(params.id);
   if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  // ?fields=1: the signature and text fields placed on the pages
+  if (req.nextUrl.searchParams.get("fields")) return NextResponse.json({ fields: Array.isArray(doc.fields) ? doc.fields : [] });
   const which = req.nextUrl.searchParams.get("file") === "signed" ? "signed" : "original";
   const path = which === "signed" ? doc.signed_path : doc.file_path;
   if (!path) return NextResponse.json({ error: "Not signed by everyone yet" }, { status: 404 });

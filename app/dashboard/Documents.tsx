@@ -4,8 +4,10 @@ import React, { useEffect, useRef, useState } from "react";
 import apiClient from "@/libs/api";
 import posthog from "posthog-js";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFilePdf, faPaperPlane, faTrash, faDownload, faEye, faXmark, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faFilePdf, faPaperPlane, faTrash, faDownload, faEye, faXmark, faPlus, faSignature, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import PdfPreviewModal from "@/components/PdfPreviewModal";
+import DocumentFieldEditor from "@/components/DocumentFieldEditor";
+import type { DocField } from "@/libs/documentFields";
 import { openUpgrade } from "@/components/UpgradeModal";
 
 const MAX_MB = 20;
@@ -239,22 +241,65 @@ function SendDocumentDialog({ doc, contacts, onClose, onSent }: { doc: Doc; cont
   const [message, setMessage] = useState(doc.message || "");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  // step 2: place signature and text fields on the pages
+  const [step, setStep] = useState<"signers" | "fields">("signers");
+  const [blob, setBlob] = useState<Blob | null>(null);
+  const [fields, setFields] = useState<DocField[] | null>(null);
+  const [loadingFields, setLoadingFields] = useState(false);
+  // once someone has signed, the fields can't change
+  const locked = doc.document_signers.some((s) => s.signed_at);
 
   const has = (email: string) => rows.some((r) => r.email.trim().toLowerCase() === email.toLowerCase());
   const toggleContact = (c: Contact) =>
     setRows((r) => (has(c.email) ? r.filter((x) => x.email.trim().toLowerCase() !== c.email.toLowerCase()) : [...r, { name: c.name, email: c.email }]));
   const update = (i: number, k: "name" | "email", v: string) => setRows((r) => r.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
 
+  const list = rows.filter((r) => r.email.trim());
+  // everyone who can be given a field: people already on the document plus the rows here
+  const people = (() => {
+    const m = new Map<string, { name: string; email: string }>();
+    doc.document_signers.forEach((s) => m.set(s.email.toLowerCase(), { name: s.name, email: s.email.toLowerCase() }));
+    list.forEach((r) => m.set(r.email.trim().toLowerCase(), { name: r.name.trim(), email: r.email.trim().toLowerCase() }));
+    return Array.from(m.values());
+  })();
+
+  const openFields = async () => {
+    setError("");
+    if (!list.length) return setError("Add the people who need to sign first.");
+    setStep("fields");
+    if (blob && fields) return;
+    setLoadingFields(true);
+    try {
+      const [f, link] = await Promise.all([
+        fetch(`/api/documents/${doc.id}?fields=1`).then((r) => r.json()),
+        fileLink(doc.id, "original"),
+      ]);
+      setFields(Array.isArray(f.fields) ? f.fields : []);
+      const r = await fetch(link.url);
+      if (!r.ok) throw new Error("Could not open the PDF");
+      setBlob(await r.blob());
+    } catch (e: any) {
+      setError(e?.message || "Could not open the PDF");
+      setStep("signers");
+    } finally {
+      setLoadingFields(false);
+    }
+  };
+
   const send = async () => {
     setError("");
-    const list = rows.filter((r) => r.email.trim());
     if (!list.length) return setError("Add at least one person to sign.");
+    if (fields) {
+      const emails = new Set(people.map((p) => p.email));
+      if (fields.some((f) => f.assignee !== "me" && !emails.has(f.assignee))) return setError("Some fields are for someone who's no longer a signer. Reassign or remove them.");
+      if (fields.some((f) => f.assignee === "me" && !f.value?.trim())) return setError("Fill in the text fields assigned to you, or remove them.");
+    }
     setSending(true);
     try {
       const r = await fetch(`/api/documents/${doc.id}/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ signers: list, message }),
+        body: JSON.stringify({ signers: list, message, ...(fields && !locked ? { fields } : {}) }),
       });
       const d = await r.json();
       if (!r.ok && r.status !== 207) throw new Error(d.error || "Couldn't send it");
@@ -269,15 +314,49 @@ function SendDocumentDialog({ doc, contacts, onClose, onSent }: { doc: Doc; cont
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col text-black" onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`bg-white rounded-xl shadow-2xl w-full flex flex-col text-black ${step === "fields" ? "max-w-4xl h-[92vh]" : "max-w-lg max-h-[90vh]"}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="px-5 py-4 border-b flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="text-lg font-semibold">Send for signature</h3>
+            <h3 className="text-lg font-semibold">{step === "fields" ? "Add fields" : "Send for signature"}</h3>
             <p className="text-sm text-gray-500 truncate">{doc.title}</p>
           </div>
           <button className="text-gray-400 hover:text-gray-600" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
         </div>
 
+        {step === "fields" ? (
+          <div className="flex-1 min-h-0 flex flex-col p-4">
+            {locked ? (
+              <p className="text-sm text-gray-500 mb-2">Someone has already signed, so the fields can&apos;t be changed.</p>
+            ) : (
+              <p className="text-xs text-gray-500 mb-2">
+                Signature fields are where each person&apos;s signature goes. Text fields are filled in by that person when they sign, or by you now.
+                Leave it empty to just collect signatures on the certificate page.
+              </p>
+            )}
+            {loadingFields || !blob || !fields ? (
+              <p className="text-sm text-gray-500 p-4">Loading the document…</p>
+            ) : locked ? (
+              <div className="flex-1 min-h-0 overflow-y-auto bg-gray-100 p-3 rounded-lg">
+                <p className="text-sm">{fields.length} field{fields.length === 1 ? "" : "s"} on this document.</p>
+              </div>
+            ) : (
+              <div className="flex-1 min-h-0">
+                <DocumentFieldEditor blob={blob} signers={people} fields={fields} onChange={setFields} />
+              </div>
+            )}
+            {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+            <div className="pt-3 flex justify-between gap-2">
+              <button className="btn btn-sm" onClick={() => { setError(""); setStep("signers"); }}><FontAwesomeIcon icon={faArrowLeft} /> Back</button>
+              <button className="btn btn-sm btn-primary" disabled={sending || loadingFields} onClick={send}>
+                <FontAwesomeIcon icon={faPaperPlane} /> {sending ? "Sending…" : "Send"}
+              </button>
+            </div>
+          </div>
+        ) : (
+        <>
         <div className="p-5 space-y-4 overflow-y-auto">
           {contacts.length > 0 && (
             <div>
@@ -326,12 +405,17 @@ function SendDocumentDialog({ doc, contacts, onClose, onSent }: { doc: Doc; cont
           {error && <p className="text-sm text-red-500">{error}</p>}
         </div>
 
-        <div className="px-5 pb-5 flex justify-end gap-2">
+        <div className="px-5 pb-5 flex flex-wrap justify-end gap-2">
           <button className="btn btn-sm" onClick={onClose}>Cancel</button>
+          <button className="btn btn-sm btn-outline" onClick={openFields}>
+            <FontAwesomeIcon icon={faSignature} /> {fields?.length ? `Fields (${fields.length})` : locked ? "View fields" : "Add fields"}
+          </button>
           <button className="btn btn-sm btn-primary" disabled={sending} onClick={send}>
             <FontAwesomeIcon icon={faPaperPlane} /> {sending ? "Sending…" : "Send"}
           </button>
         </div>
+        </>
+        )}
       </div>
     </div>
   );

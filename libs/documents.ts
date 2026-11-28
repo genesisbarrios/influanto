@@ -4,7 +4,8 @@
 // email, drawn signature, typed name, time and IP, plus the original file's
 // SHA-256) and emailed to the owner and every signer.
 import crypto from "crypto";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, PDFFont, PDFPage, StandardFonts, degrees, rgb } from "pdf-lib";
+import type { DocField } from "@/libs/documentFields";
 import supabase from "@/libs/supabase";
 import { sendEmail } from "@/libs/resend";
 import config from "@/config";
@@ -48,6 +49,7 @@ export function escapeHtml(s: unknown) {
 type Signer = {
   name: string;
   email: string;
+  field_values?: Record<string, string> | null;
   signature_data: string | null;
   typed_name: string | null;
   signed_at: string | null;
@@ -55,21 +57,78 @@ type Signer = {
   signed_user_agent: string | null;
 };
 
-/** The original PDF plus a signature certificate page (or pages) at the end. */
-export async function buildSignedPdf(original: Uint8Array, doc: { id: string; title: string; file_hash: string }, signers: Signer[], ownerName: string) {
+// WinAnsi only: drop characters the standard fonts can't draw
+const clean = (s: unknown) =>
+  String(s ?? "")
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\u2026/g, "...")
+    .replace(/[^\x20-\x7E\u00A0-\u00FF]/g, "");
+
+/**
+ * A field's box (fractions of the page as it's shown, top-left origin) as a
+ * drawing origin in PDF space plus its size and rotation, so what's drawn
+ * there reads upright on screen, whatever the page's crop box and rotation.
+ */
+function fieldBox(page: PDFPage, f: DocField) {
+  const { x: cx, y: cy, width: W, height: H } = page.getCropBox();
+  const R = (((page.getRotation().angle || 0) % 360) + 360) % 360;
+  const toPdf = (u: number, v: number) =>
+    R === 90 ? { x: cx + v * W, y: cy + u * H }
+    : R === 180 ? { x: cx + W - u * W, y: cy + v * H }
+    : R === 270 ? { x: cx + W - v * W, y: cy + H - u * H }
+    : { x: cx + u * W, y: cy + H - v * H };
+  const shownW = R === 90 || R === 270 ? H : W;
+  const shownH = R === 90 || R === 270 ? W : H;
+  const origin = toPdf(f.x, f.y + f.h); // bottom-left of the box as shown
+  const rad = (R * Math.PI) / 180;
+  // a point inside the box (from its bottom-left, in the box's own upright axes) in PDF space
+  const at = (lx: number, ly: number) => ({ x: origin.x + lx * Math.cos(rad) - ly * Math.sin(rad), y: origin.y + lx * Math.sin(rad) + ly * Math.cos(rad) });
+  return { w: f.w * shownW, h: f.h * shownH, at, rotate: degrees(R) };
+}
+
+/** Signatures and text drawn into the fields placed on the pages. */
+async function stampFields(pdf: PDFDocument, fields: DocField[], signers: Signer[], font: PDFFont) {
+  const pages = pdf.getPages();
+  const byEmail = new Map(signers.map((s) => [String(s.email).toLowerCase(), s]));
+  const images = new Map<string, Awaited<ReturnType<PDFDocument["embedPng"]>>>();
+  for (const f of fields) {
+    const page = pages[f.page - 1];
+    if (!page) continue;
+    const b = fieldBox(page, f);
+    if (f.type === "signature") {
+      const s = byEmail.get(f.assignee);
+      const data = s?.signature_data;
+      if (!data?.startsWith("data:image/png;base64,")) continue;
+      try {
+        let png = images.get(f.assignee);
+        if (!png) { png = await pdf.embedPng(Buffer.from(data.split(",")[1], "base64")); images.set(f.assignee, png); }
+        const scale = Math.min(b.w / png.width, b.h / png.height);
+        const iw = png.width * scale, ih = png.height * scale;
+        const p = b.at((b.w - iw) / 2, (b.h - ih) / 2);
+        page.drawImage(png, { x: p.x, y: p.y, width: iw, height: ih, rotate: b.rotate });
+      } catch { /* bad image: the certificate still has the signature */ }
+    } else {
+      const raw = f.assignee === "me" ? f.value : byEmail.get(f.assignee)?.field_values?.[f.id];
+      const text = clean(raw).trim();
+      if (!text) continue;
+      let size = Math.max(6, Math.min(14, b.h * 0.65));
+      while (size > 5 && font.widthOfTextAtSize(text, size) > b.w - 4) size -= 0.5;
+      const p = b.at(2, (b.h - size) / 2 + size * 0.22);
+      page.drawText(text, { x: p.x, y: p.y, size, font, color: rgb(0.05, 0.05, 0.1), rotate: b.rotate });
+    }
+  }
+}
+
+/** The original PDF, with the fields filled in, plus a signature certificate page (or pages) at the end. */
+export async function buildSignedPdf(original: Uint8Array, doc: { id: string; title: string; file_hash: string; fields?: DocField[] | null }, signers: Signer[], ownerName: string) {
   const pdf = await PDFDocument.load(original, { ignoreEncryption: true });
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  if (Array.isArray(doc.fields) && doc.fields.length) await stampFields(pdf, doc.fields, signers, font);
   const W = 612, H = 792, M = 54; // US Letter, 0.75" margins
   const grey = rgb(0.42, 0.45, 0.5), ink = rgb(0.07, 0.07, 0.07);
-  // WinAnsi only: drop characters the standard fonts can't draw
-  const clean = (s: unknown) =>
-    String(s ?? "")
-      .replace(/[\u2013\u2014]/g, "-")
-      .replace(/[\u2018\u2019]/g, "'")
-      .replace(/[\u201C\u201D]/g, '"')
-      .replace(/\u2026/g, "...")
-      .replace(/[^\x20-\x7E\u00A0-\u00FF]/g, "");
 
   let page = pdf.addPage([W, H]);
   let y = H - M;
